@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Create Dataset from MetaData</title>
+<meta charset="UTF-8" />
+<meta name="author" content="Fabien TORTORA" />
+</head>
+<body>
+   <script src="../js/conf.js"></script>
+   <script src="../js/jquery-2.1.4.min.js"></script>
+   <script type="text/javascript">
+   
+   function importMDSample(){
+      importMD("Test_dataset_ts1", "MDName1", "12");
+      importMD("Test_dataset_ts3", "MDName1", "12");
+      importMD("Test_dataset_ts3", "MDName1", "42");
+      importMD("Test_dataset_ts4", "MDName1", "12");
+      importMD("Test_dataset_ts6", "MDName1", "42");
+      importMD("Test_dataset_ts1", "MDName1", "05");
+      importMD("Test_dataset_ts5", "MDName2", "12");
+      importMD("Test_dataset_ts2", "MDName1", "1000");
+      importMD("Test_dataset_ts7", "MDName2", "12");
+      importMD("Test_dataset_ts8", "MDName2", "42");
+      importMD("Test_dataset_ts9", "MDName1", "42");
+      importMD("Test_dataset_ts3", "MDName2", "42");
+   }
+
+
+   function importMD(ts,md,value){
+   var url = "../webapi/metadata/import/"+ts+'/'+md+'/'+value;
+   console.debug("POST "+url);
+   $.post(url).fail(function( jqxhr, textStatus, error ) {
+         var err = textStatus + ", " + error;
+         console.log( "Request Failed: " + err );
+         });
+   }
+
+
+   function addQParam(){
+      var indexq = $("input").length +1
+      var indexv = $("input").length +2
+      var q = $("<input placeholder='metadata name' onKeyUp='$(\"#input_"+indexv+"\").attr(\"name\",this.value).attr(\"placeholder\",this.value+\" value\")'>");
+      var v = $("<input class='val' id='input_"+indexv+"' name='undefined' placeholder='value'>");
+      var span = $("<span>").append(q).append(v).append("<br/>").attr("onDblClick","this.remove()").attr("title","double click to remove");
+
+      $("#qp").append(span);
+      return span;
+   }
+
+   function getList(){
+      var qp = "?";
+      $(".val").each(function(index,item){
+         qp += item.name + "=" + item.value+"&";
+      });
+
+      var url="../webapi/metadata/tsmatch"+qp;    
+      console.debug(url );
+      $.getJSON( url , function( data ) {
+          var li_items = [];
+            for (var i=0; i <data.length; i++){
+                li_items.push( "<li><input type='checkbox' checked name='"+data[i]+"'/> " + data[i] + "</li>" );
+            };
+            $("#tslist").html("");
+            $("#tslist").append($("<ul/>").html(li_items.join("")));
+      }).fail(function( jqxhr, textStatus, error ) {
+          var err = textStatus + ", " + error;
+          console.log( "Request Failed: " + err );
+      });
+
+   }
+   
+
+   $( document ).ready(function() {
+      $("#formulaire").append($("<div id='qp'>"));
+      $("#formulaire").append($("<div id='actions'>"));
+
+      $("#actions")
+         .append( $("<button type='button'>").attr("onClick","addQParam()").html("add new meta"))
+         .append( $("<button type='button'>").attr("onClick","getList()").html("Find"));
+
+       
+       $('#importform').submit(function() {
+           var rootpath = "../webapi/dataset/import/"+$("#datasetIdImport").val();
+           console.debug("rootpath");
+           $('#importform').attr('action', rootpath);
+       });
+       
+
+       $('#listform').submit(function() {
+           datasetIdImport
+           var rootpath = "../webapi/dataset/" + $("#datasetIdList").val();
+           console.debug("rootpath");
+           $('#listform').attr('action', rootpath);
+       });
+
+         
+   });
+   
+   function createds(){
+       var items = [];
+      $("#tslist :checked").each(function(index,item){
+          items.push(item.name);
+      });
+      tsuids = items.join(',');
+       
+       var url = "../webapi/dataset/import/"+$("#dsname").val();
+       var data = {
+               "name": $("#dsname").val(),
+               "description": $("#dsdesc").val(),
+               "tsuidList": tsuids               
+       };
+       console.debug("POST "+url);
+       console.debug("data: "+data);
+       $.post(url,data).fail(function( jqxhr, textStatus, error ) {
+           var err = textStatus + ", " + error;
+           console.log( "Request Failed: " + err );
+           $("#importDSStatus").html("Error!");
+       }).complete(function(){
+           $("#importDSStatus").html("Created!")
+       });
+       
+   }
+   
+   function checkds(){
+       var url = "../webapi/dataset/"+$("#dsname").val();
+       console.debug("GET "+url);
+       $.getJSON(url,function(json){
+           var msg = "Dataset name: "+json['name']+"<br/>";
+           msg+= "Description: "+json['description']+"<br/>";
+           msg+= "TS list: "+json['tsuidsAsString'].join(',')+"<br/>";
+           $("#listDS").html(msg);
+       }).fail(function( jqxhr, textStatus, error ) {
+           var err = textStatus + ", " + error;
+           console.log( "Request Failed: " + err );
+       });
+       
+   }
+
+   function importCustomSample(){
+      importMD($("#sample_ts").val(),$("#sample_md").val(),$("#sample_val").val());
+   }
+
+   </script>
+   
+   <h2>STEP 1 : Import Samples (optional)</h2>
+   <div>
+   Samples are: (ts name, metadata, value)</br>
+   ("Test_dataset_ts1", "MDName1", "12");</br>
+   ("Test_dataset_ts3", "MDName1", "12");</br>
+   ("Test_dataset_ts3", "MDName1", "42");</br>
+   ("Test_dataset_ts4", "MDName1", "12");</br>
+   ("Test_dataset_ts6", "MDName1", "42");</br>
+   ("Test_dataset_ts1", "MDName1", "05");</br>
+   ("Test_dataset_ts5", "MDName2", "12");</br>
+   ("Test_dataset_ts2", "MDName1", "1000");</br>
+   ("Test_dataset_ts7", "MDName2", "12");</br>
+   ("Test_dataset_ts8", "MDName2", "42");</br>
+   ("Test_dataset_ts9", "MDName1", "42");</br>
+   ("Test_dataset_ts9", "MDName2", "42");</br>
+   ("Test_dataset_ts1", "MDName2", "42");</br>
+   </div>
+   
+   <button onClick='importMDSample();'>Import meta data sample</button><br/>
+   <input type="text" id="sample_ts" placeholder="TS name">
+   <input type="text" id="sample_md" placeholder="Meta Data name">
+   <input type="text" id="sample_val" placeholder="Meta Data value">
+   <button onClick='importCustomSample();'>Import custom sample</button>
+   <h2>STEP 2 : Define meta data constraints</h2>
+   <p>
+      Example:<br/>
+      <input disabled value="Meta1" size=4> <input disabled value="12" size=3><br/>
+      <input disabled value="Meta1" size=4> <input disabled value="42" size=3><br/>
+      <input disabled value="Meta2" size=4> <input disabled value="50" size=3><br/>
+      produces the following request:<br/>
+      (Meta1 = 12 OR Meta1 = 42) AND Meta2 = 50<br/>
+   </p>
+   <form id="formulaire"></form>
+   <h2>STEP 3 : Tick the TS to include in dataset</h2>
+   <div id="tslist"></div>
+   <h2>STEP 4 : Import the new Data set to Ikats</h2>
+   <div id="importDS">
+   
+   Dataset name <input type="text" name="name" id="dsname"/><br/>
+   Description <input type="text" name="description" id="dsdesc" /><br/>
+   
+   <button onClick='createds();'>Create Dataset</button><br/>
+   <div id="importDSStatus"></div>
+   </div>
+   <h2>STEP 5 : Check the dataset content from Ikats</h2>
+   <button onClick='checkds();'>Get Dataset</button><br/>
+   <div id="listDS">
+    </div>
+
+</body>
+</html>

@@ -1,0 +1,120 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>IKATS</title>
+<title>Temporal Data web app</title>
+<title>Import metadata</title>
+<meta charset="UTF-8" />
+<meta name="author" content="CSSI" />
+</head>
+<body>
+
+    <script
+        src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="../js/conf.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            // This part is called as soon as the submit button is pressed
+            $('#importForm').submit(function() {
+            	// does not work in IE.
+                $('#fileSize').val($('#finput')[0].files[0].size);
+                var rootpath = "../webapi/processdata/" + $("#processId").val();
+                console.debug("rootpath");
+                $('#importForm').attr('action', rootpath);
+            });
+
+            $('#downloadform').submit(function() {
+                var rootpath = "../webapi/processdata/id/download/" + $("#id").val();
+                console.debug("rootpath");
+                $('#downloadform').attr('action', rootpath);
+            });
+            
+            $('#listform').submit(function() {
+                var rootpath = "../webapi/processdata/" + $("#pid").val();
+                console.debug("rootpath");
+                $('#listform').attr('action', rootpath);
+            });
+        });
+    </script>
+
+
+
+    <p>Import Form</p>
+    <form id="importForm" method="POST" action="" enctype="multipart/form-data">
+        <table>
+            <tr>
+                <td align="right">Fichier:</td>
+                <td align="left"><input type="file" name="file" id="finput"/></td>
+            </tr>
+            <tr><td align="right"></td><td align="left"><input type="hidden" name="fileSize" id="fileSize"/></td></tr>
+            <tr>
+                <td align="right">DataType:</td>
+                <td align="left">
+                    <select name="fileType">
+                        <option value="CSV">CSV</option>
+                        <option value="JSON">JSON</option>
+                    </select>
+            </tr>
+            <tr>
+                <td align="right">process identifier:</td>
+                <td align="left"><input type="text" id ="processId" name="execId" /></td>            
+            </tr>
+        </table>
+        <br /> 
+        <input type="submit" value="IMPORT" />
+    </form>
+
+    <p>
+    <h1>Usage</h1>
+    <h2>Principle</h2>
+    This tool allows to import processData file for a given TSUID and dataType:
+    <h2>How to</h2>
+    <p>Provide a file</p>
+    <p>provide a data Type in the select Box</p>
+    <p>Provide a process identifier ( free string)</p> 
+    <p>Click on IMPORT to send the request</p>
+
+    <hr>
+
+    <p>List Form</p>
+
+
+     <form id="listform" method="GET" action="">
+        <table>
+            <tr>
+                <td align="right">PROCESS ID:</td>
+                <td align="left"><input type="text" id="pid" name="pid" /></td>
+            </tr>
+        </table>
+        <br /> <input type="submit" value="GET" />
+    </form>
+    
+    <form id="downloadform" method="GET" action="">
+        <table>
+            <tr>
+                <td align="right">ID:</td>
+                <td align="left"><input type="text" id="id" name="id" /></td>
+            </tr>
+        </table>
+        <br /> <input type="submit" value="DOWNLOAD" />
+    </form>
+
+    <h1>Usage</h1>
+    <h2>Principle</h2>
+    This tool allows to list and to download a processData file:
+    <h2>How to</h2>
+    <p>Fill in following text boxes:</p>
+    <ul>
+        <li>PROCESS ID: name of the process which created the data</li>
+        
+    </ul>
+    <p>Click on GET to get the list of data in JSON format.</p>
+    
+    <p>Fill in following text boxes:</p>
+    <ul>
+        <li>ID: name of the internal id of the process Data ( from the previous response in JSON format)</li>
+    </ul>
+    <p>Click on DOWNLOAD to get the file</p>
+</body>
+</html>

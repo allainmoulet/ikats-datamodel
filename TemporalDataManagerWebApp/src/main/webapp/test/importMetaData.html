@@ -1,0 +1,87 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>IKATS</title>
+<title>Temporal Data web app</title>
+<title>Import metadata</title>
+<meta charset="UTF-8" />
+<meta name="author" content="CSSI" />
+</head>
+<body>
+
+	<script
+		src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+	<script src="../js/conf.js"></script>
+	<script type="text/javascript">
+        $(document).ready(function() {
+            // This part is called as soon as the submit button is pressed
+            $('#myform').submit(function() {
+                var rootpath = "../webapi/metadata/import/file";
+                console.debug("rootpath");
+                $('#myform').attr('action', rootpath);
+            });
+
+            $('#listform').submit(function() {
+                var rootpath = "../webapi/metadata/list?tsuid=" + $("#tsuid").val();
+                console.debug("rootpath");
+                $('#listform').attr('action', rootpath);
+            });
+        });
+    </script>
+
+
+
+	<p>Import Form</p>
+	<form id="myform" method="POST" action="" enctype="multipart/form-data">
+		<table>
+			<tr>
+				<td align="right">Fichier:</td>
+				<td align="left"><input type="file" name="file" /></td>
+			</tr>
+		</table>
+		<br /> <input type="submit" value="IMPORT" />
+	</form>
+
+	<p>
+	<h1>Usage</h1>
+	<h2>Principle</h2>
+	This tool allows to import metadata from a csv file:
+	<h2>How to</h2>
+	<p>Provide a file (CSV format) having the following structure:</p>
+	<ul>
+		<li>Header line (metadata names) : ;metaName1;metaName2;...</li>
+		<li>(tsuid or metric);valueMeta1;valueMeta2;...</li>
+		<li>(tsuid or metric)2;valueMeta1;valueMeta2;...</li>
+		<li>(…)</li>
+		<li>(tsuid or metric)N;valueMeta1;valueMeta2;...</li>
+	</ul>
+	<p>Click on IMPORT to send the request</p>
+
+
+	<hr>
+
+	<p>List Form</p>
+
+	<form id="listform" method="GET" action="">
+		<table>
+			<tr>
+				<td align="right">TSUID:</td>
+				<td align="left"><input type="text" id="tsuid" name="tsuid" /></td>
+			</tr>
+		</table>
+		<br /> <input type="submit" value="LIST" />
+	</form>
+
+	<h1>Usage</h1>
+	<h2>Principle</h2>
+	This tool allows to get metadata in a csv file:
+	<h2>How to</h2>
+	<p>Fill in following text boxes:</p>
+	<ul>
+		<li>TSUID : name of the TSUID (separate by ',' to have several
+			TSUID), or "*" for all TSUID</li>
+	</ul>
+	<p>Click on LIST to send the request</p>
+</body>
+</html>

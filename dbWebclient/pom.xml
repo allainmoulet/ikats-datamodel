@@ -1,0 +1,59 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>java.fr.cs.ikats</groupId>
+	<artifactId>db-web-client</artifactId>
+	<name>opentsdbclient</name>
+	<description>client opentsdb en java	</description>
+
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.glassfish.jersey</groupId>
+				<artifactId>jersey-bom</artifactId>
+				<version>${jersey.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+
+	<properties>
+		<jersey.version>2.9</jersey.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<dependencies>
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-client</artifactId>
+		</dependency>
+		<dependency>
+        	<groupId>org.glassfish.jersey.media</groupId>
+        	<artifactId>jersey-media-multipart</artifactId>
+        </dependency>
+        
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.12</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>4.2.0.RELEASE</version>
+		</dependency>
+	</dependencies>
+	<parent>
+		<groupId>fr.cs.ikats</groupId>
+		<artifactId>ikats-main</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../ikats-main</relativePath>
+	</parent>
+</project>

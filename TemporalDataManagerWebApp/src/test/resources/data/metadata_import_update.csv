@@ -1,0 +1,4 @@
+;cycle#string;Vol#number;complex_item#complex
+"testImportMetaDataCSVWithUpdateMAM1";"decollage";"AF2042";
+testImportMetaDataCSVWithUpdateMAM2;vol;AF2041;
+"testImportMetaDataCSVWithUpdateMAM3";"atterrissage";"42";{key1: value1}

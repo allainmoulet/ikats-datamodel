@@ -1,0 +1,77 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<title>IKATS</title>
+<title>Temporal Data web app</title>
+<title>Import a TS in OpenTSDB</title>
+<meta charset="UTF-8" content="">
+<meta name="author" content="CSSI">
+</head>
+<body>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="../js/conf.js"></script>
+<script type="text/javascript">$( document ).ready(function() {
+		// This part is called as soon as the submit button is pressed
+		$('#myform').submit(function() {
+			var TSDBroot="http://172.28.15.83:80/TemporalDataManagerWebApp/webapi"
+			var rootpath=TSDBroot+"/ts/put/";
+			var metric=$("#metric").val()
+			var tags=$("#tags").val();
+			if (tags == "") {	
+				var newpath=rootpath+metric+"/"+"?tags=default";
+			} 
+			else {
+				var newpath=rootpath+metric+"/"+"?tags="+tags;
+			}
+			console.debug("newpath");
+			$('#myform').attr('action',newpath);        
+       });
+    });
+</script>
+
+<table>
+  <tr>
+    <td align="right">Metric name:</td>
+    <td align="left"><input type="text" id="metric"/></td>
+  </tr>
+  <tr>
+    <td align="right">Tag list (optional):</td>
+    <td align="left"><input type="text" id="tags" placeholder="{&quot;tag1&quot;:&quot;value1&quot;,&quot;tag2&quot;:&quot;value2&quot;}" size="35"/></td>
+  </tr>
+</table>
+
+<form id="myform" method="POST" action="" enctype="multipart/form-data">
+ <table>
+  <tr>
+    <td align="right">Functional Identifier :</td>
+    <td align="left"><input type="text" name="funcId" size="33"/></td>
+  </tr>
+  <tr>
+    <td align="right">File:</td>
+    <td align="left"><input type="file" name="file"/></td>
+  </tr>
+ </table>
+ <br/><input type="submit" value="IMPORT"/>
+</form>
+
+        <h1>Usage</h1>
+        <h2>Principle</h2>
+        This tool allows to import a Time Serie in Open TSDB from an input csv file
+        <h2>How to</h2>
+        <p>Fill in following text boxes: </p>
+        <ul>
+            <li>Metric : name of the metric</li>
+            <li>Tag : list of tags to associate with imported time series (optional)</li>
+            <li>Functional Identifier : a user understandable identifier of the imported time series</li>
+            <li>File : file csv format (timestamp est au format ISO yyyy-MM-ddTHH:mm:ss.S):</li>
+                &emsp;header line (columns content)<br/>
+                &emsp;timestamp1;value1<br/>
+                &emsp;timestamp2;value2<br/>
+                &emsp;(…)<br/>
+                &emsp;timestampN;valueN<br/>
+        </ul>
+        <p>Click on IMPORT to send the request </p>
+   
+</body>
+</html>

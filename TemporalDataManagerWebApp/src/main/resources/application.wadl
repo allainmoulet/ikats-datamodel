@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application xmlns="http://wadl.dev.java.net/2009/02"><doc
+        jersey:generatedBy="Jersey: 1.17 01/17/2013 03:31 PM"
+        xmlns:jersey="http://jersey.java.net/"/><doc
+        title="IKATS Temporal Manager WADL"
+        xml:lang="en"><![CDATA[this is the Temporal Data Manager interface]]></doc><grammars/><resources base="http://${server.url}/TemporalDataManagerWebApp"/></application>

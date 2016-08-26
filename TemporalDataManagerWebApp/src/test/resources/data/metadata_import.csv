@@ -1,0 +1,9 @@
+;ignored;"metaOne#date";"metaTwo#string"
+"MAM1";1234567890123;"decollage"
+"MAM1";"1234567890123";atterrissage
+MAM2;vol;AF2041
+MAM2;cycle;atterrissage
+
+MAM3,1234567890123,Ville
+"MAM3";"Ident";
+"MAM3";flight_date;"1234567890123"

@@ -1,0 +1,142 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<title>IKATS</title>
+<title>Temporal Data web app</title>
+<title>DataSet Management</title>
+<meta charset="UTF-8" />
+<meta name="author" content="CSSI" />
+</head>
+<body>
+
+    <script
+        src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+    <script src="../js/conf.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function() {
+            // This part is called as soon as the submit button is pressed
+            $('#importform').submit(function() {
+                var rootpath = "../webapi/dataset/import/"+$("#datasetIdImport").val();
+                console.debug("rootpath");
+                $('#importform').attr('action', rootpath);
+            });
+
+            $('#listform').submit(function() {
+                var rootpath = "../webapi/dataset/" + $("#datasetIdList").val();
+                console.debug("rootpath");
+                $('#listform').attr('action', rootpath);
+            });
+            
+            $('#deleteform').submit(function() {
+                rootpath = "../webapi/dataset/" + $("#datasetIdDel").val();
+                console.debug("rootpath");
+                /*$('#deleteform').attr('action', rootpath); */
+                
+                $.ajax({ 
+                    url: rootpath, 
+                    type: 'DELETE', 
+                    async:false,
+                    success: function(result) { 
+                            alert("delete OK"); 
+                    } 
+                })
+                
+                .done(function() {
+                    //alert( "success" );
+                  })
+                  .fail(function() {
+                    alert( "error" );
+                  })
+                  .always(function() {
+                    //alert( "complete" );
+                  });
+                
+                
+            });
+            
+            
+        });
+    </script>
+
+
+
+    <p>Import Form</p>
+    <form id="importform" method="POST" action="">
+        <table>
+            <tr>
+                <td align="right">Name:</td>
+                <td align="left"><input type="text" name="name" id="datasetIdImport" /></td>
+            </tr>
+            <tr>
+                <td align="right">Description:</td>
+                <td align="left"><input type="text" name="description" /></td>
+            </tr>
+            <tr>
+                <td align="right">TS identifiers list: (comma separated)</td>
+                <td align="left"><input type="text" name="tsuidList" /></td>
+            </tr>
+        </table>
+        <br /> <input type="submit" value="IMPORT" />
+    </form>
+
+    <p>
+    <h1>Usage</h1>
+    <h2>Principle</h2>
+    This tool allows to import dataset :
+    <h2>How to</h2>
+    <p>Provide :</p>
+    <ul>
+        <li>a name</li>
+        <li>a short description</li>
+        <li>ttsuid1,tsuid2,tsuid3...</li>
+    </ul>
+    <p>Click on IMPORT to send the request</p>
+    <hr>
+
+    <p>List Form</p>
+
+    <form id="listform" method="GET" action="">
+        <table>
+            <tr>
+                <td align="right">DataSet Name</td>
+                <td align="left"><input type="text" id="datasetIdList" /></td>
+            </tr>
+        </table>
+        <br /> <input type="submit" value="LIST" />
+    </form>
+
+    <h1>Usage</h1>
+    <h2>Principle</h2>
+    This tool allows to get dataSet:
+    <h2>How to</h2>
+    <p>Fill in following text boxes:</p>
+    <ul>
+        <li>DataSet Name</li>
+    </ul>
+    <p>Click on LIST to send the request</p>
+    
+    
+    <p>Del Form</p>
+
+    <form id="deleteform" method="DELETE" action="">
+        <table>
+            <tr>
+                <td align="right">DataSet Name</td>
+                <td align="left"><input type="text" id="datasetIdDel" /></td>
+            </tr>
+        </table>
+        <br /> <input type="submit" value="DELETE" />
+    </form>
+
+    <h1>Usage</h1>
+    <h2>Principle</h2>
+    This tool allows to remove dataSet:
+    <h2>How to</h2>
+    <p>Fill in following text boxes:</p>
+    <ul>
+        <li>DataSet Name</li>
+    </ul>
+    <p>Click on DELETE to send the request</p>
+</body>
+</html>

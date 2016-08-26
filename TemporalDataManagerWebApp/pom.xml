@@ -1,0 +1,397 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>TemporalDataManagerWebApp</artifactId>
+	<packaging>war</packaging>
+	<version>1.0-SNAPSHOT</version>
+	<name>TemporalDataManagerWebApp</name>
+
+	<build>
+		<finalName>TemporalDataManagerWebApp</finalName>
+		<plugins>
+
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>java</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<mainClass>fr.cs.ikats.temporaldata.ServerMain</mainClass>
+					<classpathScope>test</classpathScope>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.tomcat.maven</groupId>
+				<artifactId>tomcat7-maven-plugin</artifactId>
+				<version>2.2</version>
+				<configuration>
+					<url>http://${server.url}/manager/text</url>
+					<server>${server.name}</server>
+					<path>/TemporalDataManagerWebApp</path>
+					<warFile>target/${target}/TemporalDataManagerWebApp.war</warFile>
+					<update>true</update>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>com.sun.jersey.contribs</groupId>
+				<artifactId>maven-wadl-plugin</artifactId>
+				<version>1.17</version>
+				<!-- Generate the wadl resource -->
+				<dependencies>
+					<dependency>
+						<groupId>xerces</groupId>
+						<artifactId>xercesImpl</artifactId>
+						<version>2.11.0</version>
+					</dependency>
+
+					<dependency>
+						<!-- 
+						     Required dependency: set visible handled exceptions from fr.cs.ikats.common.dao.exception: 
+							 used by @Provider tagged fr.cs.ikats.temporaldata.exception.IkatsDaoExceptionHandler  
+					    -->
+						<groupId>fr.cs.ikats</groupId>
+						<artifactId>common-database</artifactId>
+						<!-- TODO later: manage version with a configured variable in ikats_main ...  -->
+						<version>0.0.1-SNAPSHOT</version>
+					</dependency>
+				</dependencies>
+
+				<executions>
+					<execution>
+						<id>generate</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<phase>generate-sources</phase>
+					</execution>
+				</executions>
+				<configuration>
+					<wadlFile>${basedir}/src/main/resources/application.wadl</wadlFile>
+					<formatWadlFile>true</formatWadlFile>
+					<baseUri>http://${server.url}/TemporalDataManagerWebApp</baseUri>
+					<packagesResourceConfig>
+						<param>fr.cs.ikats.temporaldata.resource</param>
+					</packagesResourceConfig>
+					<wadlGenerators>
+						<wadlGeneratorDescription>
+							<className>com.sun.jersey.server.wadl.generators.WadlGeneratorApplicationDoc</className>
+							<properties>
+								<property>
+									<name>applicationDocsFile</name>
+									<value>${basedir}/src/main/doc/application-doc.xml</value>
+								</property>
+							</properties>
+						</wadlGeneratorDescription>
+						<wadlGeneratorDescription>
+							<className>com.sun.jersey.server.wadl.generators.WadlGeneratorGrammarsSupport</className>
+							<properties>
+								<property>
+									<name>grammarsFile</name>
+									<value>${basedir}/src/main/doc/application-grammars.xml</value>
+								</property>
+							</properties>
+						</wadlGeneratorDescription>
+					</wadlGenerators>
+				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-war-plugin</artifactId>
+				<version>2.1.1</version>
+				<configuration>
+					<archiveClasses>true</archiveClasses>
+					<webResources>
+						<resource>
+							<directory>src/main/resources</directory>
+							<targetPath>WEB-INF/classes</targetPath>
+							<includes>
+								<include>**/*</include>
+							</includes>
+						</resource>
+					</webResources>
+
+				</configuration>
+				<executions>
+					<execution>
+						<id>dev</id>
+						<configuration>
+							<outputDirectory>target/dev</outputDirectory>
+							<webResources>
+								<resource>
+									<directory>src/main/dev/resources</directory>
+									<targetPath>WEB-INF/classes</targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>src/main/dev/webapp</directory>
+									<targetPath></targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+							</webResources>
+						</configuration>
+						<goals>
+							<goal>war</goal>
+						</goals>
+					</execution>
+
+					<execution>
+						<id>int</id>
+						<configuration>
+							<outputDirectory>target/int</outputDirectory>
+							<webResources>
+								<resource>
+									<directory>src/main/int/resources</directory>
+									<targetPath>WEB-INF/classes</targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>src/main/int/webapp</directory>
+									<targetPath></targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+							</webResources>
+						</configuration>
+						<goals>
+							<goal>war</goal>
+						</goals>
+					</execution>
+
+					<execution>
+						<id>preprod</id>
+						<configuration>
+							<outputDirectory>target/preprod</outputDirectory>
+							<webResources>
+								<resource>
+									<directory>src/main/preprod/resources</directory>
+									<targetPath>WEB-INF/classes</targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>src/main/preprod/webapp</directory>
+									<targetPath></targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+							</webResources>
+						</configuration>
+						<goals>
+							<goal>war</goal>
+						</goals>
+					</execution>
+
+					<execution>
+						<id>local</id>
+						<configuration>
+							<outputDirectory>target/local</outputDirectory>
+							<webResources>
+								<resource>
+									<directory>src/main/local/resources</directory>
+									<targetPath>WEB-INF/classes</targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>src/main/local/webapp</directory>
+									<targetPath></targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+							</webResources>
+						</configuration>
+						<goals>
+							<goal>war</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.glassfish.jersey</groupId>
+				<artifactId>jersey-bom</artifactId>
+				<version>${jersey.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-servlet</artifactId>
+			<!-- use the following artifactId if you don't need servlet 2.x compatibility -->
+			<!-- artifactId>jersey-container-servlet</artifactId -->
+		</dependency>
+		<dependency>
+			<groupId>org.glassfish.jersey.core</groupId>
+			<artifactId>jersey-client</artifactId>
+		</dependency>
+
+		<!-- JSON support -->
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-json-jackson</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-hibernate3</artifactId>
+			<version>2.5.3</version>
+		</dependency>
+		<!-- multi part support -->
+		<dependency>
+			<groupId>org.glassfish.jersey.media</groupId>
+			<artifactId>jersey-media-multipart</artifactId>
+		</dependency>
+		<!-- dependency for grizzly container for tests -->
+		<dependency>
+			<groupId>org.glassfish.jersey.containers</groupId>
+			<artifactId>jersey-container-grizzly2-http</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>commons-configuration</groupId>
+			<artifactId>commons-configuration</artifactId>
+			<version>1.10</version>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.12</version>
+		</dependency>
+		<dependency>
+			<groupId>java.fr.cs.ikats</groupId>
+			<artifactId>db-web-client</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>jfree</groupId>
+			<artifactId>jfreechart</artifactId>
+			<version>1.0.13</version>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework</groupId>
+			<artifactId>spring-context</artifactId>
+			<version>4.2.0.RELEASE</version>
+		</dependency>
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-pool2</artifactId>
+			<version>2.2</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.cs.ikats</groupId>
+			<artifactId>${client.name}-contrib</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.cs.ikats</groupId>
+			<artifactId>metadata-database</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>8.4-702.jdbc4</version>
+		</dependency>
+
+		<dependency>
+			<groupId>fr.cs.ikats</groupId>
+			<artifactId>dataset-database</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>org.hibernate.javax.persistence</groupId>
+			<artifactId>hibernate-jpa-2.0-api</artifactId>
+			<version>1.0.0.Final</version>
+			<scope>runtime</scope>
+		</dependency>
+
+		<dependency>
+			<groupId>fr.cs.ikats</groupId>
+			<artifactId>process-data-database</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+
+
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
+			<groupId>fr.cs.ikats</groupId>
+			<artifactId>edf-contrib</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>fr.cs.ikats</groupId>
+			<artifactId>airbus-contrib</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+			<scope>runtime</scope>
+		</dependency>
+	</dependencies>
+	<properties>
+		<jersey.version>2.22</jersey.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<client.name>test</client.name>
+	</properties>
+
+	<profiles>
+
+		<!-- <profile> <id>profile-edf</id> <activation> <activeByDefault>false</activeByDefault> 
+			<property> <name>client</name> <value>edf</value> </property> </activation> 
+			<properties> <client.name>edf</client.name> </properties> </profile> <profile> 
+			<id>profile-airbus</id> <activation> <activeByDefault>false</activeByDefault> 
+			</activation> <properties> <client.name>airbus</client.name> </properties> 
+			</profile> -->
+		<profile>
+			<id>profile-common</id>
+			<activation>
+				<activeByDefault>true</activeByDefault>
+			</activation>
+			<properties>
+				<client.name>common</client.name>
+			</properties>
+		</profile>
+
+	</profiles>
+	<parent>
+		<groupId>fr.cs.ikats</groupId>
+		<artifactId>ikats-main</artifactId>
+		<version>0.0.1-SNAPSHOT</version>
+		<relativePath>../ikats-main</relativePath>
+	</parent>
+</project>
