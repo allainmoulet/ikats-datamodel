@@ -2,7 +2,6 @@ package fr.cs.ikats.datamanager.client.opentsdb.importer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -26,7 +25,7 @@ public class CSVJsonIzerForOpentsdb implements IImportSerializer {
     boolean hasNext = true;
 
     @Override
-    public void init(BufferedReader reader, String fileName, String metric, Map<String, List<String>> tags) {
+    public void init(BufferedReader reader, String fileName, String metric, Map<String, String> tags) {
         this.period = 1;
         this.tag = "numero";
     }

@@ -376,7 +376,7 @@ public class TimeSerieResource extends AbstractResource {
         logger.info("Metric : " + metric);
 
         List<Future<ImportResult>> resultats = new ArrayList<Future<ImportResult>>();
-        Map<String, List<String>> tags = new HashMap<String, List<String>>();
+        Map<String, String> tags = new HashMap<String, String>();
         try {
         
 	        for (String key : formParams.keySet()) {
@@ -388,8 +388,7 @@ public class TimeSerieResource extends AbstractResource {
         		if (formParams.get(key).size() > 0) {
         			for (String value : formParams.get(key)) {
         				if (!tags.containsKey(key)) {
-        					tags.put(key, new ArrayList<String>());
-        					tags.get(key).add(value);
+        					tags.put(key, value);
         					logger.info("Tag : " + key + " - " + value);
         				}
         				else {
@@ -430,8 +429,8 @@ public class TimeSerieResource extends AbstractResource {
             // metric is also a metadata
             metadataManager.persistMetaData(importResult.getTsuid(), "metric", metric, "string");
             // import tags
-            for (Map.Entry<String, List<String>> theTag : tags.entrySet()) {
-                metadataManager.persistMetaData(importResult.getTsuid(), theTag.getKey(), theTag.getValue().get(0), "string");
+            for (Map.Entry<String, String> theTag : tags.entrySet()) {
+                metadataManager.persistMetaData(importResult.getTsuid(), theTag.getKey(), theTag.getValue(), "string");
             }
 
             // store functional identifier
@@ -439,6 +438,15 @@ public class TimeSerieResource extends AbstractResource {
             metadataManager.persistFunctionalIdentifier(importResult.getTsuid(), importResult.getFuncId());
             chrono.stop(logger);
         }
+        catch (ImportException e) {
+            logger.error("Error during import:",  e );
+            throw e;
+        }
+        catch (IkatsDaoException e) {
+            ImportException le = new ImportException("DAO Error during import:", e);
+            logger.error( le );
+            throw le;
+        }        
         catch (Exception e) {
             throw new ImportException("Unknown Error during import", e);
         }
@@ -574,7 +582,7 @@ public class TimeSerieResource extends AbstractResource {
             logger.info("Metric : " + metric);
             String funcId = null;
             Map<String, List<FormDataBodyPart>> params = formData.getFields();
-            Map<String, List<String>> tags = new HashMap<String, List<String>>();
+            Map<String, String> tags = new HashMap<String, String>();
 
             for (String key : params.keySet()) {
                 if (key.equals("funcId")) {
@@ -584,8 +592,7 @@ public class TimeSerieResource extends AbstractResource {
                     if (params.get(key).size() > 0) {
                         for (FormDataBodyPart valuePart : params.get(key)) {
                             if (!tags.containsKey(key)) {
-                                tags.put(key, new ArrayList<String>());
-                                tags.get(key).add(valuePart.getValue());
+                                tags.put(key, valuePart.getValue());
                                 logger.info("Tag : " + key + " - " + valuePart.getValue());
                             }
                             else {
@@ -618,8 +625,8 @@ public class TimeSerieResource extends AbstractResource {
             // metric is also a metadata
             metadataManager.persistMetaData(resultatTotal.getTsuid(), "metric", metric, "string");
             // import tags
-            for (Map.Entry<String, List<String>> theTag : tags.entrySet()) {
-                metadataManager.persistMetaData(resultatTotal.getTsuid(), theTag.getKey(), theTag.getValue().get(0), "string");
+            for (Map.Entry<String, String> theTag : tags.entrySet()) {
+                metadataManager.persistMetaData(resultatTotal.getTsuid(), theTag.getKey(), theTag.getValue(), "string");
             }
 
             // store functional identifier

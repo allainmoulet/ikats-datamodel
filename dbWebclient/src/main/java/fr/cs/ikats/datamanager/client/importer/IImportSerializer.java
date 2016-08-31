@@ -2,7 +2,6 @@ package fr.cs.ikats.datamanager.client.importer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import fr.cs.ikats.datamanager.DataManagerException;
@@ -25,7 +24,7 @@ public interface IImportSerializer extends Cloneable {
      * @param tags the tags 
      * @param numberOfPointsByImport number of points to serialize at each next() call.
      */
-    void init(BufferedReader reader, String fileName, String metric, Map<String, List<String>> tags);
+    void init(BufferedReader reader, String fileName, String metric, Map<String, String> tags);
 
     /**
      * get the next Import String.

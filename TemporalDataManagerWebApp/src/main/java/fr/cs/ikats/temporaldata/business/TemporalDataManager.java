@@ -146,7 +146,7 @@ public class TemporalDataManager {
      * @throws DataManagerException 
      * @throws IOException 
      */
-    public long[] launchImportTasks(String metric, InputStream fileis, List<Future<ImportResult>> resultats, Map<String, List<String>> tags,
+    public long[] launchImportTasks(String metric, InputStream fileis, List<Future<ImportResult>> resultats, Map<String, String> tags,
             String fileName) throws ImportException, DataManagerException, IOException {
     	
         ExecutorService executorService = ExecutorManager.getInstance().getExecutorService(ApplicationConfiguration.IMPORT_THREAD_POOL_NAME);
@@ -306,7 +306,7 @@ public class TemporalDataManager {
      * @throws IkatsWebClientException
      *             if TSUID cannot be retrieved
      */
-    public ImportResult parseImportResults(String metric, List<Future<ImportResult>> resultats, Map<String, List<String>> tags, Long startDate,
+    public ImportResult parseImportResults(String metric, List<Future<ImportResult>> resultats, Map<String, String> tags, Long startDate,
             Long endDate) throws InterruptedException, ExecutionException, IkatsWebClientException {
         ImportResult resultatTotal = new ImportResult();
         long success = 0L;
@@ -320,11 +320,7 @@ public class TemporalDataManager {
         }
         // ad the tag map
         StringBuilder tagSb = new StringBuilder("{");
-        for (String tag : tags.keySet()) {
-            for (String value : tags.get(tag)) {
-                tagSb.append(tag).append("=").append(value).append(",");
-            }
-        }
+        tags.forEach((k, v) -> tagSb.append(k).append("=").append(v).append(","));
         // if no tags, set the metric as tag
         if (tags.isEmpty()) {
             tagSb.append("metric=").append(metric).append(",");
