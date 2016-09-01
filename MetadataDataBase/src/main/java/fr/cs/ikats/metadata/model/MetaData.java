@@ -7,6 +7,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
@@ -58,10 +59,11 @@ public class MetaData {
 	}
 
 	@Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id")
-	private Integer id;
-
+    @SequenceGenerator(name="tsmetadata_id_seq", sequenceName="tsmetadata_id_seq", allocationSize=1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator="tsmetadata_id_seq")
+    @Column(name = "id", updatable = false)
+    private Integer id;
+	
 	@Column(name = "tsuid")
 	private String tsuid;
 
