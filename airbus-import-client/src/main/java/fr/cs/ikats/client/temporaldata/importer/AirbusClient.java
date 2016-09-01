@@ -214,7 +214,7 @@ public class AirbusClient {
 
         MultivaluedMap<String, String> formParams = new MultivaluedHashMap<String, String>();
         
-        formParams.add("tsFile", distantFile.getPath());
+        formParams.add("file", distantFile.getPath());
         formParams.add("funcId", functionalIdentifier);
         
         // add a field with aircraftId if SET

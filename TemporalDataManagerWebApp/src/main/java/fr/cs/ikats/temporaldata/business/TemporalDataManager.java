@@ -107,6 +107,7 @@ public class TemporalDataManager {
     }
 
     /**
+     * FIXME : cette fonction ne valide pas un pattern de Fonctional Identifier IKATS, mais simplement les caractères autorisés pour les tags OpenTSDB
      * validate the funcId value for the given tsuid
      * 
      * @param funcId

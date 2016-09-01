@@ -11,6 +11,7 @@ package fr.cs.ikats.temporaldata.resource;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -39,6 +40,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.log4j.Logger;
+import org.glassfish.jersey.internal.util.collection.StringKeyIgnoreCaseMultivaluedMap;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -56,13 +58,12 @@ import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
-import fr.cs.ikats.temporaldata.application.ApplicationConfiguration;
-import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
 import fr.cs.ikats.temporaldata.business.TSInfo;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.ImportException;
+import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.temporaldata.utils.Chronometer;
 import fr.cs.ikats.ts.dataset.DataSetFacade;
@@ -348,12 +349,10 @@ public class TimeSerieResource extends AbstractResource {
     @Consumes (MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
     public ImportResult importTSLocal(@PathParam("metric") String metric, 
-    		@FormParam("tsFile") String tsFilepath, 
+    		@FormParam("file") String tsFilepath, 
     		@FormParam("funcId") String funcId, 
     		MultivaluedMap<String, String> formParams, @Context UriInfo uriInfo) throws Exception {
         
-    	Chronometer chrono = new Chronometer("ImportResource:importTSLocal", false);
-    	ImportResult importResult = null;
         
     	// Check parameters
         File tsFile = new File(IKATSDATA_IMPORT_ROOT_PATH + tsFilepath);
@@ -362,100 +361,11 @@ public class TimeSerieResource extends AbstractResource {
         	throw new ImportException("Can't access " + tsFile.getAbsolutePath());
         }
         
-        if (funcId == null || funcId.isEmpty()) {
-        	// no import if no functional identifier provided into form
-        	throw new ImportException("No functional id provided in the form or is null, import canceled");
-        }
-        
         // Start to process the request
         FileInputStream fileIS = new FileInputStream(tsFile);
         String filename = tsFile.getName();
         
-        // FIXME code to be factorized with doImport method. 
-        logger.info("Import file : " + filename);
-        logger.info("Metric : " + metric);
-
-        List<Future<ImportResult>> resultats = new ArrayList<Future<ImportResult>>();
-        Map<String, String> tags = new HashMap<String, String>();
-        try {
-        
-	        for (String key : formParams.keySet()) {
-	        	if (key.equals("tsFile")) {
-	        		// skip
-	        		continue;
-	        	}
-
-        		if (formParams.get(key).size() > 0) {
-        			for (String value : formParams.get(key)) {
-        				if (!tags.containsKey(key)) {
-        					tags.put(key, value);
-        					logger.info("Tag : " + key + " - " + value);
-        				}
-        				else {
-        					// modif agn 04/24: List<String> for tag value
-        					// kept to avoid too much modifications
-        					// in sub-function and interfaces, but we force
-        					// the list to have only one value
-        					logger.warn("Tag " + key + " is single-valued. Adding another value is forbidden");
-        				}
-        			}
-        		}
-	        }
-	        logger.info(tags.toString());
-
-            temporalDataManager.validateFuncId(funcId);
-            // import into openTSDB
-            chrono.start();
-            long[] dates = temporalDataManager.launchImportTasks(metric, fileIS, resultats, tags, filename);
-            // Thread.sleep(TemporalDataApplication.getApplicationConfiguration().getLongValue(ApplicationConfiguration.DB_FLUSHING_INTERVAL));
-            importResult = temporalDataManager.parseImportResults(metric, resultats, tags, dates[0], dates[1]);
-
-            if (importResult.getTsuid() == null || importResult.getTsuid().isEmpty()) {
-            	String message = "TS not imported or no tsuid returned";
-            	StringBuilder sb = new StringBuilder(message);
-            	sb.append("OpenTSDB return code: ").append(importResult.getReponseCode());
-            	sb.append("Return summary: ").append(importResult.getSummary());
-            	sb.append("file: ").append(filename);
-            	
-            	logger.debug(sb.toString());
-            	throw new ImportException(message);
-            }
-            
-            // import metadatas in postgreSQL only if import in openTSDB succeed
-            // first date is the start_date
-            metadataManager.persistMetaData(importResult.getTsuid(), "ikats_start_date", Long.toString(dates[0]), "date");
-            // last date is the end_date
-            metadataManager.persistMetaData(importResult.getTsuid(), "ikats_end_date", Long.toString(dates[1]), "date");
-            // metric is also a metadata
-            metadataManager.persistMetaData(importResult.getTsuid(), "metric", metric, "string");
-            // import tags
-            for (Map.Entry<String, String> theTag : tags.entrySet()) {
-                metadataManager.persistMetaData(importResult.getTsuid(), theTag.getKey(), theTag.getValue(), "string");
-            }
-
-            // store functional identifier
-            importResult.setFuncId(funcId);
-            metadataManager.persistFunctionalIdentifier(importResult.getTsuid(), importResult.getFuncId());
-            chrono.stop(logger);
-        }
-        catch (ImportException e) {
-            logger.error("Error during import:",  e );
-            throw e;
-        }
-        catch (IkatsDaoException e) {
-            ImportException le = new ImportException("DAO Error during import:", e);
-            logger.error( le );
-            throw le;
-        }        
-        catch (Exception e) {
-            throw new ImportException("Unknown Error during import", e);
-        }
-        finally {
-        	fileIS.close();
-        }
-        
-        
-        return importResult;
+        return doImport(filename, metric, funcId, formParams, fileIS);
         
     }
 
@@ -549,7 +459,19 @@ public class TimeSerieResource extends AbstractResource {
             @FormDataParam("file") FormDataContentDisposition fileDisposition, FormDataMultiPart formData, @Context UriInfo uriInfo)
             throws ImportException {
         String filename = fileDisposition.getFileName();
-        return doImport(metric, fileis, filename, uriInfo, formData);
+        
+        // remove the file parameter and get the funcId
+        Map<String, List<FormDataBodyPart>> fields = formData.getFields();
+        fields.remove("file");
+        List<FormDataBodyPart> funcIdFormValues = fields.get("funcId");
+        String funcId = (funcIdFormValues != null) ? funcIdFormValues.get(0).getValue() : null;
+        
+        // transform the FormFataMultiPart into tags, with multivalued key taken into account
+        MultivaluedMap<String, String> tags = new StringKeyIgnoreCaseMultivaluedMap<String>();
+        fields.forEach((k, v) -> v.forEach(p -> tags.add(k, p.getValue()))); 
+
+        // Do the import
+        return doImport(filename, metric, funcId, tags, fileis);
     }
 
     /**
@@ -572,67 +494,94 @@ public class TimeSerieResource extends AbstractResource {
      * @throws ImportException
      *             if problems occurs
      */
-    protected ImportResult doImport(String metric, InputStream fileis, String filename, UriInfo uriInfo,
-            FormDataMultiPart formData) throws ImportException {
-        ImportResult resultatTotal = null;
+	private ImportResult doImport(String filename, String metric, String funcId, MultivaluedMap<String, String> formParams,
+			InputStream tsStream) throws ImportException {
+		
+		logger.info("Import file: " + filename);
+		logger.info("Metric: " + metric);
+		logger.info("Provided FunctionalIdentifier: " + funcId);
+		
+        if (funcId == null || funcId.isEmpty()) {
+        	// no import if no functional identifier provided into form
+        	throw new ImportException("No functional id provided in the form or is null, import canceled");
+        }
+        
+		// Throw exception for a non valid funcId (openTSDB tag format) 
         try {
-            Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
-            List<Future<ImportResult>> resultats = new ArrayList<Future<ImportResult>>();
-            logger.info("Import file : " + filename);
-            logger.info("Metric : " + metric);
-            String funcId = null;
-            Map<String, List<FormDataBodyPart>> params = formData.getFields();
-            Map<String, String> tags = new HashMap<String, String>();
+			temporalDataManager.validateFuncId(funcId);
+		} catch (InvalidValueException e1) {
+			throw new ImportException(e1.getMessage(), e1);
+		}
+        
+        Chronometer chrono = new Chronometer("TimeSeriResource.doImport|TS -> TSDB", false);
+        List<Future<ImportResult>> resultats = new ArrayList<Future<ImportResult>>();
+        Map<String, String> tags = new HashMap<String, String>();
+        ImportResult importResult = null;
 
-            for (String key : params.keySet()) {
-                if (key.equals("funcId")) {
-                    funcId = params.get(key).get(0).getValue();
-                }
-                if (!key.equals("file")) {
-                    if (params.get(key).size() > 0) {
-                        for (FormDataBodyPart valuePart : params.get(key)) {
-                            if (!tags.containsKey(key)) {
-                                tags.put(key, valuePart.getValue());
-                                logger.info("Tag : " + key + " - " + valuePart.getValue());
-                            }
-                            else {
-                                // modif agn 04/24: List<String> for tag value
-                                // kept to avoid too much modifications
-                                // in sub-function and interfaces, but we force
-                                // the list to have only one value
-                                logger.warn("Tag " + key + " is single-valued. Adding another value is forbidden");
-                            }
-                        }
-                    }
-                }
-            }
-            logger.info(tags.toString());
-            if (funcId == null) {
-                // no import if no functional identifier provided into form
-                throw new ImportException("No functional id provided in the form or is null, import canceled");
-            }
-            temporalDataManager.validateFuncId(funcId);
+        try {
+        	// Prepare the tags map
+	        for (String key : formParams.keySet()) {
+	        	if (key.equals("file")) {
+	        		// skip
+	        		continue;
+	        	}
+
+        		if (formParams.get(key).size() > 0) {
+        			for (String value : formParams.get(key)) {
+        				if (!tags.containsKey(key)) {
+        					tags.put(key, value);
+        					logger.info("Tag : " + key + " - " + value);
+        				}
+        				else {
+        					// modif agn 04/24: List<String> for tag value
+        					// kept to avoid too much modifications
+        					// in sub-function and interfaces, but we force
+        					// the list to have only one value
+        					logger.warn("Tag already exist: " + key + " ");
+        				}
+        			}
+        		}
+	        }
+	        logger.info("Tags: " + tags.toString());
+
             // import into openTSDB
-            long[] dates = temporalDataManager.launchImportTasks(metric, fileis, resultats, tags, filename);
-            Thread.sleep(TemporalDataApplication.getApplicationConfiguration().getLongValue(ApplicationConfiguration.DB_FLUSHING_INTERVAL));
-            resultatTotal = temporalDataManager.parseImportResults(metric, resultats, tags, dates[0], dates[1]);
+            chrono.start();
+            long[] dates = temporalDataManager.launchImportTasks(metric, tsStream, resultats, tags, filename);
+            // Thread.sleep(TemporalDataApplication.getApplicationConfiguration().getLongValue(ApplicationConfiguration.DB_FLUSHING_INTERVAL));
+            importResult = temporalDataManager.parseImportResults(metric, resultats, tags, dates[0], dates[1]);
+            chrono.stop(logger);
+            
+            importResult.setFuncId(funcId);
 
+            if (importResult.getTsuid() == null || importResult.getTsuid().isEmpty()) {
+            	String message = "TS not imported or no tsuid returned";
+            	StringBuilder sb = new StringBuilder(message);
+            	sb.append("OpenTSDB return code: ").append(importResult.getReponseCode());
+            	sb.append("Return summary: ").append(importResult.getSummary());
+            	sb.append("file: ").append(filename);
+            	
+            	logger.debug(sb.toString());
+            	throw new ImportException(message);
+            }
+            
+            chrono = new Chronometer("TimeSeriResource.doImport|Metas -> SGBD", false);
+            // store functional identifier
+            metadataManager.persistFunctionalIdentifier(importResult.getTsuid(), importResult.getFuncId());
+            
             // import metadatas in postgreSQL only if import in openTSDB succeed
             // first date is the start_date
-            metadataManager.persistMetaData(resultatTotal.getTsuid(), "ikats_start_date", Long.toString(dates[0]), "date");
+            metadataManager.persistMetaData(importResult.getTsuid(), "ikats_start_date", Long.toString(dates[0]), "date");
             // last date is the end_date
-            metadataManager.persistMetaData(resultatTotal.getTsuid(), "ikats_end_date", Long.toString(dates[1]), "date");
+            metadataManager.persistMetaData(importResult.getTsuid(), "ikats_end_date", Long.toString(dates[1]), "date");
             // metric is also a metadata
-            metadataManager.persistMetaData(resultatTotal.getTsuid(), "metric", metric, "string");
+            metadataManager.persistMetaData(importResult.getTsuid(), "metric", metric, "string");
             // import tags
             for (Map.Entry<String, String> theTag : tags.entrySet()) {
-                metadataManager.persistMetaData(resultatTotal.getTsuid(), theTag.getKey(), theTag.getValue(), "string");
+                metadataManager.persistMetaData(importResult.getTsuid(), theTag.getKey(), theTag.getValue(), "string");
             }
-
-            // store functional identifier
-            resultatTotal.setFuncId(funcId);
-            metadataManager.persistFunctionalIdentifier(resultatTotal.getTsuid(), resultatTotal.getFuncId());
+            
             chrono.stop(logger);
+
         }
         catch (ImportException e) {
             logger.error("Error during import:",  e );
@@ -642,16 +591,24 @@ public class TimeSerieResource extends AbstractResource {
             ImportException le = new ImportException("DAO Error during import:", e);
             logger.error( le );
             throw le;
+        }        
+        catch (Exception e) {
+            throw new ImportException("Unknown Error during import", e);
         }
-        catch (Throwable e) {
-            ImportException le = new ImportException("Unknown Error during import:", e);
-            logger.error( le );
-            throw le;
+        finally {
+        	try {
+				tsStream.close();
+			} catch (IOException ioe) {
+				// That not an application problem, but a problem in the system. 
+				// If that exception is raised : there will be more urgent and critical problems in the system.
+				// so do not try to do other thing here.
+				logger.warn("TS stream exception on close", ioe); 
+			}
         }
         
-        return resultatTotal;
-    }
-
+        return importResult;
+	}
+    
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
