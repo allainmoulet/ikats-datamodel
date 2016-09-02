@@ -9,17 +9,14 @@
  */
 package fr.cs.ikats.temporaldata.business.internal;
 
-import static org.junit.Assert.fail;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -79,20 +76,18 @@ public class ImportSerializerFactoryTest {
     
     
     private IImportSerializer doGetBetterSerializer(File file) {
-        IImportSerializer serializer = null;
+
+    	IImportSerializer serializer = null;
         try {
             ImportSerializerFactory factory = TemporalDataApplication.getApplicationConfiguration().getSpringContext().getBean(ImportSerializerFactory.class);
             logger.info("CSV input file : " + file.getAbsolutePath());
-            String dataset = "testdataset";
             String metric = "testmetric";
             InputStream is;
             
             is = new FileInputStream(file);
             
-            Map<String, List<String>> tags = new HashMap<String,List<String>>();
-            List<String> values = new ArrayList<String>();
-            values.add("valeur1");
-            tags.put("tag1", values);
+            Map<String, String> tags = new HashMap<String, String>();
+            tags.put("tag1", "valeur1");
             
             serializer = factory.getBetterSerializer(file.getName(), metric, is, tags );
             assertNotNull(serializer);

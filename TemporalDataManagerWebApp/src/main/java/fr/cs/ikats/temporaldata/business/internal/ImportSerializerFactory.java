@@ -59,7 +59,7 @@ public class ImportSerializerFactory {
      * @return an instance of the serializer.
 	 * @throws IOException if inputStream cannot be read FIXME changer le IOExection avec une exception d'un paakge fr.cs.ikats.common
      */
-    public IImportSerializer getBetterSerializer(String fileName, String metric,InputStream is, Map<String, List<String>> tags) throws IOException {
+    public IImportSerializer getBetterSerializer(String fileName, String metric,InputStream is, Map<String, String> tags) throws IOException {
         List<IImportSerializer> newSerializerList = getObjects();
         IImportSerializer result = null;
         if(newSerializerList.size()==1) {

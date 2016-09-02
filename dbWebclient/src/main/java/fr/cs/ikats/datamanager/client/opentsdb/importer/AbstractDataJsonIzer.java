@@ -3,7 +3,6 @@ package fr.cs.ikats.datamanager.client.opentsdb.importer;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -59,7 +58,7 @@ public abstract class AbstractDataJsonIzer implements IImportSerializer {
      * {@inheritDoc}
      */
     @Override
-    public void init(BufferedReader reader, String fileName, String metric, Map<String, List<String>> tags) {
+    public void init(BufferedReader reader, String fileName, String metric, Map<String, String> tags) {
         this.reader = reader;
         this.generateur = new AdvancedJsonGenerator(getReader(), metric, tags);
         try {

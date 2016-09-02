@@ -1,7 +1,6 @@
 package fr.cs.ikats.datamanager.client.opentsdb.generator;
 
 import java.text.ParseException;
-import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
@@ -26,7 +25,7 @@ public class AdvancedJsonGenerator {
     /**
      * list of tags
      */
-    Map<String, List<String>> tags;
+    Map<String, String> tags;
     
     /**
      * metric
@@ -64,7 +63,7 @@ public class AdvancedJsonGenerator {
      * @param metric the metric
      * @param tags the tags
      */
-    public AdvancedJsonGenerator(SplittedLineReader reader, String metric, Map<String, List<String>> tags) {
+    public AdvancedJsonGenerator(SplittedLineReader reader, String metric, Map<String, String> tags) {
         this.metric = metric;
         this.tags = tags;
         lineReader = reader;
@@ -156,7 +155,7 @@ public class AdvancedJsonGenerator {
         JSONObject jsonTags = new JSONObject();
         if (tags != null && !tags.isEmpty()) {
             for (String tagKey : tags.keySet()) {
-                jsonTags.put(tagKey, tags.get(tagKey).get(0));
+                jsonTags.put(tagKey, tags.get(tagKey));
             }
         }
         else {
