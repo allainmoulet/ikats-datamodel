@@ -36,6 +36,7 @@ import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
 import fr.cs.ikats.datamanager.client.RequestSender;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
+import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.datamanager.client.opentsdb.QueryResult;
 import fr.cs.ikats.datamanager.client.opentsdb.ResponseParser;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
@@ -305,7 +306,7 @@ public class TestUtils {
      * @see TestUtils#doLaunch(File, String, boolean, int, boolean) with
      *      addFuncId set to true by default
      */
-    protected String doImport(File file, String url, boolean withTags, int statusExpected) {
+    protected ImportResult doImport(File file, String url, boolean withTags, int statusExpected) {
         return doImport(file, url, withTags, statusExpected, true);
     }
 
@@ -321,7 +322,7 @@ public class TestUtils {
      * @param addFuncId
      *            : true to add the funcId part into request
      */
-    protected String doImport(File file, String url, boolean withTags, int statusExpected, boolean addFuncId) {
+    protected ImportResult doImport(File file, String url, boolean withTags, int statusExpected, boolean addFuncId) {
         Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class).build();
         WebTarget target = client.target(url);
 
@@ -343,7 +344,7 @@ public class TestUtils {
         LOGGER.info("parsing response of " + url);
         LOGGER.info(response);
         int status = response.getStatus();
-        String result = response.readEntity(String.class);
+        ImportResult result = response.readEntity(ImportResult.class);
         LOGGER.info(result);
         // check expected status
         assertEquals(statusExpected, status);

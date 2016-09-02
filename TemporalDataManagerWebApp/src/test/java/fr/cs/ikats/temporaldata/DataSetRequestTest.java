@@ -33,10 +33,10 @@ import org.springframework.core.io.Resource;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.DataSetWithFids;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
-import fr.cs.ikats.temporaldata.resource.TimeSerieResource;
 import fr.cs.ikats.ts.dataset.model.DataSet;
 
 /**
@@ -334,23 +334,23 @@ public class DataSetRequestTest extends AbstractRequestTest {
             String metric = "testmetric";
             String url = getAPIURL() + "/ts/put/" + metric;
             /* retrieval of the tsuid1 from import task */
-            String retour = utils.doImport(file, url, true, 200);
+            ImportResult retour = utils.doImport(file, url, true, 200);
             getLogger().info("retour ts_1 [" + retour + "]");
-            String tsuid1 = retour.split(":")[3].split("\"")[1];
+            String tsuid1 = retour.getTsuid();
             getLogger().info("tsuid ts_1 [" + tsuid1);
             /* import of a timeseries */
             String metric2 = "testmetric2";
             String url2 = getAPIURL() + "/ts/put/" + metric2;
             /* retrieval of the tsuid2 from import task */
-            String retour2 = utils.doImport(file, url2, true, 200);
-            String tsuid2 = retour2.split(":")[3].split("\"")[1];
+            ImportResult retour2 = utils.doImport(file, url2, true, 200);
+            String tsuid2 = retour2.getTsuid();
 
             /* import of a timeseries */
             String metric3 = "testmetric";
             String url3 = getAPIURL() + "/ts/put/" + metric3;
             /* retrieval of the tsuid3 from import task */
-            String retour3 = utils.doImport(file, url3, true, 200);
-            String tsuid3 = retour3.split(":")[3].split("\"")[1];
+            ImportResult retour3 = utils.doImport(file, url3, true, 200);
+            String tsuid3 = retour3.getTsuid();
 
             MetaDataManager metadataManager = new MetaDataManager();
             assertNotNull(metadataManager.getFunctionalIdentifierByTsuid(tsuid1));

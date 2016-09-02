@@ -16,8 +16,8 @@ import java.util.Map;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.client.Invocation.Builder;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -36,9 +36,10 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.expr.SingleValueComparator;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
+import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
-import fr.cs.ikats.metadata.model.MetadataCriterion;
 import fr.cs.ikats.metadata.model.MetaData.MetaType;
+import fr.cs.ikats.metadata.model.MetadataCriterion;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
@@ -115,10 +116,10 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
             /* import of a timeseries */
             String metric = "testmetric";
             String url = getAPIURL() + "/ts/put/" + metric;
-            String retour = utils.doImport(file, url, true, 200);
+            ImportResult retour = utils.doImport(file, url, true, 200);
 
             /* retrieval of the tsuid from import task */
-            String tsuid = retour.split(":")[3].split("\"")[1];
+            String tsuid = retour.getTsuid();
 
             url = getAPIURL() + "/ts/" + tsuid;
             Response response = null;

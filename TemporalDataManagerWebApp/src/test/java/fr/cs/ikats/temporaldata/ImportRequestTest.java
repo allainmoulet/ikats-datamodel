@@ -18,6 +18,8 @@ import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
+
 /**
  * @author ikats
  *
@@ -117,18 +119,16 @@ public class ImportRequestTest extends AbstractRequestTest {
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric";
 			String url = getAPIURL() + "/ts/put/" + metric;
-			String retour = utils.doImport(file, url, true, 200);
+			ImportResult retour = utils.doImport(file, url, true, 200);
 
 			/*
 			 * retrieval of the tsuid, start_date and end_date from import task
 			 */
-			String[] splitReturn = retour.split(":");
-			getLogger().info(splitReturn.toString());
-			String tsuid = splitReturn[3].split("\"")[1];
+			String tsuid = retour.getTsuid();
 			getLogger().info("tsuid = " + tsuid);
-			String startDateImport = splitReturn[7].split(",")[0];
+			String startDateImport = Long.toString(retour.getStartDate());
 			getLogger().info("start date from import = " + startDateImport);
-			String endDateImport = splitReturn[8].split("}")[0];
+			String endDateImport = Long.toString(retour.getEndDate());
 			getLogger().info("end date from import = " + endDateImport);
 
 			/* getting the metadata of the tsuid in database */
