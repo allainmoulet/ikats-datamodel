@@ -43,69 +43,6 @@
 			</plugin>
 
 			<plugin>
-				<groupId>com.sun.jersey.contribs</groupId>
-				<artifactId>maven-wadl-plugin</artifactId>
-				<version>1.17</version>
-				<!-- Generate the wadl resource -->
-				<dependencies>
-					<dependency>
-						<groupId>xerces</groupId>
-						<artifactId>xercesImpl</artifactId>
-						<version>2.11.0</version>
-					</dependency>
-
-					<dependency>
-						<!-- 
-						     Required dependency: set visible handled exceptions from fr.cs.ikats.common.dao.exception: 
-							 used by @Provider tagged fr.cs.ikats.temporaldata.exception.IkatsDaoExceptionHandler  
-					    -->
-						<groupId>fr.cs.ikats</groupId>
-						<artifactId>common-database</artifactId>
-						<!-- TODO later: manage version with a configured variable in ikats_main ...  -->
-						<version>0.0.1-SNAPSHOT</version>
-					</dependency>
-				</dependencies>
-
-				<executions>
-					<execution>
-						<id>generate</id>
-						<goals>
-							<goal>generate</goal>
-						</goals>
-						<phase>generate-sources</phase>
-					</execution>
-				</executions>
-				<configuration>
-					<wadlFile>${basedir}/src/main/resources/application.wadl</wadlFile>
-					<formatWadlFile>true</formatWadlFile>
-					<baseUri>http://${server.url}/TemporalDataManagerWebApp</baseUri>
-					<packagesResourceConfig>
-						<param>fr.cs.ikats.temporaldata.resource</param>
-					</packagesResourceConfig>
-					<wadlGenerators>
-						<wadlGeneratorDescription>
-							<className>com.sun.jersey.server.wadl.generators.WadlGeneratorApplicationDoc</className>
-							<properties>
-								<property>
-									<name>applicationDocsFile</name>
-									<value>${basedir}/src/main/doc/application-doc.xml</value>
-								</property>
-							</properties>
-						</wadlGeneratorDescription>
-						<wadlGeneratorDescription>
-							<className>com.sun.jersey.server.wadl.generators.WadlGeneratorGrammarsSupport</className>
-							<properties>
-								<property>
-									<name>grammarsFile</name>
-									<value>${basedir}/src/main/doc/application-grammars.xml</value>
-								</property>
-							</properties>
-						</wadlGeneratorDescription>
-					</wadlGenerators>
-				</configuration>
-			</plugin>
-
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.1.1</version>
