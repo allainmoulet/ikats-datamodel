@@ -8,6 +8,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
@@ -47,8 +48,9 @@ public class ProcessData {
     public static final String LIST_ID_FOR_PROCESSID = "select pd.id from ProcessData pd where pd.processId = :processId";
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "ID", unique = true, nullable = false)
+    @SequenceGenerator(name="processdata_id_seq", sequenceName="processdata_id_seq", allocationSize=1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator="processdata_id_seq")
+    @Column(name = "id", updatable = false)
     private Integer id;
 
     @Column(unique = false, nullable = false, length = 100)
