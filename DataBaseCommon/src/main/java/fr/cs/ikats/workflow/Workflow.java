@@ -1,13 +1,7 @@
 package fr.cs.ikats.workflow;
 
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
-import javax.persistence.SequenceGenerator;
-import javax.persistence.Table;
-import javax.persistence.UniqueConstraint;
+import javax.persistence.*;
+import java.sql.Blob;
 
 @Entity
 @Table(name = "Workflow")
@@ -25,9 +19,9 @@ public class Workflow {
 	@Column(name = "description")
 	private String description;
 
+    @Lob
 	@Column(name = "raw")
-	//TODO not a string but a blob
-	private String raw;
+	private Blob raw;
 		
 	public Integer getId() {
 		return id;
@@ -53,11 +47,11 @@ public class Workflow {
 		this.description = description;
 	}
 
-	public String getRaw() {
+	public Blob getRaw() {
 		return raw;
 	}
 
-	public void setRaw(String raw) {
+	public void setRaw(Blob raw) {
 		this.raw = raw;
 	}
 
@@ -67,7 +61,7 @@ public class Workflow {
 				"id=" + id +
 				", name='" + name + '\'' +
 				", description='" + description + '\'' +
-				", raw='" + raw + '\'' +
+				", raw='" + raw.toString() + '\'' +
 				'}';
 	}
 }

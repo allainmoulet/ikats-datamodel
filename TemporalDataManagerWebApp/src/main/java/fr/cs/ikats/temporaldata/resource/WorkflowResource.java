@@ -40,9 +40,12 @@ public class WorkflowResource extends AbstractResource {
      */
     @POST
     @Path("/")
-    @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response Create(Workflow wf, @Context UriInfo uriInfo) throws IkatsDaoConflictException, IkatsDaoException {
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response Create(
+            Workflow wf,
+            @Context UriInfo uriInfo
+    ) throws IkatsDaoConflictException, IkatsDaoException {
 
         if (wf.getId() != null) {
             throw new IkatsDaoException("Workflow should not have an Id");
@@ -52,13 +55,13 @@ public class WorkflowResource extends AbstractResource {
 
         // Return the location header
         UriBuilder uri = uriInfo.getAbsolutePathBuilder();
-        uri.path(wf.getId().toString());
+        uri.path(wfId.toString());
 
         return Response.created(uri.build()).build();
     }
 
     /**
-     * Get the list of all workflow summary (raw content is not provided)
+     * Get the list of all workflow summary (raw content is not provided unless full is set to true)
      *
      * @param full to indicate if the raw content shall be included in response
      *
@@ -91,15 +94,16 @@ public class WorkflowResource extends AbstractResource {
     }
 
     /**
-     * Get the content of a workflow by providing its name
+     * Get the content of a workflow by providing its id
      *
      * @param id id of the workflow to read
      *
      * @return the workflow
-     * @throws IkatsDaoException         if any DAO exception occurs
+     * @throws IkatsDaoException if any DAO exception occurs
      */
     @GET
     @Path("/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response getWorkflow(
             @PathParam("id") Integer id
@@ -111,16 +115,21 @@ public class WorkflowResource extends AbstractResource {
     }
 
     /**
-     * @param id          name of the workflow to update (unique)
-     * @param wf          New content for the workflow
+     * Update a workflow identified by its Id
+     *
+     * @param id id of the workflow to update
+     * @param wf New content for the workflow
      *
      * @return HTTP response
-     * @throws IkatsDaoException         if any DAO exception occurs
+     * @throws IkatsDaoException if any DAO exception occurs
      */
     @PUT
     @Path("/{id}")
+    @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateWorkflow(Workflow wf, @Context UriInfo uriInfo,
+    public Response updateWorkflow(
+            Workflow wf,
+            @Context UriInfo uriInfo,
             @PathParam("id") Integer id
     ) throws IkatsDaoException {
 
@@ -134,7 +143,10 @@ public class WorkflowResource extends AbstractResource {
     }
 
     /**
+     * Delete a workflow identified by its id
+     *
      * @param id id of the workflow to delete
+     *
      * @return HTTP response
      * @throws IkatsDaoException if any DAO exception occurs
      */
@@ -146,6 +158,22 @@ public class WorkflowResource extends AbstractResource {
     ) throws IkatsDaoException {
 
         Facade.removeById(id);
+        return Response.status(Response.Status.NO_CONTENT).build();
+    }
+
+    /**
+     * Delete all workflow
+     *
+     * @return HTTP response
+     * @throws IkatsDaoException if any DAO exception occurs
+     */
+    @DELETE
+    @Path("/")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response removeAll() throws IkatsDaoException {
+
+        Facade.removeAll();
+
         return Response.status(Response.Status.NO_CONTENT).build();
     }
 

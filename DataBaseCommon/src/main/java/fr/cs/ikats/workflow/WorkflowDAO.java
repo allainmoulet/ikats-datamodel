@@ -25,6 +25,7 @@ public class WorkflowDAO extends DataBaseDAO {
      */
     private static final String GET_WORKFLOW_BY_ID = "select wf from Workflow wf where wf.id = :id";
     private static final String DELETE_WORKFLOW_BY_ID = "delete wf from Workflow wf where wf.id = :id";
+    private static final String DELETE_ALL_WORKFLOW = "delete wf from Workflow wf";
 
     /**
      * Logger for WorkflowDAO
@@ -60,6 +61,33 @@ public class WorkflowDAO extends DataBaseDAO {
             session.close();
         }
 
+        return result;
+    }
+
+    /**
+     * Delete all workflow
+     *
+     * @return the number of deleted workflows
+     * @throws IkatsDaoException if the workflow couldn't be removed
+     */
+    public int removeAll() throws IkatsDaoException {
+        Session session = getSession();
+        Transaction tx = null;
+        int result = 0;
+        try {
+            tx = session.beginTransaction();
+            Query query = session.createQuery(DELETE_ALL_WORKFLOW);
+            result = query.executeUpdate();
+            tx.commit();
+        }
+        catch (HibernateException e) {
+            IkatsDaoException error = new IkatsDaoException("Deleting All Workflow", e);
+            LOGGER.error(error);
+            rollbackAndThrowException(tx, error);
+        }
+        finally {
+            session.close();
+        }
         return result;
     }
 
@@ -130,7 +158,7 @@ public class WorkflowDAO extends DataBaseDAO {
         }
         catch (ConstraintViolationException e) {
 
-            String msg = "Creating: " + wfInfo + ": already exists in base for same name";
+            String msg = "Creating: " + wfInfo + ": already exists in base for same id";
             LOGGER.warn(msg);
 
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
@@ -179,7 +207,7 @@ public class WorkflowDAO extends DataBaseDAO {
         }
         catch (ConstraintViolationException e) {
 
-            String msg = "Updating: " + wfInfo + ": already exists in base for same name";
+            String msg = "Updating: " + wfInfo + ": already exists in base for same id";
             LOGGER.warn(msg);
 
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
@@ -208,18 +236,16 @@ public class WorkflowDAO extends DataBaseDAO {
      *
      * @param id identifier of the workflow
      *
-     * @return the id of the removed workflow
      * @throws IkatsDaoException if the workflow couldn't be removed
      */
-    public int removeById(Integer id) throws IkatsDaoException {
+    public void removeById(Integer id) throws IkatsDaoException {
         Session session = getSession();
         Transaction tx = null;
-        int result = 0;
         try {
             tx = session.beginTransaction();
             Query query = session.createQuery(DELETE_WORKFLOW_BY_ID);
             query.setInteger("id", id);
-            result = query.executeUpdate();
+            query.executeUpdate();
             tx.commit();
         }
         catch (HibernateException e) {
@@ -230,6 +256,5 @@ public class WorkflowDAO extends DataBaseDAO {
         finally {
             session.close();
         }
-        return result;
     }
 }

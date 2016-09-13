@@ -2,10 +2,12 @@ package fr.cs.ikats.workflow;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import org.apache.log4j.Logger;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
+import java.sql.Blob;
 import java.util.List;
 
 
@@ -66,7 +68,7 @@ public class WorkflowFacade {
      * @throws IkatsDaoConflictException create error raised on conflict with another resource
      * @throws IkatsDaoException         another error from DAO
      */
-    public Integer persist(String name, String description, String raw) throws IkatsDaoConflictException, IkatsDaoException {
+    public Integer persist(String name, String description, Blob raw) throws IkatsDaoConflictException, IkatsDaoException {
 
         Workflow wf = new Workflow();
         wf.setName(name);
@@ -93,9 +95,10 @@ public class WorkflowFacade {
      * @param id id of the workflow
      *
      * @return the workflow matching this id
-     * @throws IkatsDaoException
+     * @throws IkatsDaoMissingRessource if there is no workflow matching the id
+     * @throws IkatsDaoException if any other exception occurs
      */
-    public Workflow getById(Integer id) throws IkatsDaoException {
+    public Workflow getById(Integer id) throws IkatsDaoMissingRessource, IkatsDaoException {
         return dao.getById(id);
     }
 
@@ -111,7 +114,7 @@ public class WorkflowFacade {
      * @throws IkatsDaoConflictException if the new name is already used (not unique)
      * @throws IkatsDaoException if any other exception occurs
      */
-    public boolean update(Integer id, String name, String description, String raw) throws IkatsDaoConflictException, IkatsDaoException {
+    public boolean update(Integer id, String name, String description, Blob raw) throws IkatsDaoConflictException, IkatsDaoException {
         Workflow wf = dao.getById(id);
         wf.setName(name);
         wf.setDescription(description);
@@ -137,23 +140,19 @@ public class WorkflowFacade {
      *
      * @param id identifier of the workflow
      *
-     * @return the id of the removed workflow
      * @throws IkatsDaoException if the workflow couldn't be removed
      */
-    public int removeById(Integer id) throws IkatsDaoException {
-        return dao.removeById(id);
+    public void removeById(Integer id) throws IkatsDaoException {
+        dao.removeById(id);
     }
-
 
     /**
-     * Delete a workflow identified by its name
+     * Delete all workflow
      *
-     * @param name name identifying the workflow to remove
-     *
-     * @return the id of the removed workflow     *
      * @throws IkatsDaoException if the workflow couldn't be removed
      */
-    public int removeByName(String name) throws IkatsDaoException {
-        return dao.removeByName(name);
+    public void removeAll() throws IkatsDaoException {
+        dao.removeAll();
     }
+
 }
