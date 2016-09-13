@@ -18,6 +18,7 @@ import java.util.List;
 public class WorkflowResource extends AbstractResource {
 
     private static Logger logger = Logger.getLogger(MetaDataResource.class);
+    private WorkflowFacade Facade = new WorkflowFacade();
 
     /**
      * Default constructor
@@ -26,14 +27,11 @@ public class WorkflowResource extends AbstractResource {
         super();
     }
 
-    private WorkflowFacade Facade = new WorkflowFacade();
-
-
     /**
      * Create a new Workflow
      *
-     * @param wf Workflow to provide
-     *
+     * @param wf      Workflow to provide
+     * @param uriInfo the uri info
      * @return the id of the created workflow
      * @throws IkatsDaoConflictException if the id of the workflow already exists
      * @throws IkatsDaoException         if any DAO exception occurs
@@ -64,7 +62,6 @@ public class WorkflowResource extends AbstractResource {
      * Get the list of all workflow summary (raw content is not provided unless full is set to true)
      *
      * @param full to indicate if the raw content shall be included in response
-     *
      * @return the workflow
      * @throws IkatsDaoException if any DAO exception occurs
      */
@@ -97,7 +94,6 @@ public class WorkflowResource extends AbstractResource {
      * Get the content of a workflow by providing its id
      *
      * @param id id of the workflow to read
-     *
      * @return the workflow
      * @throws IkatsDaoException if any DAO exception occurs
      */
@@ -117,9 +113,9 @@ public class WorkflowResource extends AbstractResource {
     /**
      * Update a workflow identified by its Id
      *
-     * @param id id of the workflow to update
-     * @param wf New content for the workflow
-     *
+     * @param wf      New content for the workflow
+     * @param uriInfo the uri info
+     * @param id      id of the workflow to update
      * @return HTTP response
      * @throws IkatsDaoException if any DAO exception occurs
      */
@@ -146,7 +142,6 @@ public class WorkflowResource extends AbstractResource {
      * Delete a workflow identified by its id
      *
      * @param id id of the workflow to delete
-     *
      * @return HTTP response
      * @throws IkatsDaoException if any DAO exception occurs
      */

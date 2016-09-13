@@ -11,6 +11,9 @@ import java.sql.Blob;
 import java.util.List;
 
 
+/**
+ * The type Workflow facade.
+ */
 @Component("WorkflowFacade")
 @Scope("singleton")
 public class WorkflowFacade {
@@ -47,8 +50,7 @@ public class WorkflowFacade {
     /**
      * Create Workflow in database
      *
-     * @param wf        workflow object
-     *
+     * @param wf workflow object
      * @return the ID of the inserted data
      * @throws IkatsDaoConflictException create error raised on conflict with another resource
      * @throws IkatsDaoException         another error from DAO
@@ -57,13 +59,13 @@ public class WorkflowFacade {
 
         return dao.persist(wf);
     }
+
     /**
      * Create Workflow in database for a given name, description and raw content
      *
      * @param name        name of the workflow
      * @param description description of the workflow
      * @param raw         content of the workflow as a json
-     *
      * @return the ID of the inserted data
      * @throws IkatsDaoConflictException create error raised on conflict with another resource
      * @throws IkatsDaoException         another error from DAO
@@ -93,10 +95,9 @@ public class WorkflowFacade {
      * Get a workflow content by providing its id
      *
      * @param id id of the workflow
-     *
      * @return the workflow matching this id
      * @throws IkatsDaoMissingRessource if there is no workflow matching the id
-     * @throws IkatsDaoException if any other exception occurs
+     * @throws IkatsDaoException        if any other exception occurs
      */
     public Workflow getById(Integer id) throws IkatsDaoMissingRessource, IkatsDaoException {
         return dao.getById(id);
@@ -105,14 +106,13 @@ public class WorkflowFacade {
     /**
      * Update a workflow with new values
      *
-     * @param id identifier of the workflow (before it changes)
-     * @param name new name to apply to workflow
+     * @param id          identifier of the workflow (before it changes)
+     * @param name        new name to apply to workflow
      * @param description new description of the workflow
-     * @param raw new content of the workflow
-     *
+     * @param raw         new content of the workflow
      * @return true if the workflow update is successful
      * @throws IkatsDaoConflictException if the new name is already used (not unique)
-     * @throws IkatsDaoException if any other exception occurs
+     * @throws IkatsDaoException         if any other exception occurs
      */
     public boolean update(Integer id, String name, String description, Blob raw) throws IkatsDaoConflictException, IkatsDaoException {
         Workflow wf = dao.getById(id);
@@ -126,10 +126,9 @@ public class WorkflowFacade {
      * Update a workflow with new values based on its id
      *
      * @param wf Updated Workflow object
-     *
      * @return true if the workflow update is successful
      * @throws IkatsDaoConflictException if the new name is already used (not unique)
-     * @throws IkatsDaoException if any other exception occurs
+     * @throws IkatsDaoException         if any other exception occurs
      */
     public boolean update(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException {
         return dao.update(wf);
@@ -139,7 +138,6 @@ public class WorkflowFacade {
      * Delete a workflow identified by its id
      *
      * @param id identifier of the workflow
-     *
      * @throws IkatsDaoException if the workflow couldn't be removed
      */
     public void removeById(Integer id) throws IkatsDaoException {

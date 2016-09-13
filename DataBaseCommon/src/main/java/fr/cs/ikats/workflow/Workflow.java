@@ -3,65 +3,108 @@ package fr.cs.ikats.workflow;
 import javax.persistence.*;
 import java.sql.Blob;
 
+/**
+ * The type Workflow.
+ */
 @Entity
 @Table(name = "Workflow")
 public class Workflow {
 
-	@Id
-    @SequenceGenerator(name="workflow_id_seq", sequenceName="workflow_id_seq", allocationSize=1)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator="workflow_id_seq")
+    @Id
+    @SequenceGenerator(name = "workflow_id_seq", sequenceName = "workflow_id_seq", allocationSize = 1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "workflow_id_seq")
     @Column(name = "id", updatable = false)
     private Integer id;
 
-	@Column(name = "name")
-	private String name;
+    @Column(name = "name")
+    private String name;
 
-	@Column(name = "description")
-	private String description;
+    @Column(name = "description")
+    private String description;
 
     @Lob
-	@Column(name = "raw")
-	private Blob raw;
-		
-	public Integer getId() {
-		return id;
-	}
+    @Column(name = "raw")
+    private Blob raw;
 
-	public void setId(Integer id) {
-		this.id = id;
-	}
+    /**
+     * Gets id.
+     *
+     * @return the id
+     */
+    public Integer getId() {
+        return id;
+    }
 
-	public String getName() {
-		return name;
-	}
+    /**
+     * Sets id.
+     *
+     * @param id the id
+     */
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    /**
+     * Gets name.
+     *
+     * @return the name
+     */
+    public String getName() {
+        return name;
+    }
 
-	public String getDescription() {
-		return description;
-	}
+    /**
+     * Sets name.
+     *
+     * @param name the name
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
 
-	public void setDescription(String description) {
-		this.description = description;
-	}
+    /**
+     * Gets description.
+     *
+     * @return the description
+     */
+    public String getDescription() {
+        return description;
+    }
 
-	public Blob getRaw() {
-		return raw;
-	}
+    /**
+     * Sets description.
+     *
+     * @param description the description
+     */
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-	public void setRaw(Blob raw) {
-		this.raw = raw;
-	}
+    /**
+     * Gets raw.
+     *
+     * @return the raw
+     */
+    public Blob getRaw() {
+        return raw;
+    }
 
-	@java.lang.Override
-	public java.lang.String toString() {
-		return "Workflow{" +
-				"id=" + id +
-				", name='" + name + '\'' +
-				", description='" + description + '\'' +
-				", raw='" + raw.toString() + '\'' +
-				'}';
-	}
+    /**
+     * Sets raw.
+     *
+     * @param raw the raw
+     */
+    public void setRaw(Blob raw) {
+        this.raw = raw;
+    }
+
+    @java.lang.Override
+    public java.lang.String toString() {
+        return "Workflow{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", raw='" + raw.toString() + '\'' +
+                '}';
+    }
 }
