@@ -23,9 +23,7 @@ public class WorkflowDAO extends DataBaseDAO {
     /**
      * HQL requests
      */
-    private static final String GET_WORKFLOW_BY_NAME = "select wf from Workflow wf where wf.name = :name";
     private static final String GET_WORKFLOW_BY_ID = "select wf from Workflow wf where wf.id = :id";
-    private static final String DELETE_WORKFLOW_BY_NAME = "delete wf from Workflow wf where wf.name = :name";
     private static final String DELETE_WORKFLOW_BY_ID = "delete wf from Workflow wf where wf.id = :id";
 
     /**
@@ -34,10 +32,9 @@ public class WorkflowDAO extends DataBaseDAO {
     private static final Logger LOGGER = Logger.getLogger(WorkflowDAO.class);
 
     /**
-     * List all workflows
+     * List all workflow
      *
-     * @return the list of all workflows
-     *
+     * @return the list of all workflow
      * @throws IkatsDaoMissingRessource if there is no workflow
      * @throws IkatsDaoException if any other exception occurs
      */
@@ -67,68 +64,21 @@ public class WorkflowDAO extends DataBaseDAO {
     }
 
     /**
-     * Get a workflow by providing its name (which is unique)
-     *
-     * @param name name of the workflow to get
-     *
-     * @return the details of the workflow
-     *
-     * @throws IkatsDaoMissingRessource if there is no workflow matching the name
-     * @throws IkatsDaoException if any other exception occurs
-     */
-    Workflow getByName(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
-        List<Workflow> result = null;
-        Session session = getSession();
-
-        try {
-
-            Query q = session.createQuery(GET_WORKFLOW_BY_NAME);
-
-            q.setString("name", name);
-            result = q.list();
-            if (result == null || (result.size() == 0)) {
-                String msg = "Searching Workflow from name=" + name + ": no resource found, but should exist.";
-                LOGGER.error(msg);
-
-                throw new IkatsDaoMissingRessource(msg);
-            }
-
-        } catch (HibernateException hibException) {
-            String msg = "Exception occurred while getting all workflow";
-            LOGGER.error(msg);
-            throw new IkatsDaoException(msg);
-        } catch (Exception error) {
-            if (error instanceof IkatsDaoMissingRessource) {
-                throw error;
-            } else {
-                String msg = "Searching Workflow from name=" + name + ": unexpected Exception.";
-                LOGGER.error(msg);
-                throw new IkatsDaoException(msg);
-            }
-        } finally {
-            session.close();
-        }
-
-        return result.get(0);
-    }
-
-    /**
      * Get a workflow by providing its id (which is unique)
      *
-     * @param id
+     * @param id Id of the workflow to get
      *
-     * @return
-     *
+     * @return The workflow matching this id
      * @throws IkatsDaoMissingRessource if there is no workflow matching the id
      * @throws IkatsDaoException if any other exception occurs
      */
-    Workflow getById(String id) throws IkatsDaoMissingRessource, IkatsDaoException {
+    Workflow getById(Integer id) throws IkatsDaoMissingRessource, IkatsDaoException {
         List<Workflow> result = null;
         Session session = getSession();
 
         try {
             Query q = session.createQuery(GET_WORKFLOW_BY_ID);
-            q.setString("id", id);
+            q.setInteger("id", id);
 
             result = q.list();
             if (result == null || (result.size() == 0)) {
@@ -163,7 +113,6 @@ public class WorkflowDAO extends DataBaseDAO {
      * @param wf the workflow information to save
      *
      * @return the id of the created workflow
-     *
      * @throws IkatsDaoConflictException if the workflow to append already exists
      * @throws IkatsDaoException if any other exception occurs
      */
@@ -255,43 +204,11 @@ public class WorkflowDAO extends DataBaseDAO {
     }
 
     /**
-     * Delete a workflow identified by its name
-     *
-     * @param name name identifying the workflow to remove
-     *
-     * @return the id of the removed workflow
-     *
-     * @throws IkatsDaoException if the workflow couldn't be removed
-     */
-    public int removeByName(String name) throws IkatsDaoException {
-        Session session = getSession();
-        Transaction tx = null;
-        int result = 0;
-        try {
-            tx = session.beginTransaction();
-            Query query = session.createQuery(DELETE_WORKFLOW_BY_NAME);
-            query.setString("name", name);
-            result = query.executeUpdate();
-            tx.commit();
-        }
-        catch (HibernateException e) {
-            IkatsDaoException error = new IkatsDaoException("Deleting workflow rows matching name=" + name, e);
-            LOGGER.error(error);
-            rollbackAndThrowException(tx, error);
-        }
-        finally {
-            session.close();
-        }
-        return result;
-    }
-
-    /**
      * Delete a workflow identified by its id
      *
      * @param id identifier of the workflow
      *
      * @return the id of the removed workflow
-     * 
      * @throws IkatsDaoException if the workflow couldn't be removed
      */
     public int removeById(Integer id) throws IkatsDaoException {

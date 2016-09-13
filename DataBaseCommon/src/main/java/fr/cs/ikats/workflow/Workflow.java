@@ -10,8 +10,7 @@ import javax.persistence.Table;
 import javax.persistence.UniqueConstraint;
 
 @Entity
-//TODO voir la contrainte unicité sur 1 seul champ
-@Table(name = "Workflow", uniqueConstraints = @UniqueConstraint(columnNames = { "name" }) )
+@Table(name = "Workflow")
 public class Workflow {
 
 	@Id
@@ -20,16 +19,6 @@ public class Workflow {
     @Column(name = "id", updatable = false)
     private Integer id;
 
-	@java.lang.Override
-	public java.lang.String toString() {
-		return "Workflow{" +
-				"id=" + id +
-				", name='" + name + '\'' +
-				", description='" + description + '\'' +
-				", raw='" + raw + '\'' +
-				'}';
-	}
-
 	@Column(name = "name")
 	private String name;
 
@@ -37,6 +26,7 @@ public class Workflow {
 	private String description;
 
 	@Column(name = "raw")
+	//TODO not a string but a blob
 	private String raw;
 		
 	public Integer getId() {
@@ -71,4 +61,13 @@ public class Workflow {
 		this.raw = raw;
 	}
 
+	@java.lang.Override
+	public java.lang.String toString() {
+		return "Workflow{" +
+				"id=" + id +
+				", name='" + name + '\'' +
+				", description='" + description + '\'' +
+				", raw='" + raw + '\'' +
+				'}';
+	}
 }
