@@ -1,5 +1,6 @@
 package fr.cs.ikats.temporaldata.exception;
 
+import javax.ws.rs.NotAllowedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Response;
@@ -23,11 +24,14 @@ public class ApplicationExceptionHandler implements ExceptionMapper<Exception> {
     public Response toResponse(Exception exception) {
         
         if(NotFoundException.class.isAssignableFrom(exception.getClass())) {
-            logger.error("Error handled while processing request "+exception.getMessage());
+            logger.error("NOT_FOUND "+exception.getMessage());
             return Response.status(Status.NOT_FOUND).entity(exception.getMessage()).build();            
         } else if(PathParamException.class.isAssignableFrom(exception.getClass())) {
-            logger.error("Bad request ",exception);
+            logger.error("BAD_REQUEST ",exception);
             return Response.status(Status.BAD_REQUEST).entity(exception.getMessage()).build();
+        } else if(NotAllowedException.class.isAssignableFrom(exception.getClass())) {
+            logger.error("METHOD_NOT_ALLOWED ",exception);
+            return Response.status(Status.METHOD_NOT_ALLOWED).entity(exception.getMessage()).build();
         } else if(WebApplicationException.class.isAssignableFrom(exception.getClass())) {
             logger.error("Error handled while processing request ",exception);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exception.getMessage()).build();

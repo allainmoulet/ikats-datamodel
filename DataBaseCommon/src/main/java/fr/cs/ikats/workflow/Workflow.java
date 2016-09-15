@@ -21,7 +21,7 @@ public class Workflow {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "raw", columnDefinition = "NVARCHAR(MAX)")
+    @Column(name = "raw")
     private String raw;
 
     /**

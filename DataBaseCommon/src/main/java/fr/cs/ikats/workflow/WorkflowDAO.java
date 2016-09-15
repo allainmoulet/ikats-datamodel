@@ -3,6 +3,7 @@ package fr.cs.ikats.workflow;
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import org.apache.log4j.Logger;
 import org.hibernate.*;
@@ -19,8 +20,8 @@ public class WorkflowDAO extends DataBaseDAO {
      * HQL requests
      */
     private static final String GET_WORKFLOW_BY_ID = "select wf from Workflow wf where wf.id = :id";
-    private static final String DELETE_WORKFLOW_BY_ID = "delete wf from Workflow wf where wf.id = :id";
-    private static final String DELETE_ALL_WORKFLOW = "delete wf from Workflow wf";
+    private static final String DELETE_WORKFLOW_BY_ID = "delete from Workflow wf where wf.id = :id";
+    private static final String DELETE_ALL_WORKFLOW = "delete from Workflow";
 
     /**
      * Logger for WorkflowDAO
@@ -195,6 +196,12 @@ public class WorkflowDAO extends DataBaseDAO {
             LOGGER.warn(msg);
 
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
+        } catch (StaleStateException e) {
+
+            String msg = "No match for update of " + wfInfo;
+            LOGGER.error(msg, e);
+            rollbackAndThrowException(tx, new IkatsDaoInvalidValueException(msg, e));
+
         } catch (HibernateException e) {
             String msg = "Updating: " + wfInfo + ": unexpected HibernateException";
             LOGGER.error(msg, e);

@@ -33,7 +33,6 @@ public class WorkflowResource extends AbstractResource {
      * @param wf      Workflow to provide
      * @param uriInfo the uri info
      * @return the id of the created workflow
-     * @throws IkatsDaoConflictException if the id of the workflow already exists
      * @throws IkatsDaoException         if any DAO exception occurs
      */
     @POST
@@ -42,11 +41,7 @@ public class WorkflowResource extends AbstractResource {
     public Response create(
             Workflow wf,
             @Context UriInfo uriInfo
-    ) throws IkatsDaoConflictException, IkatsDaoException {
-
-        if (wf.getId() != null) {
-            throw new IkatsDaoException("Workflow should not have an Id");
-        }
+    ) throws IkatsDaoException {
 
         Integer wfId = Facade.persist(wf);
 
@@ -84,7 +79,12 @@ public class WorkflowResource extends AbstractResource {
             }
         }
 
-        return Response.status(Response.Status.OK).entity(result).build();
+        Response.StatusType resultStatus = Response.Status.OK;
+        if (result.size() == 0){
+            resultStatus = Response.Status.NO_CONTENT;
+        }
+
+        return Response.status(resultStatus).entity(result).build();
 
     }
 
@@ -180,5 +180,4 @@ public class WorkflowResource extends AbstractResource {
 
         return Response.status(Response.Status.NO_CONTENT).build();
     }
-
 }
