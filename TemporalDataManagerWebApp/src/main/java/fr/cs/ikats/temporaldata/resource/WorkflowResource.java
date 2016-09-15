@@ -28,7 +28,7 @@ public class WorkflowResource extends AbstractResource {
     }
 
     /**
-     * Create a new Workflow
+     * create a new Workflow
      *
      * @param wf      Workflow to provide
      * @param uriInfo the uri info
@@ -37,10 +37,9 @@ public class WorkflowResource extends AbstractResource {
      * @throws IkatsDaoException         if any DAO exception occurs
      */
     @POST
-    @Path("/")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response Create(
+    public Response create(
             Workflow wf,
             @Context UriInfo uriInfo
     ) throws IkatsDaoConflictException, IkatsDaoException {
@@ -66,9 +65,8 @@ public class WorkflowResource extends AbstractResource {
      * @throws IkatsDaoException if any DAO exception occurs
      */
     @GET
-    @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response ListAll(
+    public Response listAll(
             @QueryParam("full") @DefaultValue("false") Boolean full
     ) throws IkatsDaoException {
 
@@ -108,6 +106,18 @@ public class WorkflowResource extends AbstractResource {
         Workflow wf = Facade.getById(id);
 
         return Response.status(Response.Status.OK).entity(wf).build();
+    }
+
+    /**
+     * Update all workflow at once
+     *
+     * @return HTTP response
+     */
+    @PUT
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response updateWorkflow() {
+        return Response.status(Response.Status.NOT_IMPLEMENTED).build();
     }
 
     /**
@@ -163,7 +173,6 @@ public class WorkflowResource extends AbstractResource {
      * @throws IkatsDaoException if any DAO exception occurs
      */
     @DELETE
-    @Path("/")
     @Produces(MediaType.APPLICATION_JSON)
     public Response removeAll() throws IkatsDaoException {
 

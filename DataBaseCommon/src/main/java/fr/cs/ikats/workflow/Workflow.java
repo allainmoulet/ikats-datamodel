@@ -1,7 +1,6 @@
 package fr.cs.ikats.workflow;
 
 import javax.persistence.*;
-import java.sql.Blob;
 
 /**
  * The type Workflow.
@@ -22,9 +21,8 @@ public class Workflow {
     @Column(name = "description")
     private String description;
 
-    @Lob
-    @Column(name = "raw")
-    private Blob raw;
+    @Column(name = "raw", columnDefinition = "NVARCHAR(MAX)")
+    private String raw;
 
     /**
      * Gets id.
@@ -85,7 +83,7 @@ public class Workflow {
      *
      * @return the raw
      */
-    public Blob getRaw() {
+    public String getRaw() {
         return raw;
     }
 
@@ -94,7 +92,7 @@ public class Workflow {
      *
      * @param raw the raw
      */
-    public void setRaw(Blob raw) {
+    public void setRaw(String raw) {
         this.raw = raw;
     }
 

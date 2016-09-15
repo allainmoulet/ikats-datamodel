@@ -8,6 +8,7 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 import org.apache.log4j.Logger;
+import org.glassfish.jersey.server.ParamException.PathParamException;
 
 /**
  * Handle exception and set BAD_REQUEST to the responses
@@ -24,6 +25,9 @@ public class ApplicationExceptionHandler implements ExceptionMapper<Exception> {
         if(NotFoundException.class.isAssignableFrom(exception.getClass())) {
             logger.error("Error handled while processing request "+exception.getMessage());
             return Response.status(Status.NOT_FOUND).entity(exception.getMessage()).build();            
+        } else if(PathParamException.class.isAssignableFrom(exception.getClass())) {
+            logger.error("Bad request ",exception);
+            return Response.status(Status.BAD_REQUEST).entity(exception.getMessage()).build();
         } else if(WebApplicationException.class.isAssignableFrom(exception.getClass())) {
             logger.error("Error handled while processing request ",exception);
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(exception.getMessage()).build();

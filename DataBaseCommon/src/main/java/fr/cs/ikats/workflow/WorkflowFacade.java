@@ -7,7 +7,6 @@ import org.apache.log4j.Logger;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.sql.Blob;
 import java.util.List;
 
 
@@ -70,7 +69,7 @@ public class WorkflowFacade {
      * @throws IkatsDaoConflictException create error raised on conflict with another resource
      * @throws IkatsDaoException         another error from DAO
      */
-    public Integer persist(String name, String description, Blob raw) throws IkatsDaoConflictException, IkatsDaoException {
+    public Integer persist(String name, String description, String raw) throws IkatsDaoConflictException, IkatsDaoException {
 
         Workflow wf = new Workflow();
         wf.setName(name);
@@ -114,7 +113,7 @@ public class WorkflowFacade {
      * @throws IkatsDaoConflictException if the new name is already used (not unique)
      * @throws IkatsDaoException         if any other exception occurs
      */
-    public boolean update(Integer id, String name, String description, Blob raw) throws IkatsDaoConflictException, IkatsDaoException {
+    public boolean update(Integer id, String name, String description, String raw) throws IkatsDaoConflictException, IkatsDaoException {
         Workflow wf = dao.getById(id);
         wf.setName(name);
         wf.setDescription(description);
