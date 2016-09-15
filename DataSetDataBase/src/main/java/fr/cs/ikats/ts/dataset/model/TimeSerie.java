@@ -1,11 +1,13 @@
 package fr.cs.ikats.ts.dataset.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -83,15 +85,11 @@ public class TimeSerie {
     }
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @SequenceGenerator(name="timeserie_id_seq", sequenceName="timeserie_id_seq", allocationSize=1)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator="timeserie_id_seq")
+    @Column(name = "id", updatable = false)
     private Long id;
-    
-//   //  @Column(name = "tsuid") //  insertable = false, updatable = false) 
-//    private String tsuid;
-//
-//   //  @Column(name = "dataset_name") //, insertable = false, updatable = false)
-//    private String datasetName;
-     
+         
     @JsonIgnore
     @ManyToOne 
     @JoinColumn(name="tsuid")
