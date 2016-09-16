@@ -13,17 +13,34 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- * Created by ftortora on 13/09/16.
- */
 public class WorkflowResourceTest extends AbstractRequestTest {
+    /**
+     * Facade to connect to Workflow DAO allowing to prepare and check database information
+     */
     private WorkflowFacade Facade = new WorkflowFacade();
+
+    /**
+     * Logger of the test
+     */
     private static Logger LOGGER = Logger.getLogger(DataBaseDAO.class);
+
+    /**
+     * Verbs used for HTTP method for the API calling
+     */
+    private enum VERB {
+        POST, GET, PUT, DELETE
+    }
 
     /**
      * Standard API caller used only in this test
@@ -32,23 +49,23 @@ public class WorkflowResourceTest extends AbstractRequestTest {
      * @param url  complete url calling API
      * @param wf   Workflow information to provide
      * @return the HTTP response
-     * @throws IkatsWebClientException
+     * @throws IkatsWebClientException if any exception occurs
      */
-    private static Response callAPI(String verb, String url, Workflow wf) throws Exception {
+    private static Response callAPI(VERB verb, String url, Workflow wf) throws Exception {
 
         Response result;
         Entity<Workflow> wfEntity = Entity.entity(wf, MediaType.APPLICATION_JSON_TYPE);
         switch (verb) {
-            case "POST":
+            case POST:
                 result = RequestSender.sendPOSTRequest(getAPIURL() + url, wfEntity);
                 break;
-            case "GET":
+            case GET:
                 result = RequestSender.sendGETRequest(getAPIURL() + url, null);
                 break;
-            case "PUT":
+            case PUT:
                 result = RequestSender.sendPUTRequest(getAPIURL() + url, wfEntity);
                 break;
-            case "DELETE":
+            case DELETE:
                 result = RequestSender.sendDELETERequest(getAPIURL() + url);
                 break;
             default:
@@ -62,10 +79,10 @@ public class WorkflowResourceTest extends AbstractRequestTest {
      * Test utils to add easily a new workflow in database
      *
      * @param number Test identifier for the workflow
-     * @return
-     * @throws IkatsDaoException
+     * @return the id of the added workflow
+     * @throws IkatsDaoException if something fails
      */
-    private Integer addWfToDb(Integer number) throws IkatsDaoException {
+    private Workflow addWfToDb(Integer number) throws IkatsDaoException {
 
         Workflow wf = new Workflow();
 
@@ -73,7 +90,9 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         wf.setDescription("Description about Workflow_" + number.toString());
         wf.setRaw("Raw content " + number.toString());
 
-        return Facade.persist(wf);
+        Facade.persist(wf);
+
+        return wf;
     }
 
     @BeforeClass
@@ -95,12 +114,12 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow creation - Nominal case
+     * Workflow creation - Nominal case - Database is empty
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
-    public void create_201() throws Exception {
+    public void create_databaseEmpty_201() throws Exception {
 
         // PREPARE THE DATABASE
         // No data needed in database       
@@ -112,18 +131,78 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         wf.setRaw("Workflow content");
 
         // DO THE TEST
-        Response response = callAPI("POST", "/wf/", wf);
+        Response response = callAPI(VERB.POST, "/wf/", wf);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(201, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("", body);
+
+        URI headerLocation = response.getLocation();
+        Pattern pattern = Pattern.compile(".*/wf/([0-9]+)");
+        Matcher matcher = pattern.matcher(headerLocation.toString());
+        assertEquals(true, matcher.matches());
+        String expectedId = matcher.group(1);
+        assertEquals(getAPIURL() + "/wf/" + expectedId, headerLocation.toString());
+
+        List<Workflow> workflowList = Facade.listAll();
+        assertEquals(1, workflowList.size());
+
+        Response response2 = callAPI(VERB.GET, "/wf/" + expectedId, wf);
+        assertEquals(200, response2.getStatus());
+
+
+    }
+
+    /**
+     * Workflow creation - Nominal case - Database contains Workflow
+     *
+     * @throws Exception if test fails
+     */
+    @Test
+    public void create_databaseFilled_201() throws Exception {
+
+        // PREPARE THE DATABASE
+        addWfToDb(1);
+
+        // PREPARE THE TEST
+        Workflow wf = new Workflow();
+        wf.setName("My_Workflow");
+        wf.setDescription("Description of my new workflow");
+        wf.setRaw("Workflow content");
+
+        // DO THE TEST
+        Response response = callAPI(VERB.POST, "/wf/", wf);
+
+        // CHECK RESULTS
+        int status = response.getStatus();
+        assertEquals(201, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("", body);
+
+        URI headerLocation = response.getLocation();
+        Pattern pattern = Pattern.compile(".*/wf/([0-9]+)");
+        Matcher matcher = pattern.matcher(headerLocation.toString());
+        assertEquals(true, matcher.matches());
+        String expectedId = matcher.group(1);
+        assertEquals(getAPIURL() + "/wf/" + expectedId, headerLocation.toString());
+
+        List<Workflow> workflowList = Facade.listAll();
+        assertEquals(2, workflowList.size());
+
+        Response response2 = callAPI(VERB.GET, "/wf/" + expectedId, wf);
+        assertEquals(200, response2.getStatus());
+
     }
 
     /**
      * Workflow creation - Robustness case - Bad Request
      * Empty workflow information
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void create_400() throws Exception {
@@ -135,18 +214,22 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // No preparation needed
 
         // DO THE TEST
-        Response response = callAPI("POST", "/wf/", null);
+        Response response = callAPI(VERB.POST, "/wf/", null);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(400, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("Creating Workflow: null: unexpected Exception", body);
+
     }
 
     /**
      * Workflow creation - Robustness case - Method not allowed
      * Creation are not authorized on REST "resources" (only allowed on "collections")
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void create_405() throws Exception {
@@ -155,7 +238,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // Fill in the workflow db
         addWfToDb(1);
         addWfToDb(2);
-        Integer id = addWfToDb(3);
+        Integer id = addWfToDb(3).getId();
 
         // PREPARE THE TEST
         // Change the name
@@ -166,42 +249,95 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
 
         // DO THE TEST
-        Response response = callAPI("POST", "/wf/" + id.toString(), wf);
+        Response response = callAPI(VERB.POST, "/wf/" + id.toString(), wf);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(405, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("HTTP 405 Method Not Allowed", body);
     }
 
     /**
      * Workflow list All - Nominal case
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void listAll_200() throws Exception {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        Integer id1 = addWfToDb(1);
-        Integer id2 = addWfToDb(2);
-        Integer id3 = addWfToDb(3);
+        List<Workflow> wfList = new ArrayList<>();
+        wfList.add(addWfToDb(1));
+        wfList.add(addWfToDb(2));
+        wfList.add(addWfToDb(3));
 
         // PREPARE THE TEST
         // Fill in the workflow db
 
         // DO THE TEST
-        Response response = callAPI("GET", "/wf/", null);
+        Response response = callAPI(VERB.GET, "/wf/", null);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(200, status);
+
+        List<Workflow> readWorkflowList = response.readEntity(new GenericType<List<Workflow>>() {
+        });
+        assertEquals(wfList.size(), readWorkflowList.size());
+        for (int i = 0; i < wfList.size(); i++) {
+            assertEquals(wfList.get(i).getId(), readWorkflowList.get(i).getId());
+            assertEquals(wfList.get(i).getName(), readWorkflowList.get(i).getName());
+            assertEquals(wfList.get(i).getDescription(), readWorkflowList.get(i).getDescription());
+            assertEquals(null, readWorkflowList.get(i).getRaw());
+        }
+
+
+    }
+
+    /**
+     * Workflow list All - Nominal case - with full content
+     *
+     * @throws Exception if test fails
+     */
+    @Test
+    public void listAll_full_200() throws Exception {
+
+        // PREPARE THE DATABASE
+        // Fill in the workflow db
+        List<Workflow> wfList = new ArrayList<>();
+        wfList.add(addWfToDb(1));
+        wfList.add(addWfToDb(2));
+        wfList.add(addWfToDb(3));
+
+        // PREPARE THE TEST
+        // Fill in the workflow db
+
+        // DO THE TEST
+        Response response = callAPI(VERB.GET, "/wf/?full=true", null);
+
+        // CHECK RESULTS
+        int status = response.getStatus();
+        assertEquals(200, status);
+
+        List<Workflow> readWorkflowList = response.readEntity(new GenericType<List<Workflow>>() {
+        });
+        assertEquals(wfList.size(), readWorkflowList.size());
+        for (int i = 0; i < wfList.size(); i++) {
+            assertEquals(wfList.get(i).getId(), readWorkflowList.get(i).getId());
+            assertEquals(wfList.get(i).getName(), readWorkflowList.get(i).getName());
+            assertEquals(wfList.get(i).getDescription(), readWorkflowList.get(i).getDescription());
+            assertEquals(wfList.get(i).getRaw(), readWorkflowList.get(i).getRaw());
+        }
+
     }
 
     /**
      * Workflow list All - Robustness case - No workflow stored
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void listAll_404() throws Exception {
@@ -213,41 +349,51 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // No preparation needed
 
         // DO THE TEST
-        Response response = callAPI("GET", "/wf/", null);
+        Response response = callAPI(VERB.GET, "/wf/", null);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(204, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("", body);
     }
 
     /**
      * Workflow get - Nominal case
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void getWorkflow_200() throws Exception {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        Integer id = addWfToDb(1);
+        Workflow wf = addWfToDb(1);
 
         // PREPARE THE TEST
         // Nothing to do
 
         // DO THE TEST
-        Response response = callAPI("GET", "/wf/" + id.toString(), null);
+        Response response = callAPI(VERB.GET, "/wf/" + wf.getId().toString(), null);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(200, status);
+
+        Workflow readWorkflow = response.readEntity(new GenericType<Workflow>() {
+        });
+        assertEquals(wf.getId(), readWorkflow.getId());
+        assertEquals(wf.getName(), readWorkflow.getName());
+        assertEquals(wf.getDescription(), readWorkflow.getDescription());
+        assertEquals(wf.getRaw(), readWorkflow.getRaw());
     }
 
     /**
      * Workflow get - Robustness case - Not found
      * There is no workflow matching this Id
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void getWorkflow_404() throws Exception {
@@ -256,25 +402,28 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // Fill in the workflow db
         addWfToDb(1);
         addWfToDb(2);
-        Integer id = addWfToDb(3);
+        Integer id = addWfToDb(3).getId();
 
         // PREPARE THE TEST
         // Set id to an unknown one
         Integer idToRequest = id + 1;
 
         // DO THE TEST
-        Response response = callAPI("GET", "/wf/" + idToRequest.toString(), null);
+        Response response = callAPI(VERB.GET, "/wf/" + idToRequest.toString(), null);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(404, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("Searching workflow from id=" + idToRequest + ": no resource found, but should exist.", body);
     }
 
     /**
      * Workflow get - Robustness case - Bad Request
      * The id is badly formatted
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void getWorkflow_400() throws Exception {
@@ -289,17 +438,20 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         String badId = "bad_id";
 
         // DO THE TEST
-        Response response = callAPI("GET", "/wf/" + badId, null);
+        Response response = callAPI(VERB.GET, "/wf/" + badId, null);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(400, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("", body);
     }
 
     /**
      * Workflow update - Nominal case
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void updateWorkflow_200() throws Exception {
@@ -307,7 +459,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // PREPARE THE DATABASE
         // Fill in the workflow db
         addWfToDb(1);
-        Integer id = addWfToDb(2);
+        Integer id = addWfToDb(2).getId();
         addWfToDb(3);
 
         // PREPARE THE TEST
@@ -318,18 +470,21 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         wf.setRaw("New Workflow new content");
 
         // DO THE TEST
-        Response response = callAPI("PUT", "/wf/" + id.toString(), wf);
+        Response response = callAPI(VERB.PUT, "/wf/" + id.toString(), wf);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(200, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("", body);
     }
 
     /**
      * Workflow update - Robustness case - Bad Request
      * The id is badly formatted
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void updateWorkflow_400() throws Exception {
@@ -337,7 +492,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // PREPARE THE DATABASE
         // Fill in the workflow db
         addWfToDb(1);
-        Integer id = addWfToDb(2);
+        Integer id = addWfToDb(2).getId();
         addWfToDb(3);
 
         // PREPARE THE TEST
@@ -349,18 +504,21 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         wf.setRaw("New Workflow new content");
 
         // DO THE TEST
-        Response response = callAPI("PUT", "/wf/" + badId, wf);
+        Response response = callAPI(VERB.PUT, "/wf/" + badId, wf);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(400, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("", body);
     }
 
     /**
      * Workflow update - Robustness case - Not found
      * There is no workflow matching this Id
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void updateWorkflow_404() throws Exception {
@@ -369,7 +527,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // Fill in the workflow db
         addWfToDb(1);
         addWfToDb(2);
-        Integer id = addWfToDb(3);
+        Integer id = addWfToDb(3).getId();
 
         // PREPARE THE TEST
         Integer unknownId = id + 1;
@@ -381,19 +539,20 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         wf.setRaw("New Workflow content");
 
         // DO THE TEST
-        Response response = callAPI("PUT", "/wf/" + unknownId.toString(), wf);
-
-        //TODO debug got 200
+        Response response = callAPI(VERB.PUT, "/wf/" + unknownId.toString(), wf);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(404, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("No match for Workflow with id:" + unknownId.toString(), body);
     }
 
     /**
      * Workflow update all - Robustness Case - Not implemented
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void updateAll_501() throws Exception {
@@ -410,17 +569,21 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // Nothing to do
 
         // DO THE TEST
-        Response response = callAPI("PUT", "/wf/", wf);
+        Response response = callAPI(VERB.PUT, "/wf/", wf);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(501, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("", body);
+
     }
 
     /**
      * Workflow deletion - Nominal case
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void removeWorkflow_204() throws Exception {
@@ -428,25 +591,28 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // PREPARE THE DATABASE
         // Fill in the workflow db
         addWfToDb(1);
-        Integer id = addWfToDb(2);
+        Integer id = addWfToDb(2).getId();
         addWfToDb(3);
 
         // PREPARE THE TEST
         // Nothing to do
 
         // DO THE TEST
-        Response response = callAPI("DELETE", "/wf/" + id.toString(), null);
+        Response response = callAPI(VERB.DELETE, "/wf/" + id.toString(), null);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(204, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("", body);
     }
 
     /**
      * Workflow deletion - Robustness case - Bad Request
      * The id is badly formatted
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void removeWorkflow_400() throws Exception {
@@ -461,18 +627,21 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         String badId = "bad_id";
 
         // DO THE TEST
-        Response response = callAPI("DELETE", "/wf/" + badId, null);
+        Response response = callAPI(VERB.DELETE, "/wf/" + badId, null);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(400, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("", body);
     }
 
     /**
      * Workflow get - Robustness case - Not found
      * There is no workflow matching this Id
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void removeWorkflow_404() throws Exception {
@@ -481,25 +650,26 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // Fill in the workflow db
         addWfToDb(1);
         addWfToDb(2);
-        Integer id = addWfToDb(3);
+        Integer id = addWfToDb(3).getId();
 
         // PREPARE THE TEST
         Integer unknownId = id + 1;
 
         // DO THE TEST
-        Response response = callAPI("DELETE", "/wf/" + unknownId.toString(), null);
-
-        //TODO debug got 400
+        Response response = callAPI(VERB.DELETE, "/wf/" + unknownId.toString(), null);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(404, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("No workflow exists with Id:" + unknownId.toString(), body);
     }
 
     /**
      * All Workflow deletion - Nominal case
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void removeAll_204() throws Exception {
@@ -514,18 +684,21 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // Nothing to do
 
         // DO THE TEST
-        Response response = callAPI("DELETE", "/wf/", null);
+        Response response = callAPI(VERB.DELETE, "/wf/", null);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(204, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("", body);
     }
 
     /**
      * All Workflow deletion - Robustness case - Not Found
      * There was no workflow stored
      *
-     * @throws Exception
+     * @throws Exception if test fails
      */
     @Test
     public void removeAll_204_empty() throws Exception {
@@ -537,11 +710,14 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // Nothing to do
 
         // DO THE TEST
-        Response response = callAPI("DELETE", "/wf/", null);
+        Response response = callAPI(VERB.DELETE, "/wf/", null);
 
         // CHECK RESULTS
         int status = response.getStatus();
         assertEquals(204, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("", body);
     }
 
 }

@@ -3,7 +3,6 @@ package fr.cs.ikats.workflow;
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import org.apache.log4j.Logger;
 import org.hibernate.*;
@@ -63,7 +62,7 @@ public class WorkflowDAO extends DataBaseDAO {
     /**
      * Delete all workflow
      *
-     * @return the number of deleted workflows
+     * @return the number of deleted workflow
      * @throws IkatsDaoException if the workflow couldn't be removed
      */
     public int removeAll() throws IkatsDaoException {
@@ -198,9 +197,9 @@ public class WorkflowDAO extends DataBaseDAO {
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
         } catch (StaleStateException e) {
 
-            String msg = "No match for update of " + wfInfo;
+            String msg = "No match for Workflow with id:" + wf.getId();
             LOGGER.error(msg, e);
-            rollbackAndThrowException(tx, new IkatsDaoInvalidValueException(msg, e));
+            rollbackAndThrowException(tx, new IkatsDaoMissingRessource(msg, e));
 
         } catch (HibernateException e) {
             String msg = "Updating: " + wfInfo + ": unexpected HibernateException";
@@ -232,7 +231,13 @@ public class WorkflowDAO extends DataBaseDAO {
             tx = session.beginTransaction();
             Query query = session.createQuery(DELETE_WORKFLOW_BY_ID);
             query.setInteger("id", id);
-            query.executeUpdate();
+            Integer deletedCount = query.executeUpdate();
+            if (deletedCount == 0) {
+                String msg = "No workflow exists with Id:" + id.toString();
+                LOGGER.warn(msg);
+                throw new IkatsDaoMissingRessource(msg);
+            }
+
             tx.commit();
         } catch (HibernateException e) {
             IkatsDaoException error = new IkatsDaoException("Deleting Workflow rows matching id=" + id, e);

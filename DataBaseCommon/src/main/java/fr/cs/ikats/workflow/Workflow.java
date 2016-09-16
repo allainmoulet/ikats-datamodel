@@ -21,7 +21,7 @@ public class Workflow {
     @Column(name = "description")
     private String description;
 
-    @Column(name = "raw")
+    @Column(name = "raw", columnDefinition = "VARCHAR(100000)")
     private String raw;
 
     /**
@@ -102,7 +102,7 @@ public class Workflow {
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
-                ", raw='" + raw.toString() + '\'' +
+                ", raw='" + raw + '\'' +
                 '}';
     }
 }

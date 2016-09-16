@@ -1,6 +1,5 @@
 package fr.cs.ikats.temporaldata.resource;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.workflow.Workflow;
 import fr.cs.ikats.workflow.WorkflowFacade;
@@ -73,6 +72,7 @@ public class WorkflowResource extends AbstractResource {
             // Filter results to not provide raw content
             for (Workflow workflowItem : fullResults) {
                 Workflow outputWf = new Workflow();
+                outputWf.setId(workflowItem.getId());
                 outputWf.setName(workflowItem.getName());
                 outputWf.setDescription(workflowItem.getDescription());
                 result.add(outputWf);
