@@ -7,7 +7,6 @@ import org.apache.log4j.Logger;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.sql.Blob;
 import java.util.List;
 
 
