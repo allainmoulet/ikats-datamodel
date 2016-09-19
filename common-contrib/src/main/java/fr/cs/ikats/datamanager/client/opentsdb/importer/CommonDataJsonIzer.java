@@ -6,6 +6,7 @@ import java.text.FieldPosition;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -66,17 +67,21 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
                 Date date = null;
                 try {
                     DateFormat format = new ISO8601DateFormat();
+                    format.setTimeZone(TimeZone.getTimeZone("GMT"));
                     date = format.parse(source, pos);
                     if (date == null) {
                         format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS");
+                        format.setTimeZone(TimeZone.getTimeZone("GMT"));
                         date = format.parse(source, pos);
                     }
                     if (date == null) {
                         format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
+                        format.setTimeZone(TimeZone.getTimeZone("GMT"));
                         date = format.parse(source, pos);
                     }
                     if (date == null) {
                         format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.S");
+                        format.setTimeZone(TimeZone.getTimeZone("GMT"));
                         date = format.parse(source, pos);
                     }
                 }
