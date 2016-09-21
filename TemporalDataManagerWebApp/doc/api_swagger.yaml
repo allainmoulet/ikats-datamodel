@@ -1,0 +1,203 @@
+swagger: '2.0'
+info:
+  version: "0.1.0"
+  title: ikats API
+  description: Dev API description
+  contact: 
+    name: Dev Team
+    email: ikats_pia-devt@thor.si.c-s.fr
+  license:
+    name: Copyright 2016 - CS
+    url: http://www.c-s.fr
+host: "172.28.15.83"
+basePath: "/TemporalDataManagerWebApp/webapi"
+schemes:
+  - http
+paths:
+  /wf:
+    get:
+      summary: List all the available workflow
+      parameters:
+        - name: full
+          in: query
+          description: Flag indicating if the raw field is filled in returned data (default:false)
+          required: false
+          type: boolean
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        200:
+          description: An array of workflow
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/workflow'
+        404:
+          description: No workflow in database
+        500:
+          description: Internal server error
+    post:
+      summary: Create a new workflow
+      parameters:
+        - name: name
+          in: formData
+          description: Name of the workflow to create
+          required: true
+          type: string
+        - name: description
+          in: formData
+          description: Description of the workflow to create
+          required: true
+          type: string
+        - name: raw
+          in: formData
+          description: Workflow content as JSON format
+          required: true
+          type: string
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        201:
+          description: An array of workflow
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/workflow'
+        400:
+          description: Error in parameters
+        500:
+          description: Internal server error
+    put:
+      summary: Update all workflows
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        501:
+          description: Not implemented
+    delete:
+      summary: Delete all workflows
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        204:
+          description: Workflows deleted
+        500:
+          description: Internal server error
+          
+  /wf/{workflowId}:
+    get:
+      summary: List all the available workflow
+      parameters:
+        - in: path
+          name: workflowId
+          description: ID of workflow to fetch
+          required: true
+          type: number
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        200:
+          description: A workflow
+          schema:
+            $ref: '#/definitions/workflow'
+        400:
+          description: workflowId is not correct
+        404:
+          description: This workflow doesn't exist
+        500:
+          description: Internal server error
+    post:
+      parameters:
+        - in: path
+          name: workflowId
+          description: ID of workflow
+          required: true
+          type: number
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        405:
+          description: Method not allowed
+        500:
+          description: Internal server error
+    put:
+      summary: Update the workflow
+      parameters:
+        - in: path
+          name: workflowId
+          description: ID of workflow to update
+          required: true
+          type: number
+        - name: name
+          in: formData
+          description: Name of the workflow to update
+          required: true
+          type: string
+        - name: description
+          in: formData
+          description: Description of the workflow to update
+          required: true
+          type: string
+        - name: raw
+          in: formData
+          description: Workflow content as JSON format
+          required: true
+          type: string
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        200:
+          description: Workflow updated
+        400:
+          description: workflow content is not correct
+        404:
+          description: This workflow doesn't exist
+        500:
+          description: Internal server error
+    delete:
+      summary: Delete a workflow
+      parameters:
+        - in: path
+          name: workflowId
+          description: ID of workflow to delete
+          required: true
+          type: number
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      responses:
+        204:
+          description: Workflow deleted
+        500:
+          description: Internal server error
+definitions:
+  workflow:
+    type: object
+    properties:
+      id:
+        type: number
+        description: unique identifier of the workflow in database
+      name:
+        type: string
+        description: name of the workflow
+      description:
+        type: string
+        description: description of the workflow
+      raw:
+        type: string
+        description: content of the workflow as JSON
