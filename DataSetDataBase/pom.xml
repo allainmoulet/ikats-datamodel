@@ -39,5 +39,6 @@
 	    <groupId>fr.cs.ikats</groupId>
 	    <artifactId>ikats-main</artifactId>
 	    <version>0.0.1-SNAPSHOT</version>
+            <relativePath>../ikats-main</relativePath>
     </parent>
 </project>
