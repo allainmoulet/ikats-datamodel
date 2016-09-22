@@ -1,6 +1,12 @@
 package fr.cs.ikats.workflow;
 
-import javax.persistence.*;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 
 /**
  * The type Workflow.
@@ -96,7 +102,7 @@ public class Workflow {
         this.raw = raw;
     }
 
-    @java.lang.Override
+    @Override
     public java.lang.String toString() {
         return "Workflow{" +
                 "id=" + id +

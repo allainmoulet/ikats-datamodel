@@ -41,4 +41,4 @@ About this file
 
 * [Markdown syntax](https://fr.wikipedia.org/wiki/Markdown)
 * [Markdown rendering with chrome](https://chrome.google.com/webstore/detail/markdown-preview/jmchmkecamhbiokiopfpnfgbidieafmd)
-
+* [Plugin Eclipse](http://marketplace.eclipse.org/marketplace-client-intro) for editing and rendering

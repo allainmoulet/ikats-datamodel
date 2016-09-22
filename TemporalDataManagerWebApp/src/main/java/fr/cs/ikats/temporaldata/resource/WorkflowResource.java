@@ -1,14 +1,29 @@
 package fr.cs.ikats.temporaldata.resource;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.log4j.Logger;
+
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.workflow.Workflow;
 import fr.cs.ikats.workflow.WorkflowFacade;
-import org.apache.log4j.Logger;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This class hosts all the operations on Workflow
@@ -70,6 +85,10 @@ public class WorkflowResource extends AbstractResource {
             result = fullResults;
         } else {
             // Filter results to not provide raw content
+        	// FIXME REVIEW 145144 More efficient : loop on the workflow list and set raw to null.
+        	// 		e.g. in Java 8 : 
+        	// 		fullResults.forEach(wf -> wf.setRaw(null));
+        	// 		-> this way fullResults could be returned as this.
             for (Workflow workflowItem : fullResults) {
                 Workflow outputWf = new Workflow();
                 outputWf.setId(workflowItem.getId());
@@ -136,9 +155,11 @@ public class WorkflowResource extends AbstractResource {
     public Response updateWorkflow(
             Workflow wf,
             @Context UriInfo uriInfo,
-            @PathParam("id") Integer id
+            @PathParam("id") int id
     ) throws IkatsDaoException {
 
+    	// FIXME REVIEW 145444 Test the {id} param wiht regard to wf.getId(). 
+    	// 		See changes in fr.cs.ikats.temporaldata.WorkflowResourceTest.updateWorkflow_200()
         boolean result = Facade.update(wf);
 
         if (result) {

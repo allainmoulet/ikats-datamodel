@@ -1,39 +1,36 @@
 package fr.cs.ikats.temporaldata;
 
-import fr.cs.ikats.common.dao.DataBaseDAO;
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.datamanager.client.RequestSender;
-import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
-import fr.cs.ikats.workflow.Workflow;
-import fr.cs.ikats.workflow.WorkflowFacade;
-import org.apache.log4j.Logger;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.junit.Assert.assertEquals;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.apache.log4j.Logger;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import fr.cs.ikats.common.dao.DataBaseDAO;
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.datamanager.client.RequestSender;
+import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
+import fr.cs.ikats.workflow.Workflow;
+import fr.cs.ikats.workflow.WorkflowFacade;
 
 public class WorkflowResourceTest extends AbstractRequestTest {
     /**
      * Facade to connect to Workflow DAO allowing to prepare and check database information
      */
     private WorkflowFacade Facade = new WorkflowFacade();
-
-    /**
-     * Logger of the test
-     */
-    private static Logger LOGGER = Logger.getLogger(DataBaseDAO.class);
 
     /**
      * Verbs used for HTTP method for the API calling
@@ -464,7 +461,8 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE TEST
         Workflow wf = new Workflow();
-        wf.setId(id);
+        // FIXME REVIEW 145444 :  do not set the id in the wf object : it is set by URL path parameter.
+        // wf.setId(id);
         wf.setName("New My_Workflow");
         wf.setDescription("New Description of my new workflow");
         wf.setRaw("New Workflow new content");
@@ -492,13 +490,17 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // PREPARE THE DATABASE
         // Fill in the workflow db
         addWfToDb(1);
-        Integer id = addWfToDb(2).getId();
+        // FIXME 145444 :  do not set the id in the wf object : it is set by URL path parameter.
+        // add the second wf to db only, do not get the id
+        //Integer id = addWfToDb(2).getId();
+        addWfToDb(2);
         addWfToDb(3);
 
         // PREPARE THE TEST
         String badId = "bad_id";
         Workflow wf = new Workflow();
-        wf.setId(id);
+        // FIXME 145444 :  do not set the id in the wf object : it is set by URL path parameter.
+        // wf.setId(id);
         wf.setName("New My_Workflow");
         wf.setDescription("New Description of my new workflow");
         wf.setRaw("New Workflow new content");
@@ -533,7 +535,8 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         Integer unknownId = id + 1;
 
         Workflow wf = new Workflow();
-        wf.setId(unknownId);
+        // FIXME 145444 :  do not set the id in the wf object : it is set by URL path parameter.
+        //wf.setId(unknownId);
         wf.setName("New My_Workflow");
         wf.setDescription("New Description of my workflow");
         wf.setRaw("New Workflow content");

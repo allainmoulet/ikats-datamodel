@@ -75,7 +75,8 @@
         <dependency>
             <groupId>org.springframework</groupId>
             <artifactId>spring-context</artifactId>
-            <version>4.2.1.RELEASE</version>
+            <!-- Review#145444 : to be aligned with others pom.xml !-->
+            <version>4.2.0.RELEASE</version>
         </dependency>
 
     </dependencies>
