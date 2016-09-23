@@ -443,11 +443,13 @@ public class TemporalDataManager {
 
     /**
      * get the TSUID for metric, and tags and date.
+     * request is done for catching the last point of the TS
+     * so in the interval [endDate .. now]
      * 
      * @param metric
      *            the metric name
      * @param date
-     *            the date
+     *            the end date of the timeseries
      * @param tags
      *            the tags
      * @return the TSUID
