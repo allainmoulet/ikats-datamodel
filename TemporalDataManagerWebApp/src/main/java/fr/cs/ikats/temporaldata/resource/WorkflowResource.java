@@ -19,6 +19,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import org.apache.log4j.Logger;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
@@ -79,23 +80,10 @@ public class WorkflowResource extends AbstractResource {
             @QueryParam("full") @DefaultValue("false") Boolean full
     ) throws IkatsDaoException {
 
-        List<Workflow> result = new ArrayList<Workflow>();
-        List<Workflow> fullResults = Facade.listAll();
-        if (full) {
-            result = fullResults;
-        } else {
-            // Filter results to not provide raw content
-        	// FIXME REVIEW 145144 More efficient : loop on the workflow list and set raw to null.
-        	// 		e.g. in Java 8 : 
-        	// 		fullResults.forEach(wf -> wf.setRaw(null));
-        	// 		-> this way fullResults could be returned as this.
-            for (Workflow workflowItem : fullResults) {
-                Workflow outputWf = new Workflow();
-                outputWf.setId(workflowItem.getId());
-                outputWf.setName(workflowItem.getName());
-                outputWf.setDescription(workflowItem.getDescription());
-                result.add(outputWf);
-            }
+        List<Workflow> result = Facade.listAll();
+        if (!full) {
+            // Remove Raw content from data to reduce the payload
+            result.forEach(wf -> wf.setRaw(null));
         }
 
         Response.StatusType resultStatus = Response.Status.OK;
@@ -156,10 +144,13 @@ public class WorkflowResource extends AbstractResource {
             Workflow wf,
             @Context UriInfo uriInfo,
             @PathParam("id") int id
-    ) throws IkatsDaoException {
+    ) throws IkatsDaoException, IkatsWebClientException {
 
-    	// FIXME REVIEW 145444 Test the {id} param wiht regard to wf.getId(). 
-    	// 		See changes in fr.cs.ikats.temporaldata.WorkflowResourceTest.updateWorkflow_200()
+        if (wf.getId() != null && id != wf.getId()){
+            throw new IkatsWebClientException("Mismatch in request with Id between URI and body part");
+        }
+        wf.setId(id);
+
         boolean result = Facade.update(wf);
 
         if (result) {

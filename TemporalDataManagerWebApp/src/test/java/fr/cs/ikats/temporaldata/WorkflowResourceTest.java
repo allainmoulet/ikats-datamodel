@@ -13,13 +13,11 @@ import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
-import org.apache.log4j.Logger;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.datamanager.client.RequestSender;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
@@ -461,8 +459,6 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE TEST
         Workflow wf = new Workflow();
-        // FIXME REVIEW 145444 :  do not set the id in the wf object : it is set by URL path parameter.
-        // wf.setId(id);
         wf.setName("New My_Workflow");
         wf.setDescription("New Description of my new workflow");
         wf.setRaw("New Workflow new content");
@@ -490,17 +486,12 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // PREPARE THE DATABASE
         // Fill in the workflow db
         addWfToDb(1);
-        // FIXME 145444 :  do not set the id in the wf object : it is set by URL path parameter.
-        // add the second wf to db only, do not get the id
-        //Integer id = addWfToDb(2).getId();
         addWfToDb(2);
         addWfToDb(3);
 
         // PREPARE THE TEST
         String badId = "bad_id";
         Workflow wf = new Workflow();
-        // FIXME 145444 :  do not set the id in the wf object : it is set by URL path parameter.
-        // wf.setId(id);
         wf.setName("New My_Workflow");
         wf.setDescription("New Description of my new workflow");
         wf.setRaw("New Workflow new content");
@@ -535,8 +526,6 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         Integer unknownId = id + 1;
 
         Workflow wf = new Workflow();
-        // FIXME 145444 :  do not set the id in the wf object : it is set by URL path parameter.
-        //wf.setId(unknownId);
         wf.setName("New My_Workflow");
         wf.setDescription("New Description of my workflow");
         wf.setRaw("New Workflow content");
