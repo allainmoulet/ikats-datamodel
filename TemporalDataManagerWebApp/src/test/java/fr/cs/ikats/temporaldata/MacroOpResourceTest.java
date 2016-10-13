@@ -1,30 +1,28 @@
 package fr.cs.ikats.temporaldata;
 
-import static org.junit.Assert.assertEquals;
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.datamanager.client.RequestSender;
+import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
+import fr.cs.ikats.workflow.Workflow;
+import fr.cs.ikats.workflow.WorkflowFacade;
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import static org.junit.Assert.assertEquals;
 
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.datamanager.client.RequestSender;
-import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
-import fr.cs.ikats.workflow.Workflow;
-import fr.cs.ikats.workflow.WorkflowFacade;
-
-public class WorkflowResourceTest extends AbstractRequestTest {
+public class MacroOpResourceTest extends AbstractRequestTest {
     /**
      * Facade to connect to Workflow DAO allowing to prepare and check database information
      */
@@ -91,6 +89,27 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         return wf;
     }
 
+    /**
+     * Test utils to add easily a new macro operator in database
+     *
+     * @param number Test identifier for the macro operator
+     * @return the added macro operator
+     * @throws IkatsDaoException if something fails
+     */
+    private Workflow addMOToDb(Integer number) throws IkatsDaoException {
+
+        Workflow wf = new Workflow();
+
+        wf.setName("MacroOp_" + number.toString());
+        wf.setDescription("Description about MacroOp_" + number.toString());
+        wf.setMacroOp(true);
+        wf.setRaw("Raw content " + number.toString());
+
+        Facade.persist(wf);
+
+        return wf;
+    }
+
     @BeforeClass
     public static void setUpBeforClass() {
         AbstractRequestTest.setUpBeforClass(QueryRequestTest.class.getSimpleName());
@@ -106,7 +125,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
      */
     @Before
     public void setUp() throws IkatsDaoException {
-        Facade.removeAllWorkflows();
+        Facade.removeAllMacroOp();
     }
 
     /**
@@ -122,12 +141,12 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE TEST
         Workflow wf = new Workflow();
-        wf.setName("My_Workflow");
-        wf.setDescription("Description of my new workflow");
-        wf.setRaw("Workflow content");
+        wf.setName("My_Macro_Operator");
+        wf.setDescription("Description of my new macro operator");
+        wf.setRaw("Macro operator content");
 
         // DO THE TEST
-        Response response = callAPI(VERB.POST, "/wf/", wf);
+        Response response = callAPI(VERB.POST, "/mo/", wf);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -137,23 +156,23 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         assertEquals("", body);
 
         URI headerLocation = response.getLocation();
-        Pattern pattern = Pattern.compile(".*/wf/([0-9]+)");
+        Pattern pattern = Pattern.compile(".*/mo/([0-9]+)");
         Matcher matcher = pattern.matcher(headerLocation.toString());
         assertEquals(true, matcher.matches());
         String expectedId = matcher.group(1);
-        assertEquals(getAPIURL() + "/wf/" + expectedId, headerLocation.toString());
+        assertEquals(getAPIURL() + "/mo/" + expectedId, headerLocation.toString());
 
-        List<Workflow> workflowList = Facade.listAllWorkflows();
-        assertEquals(1, workflowList.size());
+        List<Workflow> macroOpList = Facade.listAllMacroOp();
+        assertEquals(1, macroOpList.size());
 
-        Response response2 = callAPI(VERB.GET, "/wf/" + expectedId, wf);
+        Response response2 = callAPI(VERB.GET, "/mo/" + expectedId, wf);
         assertEquals(200, response2.getStatus());
 
 
     }
 
     /**
-     * Workflow creation - Nominal case - Database contains Workflow
+     * Macro operator creation - Nominal case - Database contains Macro operator
      *
      * @throws Exception if test fails
      */
@@ -161,16 +180,16 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     public void create_databaseFilled_201() throws Exception {
 
         // PREPARE THE DATABASE
-        addWfToDb(1);
+        addMOToDb(1);
 
         // PREPARE THE TEST
         Workflow wf = new Workflow();
-        wf.setName("My_Workflow");
-        wf.setDescription("Description of my new workflow");
-        wf.setRaw("Workflow content");
+        wf.setName("My_Macro_Operator");
+        wf.setDescription("Description of my new macro operator");
+        wf.setRaw("Macro operator content");
 
         // DO THE TEST
-        Response response = callAPI(VERB.POST, "/wf/", wf);
+        Response response = callAPI(VERB.POST, "/mo/", wf);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -180,23 +199,23 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         assertEquals("", body);
 
         URI headerLocation = response.getLocation();
-        Pattern pattern = Pattern.compile(".*/wf/([0-9]+)");
+        Pattern pattern = Pattern.compile(".*/mo/([0-9]+)");
         Matcher matcher = pattern.matcher(headerLocation.toString());
         assertEquals(true, matcher.matches());
         String expectedId = matcher.group(1);
-        assertEquals(getAPIURL() + "/wf/" + expectedId, headerLocation.toString());
+        assertEquals(getAPIURL() + "/mo/" + expectedId, headerLocation.toString());
 
-        List<Workflow> workflowList = Facade.listAllWorkflows();
-        assertEquals(2, workflowList.size());
+        List<Workflow> macroOpList = Facade.listAllMacroOp();
+        assertEquals(2, macroOpList.size());
 
-        Response response2 = callAPI(VERB.GET, "/wf/" + expectedId, wf);
+        Response response2 = callAPI(VERB.GET, "/mo/" + expectedId, wf);
         assertEquals(200, response2.getStatus());
 
     }
 
     /**
-     * Workflow creation - Robustness case - Bad Request
-     * Empty workflow information
+     * Macro operator creation - Robustness case - Bad Request
+     * Empty Macro operator information
      *
      * @throws Exception if test fails
      */
@@ -210,7 +229,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // No preparation needed
 
         // DO THE TEST
-        Response response = callAPI(VERB.POST, "/wf/", null);
+        Response response = callAPI(VERB.POST, "/mo/", null);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -222,7 +241,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow creation - Robustness case - Method not allowed
+     * Macro operator creation - Robustness case - Method not allowed
      * Creation are not authorized on REST "resources" (only allowed on "collections")
      *
      * @throws Exception if test fails
@@ -232,9 +251,9 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        addWfToDb(1);
-        addWfToDb(2);
-        Integer id = addWfToDb(3).getId();
+        addMOToDb(1);
+        addMOToDb(2);
+        Integer id = addMOToDb(3).getId();
 
         // PREPARE THE TEST
         // Change the name
@@ -245,7 +264,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
 
         // DO THE TEST
-        Response response = callAPI(VERB.POST, "/wf/" + id.toString(), wf);
+        Response response = callAPI(VERB.POST, "/mo/" + id.toString(), wf);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -256,7 +275,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow list All - Nominal case
+     * Macro operator list All - Nominal case
      *
      * @throws Exception if test fails
      */
@@ -266,15 +285,15 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // PREPARE THE DATABASE
         // Fill in the workflow db
         List<Workflow> wfList = new ArrayList<>();
-        wfList.add(addWfToDb(1));
-        wfList.add(addWfToDb(2));
-        wfList.add(addWfToDb(3));
+        wfList.add(addMOToDb(1));
+        wfList.add(addMOToDb(2));
+        wfList.add(addMOToDb(3));
 
         // PREPARE THE TEST
         // Fill in the workflow db
 
         // DO THE TEST
-        Response response = callAPI(VERB.GET, "/wf/", null);
+        Response response = callAPI(VERB.GET, "/mo/", null);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -294,7 +313,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow list All - Nominal case - with full content
+     * Macro operator list All - Nominal case - with full content
      *
      * @throws Exception if test fails
      */
@@ -304,15 +323,15 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // PREPARE THE DATABASE
         // Fill in the workflow db
         List<Workflow> wfList = new ArrayList<>();
-        wfList.add(addWfToDb(1));
-        wfList.add(addWfToDb(2));
-        wfList.add(addWfToDb(3));
+        wfList.add(addMOToDb(1));
+        wfList.add(addMOToDb(2));
+        wfList.add(addMOToDb(3));
 
         // PREPARE THE TEST
         // Fill in the workflow db
 
         // DO THE TEST
-        Response response = callAPI(VERB.GET, "/wf/?full=true", null);
+        Response response = callAPI(VERB.GET, "/mo/?full=true", null);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -331,7 +350,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow list All - Robustness case - No workflow stored
+     * Macro operator list All - Robustness case - No Macro operator stored
      *
      * @throws Exception if test fails
      */
@@ -345,7 +364,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // No preparation needed
 
         // DO THE TEST
-        Response response = callAPI(VERB.GET, "/wf/", null);
+        Response response = callAPI(VERB.GET, "/mo/", null);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -356,7 +375,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow get - Nominal case
+     * Macro operator get - Nominal case
      *
      * @throws Exception if test fails
      */
@@ -365,13 +384,13 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        Workflow wf = addWfToDb(1);
+        Workflow wf = addMOToDb(1);
 
         // PREPARE THE TEST
         // Nothing to do
 
         // DO THE TEST
-        Response response = callAPI(VERB.GET, "/wf/" + wf.getId().toString(), null);
+        Response response = callAPI(VERB.GET, "/mo/" + wf.getId().toString(), null);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -386,8 +405,8 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow get - Robustness case - Not found
-     * There is no workflow matching this Id
+     * Macro operator get - Robustness case - Not found
+     * There is no Macro operator matching this Id
      *
      * @throws Exception if test fails
      */
@@ -396,16 +415,16 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        addWfToDb(1);
-        addWfToDb(2);
-        Integer id = addWfToDb(3).getId();
+        addMOToDb(1);
+        addMOToDb(2);
+        Integer id = addMOToDb(3).getId();
 
         // PREPARE THE TEST
         // Set id to an unknown one
         Integer idToRequest = id + 1;
 
         // DO THE TEST
-        Response response = callAPI(VERB.GET, "/wf/" + idToRequest.toString(), null);
+        Response response = callAPI(VERB.GET, "/mo/" + idToRequest.toString(), null);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -416,7 +435,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow get - Robustness case - Bad Request
+     * Macro operator get - Robustness case - Bad Request
      * The id is badly formatted
      *
      * @throws Exception if test fails
@@ -426,15 +445,15 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        addWfToDb(1);
-        addWfToDb(2);
-        addWfToDb(3);
+        addMOToDb(1);
+        addMOToDb(2);
+        addMOToDb(3);
 
         // PREPARE THE TEST
         String badId = "bad_id";
 
         // DO THE TEST
-        Response response = callAPI(VERB.GET, "/wf/" + badId, null);
+        Response response = callAPI(VERB.GET, "/mo/" + badId, null);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -445,7 +464,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow update - Nominal case
+     * Macro operator update - Nominal case
      *
      * @throws Exception if test fails
      */
@@ -454,9 +473,9 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        addWfToDb(1);
-        Integer id = addWfToDb(2).getId();
-        addWfToDb(3);
+        addMOToDb(1);
+        Integer id = addMOToDb(2).getId();
+        addMOToDb(3);
 
         // PREPARE THE TEST
         Workflow wf = new Workflow();
@@ -465,7 +484,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         wf.setRaw("New Workflow new content");
 
         // DO THE TEST
-        Response response = callAPI(VERB.PUT, "/wf/" + id.toString(), wf);
+        Response response = callAPI(VERB.PUT, "/mo/" + id.toString(), wf);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -476,7 +495,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow update - Robustness case - Bad Request
+     * Macro operator update - Robustness case - Bad Request
      * The id is badly formatted
      *
      * @throws Exception if test fails
@@ -486,9 +505,9 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        addWfToDb(1);
-        addWfToDb(2);
-        addWfToDb(3);
+        addMOToDb(1);
+        addMOToDb(2);
+        addMOToDb(3);
 
         // PREPARE THE TEST
         String badId = "bad_id";
@@ -498,7 +517,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         wf.setRaw("New Workflow new content");
 
         // DO THE TEST
-        Response response = callAPI(VERB.PUT, "/wf/" + badId, wf);
+        Response response = callAPI(VERB.PUT, "/mo/" + badId, wf);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -509,8 +528,8 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow update - Robustness case - Not found
-     * There is no workflow matching this Id
+     * Macro operator update - Robustness case - Not found
+     * There is no Macro operator matching this Id
      *
      * @throws Exception if test fails
      */
@@ -519,9 +538,9 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        addWfToDb(1);
-        addWfToDb(2);
-        Integer id = addWfToDb(3).getId();
+        addMOToDb(1);
+        addMOToDb(2);
+        Integer id = addMOToDb(3).getId();
 
         // PREPARE THE TEST
         Integer unknownId = id + 1;
@@ -532,7 +551,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         wf.setRaw("New Workflow content");
 
         // DO THE TEST
-        Response response = callAPI(VERB.PUT, "/wf/" + unknownId.toString(), wf);
+        Response response = callAPI(VERB.PUT, "/mo/" + unknownId.toString(), wf);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -543,7 +562,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow update all - Robustness Case - Not implemented
+     * Macro operator update all - Robustness Case - Not implemented
      *
      * @throws Exception if test fails
      */
@@ -552,9 +571,9 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        addWfToDb(1);
-        addWfToDb(2);
-        addWfToDb(3);
+        addMOToDb(1);
+        addMOToDb(2);
+        addMOToDb(3);
 
         Workflow wf = new Workflow();
 
@@ -562,7 +581,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // Nothing to do
 
         // DO THE TEST
-        Response response = callAPI(VERB.PUT, "/wf/", wf);
+        Response response = callAPI(VERB.PUT, "/mo/", wf);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -574,7 +593,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow deletion - Nominal case
+     * Macro operator deletion - Nominal case
      *
      * @throws Exception if test fails
      */
@@ -583,15 +602,15 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        addWfToDb(1);
-        Integer id = addWfToDb(2).getId();
-        addWfToDb(3);
+        addMOToDb(1);
+        Integer id = addMOToDb(2).getId();
+        addMOToDb(3);
 
         // PREPARE THE TEST
         // Nothing to do
 
         // DO THE TEST
-        Response response = callAPI(VERB.DELETE, "/wf/" + id.toString(), null);
+        Response response = callAPI(VERB.DELETE, "/mo/" + id.toString(), null);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -602,7 +621,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow deletion - Robustness case - Bad Request
+     * Macro operator deletion - Robustness case - Bad Request
      * The id is badly formatted
      *
      * @throws Exception if test fails
@@ -612,15 +631,15 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        addWfToDb(1);
-        addWfToDb(2);
-        addWfToDb(3);
+        addMOToDb(1);
+        addMOToDb(2);
+        addMOToDb(3);
 
         // PREPARE THE TEST
         String badId = "bad_id";
 
         // DO THE TEST
-        Response response = callAPI(VERB.DELETE, "/wf/" + badId, null);
+        Response response = callAPI(VERB.DELETE, "/mo/" + badId, null);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -631,8 +650,8 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Workflow get - Robustness case - Not found
-     * There is no workflow matching this Id
+     * Macro operator get - Robustness case - Not found
+     * There is no Macro operator matching this Id
      *
      * @throws Exception if test fails
      */
@@ -641,15 +660,15 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        addWfToDb(1);
-        addWfToDb(2);
-        Integer id = addWfToDb(3).getId();
+        addMOToDb(1);
+        addMOToDb(2);
+        Integer id = addMOToDb(3).getId();
 
         // PREPARE THE TEST
         Integer unknownId = id + 1;
 
         // DO THE TEST
-        Response response = callAPI(VERB.DELETE, "/wf/" + unknownId.toString(), null);
+        Response response = callAPI(VERB.DELETE, "/mo/" + unknownId.toString(), null);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -660,7 +679,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * All Workflow deletion - Nominal case
+     * All Macro operator deletion - Nominal case
      *
      * @throws Exception if test fails
      */
@@ -669,15 +688,15 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        addWfToDb(1);
-        addWfToDb(2);
-        addWfToDb(3);
+        addMOToDb(1);
+        addMOToDb(2);
+        addMOToDb(3);
 
         // PREPARE THE TEST
         // Nothing to do
 
         // DO THE TEST
-        Response response = callAPI(VERB.DELETE, "/wf/", null);
+        Response response = callAPI(VERB.DELETE, "/mo/", null);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -688,8 +707,45 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * All Workflow deletion - Robustness case - Not Found
-     * There was no workflow stored
+     * All Macro operator deletion - Nominal case - with Workflow present in database
+     *
+     * @throws Exception if test fails
+     */
+    @Test
+    public void removeAll_with_workflow_204() throws Exception {
+
+        // PREPARE THE DATABASE
+        // Fill in the workflow db
+        addWfToDb(0);
+        addMOToDb(1);
+        addMOToDb(2);
+        addMOToDb(3);
+
+        // PREPARE THE TEST
+        // Nothing to do
+
+        // DO THE TEST
+        Response response = callAPI(VERB.DELETE, "/mo/", null);
+
+        // CHECK RESULTS
+        int status = response.getStatus();
+        assertEquals(204, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("", body);
+
+        response = callAPI(VERB.GET, "/wf/", null);
+        status = response.getStatus();
+        assertEquals(200, status);
+
+        List<Workflow> readWorkflowList = response.readEntity(new GenericType<List<Workflow>>() {
+        });
+        assertEquals(1,readWorkflowList.size());
+    }
+
+    /**
+     * All Macro operator deletion - Robustness case - Not Found
+     * There was no Macro operator stored
      *
      * @throws Exception if test fails
      */
@@ -703,7 +759,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // Nothing to do
 
         // DO THE TEST
-        Response response = callAPI(VERB.DELETE, "/wf/", null);
+        Response response = callAPI(VERB.DELETE, "/mo/", null);
 
         // CHECK RESULTS
         int status = response.getStatus();

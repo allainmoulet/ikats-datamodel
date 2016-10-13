@@ -27,6 +27,9 @@ public class Workflow {
     @Column(name = "description")
     private String description;
 
+    @Column(name = "isMacroOp")
+    private Boolean isMacroOp;
+
     @Column(name = "raw", columnDefinition = "VARCHAR(100000)")
     private String raw;
 
@@ -64,6 +67,24 @@ public class Workflow {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    /**
+     * Gets macroOp flag.
+     *
+     * @return the flag indicating if this is a macro operator (true) or not (false)
+     */
+    public Boolean getMacroOp() {
+        return isMacroOp;
+    }
+
+    /**
+     * Sets macroOp flag.
+     *
+     * @param macroOp the boolean indicating if the item is a macro operator (true) or not (false)
+     */
+    public void setMacroOp(Boolean macroOp) {
+        isMacroOp = macroOp;
     }
 
     /**
@@ -107,6 +128,7 @@ public class Workflow {
         return "Workflow{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
+                ", isMacroOp='" + isMacroOp + '\'' +
                 ", description='" + description + '\'' +
                 ", raw='" + raw + '\'' +
                 '}';
