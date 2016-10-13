@@ -242,7 +242,7 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
         // tx.rollback();
         // }
         // LOGGER.error("HibernateException in
-        // FunctionalIdentifierDAO::listAllWorkflows", e);
+        // FunctionalIdentifierDAO::listAllWorkflows", e); //REVIEW#147334 : remove or uncomment commented code + this should not have been changed here
         //
         // }
         catch (Throwable eOther) {
@@ -256,7 +256,7 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
 
                 LOGGER.error(this.getClass().getSimpleName() + "::listall : failed roll-back", e);
             }
-            LOGGER.error(eOther.getClass().getSimpleName() + " in FunctionalIdentifierDAO::listAllWorkflows", eOther);
+            LOGGER.error(eOther.getClass().getSimpleName() + " in FunctionalIdentifierDAO::listAllWorkflows", eOther); //REVIEW#147334 : this should not have been changed here
         }
         finally {
             session.close();

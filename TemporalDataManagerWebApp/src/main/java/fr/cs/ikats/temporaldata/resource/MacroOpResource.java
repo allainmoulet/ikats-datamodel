@@ -97,8 +97,8 @@ public class MacroOpResource extends AbstractResource {
     @GET
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkflow(
+    @Produces(MediaType.APPLICATION_JSON) //REVIEW#147334 : name of response should be changed to XXMacro?
+    public Response getWorkflow( 
             @PathParam("id") Integer id
     ) throws IkatsDaoException {
 
@@ -118,7 +118,7 @@ public class MacroOpResource extends AbstractResource {
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateWorkflow() {
+    public Response updateWorkflow() { //REVIEW#147334 : name of response should be changed to XXMacro?
         return Response.status(Response.Status.NOT_IMPLEMENTED).build();
     }
 
@@ -134,8 +134,8 @@ public class MacroOpResource extends AbstractResource {
     @PUT
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
-    public Response updateWorkflow(
+    @Produces(MediaType.APPLICATION_JSON)//REVIEW#147334 : name of response should be changed to XXMacro?
+    public Response updateWorkflow( 
             Workflow wf,
             @Context UriInfo uriInfo,
             @PathParam("id") int id
@@ -165,7 +165,7 @@ public class MacroOpResource extends AbstractResource {
      */
     @DELETE
     @Path("/{id}")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)//REVIEW#147334 : name of response should be changed to XXMacro?
     public Response removeWorkflow(
             @PathParam("id") Integer id
     ) throws IkatsDaoException {

@@ -40,7 +40,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
      *
      * @param verb Can be GET,POST,PUT,DELETE
      * @param url  complete url calling API
-     * @param wf   Workflow information to provide
+     * @param wf   Workflow information to provide //REVIEW#147334 : var should be macro + desc should be "Macro inform...""
      * @return the HTTP response
      * @throws IkatsWebClientException if any exception occurs
      */
@@ -69,17 +69,18 @@ public class MacroOpResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Test utils to add easily a new workflow in database
+     * Test utils to add easily a new workflow in database 
+     * //REVIEW#147334 : should do the same (revert : for addMOToDb) thing into WorkflowResourceTest?
      *
-     * @param number Test identifier for the workflow
-     * @return the added workflow
+     * @param number Test identifier for the workflow 
+     * @return the added workflow 
      * @throws IkatsDaoException if something fails
      */
-    private Workflow addWfToDb(Integer number) throws IkatsDaoException {
+    private Workflow addWfToDb(Integer number) throws IkatsDaoException { 
 
         Workflow wf = new Workflow();
 
-        wf.setName("Workflow_" + number.toString());
+        wf.setName("Workflow_" + number.toString());  
         wf.setDescription("Description about Workflow_" + number.toString());
         wf.setMacroOp(false);
         wf.setRaw("Raw content " + number.toString());
@@ -98,7 +99,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
      */
     private Workflow addMOToDb(Integer number) throws IkatsDaoException {
 
-        Workflow wf = new Workflow();
+        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
 
         wf.setName("MacroOp_" + number.toString());
         wf.setDescription("Description about MacroOp_" + number.toString());
@@ -140,7 +141,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         // No data needed in database       
 
         // PREPARE THE TEST
-        Workflow wf = new Workflow();
+        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
         wf.setName("My_Macro_Operator");
         wf.setDescription("Description of my new macro operator");
         wf.setRaw("Macro operator content");
@@ -183,7 +184,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         addMOToDb(1);
 
         // PREPARE THE TEST
-        Workflow wf = new Workflow();
+        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
         wf.setName("My_Macro_Operator");
         wf.setDescription("Description of my new macro operator");
         wf.setRaw("Macro operator content");
@@ -257,7 +258,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
 
         // PREPARE THE TEST
         // Change the name
-        Workflow wf = new Workflow();
+        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
         wf.setName("Different name");
         wf.setDescription("Different description");
         wf.setRaw("Different raw");
@@ -384,7 +385,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
 
         // PREPARE THE DATABASE
         // Fill in the workflow db
-        Workflow wf = addMOToDb(1);
+        Workflow wf = addMOToDb(1); //REVIEW#147334 : var name should be macro (readability purposes)
 
         // PREPARE THE TEST
         // Nothing to do
@@ -478,7 +479,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         addMOToDb(3);
 
         // PREPARE THE TEST
-        Workflow wf = new Workflow();
+        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
         wf.setName("New My_Workflow");
         wf.setDescription("New Description of my new workflow");
         wf.setRaw("New Workflow new content");
@@ -511,7 +512,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
 
         // PREPARE THE TEST
         String badId = "bad_id";
-        Workflow wf = new Workflow();
+        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
         wf.setName("New My_Workflow");
         wf.setDescription("New Description of my new workflow");
         wf.setRaw("New Workflow new content");
@@ -575,7 +576,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         addMOToDb(2);
         addMOToDb(3);
 
-        Workflow wf = new Workflow();
+        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
 
         // PREPARE THE TEST
         // Nothing to do
@@ -618,6 +619,8 @@ public class MacroOpResourceTest extends AbstractRequestTest {
 
         String body = response.readEntity(String.class);
         assertEquals("", body);
+        
+        //REVIEW#147334 : should assert that db still contains 2 elements
     }
 
     /**
