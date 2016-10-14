@@ -39,6 +39,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.aopalliance.reflect.Metadata;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.internal.util.collection.StringKeyIgnoreCaseMultivaluedMap;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -50,6 +51,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
@@ -57,6 +59,7 @@ import fr.cs.ikats.datamanager.client.RequestSender;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
+import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
@@ -76,7 +79,7 @@ import fr.cs.ikats.ts.dataset.DataSetFacade;
 public class TimeSerieResource extends AbstractResource {
 
     static final public String ACTIVATE_OPENTSDB_IMPORT_FLAG_NAME = "activateOpenTsdbImport";
-	private static final String IKATSDATA_IMPORT_ROOT_PATH = "/IKATSDATA/";
+    private static final String IKATSDATA_IMPORT_ROOT_PATH = "/IKATSDATA/";
 
     private static Logger logger = Logger.getLogger(TimeSerieResource.class);
 
@@ -346,27 +349,25 @@ public class TimeSerieResource extends AbstractResource {
      */
     @PUT
     @Path("{metric}")
-    @Consumes (MediaType.APPLICATION_FORM_URLENCODED)
+    @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
-    public ImportResult importTSLocal(@PathParam("metric") String metric, 
-    		@FormParam("file") String tsFilepath, 
-    		@FormParam("funcId") String funcId, 
-    		MultivaluedMap<String, String> formParams, @Context UriInfo uriInfo) throws Exception {
-        
-        
-    	// Check parameters
+    public ImportResult importTSLocal(@PathParam("metric") String metric, @FormParam("file") String tsFilepath, @FormParam("funcId") String funcId,
+            MultivaluedMap<String, String> formParams, @Context UriInfo uriInfo) throws Exception {
+
+        // Check parameters
         File tsFile = new File(IKATSDATA_IMPORT_ROOT_PATH + tsFilepath);
         if (!tsFile.exists() || !tsFile.canRead()) {
-        	// FIXME a changer par une exception plus précise et/ou un retour d'état 404 ou 50X pour ressource inaccessible
-        	throw new ImportException("Can't access " + tsFile.getAbsolutePath());
+            // FIXME a changer par une exception plus précise et/ou un retour
+            // d'état 404 ou 50X pour ressource inaccessible
+            throw new ImportException("Can't access " + tsFile.getAbsolutePath());
         }
-        
+
         // Start to process the request
         FileInputStream fileIS = new FileInputStream(tsFile);
         String filename = tsFile.getName();
-        
+
         return doImport(filename, metric, funcId, formParams, fileIS);
-        
+
     }
 
     @DELETE
@@ -459,16 +460,17 @@ public class TimeSerieResource extends AbstractResource {
             @FormDataParam("file") FormDataContentDisposition fileDisposition, FormDataMultiPart formData, @Context UriInfo uriInfo)
             throws ImportException {
         String filename = fileDisposition.getFileName();
-        
+
         // remove the file parameter and get the funcId
         Map<String, List<FormDataBodyPart>> fields = formData.getFields();
         fields.remove("file");
         List<FormDataBodyPart> funcIdFormValues = fields.get("funcId");
         String funcId = (funcIdFormValues != null) ? funcIdFormValues.get(0).getValue() : null;
-        
-        // transform the FormFataMultiPart into tags, with multivalued key taken into account
+
+        // transform the FormFataMultiPart into tags, with multivalued key taken
+        // into account
         MultivaluedMap<String, String> tags = new StringKeyIgnoreCaseMultivaluedMap<String>();
-        fields.forEach((k, v) -> v.forEach(p -> tags.add(k, p.getValue()))); 
+        fields.forEach((k, v) -> v.forEach(p -> tags.add(k, p.getValue())));
 
         // Do the import
         return doImport(filename, metric, funcId, tags, fileis);
@@ -566,18 +568,53 @@ public class TimeSerieResource extends AbstractResource {
             
             chrono = new Chronometer("TimeSeriResource.doImport|Metas -> SGBD", false);
             // store functional identifier
-            metadataManager.persistFunctionalIdentifier(importResult.getTsuid(), importResult.getFuncId());
-            
+            try {
+                metadataManager.persistFunctionalIdentifier(importResult.getTsuid(), importResult.getFuncId());
+            }
+            catch (IkatsDaoConflictException e) {
+                // Functional Identifier already exists : adding data to existing timeseries
+            }
+
             // import metadatas in postgreSQL only if import in openTSDB succeed
+            // store metadata metric
+            try {
+                metadataManager.persistMetaData(importResult.getTsuid(), "metric", metric, "string");
+            }
+            catch (IkatsDaoConflictException e) {
+                // metric already exists : adding data to existing timeseries
+            }
+
+            // store tags as metadata
+            try {
+                for (Map.Entry<String, String> theTag : tags.entrySet()) {
+                    metadataManager.persistMetaData(importResult.getTsuid(), theTag.getKey(), theTag.getValue(), "string");
+                }
+            }
+            catch (IkatsDaoConflictException e) {
+                // Metadata already exists : adding data to existing timeseries
+            }
+            
             // first date is the start_date
-            metadataManager.persistMetaData(importResult.getTsuid(), "ikats_start_date", Long.toString(dates[0]), "date");
+            // update in the case start date already exists
+            try {
+                MetaData metadata = metadataManager.getMetaData(importResult.getTsuid(), "ikats_start_date");
+                if (dates[0] < Long.valueOf(metadata.getValue()).longValue()){
+                    metadataManager.updateMetaData(importResult.getTsuid(), "ikats_start_date", Long.toString(dates[0]));
+                }
+            }
+            catch (IkatsDaoMissingRessource e){
+                metadataManager.persistMetaData(importResult.getTsuid(), "ikats_start_date", Long.toString(dates[0]), "date");
+            }
             // last date is the end_date
-            metadataManager.persistMetaData(importResult.getTsuid(), "ikats_end_date", Long.toString(dates[1]), "date");
-            // metric is also a metadata
-            metadataManager.persistMetaData(importResult.getTsuid(), "metric", metric, "string");
-            // import tags
-            for (Map.Entry<String, String> theTag : tags.entrySet()) {
-                metadataManager.persistMetaData(importResult.getTsuid(), theTag.getKey(), theTag.getValue(), "string");
+            // update in the case end date already exists
+            try {
+                MetaData metadata = metadataManager.getMetaData(importResult.getTsuid(), "ikats_end_date");
+                if (dates[1] > Long.valueOf(metadata.getValue()).longValue()){
+                    metadataManager.updateMetaData(importResult.getTsuid(), "ikats_end_date", Long.toString(dates[1]));
+                }
+            }
+            catch (IkatsDaoMissingRessource e){
+                metadataManager.persistMetaData(importResult.getTsuid(), "ikats_end_date", Long.toString(dates[1]), "date");
             }
             
             chrono.stop(logger);
@@ -608,7 +645,7 @@ public class TimeSerieResource extends AbstractResource {
         
         return importResult;
 	}
-    
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
