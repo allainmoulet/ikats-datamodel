@@ -40,14 +40,14 @@ public class MacroOpResourceTest extends AbstractRequestTest {
      *
      * @param verb Can be GET,POST,PUT,DELETE
      * @param url  complete url calling API
-     * @param wf   Workflow information to provide //REVIEW#147334 : var should be macro + desc should be "Macro inform...""
+     * @param mo   Macro operator information to provide
      * @return the HTTP response
      * @throws IkatsWebClientException if any exception occurs
      */
-    private static Response callAPI(VERB verb, String url, Workflow wf) throws Exception {
+    private static Response callAPI(VERB verb, String url, Workflow mo) throws Exception {
 
         Response result;
-        Entity<Workflow> wfEntity = Entity.entity(wf, MediaType.APPLICATION_JSON_TYPE);
+        Entity<Workflow> wfEntity = Entity.entity(mo, MediaType.APPLICATION_JSON_TYPE);
         switch (verb) {
             case POST:
                 result = RequestSender.sendPOSTRequest(getAPIURL() + url, wfEntity);
@@ -70,7 +70,6 @@ public class MacroOpResourceTest extends AbstractRequestTest {
 
     /**
      * Test utils to add easily a new workflow in database 
-     * //REVIEW#147334 : should do the same (revert : for addMOToDb) thing into WorkflowResourceTest?
      *
      * @param number Test identifier for the workflow 
      * @return the added workflow 
@@ -99,16 +98,16 @@ public class MacroOpResourceTest extends AbstractRequestTest {
      */
     private Workflow addMOToDb(Integer number) throws IkatsDaoException {
 
-        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
+        Workflow mo = new Workflow();
 
-        wf.setName("MacroOp_" + number.toString());
-        wf.setDescription("Description about MacroOp_" + number.toString());
-        wf.setMacroOp(true);
-        wf.setRaw("Raw content " + number.toString());
+        mo.setName("MacroOp_" + number.toString());
+        mo.setDescription("Description about MacroOp_" + number.toString());
+        mo.setMacroOp(true);
+        mo.setRaw("Raw content " + number.toString());
 
-        Facade.persist(wf);
+        Facade.persist(mo);
 
-        return wf;
+        return mo;
     }
 
     @BeforeClass
@@ -141,13 +140,13 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         // No data needed in database       
 
         // PREPARE THE TEST
-        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
-        wf.setName("My_Macro_Operator");
-        wf.setDescription("Description of my new macro operator");
-        wf.setRaw("Macro operator content");
+        Workflow mo = new Workflow();
+        mo.setName("My_Macro_Operator");
+        mo.setDescription("Description of my new macro operator");
+        mo.setRaw("Macro operator content");
 
         // DO THE TEST
-        Response response = callAPI(VERB.POST, "/mo/", wf);
+        Response response = callAPI(VERB.POST, "/mo/", mo);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -166,7 +165,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         List<Workflow> macroOpList = Facade.listAllMacroOp();
         assertEquals(1, macroOpList.size());
 
-        Response response2 = callAPI(VERB.GET, "/mo/" + expectedId, wf);
+        Response response2 = callAPI(VERB.GET, "/mo/" + expectedId, mo);
         assertEquals(200, response2.getStatus());
 
 
@@ -184,13 +183,13 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         addMOToDb(1);
 
         // PREPARE THE TEST
-        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
-        wf.setName("My_Macro_Operator");
-        wf.setDescription("Description of my new macro operator");
-        wf.setRaw("Macro operator content");
+        Workflow mo = new Workflow();
+        mo.setName("My_Macro_Operator");
+        mo.setDescription("Description of my new macro operator");
+        mo.setRaw("Macro operator content");
 
         // DO THE TEST
-        Response response = callAPI(VERB.POST, "/mo/", wf);
+        Response response = callAPI(VERB.POST, "/mo/", mo);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -209,7 +208,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         List<Workflow> macroOpList = Facade.listAllMacroOp();
         assertEquals(2, macroOpList.size());
 
-        Response response2 = callAPI(VERB.GET, "/mo/" + expectedId, wf);
+        Response response2 = callAPI(VERB.GET, "/mo/" + expectedId, mo);
         assertEquals(200, response2.getStatus());
 
     }
@@ -258,14 +257,14 @@ public class MacroOpResourceTest extends AbstractRequestTest {
 
         // PREPARE THE TEST
         // Change the name
-        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
-        wf.setName("Different name");
-        wf.setDescription("Different description");
-        wf.setRaw("Different raw");
+        Workflow mo = new Workflow();
+        mo.setName("Different name");
+        mo.setDescription("Different description");
+        mo.setRaw("Different raw");
 
 
         // DO THE TEST
-        Response response = callAPI(VERB.POST, "/mo/" + id.toString(), wf);
+        Response response = callAPI(VERB.POST, "/mo/" + id.toString(), mo);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -384,14 +383,14 @@ public class MacroOpResourceTest extends AbstractRequestTest {
     public void getWorkflow_200() throws Exception {
 
         // PREPARE THE DATABASE
-        // Fill in the workflow db
-        Workflow wf = addMOToDb(1); //REVIEW#147334 : var name should be macro (readability purposes)
+        // Fill in the workflow db with a new macro operator
+        Workflow mo = addMOToDb(1);
 
         // PREPARE THE TEST
         // Nothing to do
 
         // DO THE TEST
-        Response response = callAPI(VERB.GET, "/mo/" + wf.getId().toString(), null);
+        Response response = callAPI(VERB.GET, "/mo/" + mo.getId().toString(), null);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -399,10 +398,10 @@ public class MacroOpResourceTest extends AbstractRequestTest {
 
         Workflow readWorkflow = response.readEntity(new GenericType<Workflow>() {
         });
-        assertEquals(wf.getId(), readWorkflow.getId());
-        assertEquals(wf.getName(), readWorkflow.getName());
-        assertEquals(wf.getDescription(), readWorkflow.getDescription());
-        assertEquals(wf.getRaw(), readWorkflow.getRaw());
+        assertEquals(mo.getId(), readWorkflow.getId());
+        assertEquals(mo.getName(), readWorkflow.getName());
+        assertEquals(mo.getDescription(), readWorkflow.getDescription());
+        assertEquals(mo.getRaw(), readWorkflow.getRaw());
     }
 
     /**
@@ -479,13 +478,13 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         addMOToDb(3);
 
         // PREPARE THE TEST
-        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
-        wf.setName("New My_Workflow");
-        wf.setDescription("New Description of my new workflow");
-        wf.setRaw("New Workflow new content");
+        Workflow mo = new Workflow();
+        mo.setName("New My_Workflow");
+        mo.setDescription("New Description of my new workflow");
+        mo.setRaw("New Workflow new content");
 
         // DO THE TEST
-        Response response = callAPI(VERB.PUT, "/mo/" + id.toString(), wf);
+        Response response = callAPI(VERB.PUT, "/mo/" + id.toString(), mo);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -512,13 +511,13 @@ public class MacroOpResourceTest extends AbstractRequestTest {
 
         // PREPARE THE TEST
         String badId = "bad_id";
-        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
-        wf.setName("New My_Workflow");
-        wf.setDescription("New Description of my new workflow");
-        wf.setRaw("New Workflow new content");
+        Workflow mo = new Workflow();
+        mo.setName("New My_Workflow");
+        mo.setDescription("New Description of my new workflow");
+        mo.setRaw("New Workflow new content");
 
         // DO THE TEST
-        Response response = callAPI(VERB.PUT, "/mo/" + badId, wf);
+        Response response = callAPI(VERB.PUT, "/mo/" + badId, mo);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -576,13 +575,13 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         addMOToDb(2);
         addMOToDb(3);
 
-        Workflow wf = new Workflow(); //REVIEW#147334 : var name should be macro (readability purposes)
+        Workflow mo = new Workflow();
 
         // PREPARE THE TEST
         // Nothing to do
 
         // DO THE TEST
-        Response response = callAPI(VERB.PUT, "/mo/", wf);
+        Response response = callAPI(VERB.PUT, "/mo/", mo);
 
         // CHECK RESULTS
         int status = response.getStatus();
@@ -619,9 +618,11 @@ public class MacroOpResourceTest extends AbstractRequestTest {
 
         String body = response.readEntity(String.class);
         assertEquals("", body);
-        
-        //REVIEW#147334 : should assert that db still contains 2 elements
-    }
+
+        response = callAPI(VERB.GET, "/mo/", null);
+        List<Workflow> readMacroOpList = response.readEntity(new GenericType<List<Workflow>>() {
+        });
+        assertEquals(2,readMacroOpList.size());    }
 
     /**
      * Macro operator deletion - Robustness case - Bad Request
