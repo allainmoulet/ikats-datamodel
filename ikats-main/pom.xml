@@ -7,6 +7,7 @@
 	<packaging>pom</packaging>
 	<description>Main POM for IKATS</description>
 	<modules>
+		<module>../ikats-commons</module>
 		<module>../TemporalDataManagerWebApp</module>
 		<module>../common-contrib</module>
 		<module>../DataBaseCommon</module>
