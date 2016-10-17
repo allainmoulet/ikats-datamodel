@@ -13,8 +13,8 @@ import java.util.List;
 /**
  * This class hosts all the operations on Workflow
  */
-@Path("wf")
-public class WorkflowResource extends AbstractResource {
+@Path("mo")
+public class MacroOpResource extends AbstractResource {
 
     private static Logger logger = Logger.getLogger(MetaDataResource.class);
     private WorkflowFacade Facade = new WorkflowFacade();
@@ -22,16 +22,16 @@ public class WorkflowResource extends AbstractResource {
     /**
      * Default constructor
      */
-    public WorkflowResource() {
+    public MacroOpResource() {
         super();
     }
 
     /**
-     * create a new Workflow
+     * create a new Macro Operator
      *
-     * @param wf      Workflow to provide
+     * @param wf      Macro Operator to provide
      * @param uriInfo the uri info
-     * @return the id of the created workflow
+     * @return the id of the created Macro Operator
      * @throws IkatsDaoException if any DAO exception occurs
      */
     @POST
@@ -43,7 +43,7 @@ public class WorkflowResource extends AbstractResource {
     ) throws IkatsDaoException {
 
         try {
-            wf.setMacroOp(false);
+            wf.setMacroOp(true);
         } catch (NullPointerException e) {
             throw new IkatsDaoException("Wrong inputs");
         }
@@ -58,10 +58,10 @@ public class WorkflowResource extends AbstractResource {
     }
 
     /**
-     * Get the list of all workflow summary (raw content is not provided unless full is set to true)
+     * Get the list of all Macro Operator summary (raw content is not provided unless full is set to true)
      *
      * @param full to indicate if the raw content shall be included in response
-     * @return the workflow
+     * @return the Macro Operator
      * @throws IkatsDaoException if any DAO exception occurs
      */
     @GET
@@ -70,7 +70,7 @@ public class WorkflowResource extends AbstractResource {
             @QueryParam("full") @DefaultValue("false") Boolean full
     ) throws IkatsDaoException {
 
-        List<Workflow> result = Facade.listAllWorkflows();
+        List<Workflow> result = Facade.listAllMacroOp();
         if (!full) {
             // Remove Raw content from data to reduce the payload
             result.forEach(wf -> wf.setRaw(null));
@@ -88,17 +88,17 @@ public class WorkflowResource extends AbstractResource {
     }
 
     /**
-     * Get the content of a workflow by providing its id
+     * Get the content of a Macro Operator by providing its id
      *
-     * @param id id of the workflow to read
-     * @return the workflow
+     * @param id id of the Macro Operator to read
+     * @return the Macro Operator
      * @throws IkatsDaoException if any DAO exception occurs
      */
     @GET
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response getWorkflow(
+    public Response getMacroOp(
             @PathParam("id") Integer id
     ) throws IkatsDaoException {
 
@@ -111,21 +111,21 @@ public class WorkflowResource extends AbstractResource {
     }
 
     /**
-     * Update all workflow at once
+     * Update all Macro Operator at once
      *
      * @return HTTP response
      */
     @PUT
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateWorkflow() {
+    public Response updateMacroOps() {
         return Response.status(Response.Status.NOT_IMPLEMENTED).build();
     }
 
     /**
-     * Update a workflow identified by its Id
+     * Update a Macro Operator identified by its Id
      *
-     * @param wf      New content for the workflow
+     * @param wf      New content for the Macro Operator
      * @param uriInfo the uri info
      * @param id      id of the workflow to update
      * @return HTTP response
@@ -135,7 +135,7 @@ public class WorkflowResource extends AbstractResource {
     @Path("/{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response updateWorkflow(
+    public Response updateMacroOp(
             Workflow wf,
             @Context UriInfo uriInfo,
             @PathParam("id") int id
@@ -145,7 +145,7 @@ public class WorkflowResource extends AbstractResource {
             throw new IkatsWebClientException("Mismatch in request with Id between URI and body part");
         }
         wf.setId(id);
-        wf.setMacroOp(false);
+        wf.setMacroOp(true);
 
         boolean result = Facade.update(wf);
 
@@ -157,16 +157,16 @@ public class WorkflowResource extends AbstractResource {
     }
 
     /**
-     * Delete a workflow identified by its id
+     * Delete a Macro Operator identified by its id
      *
-     * @param id id of the workflow to delete
+     * @param id id of the Macro Operator to delete
      * @return HTTP response
      * @throws IkatsDaoException if any DAO exception occurs
      */
     @DELETE
     @Path("/{id}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Response removeWorkflow(
+    public Response removeMacroOp(
             @PathParam("id") Integer id
     ) throws IkatsDaoException {
         Facade.removeById(id);
@@ -174,7 +174,7 @@ public class WorkflowResource extends AbstractResource {
     }
 
     /**
-     * Delete all workflow
+     * Delete all Macro Operators
      *
      * @return HTTP response
      * @throws IkatsDaoException if any DAO exception occurs
@@ -183,7 +183,7 @@ public class WorkflowResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response removeAll() throws IkatsDaoException {
 
-        Facade.removeAllWorkflows();
+        Facade.removeAllMacroOp();
 
         return Response.status(Response.Status.NO_CONTENT).build();
     }

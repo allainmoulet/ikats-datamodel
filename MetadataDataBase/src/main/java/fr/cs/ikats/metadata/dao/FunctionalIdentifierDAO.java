@@ -237,14 +237,6 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
 
             tx.commit();
         }
-        // catch (HibernateException e) {
-        // if (tx != null) {
-        // tx.rollback();
-        // }
-        // LOGGER.error("HibernateException in
-        // FunctionalIdentifierDAO::listAll", e);
-        //
-        // }
         catch (Throwable eOther) {
 
             try {

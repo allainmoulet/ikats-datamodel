@@ -55,27 +55,6 @@ public class WorkflowFacade {
      * @throws IkatsDaoException         another error from DAO
      */
     public Integer persist(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException {
-
-        return dao.persist(wf);
-    }
-
-    /**
-     * Create Workflow in database for a given name, description and raw content
-     *
-     * @param name        name of the workflow
-     * @param description description of the workflow
-     * @param raw         content of the workflow as a json
-     * @return the ID of the inserted data
-     * @throws IkatsDaoConflictException create error raised on conflict with another resource
-     * @throws IkatsDaoException         another error from DAO
-     */
-    public Integer persist(String name, String description, String raw) throws IkatsDaoConflictException, IkatsDaoException {
-
-        Workflow wf = new Workflow();
-        wf.setName(name);
-        wf.setDescription(description);
-        wf.setRaw(raw);
-
         return dao.persist(wf);
     }
 
@@ -85,10 +64,19 @@ public class WorkflowFacade {
      * @return The list of all workflow
      * @throws IkatsDaoException if there is no workflow
      */
-    public List<Workflow> listAll() throws IkatsDaoException {
-        return dao.listAll();
+    public List<Workflow> listAllWorkflows() throws IkatsDaoException {
+        return dao.listAll(false);
     }
 
+    /**
+     * List all Macro Operators
+     *
+     * @return The list of all Macro Operators
+     * @throws IkatsDaoException if there is no Macro Operator
+     */
+    public List<Workflow> listAllMacroOp() throws IkatsDaoException {
+        return dao.listAll(true);
+    }
 
     /**
      * Get a workflow content by providing its id
@@ -148,8 +136,17 @@ public class WorkflowFacade {
      *
      * @throws IkatsDaoException if the workflow couldn't be removed
      */
-    public void removeAll() throws IkatsDaoException {
-        dao.removeAll();
+    public void removeAllWorkflows() throws IkatsDaoException {
+        dao.removeAll(false);
+    }
+
+    /**
+     * Delete all workflow
+     *
+     * @throws IkatsDaoException if the workflow couldn't be removed
+     */
+    public void removeAllMacroOp() throws IkatsDaoException {
+        dao.removeAll(true);
     }
 
 }
