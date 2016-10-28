@@ -2,6 +2,7 @@ package fr.cs.ikats.util.configuration;
 
 import java.text.MessageFormat;
 
+import org.apache.commons.configuration2.AbstractConfiguration;
 import org.apache.commons.configuration2.CompositeConfiguration;
 import org.apache.commons.configuration2.PropertiesConfiguration;
 import org.apache.commons.configuration2.builder.fluent.Configurations;
@@ -9,6 +10,15 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Helper class with goal is to provide a "typed" configuration for IKATS.<br>
+ * Each configuration property shall be defined in a {@link ConfigProperties} enumeration which also should define the properties file.<br>
+ * This would be robust because each call to a configuration property is a constant widely available.<br> 
+ * <br>
+ * In combination with {@link IkatsConfiguration} for the default implementation, that leads to define configuration into one java {@link Enum} only. 
+ * @author ftoral
+ * @param <T> as an {@link Enum} implementing {@link ConfigProperties}
+ */
 public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigProperties> extends CompositeConfiguration {
 	
 	private T properties;
@@ -37,7 +47,7 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 		try {
 			// Chek that the property is in the enum list
 			@SuppressWarnings("unchecked")
-			ConfigProperties valueEnum = (ConfigProperties) Enum.valueOf(properties.getClass(), key);
+			T valueEnum = getEnum((Class<T>) properties.getClass(), key);
 			return getProperty(valueEnum);
 		} catch (IllegalArgumentException | NullPointerException e) {
 			logger.debug("Property '{}' not found in {}", key, properties.getPropertiesFilename());
@@ -47,17 +57,22 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 	}
 
 	/**
-	 * 
+	 * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
 	 * @param propertyKey
 	 * @return
 	 */
-	public Object getProperty(ConfigProperties propertyKey) {
+	public Object getProperty(T propertyKey) {
 		if (propertyKey == null) {
 			return null;
 		}
 		
-		// call the super implementation to get the property. 
-		return getPropertyInternalSuper(propertyKey.getPropertyName());
+		// call the super implementation to get the property value or fall back to default if null
+		Object value = super.getPropertyInternal(propertyKey.getPropertyName());
+		if (value == null) {
+			value = propertyKey.getDefaultValue();
+		}
+		
+		return value;
 	}
 
 	/**
@@ -66,7 +81,7 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 	 * @param values
 	 * @return
 	 */
-	public String formatProperty(ConfigProperties propertyKey, Object... values) {
+	public String formatProperty(T propertyKey, Object... values) {
 		String message = (String) getProperty(propertyKey);
 		if (message != null) {
 			MessageFormat messageFormat = new MessageFormat(message);
@@ -76,19 +91,58 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 	}
 	
 	/**
-	 * Wrapper for super.getPropertyInternal(). Used by static method.<br>
+	 * Get the IKATS {@link ConfigProperties} enum constant that matches the <code>key</code>
+	 * @return the {@link ConfigProperties} matching constant
 	 */
-	private Object getPropertyInternalSuper(String key) {
-		
-		Object value = super.getPropertyInternal(key);
-		if (value == null) {
-			// In the case when the returned value is null, try return a default value.
-			@SuppressWarnings("unchecked")
-			ConfigProperties valueEnum = (ConfigProperties) Enum.valueOf(properties.getClass(), key);
-			value = valueEnum.getDefaultValue();
+	private T getEnum(Class<T> enumClass, String key) {
+		T[] enumConstants = enumClass.getEnumConstants();
+		for (int i = 0; i < enumConstants.length; i++) {
+			T t = enumConstants[i];
+			if (t.getPropertyName().equals(key)) {
+				return t;
+			}
 		}
-		
-		return value;
+		return null;
 	}
-	
+
+	/**
+	 * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
+	 * @see org.apache.commons.configuration2.AbstractConfiguration#getBoolean(java.lang.String)
+	 */
+	public boolean getBoolean(T propertyKey) {
+		return super.getBoolean(propertyKey.getPropertyName());
+	}
+
+	/**
+	 * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
+	 * @see org.apache.commons.configuration2.AbstractConfiguration#getDouble(java.lang.String)
+	 */
+	public double getDouble(T propertyKey) {
+		return super.getDouble(propertyKey.getPropertyName());
+	}
+
+	/**
+	 * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
+	 * @see org.apache.commons.configuration2.AbstractConfiguration#getFloat(java.lang.String)
+	 */
+	public float getFloat(T propertyKey) {
+		return super.getFloat(propertyKey.getPropertyName());
+	}
+
+	/**
+	 * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
+	 * @see org.apache.commons.configuration2.AbstractConfiguration#getInt(java.lang.String)
+	 */
+	public int getInt(T propertyKey) {
+		return super.getInt(propertyKey.getPropertyName());
+	}
+
+	/**
+	 * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
+	 * @see org.apache.commons.configuration2.AbstractConfiguration#getLong(java.lang.String)
+	 */	
+	public long getLong(T propertyKey) {
+		return super.getLong(propertyKey.getPropertyName());
+	}
+
 }

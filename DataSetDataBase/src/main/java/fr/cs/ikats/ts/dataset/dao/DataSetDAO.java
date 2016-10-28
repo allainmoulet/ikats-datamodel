@@ -210,6 +210,7 @@ public class DataSetDAO extends DataBaseDAO {
             result = (DataSet) session.get(DataSet.class, name);
             // tx.commit();
             if (result == null) {
+            	// FIXME FTO : should return null. See whether the exception is handled a container handler to remove the associated code.   
                 throw new IkatsDaoMissingRessource("DataSet with name=" + name);
             }
         }
