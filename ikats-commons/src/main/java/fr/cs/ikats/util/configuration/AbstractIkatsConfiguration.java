@@ -107,6 +107,14 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 
 	/**
 	 * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
+	 * @see org.apache.commons.configuration2.AbstractConfiguration#getString(java.lang.String)
+	 */
+	public String getString(T propertyKey) {
+		return super.getString(propertyKey.getPropertyName());
+	}
+
+	/**
+	 * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
 	 * @see org.apache.commons.configuration2.AbstractConfiguration#getBoolean(java.lang.String)
 	 */
 	public boolean getBoolean(T propertyKey) {
