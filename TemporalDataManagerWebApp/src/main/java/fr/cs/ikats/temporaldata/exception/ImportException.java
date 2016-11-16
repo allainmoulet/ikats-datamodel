@@ -1,5 +1,6 @@
 package fr.cs.ikats.temporaldata.exception;
 
+import fr.cs.ikats.datamanager.client.opentsdb.ApiResponse;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 
 /**
@@ -7,7 +8,7 @@ import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
  */
 public class ImportException extends IkatsException {
 	
-	private ImportResult importResult = null;
+	private ApiResponse importResult = null;
 
 	/**
 	 * 
@@ -27,7 +28,7 @@ public class ImportException extends IkatsException {
 	 * @param message error message
 	 * @param importResult {@link ImportResult} provided
 	 */
-	public ImportException(String message, ImportResult importResult) {
+	public ImportException(String message, ApiResponse importResult) {
 		super(message);
 		this.importResult = importResult;
 	}
@@ -47,7 +48,7 @@ public class ImportException extends IkatsException {
 	 * @param cause the root cause
 	 * @param importResult {@link ImportResult} provided
 	 */
-	public ImportException(String message, Throwable cause, ImportResult importResult) {
+	public ImportException(String message, Throwable cause, ApiResponse importResult) {
 		super(message+" : "+cause.getLocalizedMessage(), cause);
 		this.importResult = importResult;
 	}
@@ -55,7 +56,7 @@ public class ImportException extends IkatsException {
 	/**
 	 * @return the importResult
 	 */
-	public ImportResult getImportResult() {
+	public ApiResponse getImportResult() {
 		return importResult;
 	}
 	

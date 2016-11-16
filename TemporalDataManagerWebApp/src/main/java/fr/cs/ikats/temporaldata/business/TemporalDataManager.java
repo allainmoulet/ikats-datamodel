@@ -263,7 +263,7 @@ public class TemporalDataManager {
                     String url = "http://" + host + getURLDbApiBase() + getConfig().getStringValue(ApplicationConfiguration.URL_DB_API_IMPORT);
                     logger.debug("sending request to url " + url);
                     Response response = RequestSender.sendPUTJsonRequest(url, json);
-                    importResult = ResponseParser.parseImportResponse(response, response.getStatus());
+                    importResult = ResponseParser.parseImportResponse(response);
                     logger.debug("Import task finished with result : " + importResult);
                 }
                 else {

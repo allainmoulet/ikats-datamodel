@@ -9,16 +9,14 @@ import java.util.Map;
  * @author ikats
  *
  */
-public class ImportResult {
+public class ImportResult extends ApiResponse {
 
-    private String summary;
     private String tsuid;
     private String funcId;
     private long numberOfSuccess;
     private long numberOfFailed;
     private long startDate;
     private long endDate;
-    private int reponseCode;
     private Map<String, String> errors;
     
     /**
@@ -64,27 +62,10 @@ public class ImportResult {
 
     /**
      * Getter
-     * @return the summary
-     */
-    public String getSummary() {
-        return summary;
-    }
-
-    /**
-     * Getter
      * @return the numberOfSuccess
      */
     public long getNumberOfSuccess() {
         return numberOfSuccess;
-    }
-
-    /**
-     * Setter
-     * @param summary
-     *            the summary to set
-     */
-    public void setSummary(String summary) {
-        this.summary = summary;
     }
 
     /**
@@ -155,20 +136,6 @@ public class ImportResult {
     }
 
     /**
-	 * @return the reponseCode
-	 */
-	public int getReponseCode() {
-		return reponseCode;
-	}
-
-	/**
-	 * @param reponseCode the reponseCode to set
-	 */
-	public void setReponseCode(int reponseCode) {
-		this.reponseCode = reponseCode;
-	}
-
-	/**
      * Return a string representation based on Apache commons ToStringStyle.DEFAULT_STYLE
      * {@inheritDoc}
      */
@@ -180,7 +147,7 @@ public class ImportResult {
         sb.append("startDate=").append(this.startDate).append(",");
         sb.append("endDate=").append(this.endDate).append(",");
         sb.append("numberOfSuccess=").append(this.numberOfSuccess).append(",");
-        sb.append("summary=").append(this.summary).append(",");
+        sb.append("summary=").append(this.getSummary()).append(",");
         sb.append("errors=").append(this.errors).append("]");
       
         return sb.toString();

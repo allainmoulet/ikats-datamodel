@@ -1,8 +1,10 @@
 package fr.cs.ikats.datamanager.client.opentsdb;
 
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.regex.Pattern;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
@@ -11,7 +13,11 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
-import fr.cs.ikats.datamanager.client.RequestSender;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import fr.cs.ikats.datamanager.client.opentsdb.ApiResponse.Error;
 
 /**
  * this class parses the openTSDB response to a query/import request
@@ -55,78 +61,79 @@ public class ResponseParser {
     public ResponseParser() {
     }
 
-    /**
-     * parse opentsdb import response retrieve errors and return result
-     * 
-     * @param response the http response
-     * @param code the expected code
-     * @return the ImportResult
-     * @throws IkatsWebClientException if request is in error
-     * @throws ParseException is response cannot be parsed
-     */
-    public static ImportResult parseImportResponse(Response response, int code) throws ParseException {
-        // result recovery
-        ImportResult result = new ImportResult();
-        JSONParser parser = new JSONParser();
-        JSONObject returnedJSON = null;
-        Object resultObject = parser.parse(getJSONFromResponse(response));
-        // FIXME FTO : needed ?
-        if (resultObject instanceof JSONObject) {
-            returnedJSON = (JSONObject) resultObject;
-        }
-        
-        result.setReponseCode(code);
-        
-        switch (code) {
-			case RequestSender.CODE_404_ERR_BAD_END_POINT:
-			case RequestSender.CODE_500_ERR_MISSING_VALUE:
-			case RequestSender.CODE_501_ERR_NOT_IMPLEMENTED:
-			case RequestSender.CODE_408_ERR_TIMEOUT:
-			case RequestSender.CODE_413_ERR_REQUEST_TOO_LARGE:
-			case RequestSender.CODE_503_ERR_OVERLOAD:
-				// generic error case, no points imported
-				JSONObject error = (JSONObject) returnedJSON.get(KEY_ERROR);
-				result.setSummary((String) error.get(KEY_MESSAGE));
-                result.addError("details", error.toString());
-                break;
-			case RequestSender.CODE_200_OK:
+	/**
+	 * parse opentsdb import response retrieve errors and return result
+	 * 
+	 * @param response
+	 *            the http response
+	 * @return the ImportResult
+	 * @throws IkatsWebClientException
+	 *             if request is in error
+	 * @throws ParseException 
+	 */
+	public static ImportResult parseImportResponse(Response response) throws IkatsWebClientException, ParseException {
+		// result recovery
+		ImportResult result = new ImportResult();
+		// Get the status code
+		int status = response.getStatus();
+		result.setStatusCode(status);
+		
+		ApiStatus apiStatus;
+		try {
+			apiStatus = ApiStatus.valueOf(status);
+		} catch (IllegalArgumentException e) {
+			// the response status is not compliant to OpenTSDB specification 
+			String error = "OpenTSDB returned a non managed HTTP code: " + status;
+			LOGGER.error(error);
+			result.setSummary("Unable to determine import status");
+			result.addError(Integer.toString(status), error);
+			return result;
+		}
+		
+		// extract response information in JSON object
+		JSONParser parser = new JSONParser();
+		JSONObject returnedJSON = (JSONObject) parser.parse(getJSONFromResponse(response));
+
+		switch (apiStatus) {
+			case CODE_200:
 				// OpenTSDB should not return that code in case of /api/put request !
 				LOGGER.warn("OpenTSDB returned a HTTP 200 code on /api/put request");
-				// FIXME : provide more details about the original data. Should request object be passed to the method call ? Maybe a solution for errors traceability
-			case RequestSender.CODE_204_OK_IMPORT:
-			case RequestSender.CODE_400_ERR_BAD_REQUEST:
-				// In case of on data point failure the 204 return code is supperseed by code 400
-				// @see http://opentsdb.net/docs/build/html/api_http/put.html#response
-	            result.setSummary(printSummary(returnedJSON));
-	            result.setNumberOfSuccess(getNumberOfSuccess(returnedJSON));
-	            result.setNumberOfFailed(getNumberOfFailed(returnedJSON));
-	            if (returnedJSON != null && returnedJSON.get(KEY_ERRORS) != null) {
-	                JSONArray errors = (JSONArray) returnedJSON.get(KEY_ERRORS);
-	                for (Object object : errors) {
-	                    JSONObject pointEnErreur = (JSONObject) object;
-	                    result.addError(((Long) ((JSONObject) pointEnErreur.get(KEY_DATAPOINT)).get(KEY_TIMESTAMP)).toString(),
-	                            (String) pointEnErreur.get(KEY_ERROR));
-	                }
-	            }
-	            break;
+				result.addError(Integer.toString(status), "OpenTSDB returned a HTTP 200 code on /api/put request");
+				break;
+			case CODE_204:
+				// All good !
+				result.setSummary("All points imported with no error");
+				break;
+			case CODE_400:
+				// Some points were not imported
+				long nbSuccess = getNumberOfSuccess(returnedJSON);
+				long nbFailed = getNumberOfFailed(returnedJSON);
+				JSONArray errors = (JSONArray) returnedJSON.get(KEY_ERRORS);
+				for (Object object : errors) {
+				    JSONObject pointEnErreur = (JSONObject) object;
+				    result.addError(((Long) ((JSONObject) pointEnErreur.get(KEY_DATAPOINT)).get(KEY_TIMESTAMP)).toString(),
+				            (String) pointEnErreur.get(KEY_ERROR));
+				}
+				result.setSummary("Bad request when putting points : Success " + nbSuccess + "/ Failed " + nbFailed
+						+ " | Nb Errors details : " + errors.size());
+				break;
 			default:
-				LOGGER.error("OpenTSDB returned a non managed HTTP code: " + code);
+				// check if there is any error in the response
+				Error parseForError = parseForError(response);
+				if (parseForError != null) {
+
+					// set error information in the results
+					result.setError(parseForError);
+					result.setSummary(parseForError.message);
+					
+				} 
+				else {
+					// Should not pass here due to call to ApiStatus.valueOf and its try/catch
+				}
 				break;
 		}
-        
-        return result;
-    }
-
-    private static String printSummary(JSONObject obj) {
-        StringBuilder sb = new StringBuilder("Stored points: ");
-        
-        sb.append(getNumberOfSuccess(obj));
-        sb.append(" (success) /");
-        sb.append(getNumberOfFailed(obj));
-        sb.append(" (failed)");
-
-        return sb.toString();
-    }
+		return result;
+	}
 
     private static long getNumberOfSuccess(JSONObject obj) {
         long ret = 0L;
@@ -312,4 +319,43 @@ public class ResponseParser {
         }
         return str;
     }
+
+    /**
+     * Return a parsed response for {@link ApiResponse.Error} content using Jackon JSON mapper
+     * @param response
+     * @return
+     * @throws IkatsWebClientException
+     */
+	public static ApiResponse.Error parseForError(Response response) throws IkatsWebClientException {
+
+		if (ApiStatus.isError(response.getStatus())) {
+			
+			// Test whether we receive a response content in JSON
+			MediaType mediaType = response.getMediaType();
+			if (mediaType != MediaType.APPLICATION_JSON_TYPE) {
+				throw new IkatsWebClientException("OpenTSDB doesn't return a JSON response for error");
+			}
+			
+			// Read the content as a string 
+			String content = response.readEntity(String.class);
+						
+			try {
+				ObjectMapper jsonMapper = new ObjectMapper();
+				Error errorContent = jsonMapper.readValue(content, ApiResponse.Error.class);
+				
+				return errorContent;
+				
+			} catch (JsonParseException | JsonMappingException e) {
+				throw new IkatsWebClientException("Error while parsing OpenTSDB JSON response", e);
+			} catch (IOException e) {
+				throw new IkatsWebClientException("System error while parsing OpenTSDB JSON response", e);
+			}
+			
+		} else {
+			
+			// The response is not an error, so we could not return anything
+			return null;
+		}
+	}
+
 }
