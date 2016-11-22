@@ -330,7 +330,7 @@ public class TemporalDataManager {
         tagSb.replace(tagSb.lastIndexOf(","), tagSb.length(), "}");
 
         // launch a getTS request
-        String tsuid = getTSUID(metric, endDate, tagSb.toString());
+        String tsuid = getTSUID(metric, startDate, endDate, tagSb.toString());
         resultatTotal.setNumberOfSuccess(success);
         resultatTotal.setSummary("Import of TS : " + tsuid);
         resultatTotal.setTsuid(tsuid);
@@ -442,9 +442,9 @@ public class TemporalDataManager {
     }
 
     /**
-     * get the TSUID for metric, and tags and date.
-     * request is done for catching the last point of the TS
-     * so in the interval [endDate .. now]
+     * get the TSUID for metric, tags and start/end date.
+     * request is done for counting the numberb of points 
+     * in the interval [startDate .. endDate]
      * 
      * @param metric
      *            the metric name
@@ -456,10 +456,10 @@ public class TemporalDataManager {
      * @throws IkatsWebClientException
      *             if request cannot be generated or sent
      */
-    public String getTSUID(String metric, Long date, String tags) throws IkatsWebClientException {
+    public String getTSUID(String metric, Long startDate, Long endDate, String tags) throws IkatsWebClientException {
         String tsuid = null;
         String url = "http://" + getHost() + getURLDbApiBase()
-                + urlBuilder.generateMetricQueryUrl(metric, tags, null, null, null, Long.toString(date), null, "show_tsuids");
+                + urlBuilder.generateMetricQueryUrl(metric, tags, "sum", "count", "100y", Long.toString(startDate), Long.toString(endDate), "show_tsuids");
         Response webResponse = RequestSender.sendGETRequest(url, getHost());
         String str = webResponse.readEntity(String.class);
         logger.debug("GET TSUID response : " + str);
