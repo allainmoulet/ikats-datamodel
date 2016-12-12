@@ -135,6 +135,29 @@ public class MetaDataManager {
     }
 
     /**
+     * Retrieve the MetaData matching the criteria tsuid+name
+     * 
+     * @param tsuid
+     *            the tsuid criterion value
+     * @param name
+     *            the name criterion value
+     * @return MetaData
+     * @throws IkatsDaoMissingRessource
+     *             error raised when no metadata is matching the tsuid+name
+     *             criteria
+     * @throws IkatsDaoConflictException
+     *             error raised when multiple metadata are found
+     * @throws IkatsDaoException
+     *             any other exceptions
+     */
+    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoConflictException, IkatsDaoMissingRessource, IkatsDaoException {
+
+        MetaData metadata = getMetaDataFacade().getMetaData(tsuid, name);
+
+        return metadata;
+    }
+
+    /**
      * persist all meta data read in a csv file.
      * 
      * @param fileis
@@ -214,9 +237,9 @@ public class MetaDataManager {
                 metadataNameList.add(meta.getName());
             }
             FunctionalIdentifier funcId = getFunctionalIdentifierByTsuid(tsuid);
-            
+
             if (funcId == null) {
-                funcId = new FunctionalIdentifier(tsuid,"NO_FUNC_ID_" + tsuid);
+                funcId = new FunctionalIdentifier(tsuid, "NO_FUNC_ID_" + tsuid);
             }
             exportedMap.put(funcId.getFuncId(), metadata);
         }
@@ -263,7 +286,7 @@ public class MetaDataManager {
         }
         return result;
     }
-    
+
     /**
      * get a list of metadata {name:type} for the list of tsduids in param
      * 
@@ -276,7 +299,7 @@ public class MetaDataManager {
      * @throws IkatsDaoException
      *             any error raised by DAO layer.
      */
-    public Map<String,String> getListTypes() throws IkatsDaoMissingRessource, IkatsDaoException {
+    public Map<String, String> getListTypes() throws IkatsDaoMissingRessource, IkatsDaoException {
         MetaDataFacade facade = getMetaDataFacade();
         return facade.getMetaDataTypes();
     }
@@ -351,8 +374,8 @@ public class MetaDataManager {
      * @param tsuid
      *            the tsuid
      * @return the number of rows deleted
-     * @throws IkatsDaoException 
-     * @throws IkatsDaoConflictException 
+     * @throws IkatsDaoException
+     * @throws IkatsDaoConflictException
      */
     public int deleteFunctionalIdentifier(String tsuid) throws IkatsDaoConflictException, IkatsDaoException {
         List<String> tsuids = new ArrayList<String>();
@@ -476,7 +499,7 @@ public class MetaDataManager {
             List<FunctionalIdentifier> lCurrentListIdentifiers = null;
 
             // case of no scope is provided => retrieve all funcId from db
-            if (lFuncIdentifiers.isEmpty() || lFuncIdentifiers == null){
+            if (lFuncIdentifiers.isEmpty() || lFuncIdentifiers == null) {
                 lFuncIdentifiers = getMetaDataFacade().getFunctionalIdentifiersList();
             }
             // creating samples of 20000 funcId
@@ -488,8 +511,8 @@ public class MetaDataManager {
                 }
                 lCurrentListIdentifiers.add(functionalIdentifier);
                 currentSize++;
-            }                
-                       
+            }
+
             List<FunctionalIdentifier> lResult = new ArrayList<FunctionalIdentifier>();
             for (List<FunctionalIdentifier> currentWellDimensionnedList : lWellDimensionnedTsIdLists) {
                 logger.info("- Adding new tsuids to result: searching by metadata criteria ...");
