@@ -443,13 +443,15 @@ public class TemporalDataManager {
 
     /**
      * get the TSUID for metric, tags and start/end date.
-     * request is done for counting the numberb of points 
+     * request is done for counting the number of points 
      * in the interval [startDate .. endDate]
      * 
      * @param metric
      *            the metric name
-     * @param date
-     *            the end date of the timeseries
+     * @param startDate
+     *            the start date for counting the number of points of the timeseries
+     * @param endDate
+     *            the end date for counting the number of points of the timeseries
      * @param tags
      *            the tags
      * @return the TSUID
