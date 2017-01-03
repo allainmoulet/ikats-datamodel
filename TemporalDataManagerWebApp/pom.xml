@@ -139,6 +139,32 @@
 					</execution>
 
 					<execution>
+						<id>docker</id>
+						<configuration>
+							<outputDirectory>target/docker</outputDirectory>
+							<webResources>
+								<resource>
+									<directory>src/main/docker/resources</directory>
+									<targetPath>WEB-INF/classes</targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>src/main/docker/webapp</directory>
+									<targetPath></targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+							</webResources>
+						</configuration>
+						<goals>
+							<goal>war</goal>
+						</goals>
+					</execution>
+
+					<execution>
 						<id>local</id>
 						<configuration>
 							<outputDirectory>target/local</outputDirectory>
