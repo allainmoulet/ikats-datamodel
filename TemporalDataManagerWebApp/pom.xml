@@ -113,6 +113,32 @@
 					</execution>
 
 					<execution>
+						<id>int-b</id>
+						<configuration>
+							<outputDirectory>target/int-b</outputDirectory>
+							<webResources>
+								<resource>
+									<directory>src/main/int-b/resources</directory>
+									<targetPath>WEB-INF/classes</targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>src/main/preprod/webapp</directory>
+									<targetPath></targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+							</webResources>
+						</configuration>
+						<goals>
+							<goal>war</goal>
+						</goals>
+					</execution>
+
+					<execution>
 						<id>preprod</id>
 						<configuration>
 							<outputDirectory>target/preprod</outputDirectory>
