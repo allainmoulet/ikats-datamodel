@@ -11,8 +11,6 @@ import java.util.TimeZone;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
-
 import fr.cs.ikats.datamanager.client.importer.IImportSerializer;
 import fr.cs.ikats.datamanager.client.opentsdb.generator.ReaderConfiguration;
 import fr.cs.ikats.datamanager.client.opentsdb.generator.SplittedLineReader;
@@ -59,14 +57,15 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
 
     
     
-    static DateFormat getDateFormat() {
+    @SuppressWarnings("serial")
+	static DateFormat getDateFormat() {
         return new DateFormat() {
 
             @Override
             public Date parse(String source, ParsePosition pos) {
                 Date date = null;
                 try {
-                    DateFormat format = new ISO8601DateFormat();
+                    DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
                     format.setTimeZone(TimeZone.getTimeZone("GMT"));
                     date = format.parse(source, pos);
                     if (date == null) {
@@ -93,7 +92,7 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
 
             @Override
             public StringBuffer format(Date date, StringBuffer toAppendTo, FieldPosition fieldPosition) {
-                DateFormat format = new ISO8601DateFormat();
+                DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
                 return format.format(date, toAppendTo, fieldPosition);
             }
         };
