@@ -97,12 +97,14 @@ public class ResponseParser {
 		switch (apiStatus) {
 			case CODE_200:
 				// OpenTSDB should not return that code in case of /api/put request !
+				// seems to be a documentation bug : http://opentsdb.net/docs/build/html/api_http/put.html#response
 				LOGGER.warn("OpenTSDB returned a HTTP 200 code on /api/put request");
-				result.addError(Integer.toString(status), "OpenTSDB returned a HTTP 200 code on /api/put request");
-				break;
+				//result.addError(Integer.toString(status), "OpenTSDB returned a HTTP 200 code on /api/put request");
+				//break;
 			case CODE_204:
 				// All good !
 				result.setSummary("All points imported with no error");
+				result.setNumberOfSuccess(getNumberOfSuccess(returnedJSON));
 				break;
 			case CODE_400:
 				// Some points were not imported

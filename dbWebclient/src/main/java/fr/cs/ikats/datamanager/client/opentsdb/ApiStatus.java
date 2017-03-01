@@ -68,12 +68,17 @@ public enum ApiStatus {
 		}
 	}
 
+	/**
+	 * Helper override of the {@link Enum#valueOf(Class, String) valueOf()} for the specific 'int' parameter.
+	 * @param status the integer status
+	 * @return the enum that binds with the provided integer
+	 * @throws IllegalArgumentException if the integer do not match any known OpenTSDB return code
+	 */
 	public static ApiStatus valueOf(int status) throws IllegalArgumentException {
-	    for (ApiStatus value : values()) {
-	         if (status == value.status) {
-	        	 
-	         }
-	    }
-	    throw new IllegalArgumentException("OpenTSDB return status '" + status + "' unknown.");
+		try {
+			return valueOf("CODE_" + Integer.toString(status));
+		} catch (IllegalArgumentException e) {
+			throw new IllegalArgumentException("OpenTSDB return status '" + status + "' unknown.");
+		}
 	}
 }
