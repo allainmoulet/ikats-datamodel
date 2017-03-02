@@ -83,6 +83,11 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
                         format.setTimeZone(TimeZone.getTimeZone("GMT"));
                         date = format.parse(source, pos);
                     }
+                    if (date == null) {
+                        format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+                        format.setTimeZone(TimeZone.getTimeZone("GMT"));
+                        date = format.parse(source, pos);
+                    }
                 }
                 catch (Exception e) {
                     e.printStackTrace();
