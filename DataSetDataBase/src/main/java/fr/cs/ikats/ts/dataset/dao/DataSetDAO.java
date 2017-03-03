@@ -210,7 +210,11 @@ public class DataSetDAO extends DataBaseDAO {
             result = (DataSet) session.get(DataSet.class, name);
             // tx.commit();
             if (result == null) {
-            	// FIXME FTO : should return null. See whether the exception is handled a container handler to remove the associated code.   
+                // Review#147170 le FIXME toujours OK ? retour null invasif dans le code appelant antipattern ?, 
+                // Review#147170 il faudra traiter ce cas a chaque couche appelante
+                // FIXME FTO : should return null. See whether the exception is handled a container handler to remove the associated code.   
+                
+                // IkatsDaoMissingRessource is used by a IkatsDaoExceptionHandler in TemporalDataManager
                 throw new IkatsDaoMissingRessource("DataSet with name=" + name);
             }
         }

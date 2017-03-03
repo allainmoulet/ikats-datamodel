@@ -12,6 +12,12 @@ import fr.cs.ikats.datamanager.client.importer.IImportSerializer;
 import fr.cs.ikats.datamanager.client.opentsdb.generator.ReaderConfiguration;
 import fr.cs.ikats.datamanager.client.opentsdb.generator.SplittedLineReader;
 
+// Review#147170 globalement un peu plus de javadoc ... classe + methodes publiques
+
+// Review#147170 comment added
+
+// Keep spring annotations @Component @Qualifier until TemporalDataManager 'import' services require them:
+// TODO annotations to be removed once these services are suppressed from TemporalDataManager
 @Component
 @Qualifier("Airbus")
 public class AirbusDataJsonIzer extends AbstractDataJsonIzer {
@@ -31,7 +37,8 @@ public class AirbusDataJsonIzer extends AbstractDataJsonIzer {
 		return reader;
 	}
 	
-	/* (non-Javadoc)
+	// Review#147170 pourquoi non-Javadoc ? => javadoc
+	/**
 	 * @see java.lang.Object#clone()
 	 */
 	@Override

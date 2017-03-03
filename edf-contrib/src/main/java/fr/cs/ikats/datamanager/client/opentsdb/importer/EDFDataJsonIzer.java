@@ -19,10 +19,19 @@ import fr.cs.ikats.datamanager.client.importer.IImportSerializer;
 import fr.cs.ikats.datamanager.client.opentsdb.generator.ReaderConfiguration;
 import fr.cs.ikats.datamanager.client.opentsdb.generator.SplittedLineReader;
 
+// Review#147170 globalement un peu plus de javadoc ... classe + methodes publiques
 /**
  * @author ikats
  *
  */
+
+// Review#147170 commentaire explicatif sur le @Qualifier et  @Component ? ingestion spring toujours utilisée ? 
+// Review#147170 il me semble que tu utilises le classloader and AbstractImportTaskFactory ... peut on les oter ?
+
+// Review#147170 comment added
+
+// Keep spring annotations @Component @Qualifier until TemporalDataManager 'import' services require them:
+// TODO annotations to be removed once these services are suppressed from TemporalDataManager
 @Component
 @Qualifier("EDF")
 public class EDFDataJsonIzer extends AbstractDataJsonIzer {
@@ -36,8 +45,8 @@ public class EDFDataJsonIzer extends AbstractDataJsonIzer {
 		return edfReader;
 	}
 	
-	
-	/* (non-Javadoc)
+	// Review#147170 pourquoi non-Javadoc ? => javadoc
+	/** 
 	 * @see java.lang.Object#clone()
 	 */
 	@Override
@@ -74,17 +83,28 @@ public class EDFDataJsonIzer extends AbstractDataJsonIzer {
             @Override
             public Date parse(String source, ParsePosition pos) {
                 String source2 = replaceMonth(source);
+                // Review#147170 info -> debug ?
                 logger.info("parsing date "+source2);
                 return acceptedFormat.parse(source2, pos);
             }
 
+            // Review#147170
             /**
+             * From the source content, replaces the literal months 
+             * (resp. "JAN", "FEB", "MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC") 
+             * by their number in two digit format ( resp. "01", ..., "12").
              * @param source the input Source
-             * @return the source with month in "JAN", "FEB", "MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"
-             * replaced with its number in two digit format. 
+             * @return the computed string with month literal replaced by the 2-digit month number. 
              */
             protected String replaceMonth(String source) {
                 int index = 1;
+                
+                // Review#147170 OPTIM: une optim sur ce code serait intéressante car on va très fréquemment l'utiliser ... 
+                // Review#147170  - utiliser un tableau constant -final static- (ou mieux enum? ou regexp Pattern ... voir plus bas) plutot que
+                // Review#147170 Arrays.asList("JAN", "FEB", "MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC") dans la boucle!
+                // Review#147170  - sortir du for des que la substitution a eu lieu
+                // Review#147170  - http://stackoverflow.com/questions/6262397/string-replaceall-is-considerably-slower-than-doing-the-job-yourself
+                // Review#147170 (je sais ... optim peut etre negligeble par rapport au services opentsdb ... )
                 String source2 = source;
                 for(String month : Arrays.asList("JAN", "FEB", "MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC")) {
                     if(source.contains(month)) {

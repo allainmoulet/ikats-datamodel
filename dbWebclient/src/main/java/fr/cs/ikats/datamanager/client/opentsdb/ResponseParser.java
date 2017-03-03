@@ -112,9 +112,10 @@ public class ResponseParser {
 				long nbFailed = getNumberOfFailed(returnedJSON);
 				JSONArray errors = (JSONArray) returnedJSON.get(KEY_ERRORS);
 				for (Object object : errors) {
-				    JSONObject pointEnErreur = (JSONObject) object;
-				    result.addError(((Long) ((JSONObject) pointEnErreur.get(KEY_DATAPOINT)).get(KEY_TIMESTAMP)).toString(),
-				            (String) pointEnErreur.get(KEY_ERROR));
+				    // Review#147170 pointWithErreur -> pointWithError
+				    JSONObject pointWithError = (JSONObject) object;
+				    result.addError(((Long) ((JSONObject) pointWithError.get(KEY_DATAPOINT)).get(KEY_TIMESTAMP)).toString(),
+				            (String) pointWithError.get(KEY_ERROR));
 				}
 				result.setSummary("Bad request when putting points : Success " + nbSuccess + "/ Failed " + nbFailed
 						+ " | Nb Errors details : " + errors.size());

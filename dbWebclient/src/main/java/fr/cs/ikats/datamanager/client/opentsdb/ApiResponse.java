@@ -1,5 +1,6 @@
 package fr.cs.ikats.datamanager.client.opentsdb;
 
+// Review#147170 javadoc expliquant l'objectif et utilisation de la classe
 public class ApiResponse {
 
 	private String summary;
