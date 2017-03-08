@@ -18,7 +18,7 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.ts.dataset.model.DataSet;
-import fr.cs.ikats.ts.dataset.model.TimeSerie;
+import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 
 /**
  * DAO class for dataSet model. use underlying database with hibernate
@@ -52,14 +52,14 @@ public class DataSetDAO extends DataBaseDAO {
             name = ds.getName();
 
             tx = session.beginTransaction();
-            for (TimeSerie ts : ds.getTsuids()) {
+            for (LinkDatasetTimeSeries ts : ds.getLinksToTimeSeries()) {
                 ts.setDataset(ds);
                 session.save(ts);
             }
             mdId = (String) session.save(ds);
             session.flush();
             tx.commit();
-            LOGGER.debug("DataSet stored " + ds.getName() + ";" + ds.getDescription() + ";" + ds.getTsuids());
+            LOGGER.debug("DataSet stored " + ds.getName() + ";" + ds.getDescription() + ";" + ds.getLinksToTimeSeries());
         }
         catch (HibernateException e) {
             // build IkatsDaoConflictException or ... or IkatsDaoException
@@ -88,7 +88,7 @@ public class DataSetDAO extends DataBaseDAO {
      *            a list of ts to add to dataset, must not be null
      * @return the number of TS added while updating
      */
-    public int update(String name, String description, List<TimeSerie> tsList) throws IkatsDaoException {
+    public int update(String name, String description, List<LinkDatasetTimeSeries> tsList) throws IkatsDaoException {
         Session session = getSession();
         int count = 0;
 
@@ -106,9 +106,9 @@ public class DataSetDAO extends DataBaseDAO {
 
             DataSet mergedDs = (DataSet) session.get(DataSet.class, name);
             if (mergedDs != null) {
-                Iterator<TimeSerie> iterTS = mergedDs.getTsuids().iterator();
+                Iterator<LinkDatasetTimeSeries> iterTS = mergedDs.getLinksToTimeSeries().iterator();
                 while (iterTS.hasNext()) {
-                    TimeSerie ts = iterTS.next();
+                    LinkDatasetTimeSeries ts = iterTS.next();
                     session.delete(ts);
                     iterTS.remove();
                 }
@@ -120,9 +120,9 @@ public class DataSetDAO extends DataBaseDAO {
             mergedDs.setDescription(description);
             session.update(mergedDs);
 
-            for (TimeSerie ts : tsList) {
+            for (LinkDatasetTimeSeries ts : tsList) {
                 ts.setDataset(mergedDs);
-                mergedDs.getTsuids().add(ts);
+                mergedDs.getLinksToTimeSeries().add(ts);
                 count++;
             }
             session.update(mergedDs);
@@ -159,18 +159,18 @@ public class DataSetDAO extends DataBaseDAO {
      *            a list of ts to add to dataset, must not be null
      * @return the number of TS added while updating
      */
-    public int updateAddingTimeseries(String name, String description, List<TimeSerie> tsList) throws IkatsDaoException {
+    public int updateAddingTimeseries(String name, String description, List<LinkDatasetTimeSeries> tsList) throws IkatsDaoException {
         Session session = getSession();
         int count = 0;
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
             DataSet ds = (DataSet) session.get(DataSet.class, name);
-            for (TimeSerie ts : tsList) {
+            for (LinkDatasetTimeSeries ts : tsList) {
                 if (!ds.getTsuidsAsString().contains(ts.getTsuid())) {
                     ts.setDataset(ds);
                     session.saveOrUpdate(ts);
-                    ds.getTsuids().add(ts);
+                    ds.getLinksToTimeSeries().add(ts);
                     count++;
                 }
             }
@@ -249,7 +249,7 @@ public class DataSetDAO extends DataBaseDAO {
             tx = session.beginTransaction();
             ds = (DataSet) session.get(DataSet.class, name);
             if (ds != null) {
-                for (TimeSerie ts : ds.getTsuids()) {
+                for (LinkDatasetTimeSeries ts : ds.getLinksToTimeSeries()) {
                     session.delete(ts);
                 }
                 session.delete(ds);
@@ -319,7 +319,7 @@ public class DataSetDAO extends DataBaseDAO {
         Session session = getSession();
         List<String> result = null;
         try {
-            Query q = session.createQuery(TimeSerie.LIST_DATASET_NAMES_FOR_TSUID);
+            Query q = session.createQuery(LinkDatasetTimeSeries.LIST_DATASET_NAMES_FOR_TSUID);
             q.setString("tsuid", tsuid); 
             result = q.list();
 
@@ -363,7 +363,7 @@ public class DataSetDAO extends DataBaseDAO {
 
         try {
             tx = session.beginTransaction();
-            Query q = session.createQuery(TimeSerie.DELETE_TS_FROM_DATASET);
+            Query q = session.createQuery(LinkDatasetTimeSeries.DELETE_TS_FROM_DATASET);
             q.setString("dataset", datasetName);
             q.setString("tsuid", tsuid);
             q.executeUpdate();
@@ -383,7 +383,7 @@ public class DataSetDAO extends DataBaseDAO {
         }
     }
 
-    public int removeTsLinks(String name, List<TimeSerie> tsList) throws IkatsDaoException {
+    public int removeTsLinks(String name, List<LinkDatasetTimeSeries> tsList) throws IkatsDaoException {
         Session session = getSession();
         int count = 0;
 
@@ -396,9 +396,9 @@ public class DataSetDAO extends DataBaseDAO {
 
             DataSet mergedDs = (DataSet) session.get(DataSet.class, name);
             if (mergedDs != null) {
-                Iterator<TimeSerie> iterTS = mergedDs.getTsuids().iterator();
+                Iterator<LinkDatasetTimeSeries> iterTS = mergedDs.getLinksToTimeSeries().iterator();
                 while (iterTS.hasNext()) {
-                    TimeSerie ts = iterTS.next();
+                    LinkDatasetTimeSeries ts = iterTS.next();
                     if (tsList.contains(ts)) {
                         session.delete(ts);
                         iterTS.remove();

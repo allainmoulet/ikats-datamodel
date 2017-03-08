@@ -27,7 +27,7 @@ public class DataSetInfo {
     {
         name = dataset.getName();
         description = dataset.getDescription();
-        nb_ts = dataset.getTsuids().size();
+        nb_ts = dataset.getLinksToTimeSeries().size();
     }
 
     /**

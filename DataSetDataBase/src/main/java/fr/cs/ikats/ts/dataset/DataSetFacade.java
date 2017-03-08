@@ -1,7 +1,6 @@
 package fr.cs.ikats.ts.dataset;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.annotation.PreDestroy;
@@ -15,7 +14,7 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.ts.dataset.dao.DataSetDAO;
 import fr.cs.ikats.ts.dataset.model.DataSet;
-import fr.cs.ikats.ts.dataset.model.TimeSerie;
+import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 
 /**
  * Management facade for datasets 
@@ -52,7 +51,7 @@ public class DataSetFacade {
 
         dao.addAnotatedPackage("fr.cs.ikats.ts.dataset.model");
         dao.addAnnotatedClass(DataSet.class);
-        dao.addAnnotatedClass(TimeSerie.class);
+        dao.addAnnotatedClass(LinkDatasetTimeSeries.class);
         dao.completeConfiguration();
 
     }
@@ -65,9 +64,9 @@ public class DataSetFacade {
      * @return the identifier of the dataset
      */
     public String persistDataSet(String name,String description,List<String> tsuids) throws IkatsDaoException {
-        List<TimeSerie> ts = new ArrayList<TimeSerie>();
+        List<LinkDatasetTimeSeries> ts = new ArrayList<LinkDatasetTimeSeries>();
         for(String tsuid : tsuids) {
-            ts.add(new TimeSerie(tsuid, name));
+            ts.add(new LinkDatasetTimeSeries(tsuid, name));
         }
         DataSet md = new DataSet(name,description,ts);
         return dao.persist(md);
@@ -76,10 +75,10 @@ public class DataSetFacade {
     public String persistDataSetFromEntity(String name,String description,
                                            List<FunctionalIdentifier> funcIdList ) throws IkatsDaoException {
         
-        List<TimeSerie> ts = new ArrayList<TimeSerie>();
+        List<LinkDatasetTimeSeries> ts = new ArrayList<LinkDatasetTimeSeries>();
         DataSet md = new DataSet(name,description,ts);
         for(FunctionalIdentifier fid : funcIdList) {
-            TimeSerie asso = new TimeSerie(fid, md);
+            LinkDatasetTimeSeries asso = new LinkDatasetTimeSeries(fid, md);
             
             ts.add( asso );
         }
@@ -110,8 +109,9 @@ public class DataSetFacade {
     }
 
     /**
-     * 
-     * @return all datasets
+     * Despite its name: returns all the datasets
+     *  
+     * @return all the datasets
      */
     public List<DataSet> getAllDataSetSummary() throws IkatsDaoException {
         return dao.getAllDataSets();
@@ -143,10 +143,10 @@ public class DataSetFacade {
      */
     public void removeTsLinks(String datasetName, List<String> tsuidList ) throws IkatsDaoException {
         
-        ArrayList<TimeSerie> listTsLinkEntities= new ArrayList<TimeSerie>();
+        ArrayList<LinkDatasetTimeSeries> listTsLinkEntities= new ArrayList<LinkDatasetTimeSeries>();
         for (String tsuid : tsuidList) {
             
-            listTsLinkEntities.add( new TimeSerie(tsuid, datasetName ) );
+            listTsLinkEntities.add( new LinkDatasetTimeSeries(tsuid, datasetName ) );
         }
         
         dao.removeTsLinks(datasetName, listTsLinkEntities);
@@ -173,9 +173,9 @@ public class DataSetFacade {
         DataSet theDataset = dao.getDataSet( datasetName );
         String theDescription = (description != null ) ? description : theDataset.getDescription();
         
-        List<TimeSerie> tsList = new ArrayList<TimeSerie>();
+        List<LinkDatasetTimeSeries> tsList = new ArrayList<LinkDatasetTimeSeries>();
         for(String tsuid : tsuidList) {
-            TimeSerie ts = new TimeSerie(tsuid, datasetName);
+            LinkDatasetTimeSeries ts = new LinkDatasetTimeSeries(tsuid, datasetName);
             tsList.add(ts);
         }
         return dao.update(datasetName,theDescription,tsList);
@@ -198,9 +198,9 @@ public class DataSetFacade {
         DataSet theDataset = dao.getDataSet( datasetName );
         String theDescription = (description != null ) ? description : theDataset.getDescription();
         
-        List<TimeSerie> tsList = new ArrayList<TimeSerie>();
+        List<LinkDatasetTimeSeries> tsList = new ArrayList<LinkDatasetTimeSeries>();
         for(String tsuid : tsuidList) {
-            TimeSerie ts = new TimeSerie(tsuid, datasetName);
+            LinkDatasetTimeSeries ts = new LinkDatasetTimeSeries(tsuid, datasetName);
             tsList.add(ts);
         }
         return dao.updateAddingTimeseries(datasetName,theDescription,tsList);
