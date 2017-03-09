@@ -40,11 +40,11 @@ public class DataSet {
     private String description;
 
     /**
-     * list of time series identifiers
+     * list of links between this dataset and its timeseries
      */
     @OneToMany(cascade = { CascadeType.ALL }, mappedBy = "dataset")
     @LazyCollection(LazyCollectionOption.FALSE)
-    private List<TimeSerie> tsuids;
+    private List<LinkDatasetTimeSeries> linksToTimeSeries;
 
     /**
      * public constructor
@@ -53,12 +53,12 @@ public class DataSet {
      *            name of the dataset
      * @param description
      *            a short description of the dataset
-     * @param tsuids
-     *            list of time series identifiers
+     * @param theLinksToTimeSeries
+     *            list of the links to the timeseries belonging to this dataset
      */
-    public DataSet(String name, String description, List<TimeSerie> tsuids) {
+    public DataSet(String name, String description, List<LinkDatasetTimeSeries> theLinksToTimeSeries) {
         this.name = name;
-        this.tsuids = tsuids;
+        this.linksToTimeSeries = theLinksToTimeSeries;
         this.description = description;
     }
 
@@ -98,10 +98,10 @@ public class DataSet {
     /**
      * Getter
      * 
-     * @return the tsuids
+     * @return the links between this dataset container and its timeseries elements
      */
-    public List<TimeSerie> getTsuids() {
-        return tsuids;
+    public List<LinkDatasetTimeSeries> getLinksToTimeSeries() {
+        return linksToTimeSeries;
     }
 
     /**
@@ -111,8 +111,8 @@ public class DataSet {
      */
     public List<String> getTsuidsAsString() {
         List<String> stringList = new ArrayList<String>();
-        if (tsuids != null) {
-            for (TimeSerie ts : tsuids) {
+        if (linksToTimeSeries != null) {
+            for (LinkDatasetTimeSeries ts : linksToTimeSeries) {
                 stringList.add(ts.getTsuid());
             }
         }
@@ -146,10 +146,10 @@ public class DataSet {
         lBuff.append(" tsuids=[ ");
         boolean lStart = true;
         if (!lazy) {
-            getTsuids();
+            getLinksToTimeSeries();
         }
-        if (tsuids != null) {
-            for (TimeSerie timeSerie : tsuids) {
+        if (linksToTimeSeries != null) {
+            for (LinkDatasetTimeSeries timeSerie : linksToTimeSeries) {
                 if (!lStart) {
                     lBuff.append(", ");
                 }

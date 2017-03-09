@@ -15,13 +15,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 
 /**
- * Association class mapping DB table timeserie linking tables tsdataset and tsfunctionalidentifier.
+ * Association class mapping DB table timeseries_dataset linking tables tsdataset and tsfunctionalidentifier.
  * <BR/>
  * Versionning follow-up:
  * <ul><li> 
- * TODO V4: remove Timeserie, using ManyToMany associations ?  or at least rename TimeSerie => AssociationDatasetFuncId
+ *     V4: class renamed LinkDatasetTimeSeries (old name: TimeSerie)
  * </li>
- * <li>V3 of Timeserie:
+ * <li>V3
  * <ul>
  * <li>Hibernate update: this.funcIdentifier + this.datasetName</li>
  * <li>Hibernate update: removed cascade ALL defined on dataset</li>
@@ -29,7 +29,7 @@ import fr.cs.ikats.metadata.model.FunctionalIdentifier;
  * </ul>
  *    
  * </li>
- * <li>V2 of TimeSerie.
+ * <li>V2
  *    Add the bidirectional relation with DataSet :
  *      
  *    Script to migrate from V1 : 
@@ -40,36 +40,36 @@ import fr.cs.ikats.metadata.model.FunctionalIdentifier;
  * </ul>
  */
 @Entity
-@Table(name="TimeSerie")
-public class TimeSerie {
+@Table(name="TimeSeries_Dataset")
+public class LinkDatasetTimeSeries {
 
     /**
      * Request to select datasetname containing a tsuid
      */
-    public transient final static String LIST_DATASET_NAMES_FOR_TSUID = "select distinct T.dataset.name from TimeSerie T where T.funcIdentifier.tsuid = :tsuid";
+    public transient final static String LIST_DATASET_NAMES_FOR_TSUID = "select distinct T.dataset.name from LinkDatasetTimeSeries T where T.funcIdentifier.tsuid = :tsuid";
     
     /**
      * Request to delete a TS from dataset
      */
-    public transient final static String DELETE_TS_FROM_DATASET = "delete TimeSerie T where T.funcIdentifier = :tsuid and T.dataset.name = :dataset";
+    public transient final static String DELETE_TS_FROM_DATASET = "delete LinkDatasetTimeSeries T where T.funcIdentifier = :tsuid and T.dataset.name = :dataset";
     
     /**
      * HQL request: remove all the TS links under a dataset. TS are not deleted, only the links dataset->TS.
      */
-    public transient final static String DELETE_ALL_TS_LINKS_FROM_DATASET = "delete TimeSerie T where T.dataset.name = :dataset";
+    public transient final static String DELETE_ALL_TS_LINKS_FROM_DATASET = "delete LinkDatasetTimeSeries T where T.dataset.name = :dataset";
     
     
     /**
      * default constructor
      */
-    public TimeSerie() {
+    public LinkDatasetTimeSeries() {
     }
     
     /**
      * constructor with simple fields
      * @param tsuid : the tsuid
      */
-    public TimeSerie(String tsuid, String datasetname) {
+    public LinkDatasetTimeSeries(String tsuid, String datasetname) {
         setFunctionalIdentifier(new FunctionalIdentifier( tsuid, null ) );// setTsuid(tsuid);
         setDataset( new DataSet( datasetname, null, null ) );// setDatasetName( datasetname );
     }
@@ -79,7 +79,7 @@ public class TimeSerie {
      * @param funcIdInfo
      * @param dataSet
      */
-    public TimeSerie(FunctionalIdentifier funcIdInfo, DataSet dataSet) {
+    public LinkDatasetTimeSeries(FunctionalIdentifier funcIdInfo, DataSet dataSet) {
         setFunctionalIdentifier( funcIdInfo ); // updates also this.tsuid !
         setDataset( dataSet ); // updates also this.datasetName !
     }
@@ -226,9 +226,9 @@ public class TimeSerie {
      */
     @Override
     public boolean equals(Object obj) {
-        if ( obj instanceof TimeSerie )
+        if ( obj instanceof LinkDatasetTimeSeries )
         {
-            TimeSerie tsObj = (TimeSerie) obj;
+            LinkDatasetTimeSeries tsObj = (LinkDatasetTimeSeries) obj;
             String tsuid = this.getTsuid(); 
             String datasetName = this.getDatasetName();
             return tsuid.equals( tsObj.getTsuid()) && datasetName.equals( tsObj.getDatasetName() );

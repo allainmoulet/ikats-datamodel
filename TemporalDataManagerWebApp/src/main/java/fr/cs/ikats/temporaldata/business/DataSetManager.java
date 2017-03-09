@@ -4,7 +4,6 @@
 package fr.cs.ikats.temporaldata.business;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.ws.rs.WebApplicationException;
@@ -22,9 +21,8 @@ import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.temporaldata.resource.TimeSerieResource;
 import fr.cs.ikats.ts.dataset.DataSetFacade;
-import fr.cs.ikats.ts.dataset.dao.DataSetDAO;
 import fr.cs.ikats.ts.dataset.model.DataSet;
-import fr.cs.ikats.ts.dataset.model.TimeSerie;
+import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 
 /**
  * manage datasets
@@ -95,17 +93,17 @@ public class DataSetManager {
     }
 
     /**
-     * return the list of TimeSeries of the dataSet
+     * return the list of links from one dataset to its associated timeseries (0, or more).
      * 
      * @param dataSetId
      *            the identifier
-     * @return a list of TimeSeries, null if dataset is not found.
+     * @return a list of LinkDatasetTimeSeries, null if dataset is not found.
      */
-    public List<TimeSerie> getDataSetContent(String dataSetId) throws IkatsDaoMissingRessource, IkatsDaoException {
-        List<TimeSerie> result = null;
+    public List<LinkDatasetTimeSeries> getDataSetContent(String dataSetId) throws IkatsDaoMissingRessource, IkatsDaoException {
+        List<LinkDatasetTimeSeries> result = null;
         DataSet dataset = getDataSetFacade().getDataSet(dataSetId);
         if (dataset != null) {
-            result = dataset.getTsuids();
+            result = dataset.getLinksToTimeSeries();
         }
         return result;
 
@@ -131,7 +129,7 @@ public class DataSetManager {
      *            the dataset to remove
      * @param deep
      *            boolean flag, optional (default false): true activates the
-     *            deletion of Timeseries and associated metadata
+     *            deletion of the timeseries linked to the dataset and their associated metadata
      * @throws IkatsDaoException
      */
     public Status removeDataSet(String datasetId, Boolean deep) throws IkatsDaoMissingRessource, IkatsDaoException {
@@ -153,8 +151,8 @@ public class DataSetManager {
                 return Status.NOT_FOUND;
             }
 
-            for (TimeSerie ts : dataSet.getTsuids()) {
-                String tsuid = ts.getFuncIdentifier().getTsuid();
+            for (LinkDatasetTimeSeries linkDatasetTs : dataSet.getLinksToTimeSeries()) {
+                String tsuid = linkDatasetTs.getFuncIdentifier().getTsuid();
 
                 List<String> inDataSetNames = getContainers(tsuid);
                 if (inDataSetNames == null) {
@@ -179,7 +177,7 @@ public class DataSetManager {
                 }
             }
             if (!tsNotRemovedWarnings.isEmpty()) {
-                LOGGER.warn(context + "TS not deleted because they are attached to another dataset than " + datasetId + " : ");
+                LOGGER.warn(context + "Some of the timeseries were not deleted because they are attached to another dataset than " + datasetId + " : ");
                 for (String error : tsNotRemovedWarnings) {
                     LOGGER.warn("- delete cancelled: " + tsNotRemovedWarnings);
                 }

@@ -4,7 +4,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.ws.rs.Consumes;
@@ -18,7 +17,6 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
@@ -26,7 +24,6 @@ import javax.ws.rs.core.Response.Status;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONObject;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
@@ -36,7 +33,6 @@ import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.DataSetWithFids;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.ts.dataset.model.DataSet;
-import fr.cs.ikats.ts.dataset.model.TimeSerie;
 
 /**
  * data set resource class.
@@ -75,7 +71,7 @@ public class DataSetResource extends AbstractResource {
             dataset.put("description", dataSetSummary.getDescription());
             if (getSize) {
                 DataSet dataSetDetailed = dataSetManager.getDataSet(dsName);
-                Integer nb_ts = dataSetDetailed.getTsuids().size();
+                Integer nb_ts = dataSetDetailed.getLinksToTimeSeries().size();
                 dataset.put("nb_ts", nb_ts);
             }
             result.add(dataset);
@@ -181,14 +177,16 @@ public class DataSetResource extends AbstractResource {
     }
 
     /**
-     * Remove the dataset reference and links with timeseries. optional :
-     * timseries data and metadata can be deleted
+     * Remove the dataset reference and links with timeseries. 
+     * 
+     * Option when deep is True: each linked timeseries is deleted -including its metadata-,
+     * unless it belongs to another dataset.
      * 
      * @param datasetId
      *            the dataset idenfifier
      * @param deep
      *            boolean flag, optional (default false): true activates the
-     *            deletion of Timeseries and associated metadata
+     *            deletion of timeseries and their associated metadata.
      * @return a summary of the execution.
      * @throws IkatsDaoMissingRessource
      * @throws IkatsDaoException

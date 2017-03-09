@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
@@ -29,7 +30,7 @@ import fr.cs.ikats.common.junit.CommonTest;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.ts.dataset.model.DataSet;
-import fr.cs.ikats.ts.dataset.model.TimeSerie;
+import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 
 /**
  * Test class for DataSet Facade
@@ -223,7 +224,7 @@ public class DataSetTest extends CommonTest {
             assertEquals(dsname, results);
             DataSet datasetToUpdate = facade.getDataSet(dsname);
 
-            assertEquals(3, datasetToUpdate.getTsuids().size());
+            assertEquals(3, datasetToUpdate.getLinksToTimeSeries().size());
             assertEquals(description, datasetToUpdate.getDescription());
 
             // Test 1 : try to persist existing dataset !!!!
@@ -271,7 +272,7 @@ public class DataSetTest extends CommonTest {
             assertEquals(dsname, results);
             DataSet datasetToUpdate = facade.getDataSet(dsname);
 
-            assertEquals(3, datasetToUpdate.getTsuids().size());
+            assertEquals(3, datasetToUpdate.getLinksToTimeSeries().size());
             assertEquals(description, datasetToUpdate.getDescription());
 
             tsuids = new ArrayList<String>();
@@ -283,7 +284,7 @@ public class DataSetTest extends CommonTest {
             facade.updateInAppendMode(dsname, null, tsuids);
 
             DataSet updatedDataset = facade.getDataSet(dsname);
-            assertEquals(4, updatedDataset.getTsuids().size());
+            assertEquals(4, updatedDataset.getLinksToTimeSeries().size());
             assertEquals(description, updatedDataset.getDescription());
             assertEquals(true, updatedDataset.getTsuidsAsString().contains(addedTsuid2));
 
@@ -297,7 +298,7 @@ public class DataSetTest extends CommonTest {
             facade.updateInAppendMode(dsname, updatedDescription, tsuids);
 
             updatedDataset = facade.getDataSet(dsname);
-            assertEquals(5, updatedDataset.getTsuids().size());
+            assertEquals(5, updatedDataset.getLinksToTimeSeries().size());
             assertEquals(updatedDescription, updatedDataset.getDescription());
             assertEquals(true, updatedDataset.getTsuidsAsString().contains(addedTsuid2));
             assertEquals(true, updatedDataset.getTsuidsAsString().contains(addedTsuid3));
@@ -350,7 +351,7 @@ public class DataSetTest extends CommonTest {
             assertEquals(dsname, results);
             DataSet datasetToUpdate = facade.getDataSet(dsname);
 
-            assertEquals(3, datasetToUpdate.getTsuids().size());
+            assertEquals(3, datasetToUpdate.getLinksToTimeSeries().size());
             assertEquals(description, datasetToUpdate.getDescription());
 
             // Test1: do not change description + append one tsuid
@@ -358,7 +359,7 @@ public class DataSetTest extends CommonTest {
 
             DataSet updatedDataset = facade.getDataSet(dsname);
             getLogger().info(updatedDataset.toDetailedString(false));
-            assertEquals("Test1: do not change description + append one tsuid", 5, updatedDataset.getTsuids().size());
+            assertEquals("Test1: do not change description + append one tsuid", 5, updatedDataset.getLinksToTimeSeries().size());
             assertEquals("Test1: do not change description + append one tsuid", description, updatedDataset.getDescription());
             assertEquals("Test1: do not change description + append one tsuid", tsuids2, updatedDataset.getTsuidsAsString());
 
@@ -368,7 +369,7 @@ public class DataSetTest extends CommonTest {
 
             DataSet updatedDataset2 = facade.getDataSet(dsname);
             getLogger().info(updatedDataset.toDetailedString(false));
-            assertEquals("Test2: change description + unchanged tsuids", 5, updatedDataset2.getTsuids().size());
+            assertEquals("Test2: change description + unchanged tsuids", 5, updatedDataset2.getLinksToTimeSeries().size());
             assertEquals("Test2: change description + unchanged tsuids", description2, updatedDataset2.getDescription());
             assertEquals("Test2: change description + unchanged tsuids", tsuids2, updatedDataset2.getTsuidsAsString());
 
@@ -411,7 +412,7 @@ public class DataSetTest extends CommonTest {
             assertEquals(dsname, results);
             DataSet datasetToUpdate = facade.getDataSet(dsname);
 
-            assertEquals(5, datasetToUpdate.getTsuids().size());
+            assertEquals(5, datasetToUpdate.getLinksToTimeSeries().size());
             assertEquals(description, datasetToUpdate.getDescription());
 
             // Tested service:
@@ -421,7 +422,7 @@ public class DataSetTest extends CommonTest {
             List<String> updatedTsuidLinks = updatedDataset.getTsuidsAsString();
 
             getLogger().info(updatedDataset.toDetailedString(false));
-            assertEquals(3, updatedDataset.getTsuids().size());
+            assertEquals(3, updatedDataset.getLinksToTimeSeries().size());
 
             String msg = "Validate result of removeTsLinks on Dataset";
             assertEquals(msg, true, updatedTsuidLinks.contains(encodeTsuid("tsuid2", testCaseName)));
@@ -545,15 +546,15 @@ public class DataSetTest extends CommonTest {
 
             assertEquals("Check content of get dataset: name", dsname, result.getName());
             assertEquals("Check content of get dataset: desc", desc, result.getDescription());
-            assertEquals("Check content of get dataset: length", tsuids.size(), result.getTsuids().size());
+            assertEquals("Check content of get dataset: length", tsuids.size(), result.getLinksToTimeSeries().size());
 
             assertEquals("Check content of get dataset: tsuid as string", true, result.getTsuidsAsString().contains(encodedTsuid1));
 
             assertEquals("Check content of get dataset: tsuid as string", true, result.getTsuidsAsString().contains(encodedTsuid2));
 
-            assertEquals("Check content of get dataset: TimeSerie", true, result.getTsuids().contains(new TimeSerie(encodedTsuid1, dsname)));
-            assertEquals("Check content of get dataset: TimeSerie", true, result.getTsuids().contains(new TimeSerie(encodedTsuid2, dsname)));
-            assertEquals("Check content of get dataset: TimeSerie", false, result.getTsuids().contains(new TimeSerie("outsideTs", dsname)));
+            assertEquals("Check content of get dataset: TimeSerie", true, result.getLinksToTimeSeries().contains(new LinkDatasetTimeSeries(encodedTsuid1, dsname)));
+            assertEquals("Check content of get dataset: TimeSerie", true, result.getLinksToTimeSeries().contains(new LinkDatasetTimeSeries(encodedTsuid2, dsname)));
+            assertEquals("Check content of get dataset: TimeSerie", false, result.getLinksToTimeSeries().contains(new LinkDatasetTimeSeries("outsideTs", dsname)));
             facade.removeDataSet(dsname);
 
             endNominal(testCaseName);
@@ -617,7 +618,13 @@ public class DataSetTest extends CommonTest {
             assertEquals(encodeDatasetName("dataSet9", testCaseName), result.get(3).getName());
             assertEquals("desc courte 9", result.get(3).getDescription());
 
-            assertNull(result.get(0).getTsuids());
+            List<String> testedListTsuid = 
+                    result.get(0).getLinksToTimeSeries().
+                    stream().map(LinkDatasetTimeSeries::getTsuid).
+                    collect(Collectors.toList());
+            
+            assert( testedListTsuid.containsAll( preparedData.tsuids ) 
+                    && preparedData.tsuids.containsAll( testedListTsuid ) );
 
             facade.removeDataSet(encodeDatasetName("dataSet6", testCaseName));
             facade.removeDataSet(encodeDatasetName("dataSet7", testCaseName));
