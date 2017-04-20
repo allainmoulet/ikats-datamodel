@@ -23,6 +23,7 @@ public class CSVJsonIzerForOpentsdb implements IImportSerializer {
     private int period;
     private String tag;
     boolean hasNext = true;
+    long totalPointsRead = 0;
 
     @Override
     public void init(BufferedReader reader, String fileName, String metric, Map<String, String> tags) {
@@ -39,6 +40,7 @@ public class CSVJsonIzerForOpentsdb implements IImportSerializer {
         String line = reader.readLine();
         String json = null;
         if (line != null) {
+        	totalPointsRead ++;
             SimpleJsonGenerator generateur = new SimpleJsonGenerator(dataset, period, tag);
             json = generateur.generate(line);
         }
@@ -88,4 +90,8 @@ public class CSVJsonIzerForOpentsdb implements IImportSerializer {
         // TODO Auto-generated method stub
         return true;
     }
+
+	public long getTotalPointsRead() {
+		return totalPointsRead;
+	}
 }
