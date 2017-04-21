@@ -11,8 +11,6 @@ import java.util.TimeZone;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
-import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
-
 import fr.cs.ikats.datamanager.client.importer.IImportSerializer;
 import fr.cs.ikats.datamanager.client.opentsdb.generator.ReaderConfiguration;
 import fr.cs.ikats.datamanager.client.opentsdb.generator.SplittedLineReader;
@@ -23,6 +21,7 @@ import fr.cs.ikats.datamanager.client.opentsdb.generator.SplittedLineReader;
  * @author ikats
  *
  */
+// Review#147170 expliquer l'usage du @Qualifier "Common"
 @Component
 @Qualifier("Common")
 public class CommonDataJsonIzer extends AbstractDataJsonIzer {
@@ -42,7 +41,8 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
     public IImportSerializer clone() {
         return new CommonDataJsonIzer();
     }
-
+    // Review#147170 javadoc incomplete ci dessous: merite d'etre completee
+    // Review#147170  - format attendu <timestamp> <sep> <valeur> ...
     /**
      * defines csv input columns content timestamp format :
      * 2013-05-03T05:30:34,8 yyyy-MM-ddThh:mm:ss.S
@@ -59,14 +59,15 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
 
     
     
-    static DateFormat getDateFormat() {
+    @SuppressWarnings("serial")
+	static DateFormat getDateFormat() {
         return new DateFormat() {
 
             @Override
             public Date parse(String source, ParsePosition pos) {
                 Date date = null;
                 try {
-                    DateFormat format = new ISO8601DateFormat();
+                    DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
                     format.setTimeZone(TimeZone.getTimeZone("GMT"));
                     date = format.parse(source, pos);
                     if (date == null) {
@@ -84,6 +85,11 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
                         format.setTimeZone(TimeZone.getTimeZone("GMT"));
                         date = format.parse(source, pos);
                     }
+                    if (date == null) {
+                        format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
+                        format.setTimeZone(TimeZone.getTimeZone("GMT"));
+                        date = format.parse(source, pos);
+                    }
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -93,7 +99,7 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
 
             @Override
             public StringBuffer format(Date date, StringBuffer toAppendTo, FieldPosition fieldPosition) {
-                DateFormat format = new ISO8601DateFormat();
+                DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
                 return format.format(date, toAppendTo, fieldPosition);
             }
         };

@@ -1,7 +1,7 @@
 /**
  * 
  */
-package fr.cs.ikats.temporaldata.business.internal;
+package fr.cs.ikats.datamanager.client.opentsdb;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -22,9 +22,8 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
-import fr.cs.ikats.temporaldata.application.ApplicationConfiguration;
-import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
+import fr.cs.ikats.util.configuration.ConfigProperties;
+import fr.cs.ikats.util.configuration.IkatsConfiguration;
 
 /**
  * URL builder class for openTSDB
@@ -49,13 +48,50 @@ public class DataBaseClientManager {
      */
     private String _queryUrlBase;
     
-    
     private String _uidMetaUrlBase;
-    
     
     private String _useMsResolution;
     
     private String _queryLastUrlBase;
+    
+	private IkatsConfiguration<ApplicationConfiguration> config = new IkatsConfiguration<ApplicationConfiguration>(ApplicationConfiguration.class);
+    
+    enum ApplicationConfiguration implements ConfigProperties  {
+		
+    	URL_DB_API_LOOKUP("url.db.api.lookup"), 
+    	URL_DB_API_QUERY("url.db.api.query"), 
+    	DB_API_MSRESOLUTION("db.api.msResolution"), 
+    	URL_DB_API_UID_META("url.db.api.uid.tsmeta"), 
+    	URL_DB_API_QUERY_LAST("url.db.api.query.last");
+
+		// Filename
+		public final static String propertiesFile = "api.properties";
+
+		private String propertyName;
+		private String defaultValue;
+		
+		ApplicationConfiguration(String propertyName, String defaultValue) {
+			this.propertyName = propertyName;
+			this.defaultValue = defaultValue;
+		}
+			
+		ApplicationConfiguration(String propertyName) {
+			this.propertyName = propertyName;
+			this.defaultValue = null;
+		}
+		
+		public String getPropertiesFilename() {
+			return propertiesFile;
+		}
+
+		public String getPropertyName() {
+			return propertyName;
+		}
+
+		public String getDefaultValue() {
+			return defaultValue;
+		}
+    }
     
     /**
      * Getter
@@ -63,7 +99,7 @@ public class DataBaseClientManager {
      */
     public String getLookupUrlBase() {
         if(_lookupUrlBase==null) {
-            _lookupUrlBase = TemporalDataApplication.getApplicationConfiguration().getStringValue(ApplicationConfiguration.URL_DB_API_LOOKUP);
+            _lookupUrlBase = (String) config.getProperty(ApplicationConfiguration.URL_DB_API_LOOKUP);
         }
         return _lookupUrlBase;
     }
@@ -74,7 +110,7 @@ public class DataBaseClientManager {
      */
     public String getQueryUrlBase() {
         if(_queryUrlBase==null) {
-            _queryUrlBase = TemporalDataApplication.getApplicationConfiguration().getStringValue(ApplicationConfiguration.URL_DB_API_QUERY);
+            _queryUrlBase = (String) config.getProperty(ApplicationConfiguration.URL_DB_API_QUERY);
         }
         return _queryUrlBase;
     }
@@ -85,7 +121,7 @@ public class DataBaseClientManager {
      */
     public String getMsResolution() {
         if(_useMsResolution==null) {
-            _useMsResolution = TemporalDataApplication.getApplicationConfiguration().getStringValue(ApplicationConfiguration.DB_API_MSRESOLUTION);
+            _useMsResolution = (String) config.getProperty(ApplicationConfiguration.DB_API_MSRESOLUTION);
         }
         return _useMsResolution;
     }
@@ -97,7 +133,7 @@ public class DataBaseClientManager {
      */
     public String getUidMetaUrlBase() {
         if(_uidMetaUrlBase==null) {
-            _uidMetaUrlBase = TemporalDataApplication.getApplicationConfiguration().getStringValue(ApplicationConfiguration.URL_DB_API_UID_META);
+            _uidMetaUrlBase = (String) config.getProperty(ApplicationConfiguration.URL_DB_API_UID_META);
         }
         return _uidMetaUrlBase;
     }
@@ -108,7 +144,7 @@ public class DataBaseClientManager {
      */
     public String getQueryLastUrlBase() {
         if(_queryLastUrlBase==null) {
-            _queryLastUrlBase = TemporalDataApplication.getApplicationConfiguration().getStringValue("url.db.api.query.last");
+            _queryLastUrlBase = (String) config.getProperty(ApplicationConfiguration.URL_DB_API_QUERY_LAST);
         }
         return _queryLastUrlBase;
     }

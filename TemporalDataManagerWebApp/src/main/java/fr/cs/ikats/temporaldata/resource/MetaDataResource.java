@@ -29,12 +29,9 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
 
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -42,17 +39,14 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.datamanager.client.opentsdb.ApiResponse;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.lang.CollectionUtils;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
-import fr.cs.ikats.metadata.model.MetadataCriterion;
 import fr.cs.ikats.temporaldata.application.ApplicationLabels;
 import fr.cs.ikats.temporaldata.business.FilterFunctionalIdentifiers;
-import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
-import fr.cs.ikats.temporaldata.business.MetadataInfo;
 import fr.cs.ikats.temporaldata.business.TsuidListInfo;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
@@ -164,7 +158,7 @@ public class MetaDataResource extends AbstractResource {
     @DELETE
     @Path("/{tsuid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public ImportResult delete(@PathParam("tsuid") String tsuid) throws IkatsDaoException {
+    public ApiResponse delete(@PathParam("tsuid") String tsuid) throws IkatsDaoException {
         int mdremoved = metadataManager.deleteMetaData(tsuid);
         ImportResult result = new ImportResult();
         result.setTsuid(tsuid);
@@ -187,7 +181,7 @@ public class MetaDataResource extends AbstractResource {
     @DELETE
     @Path("/{tsuid}/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public ImportResult delete(@PathParam("tsuid") String tsuid, @PathParam("name") String name) throws IkatsDaoException {
+    public ApiResponse delete(@PathParam("tsuid") String tsuid, @PathParam("name") String name) throws IkatsDaoException {
         int mdremoved = metadataManager.deleteMetaData(tsuid, name);
         ImportResult result = new ImportResult();
         result.setTsuid(tsuid);
@@ -412,7 +406,7 @@ public class MetaDataResource extends AbstractResource {
     @POST
     @Path("/funcId/{tsuid}/{funcId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public ImportResult importFunctionalIdentifier(@PathParam("tsuid") String tsuid, @PathParam("funcId") String funcId)
+    public ApiResponse importFunctionalIdentifier(@PathParam("tsuid") String tsuid, @PathParam("funcId") String funcId)
             throws InvalidValueException, IkatsDaoException {
         temporalDataManager.validateFuncId(funcId);
         int added = metadataManager.persistFunctionalIdentifier(tsuid, funcId);
@@ -435,7 +429,7 @@ public class MetaDataResource extends AbstractResource {
     @DELETE
     @Path("/funcId/{tsuid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public ImportResult deleteFunctionalIdentifier(@PathParam("tsuid") String tsuid) throws IkatsDaoConflictException, IkatsDaoException {
+    public ApiResponse deleteFunctionalIdentifier(@PathParam("tsuid") String tsuid) throws IkatsDaoConflictException, IkatsDaoException {
         int added = metadataManager.deleteFunctionalIdentifier(tsuid);
         ImportResult result = new ImportResult();
         result.setTsuid(tsuid);

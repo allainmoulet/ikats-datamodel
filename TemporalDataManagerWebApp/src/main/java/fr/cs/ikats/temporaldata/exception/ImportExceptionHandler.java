@@ -16,6 +16,7 @@ import javax.ws.rs.ext.Provider;
 
 import org.apache.log4j.Logger;
 
+import fr.cs.ikats.datamanager.client.opentsdb.ApiResponse;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 
 /**
@@ -30,7 +31,7 @@ public class ImportExceptionHandler implements ExceptionMapper<ImportException> 
     @Override
     public Response toResponse(ImportException exception) {
         logger.error("Error handled while importing data",exception);
-        ImportResult resultatTotal = new ImportResult();
+        ApiResponse resultatTotal = new ImportResult();
         resultatTotal.setSummary(exception.getMessage());
         return Response.status(Status.BAD_REQUEST).entity(resultatTotal).build();
     }

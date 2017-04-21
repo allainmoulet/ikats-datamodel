@@ -26,12 +26,12 @@ import org.apache.log4j.Logger;
 import fr.cs.ikats.datamanager.DataManagerException;
 import fr.cs.ikats.datamanager.client.RequestSender;
 import fr.cs.ikats.datamanager.client.importer.IImportSerializer;
+import fr.cs.ikats.datamanager.client.opentsdb.DataBaseClientManager;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.datamanager.client.opentsdb.ResponseParser;
 import fr.cs.ikats.temporaldata.application.ApplicationConfiguration;
 import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
-import fr.cs.ikats.temporaldata.business.internal.DataBaseClientManager;
 import fr.cs.ikats.temporaldata.business.internal.ImportSerializerFactory;
 import fr.cs.ikats.temporaldata.exception.ImportException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
@@ -263,7 +263,7 @@ public class TemporalDataManager {
                     String url = "http://" + host + getURLDbApiBase() + getConfig().getStringValue(ApplicationConfiguration.URL_DB_API_IMPORT);
                     logger.debug("sending request to url " + url);
                     Response response = RequestSender.sendPUTJsonRequest(url, json);
-                    importResult = ResponseParser.parseImportResponse(response, response.getStatus());
+                    importResult = ResponseParser.parseImportResponse(response);
                     logger.debug("Import task finished with result : " + importResult);
                 }
                 else {

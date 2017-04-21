@@ -20,47 +20,6 @@ public class RequestSender {
     private static final Logger LOGGER = Logger.getLogger(RequestSender.class);
 
     /**
-     * HTTP CODE 200 @see http://opentsdb.net/docs/build/html/api_http/index.html#response-codes
-     */
-    public static final int CODE_200_OK = 200;
-    /**
-     * HTTP CODE 204 @see http://opentsdb.net/docs/build/html/api_http/index.html#response-codes
-     */
-    public static final int CODE_204_OK_IMPORT = 204;
-    /**
-     * HTTP CODES 400 @see http://opentsdb.net/docs/build/html/api_http/index.html#response-codes
-     */
-    public static final int CODE_400_ERR_BAD_REQUEST = 400;
-    /**
-     * HTTP CODES 404 @see http://opentsdb.net/docs/build/html/api_http/index.html#response-codes
-     */
-    public static final int CODE_404_ERR_BAD_END_POINT = 404;
-    /**
-     * HTTP CODES 405 @see http://opentsdb.net/docs/build/html/api_http/index.html#response-codes
-     */
-    public static final int CODE_405_ERR_BAD_VERB = 405;
-    /**
-     * HTTP CODES 408 @see http://opentsdb.net/docs/build/html/api_http/index.html#response-codes
-     */
-    public static final int CODE_408_ERR_TIMEOUT = 408;
-    /**
-     * HTTP CODES 413 @see http://opentsdb.net/docs/build/html/api_http/index.html#response-codes
-     */
-    public static final int CODE_413_ERR_REQUEST_TOO_LARGE = 413;
-    /**
-     * HTTP CODES 500 @see http://opentsdb.net/docs/build/html/api_http/index.html#response-codes
-     */
-    public static final int CODE_500_ERR_MISSING_VALUE = 500;
-    /**
-     * HTTP CODES 501 @see http://opentsdb.net/docs/build/html/api_http/index.html#response-codes
-     */
-    public static final int CODE_501_ERR_NOT_IMPLEMENTED = 501;
-    /**
-     * HTTP CODES 503 @see http://opentsdb.net/docs/build/html/api_http/index.html#response-codes
-     */
-    public static final int CODE_503_ERR_OVERLOAD = 503;
-
-    /**
      * send GET request and return JSON format response
      * 
      * @param url

@@ -39,7 +39,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
-import org.aopalliance.reflect.Metadata;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.internal.util.collection.StringKeyIgnoreCaseMultivaluedMap;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -55,7 +54,8 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
-import fr.cs.ikats.datamanager.client.RequestSender;
+import fr.cs.ikats.datamanager.client.opentsdb.ApiResponse;
+import fr.cs.ikats.datamanager.client.opentsdb.ApiStatus;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
@@ -318,7 +318,7 @@ public class TimeSerieResource extends AbstractResource {
         try {
             Response webResponse = temporalDataManager.getTSFromTSUID(tsuid, startDate, endDate, urlOptions, aggregationMethod, downSampler,
                     downSamplerPeriod);
-            if (webResponse.getStatus() > RequestSender.CODE_200_OK) {
+            if (webResponse.getStatus() > ApiStatus.CODE_200.value()) {
                 throw new ResourceNotFoundException(webResponse.readEntity(String.class));
             }
             response = webResponse.readEntity(String.class);
@@ -351,14 +351,13 @@ public class TimeSerieResource extends AbstractResource {
     @Path("{metric}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
-    public ImportResult importTSLocal(@PathParam("metric") String metric, @FormParam("file") String tsFilepath, @FormParam("funcId") String funcId,
+    public ApiResponse importTSLocal(@PathParam("metric") String metric, @FormParam("file") String tsFilepath, @FormParam("funcId") String funcId,
             MultivaluedMap<String, String> formParams, @Context UriInfo uriInfo) throws Exception {
 
         // Check parameters
         File tsFile = new File(IKATSDATA_IMPORT_ROOT_PATH + tsFilepath);
         if (!tsFile.exists() || !tsFile.canRead()) {
-            // FIXME a changer par une exception plus précise et/ou un retour
-            // d'état 404 ou 50X pour ressource inaccessible
+        	// FIXME a changer par une exception plus précise et/ou un retour d'état 404 ou 50X pour ressource inaccessible
             throw new ImportException("Can't access " + tsFile.getAbsolutePath());
         }
 
@@ -456,7 +455,7 @@ public class TimeSerieResource extends AbstractResource {
     @Path("/put/{metric}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public ImportResult importTSFromHTTP(@PathParam("metric") String metric, @FormDataParam("file") InputStream fileis,
+    public ApiResponse importTSFromHTTP(@PathParam("metric") String metric, @FormDataParam("file") InputStream fileis,
             @FormDataParam("file") FormDataContentDisposition fileDisposition, FormDataMultiPart formData, @Context UriInfo uriInfo)
             throws ImportException {
         String filename = fileDisposition.getFileName();
@@ -467,8 +466,7 @@ public class TimeSerieResource extends AbstractResource {
         List<FormDataBodyPart> funcIdFormValues = fields.get("funcId");
         String funcId = (funcIdFormValues != null) ? funcIdFormValues.get(0).getValue() : null;
 
-        // transform the FormFataMultiPart into tags, with multivalued key taken
-        // into account
+        // transform the FormFataMultiPart into tags, with multivalued key taken into account
         MultivaluedMap<String, String> tags = new StringKeyIgnoreCaseMultivaluedMap<String>();
         fields.forEach((k, v) -> v.forEach(p -> tags.add(k, p.getValue())));
 
@@ -496,7 +494,7 @@ public class TimeSerieResource extends AbstractResource {
      * @throws ImportException
      *             if problems occurs
      */
-	private ImportResult doImport(String filename, String metric, String funcId, MultivaluedMap<String, String> formParams,
+	private ApiResponse doImport(String filename, String metric, String funcId, MultivaluedMap<String, String> formParams,
 			InputStream tsStream) throws ImportException {
 		
 		logger.info("Import file: " + filename);
@@ -558,7 +556,7 @@ public class TimeSerieResource extends AbstractResource {
             if (importResult.getTsuid() == null || importResult.getTsuid().isEmpty()) {
             	String message = "TS not imported or no tsuid returned";
             	StringBuilder sb = new StringBuilder(message);
-            	sb.append("OpenTSDB return code: ").append(importResult.getReponseCode());
+            	sb.append("OpenTSDB return code: ").append(importResult.getStatusCode());
             	sb.append("Return summary: ").append(importResult.getSummary());
             	sb.append("file: ").append(filename);
             	
