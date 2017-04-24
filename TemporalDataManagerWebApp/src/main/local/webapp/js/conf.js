@@ -6,4 +6,4 @@
 /**
  * Root path to TS database API
  */
-var TSDBroot="http://localhost:8080/TemporalDataManagerWebApp/webapi";
+var TSDBroot="http://localhost:8180/TemporalDataManagerWebApp/webapi";
