@@ -1,57 +1,33 @@
 package fr.cs.ikats.temporaldata.resource;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.log4j.Logger;
-import org.glassfish.jersey.media.multipart.BodyPart;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.business.ProcessDataManager;
-import fr.cs.ikats.temporaldata.business.ProcessDataManager.ProcessResultTypeEnum;
-import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.temporaldata.utils.Chronometer;
 
 /**
- * resource for ProcessData
- * 
- * TODO [#143428] Correction sur la gestion des exceptions sur le gest. de
- * données.
- * 
- *    ICI: refactoring exceptions: simplifier avec IkatsDaoException => revoir les 
- *    declaratons throws et les handlers sous-jacents afin 
- *    - d'unifier sous IkatsDaoException
- *    - et reduire le nombre de classes (redondances de code)
+ * resource for Table
  *
- * 
  */
 @Path("table")
 public class TableResource extends AbstractResource {
@@ -71,197 +47,24 @@ public class TableResource extends AbstractResource {
     }
 
     /**
-     * get the processData for processid exec identifier.
+     * get the processData for tableName identifier.
      * 
-     * @param processId
-     *            the process id
-     * @return a list of processData
+     * @param tableName
+     *            the name of the table to retrieve
+     * @return a processData conatining a table
      * @throws ResourceNotFoundException
      *             if nothing is found.
      */
     @GET
-    @Path("/{processId}")
+    @Path("/{tableName}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ProcessData> getProcessData(@PathParam("processId") String processId) throws ResourceNotFoundException {
-        List<ProcessData> result = processDataManager.getProcessData(processId);
+    public ProcessData getTable(@PathParam("tableName") String tableName) throws ResourceNotFoundException {
+        List<ProcessData> result = processDataManager.getProcessData(tableName);
         if (result == null) {
-            throw new ResourceNotFoundException("No ProcessResult found for processId " + processId);
+            throw new ResourceNotFoundException("No Table found for tableName " + tableName);
         }
-        return result;
+        return result.get(0);
 
-    }
-
-    /**
-     * get the result as an attachement file in the response. media type will
-     * depends on the dataType of the result.
-     * 
-     * @param id
-     *            the internal id
-     * @return a Response with content-type depending on the processData type
-     * @throws ResourceNotFoundException
-     *             if result is null
-     * @throws SQLException
-     *             if Blob cannot be read
-     */
-    @GET
-    @Path("/id/download/{id}")
-    public Response downloadProcessData(@PathParam("id") Integer id) throws ResourceNotFoundException, SQLException, IkatsDaoException {
-
-        // Response res = null;
-        ProcessData result = processDataManager.getProcessPieceOfData(id);
-
-        if (result == null) {
-            throw new ResourceNotFoundException("No ProcessResult found for processId " + id);
-        }
-
-        try {
-
-            logger.info(result.toString());
-
-            String fileName = result.getName();
-            ResponseBuilder responseBuilder;
-
-            // TODO robustness: result.getFormat() may be null ?
-            if (result.getDataType().equals(ProcessResultTypeEnum.JSON.toString())) {
-                String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
-                logger.info("JSON String written : " + jsonString + " END");
-                responseBuilder = Response.ok(jsonString, MediaType.APPLICATION_JSON_TYPE);
-            }
-            else {
-
-                responseBuilder = Response.ok(getOut(result.getData().getBytes(1, (int) result.getData().length()))).header("Content-Disposition",
-                        "attachment;filename=" + fileName);
-                // TODO robustness: result.getFormat() may be null ?
-                if (result.getDataType().equals(ProcessResultTypeEnum.CSV.toString())) {
-                    responseBuilder.header("Content-Type", "application/ms-excel");
-                }
-            }
-
-            return responseBuilder.build();
-        }
-        catch (SQLException sqle) {
-            logger.error("Failed: service downloadProcessData(): caught SQLException:", sqle);
-            throw sqle;
-        }
-        catch (Throwable e) {
-            IkatsDaoException ierror = new IkatsDaoException("Failed: service downloadProcessData(): caught unexpected Throwable:", e);
-            logger.error(ierror);
-            throw ierror;
-        }
-
-    }
-
-    /**
-     * get the processData for processid exec identifier. the response is a
-     * multipart response containing two parts : 1 containing a JSON
-     * representation of the data. 2 containing a OutputStream to download the
-     * data.
-     * 
-     * @param id
-     *            the internal id
-     * @return a Response with mutlipart
-     * @throws ResourceNotFoundException
-     *             if nothing is found.
-     * @throws IkatsException
-     *             when error occured
-     * @throws IOException
-     *             when error occured
-     * @throws SQLException
-     *             when error occured
-     */
-    @GET
-    @Path("/id/{id}")
-    @Produces(MediaType.MULTIPART_FORM_DATA)
-    public Response getProcessData(@PathParam("id") Integer id) throws ResourceNotFoundException, IkatsException, IOException, SQLException {
-
-        // TODO : service a supprimer ??? PAS UTILISE
-
-        ProcessData result = processDataManager.getProcessPieceOfData(id);
-
-        if (result == null) {
-            throw new ResourceNotFoundException("No ProcessResult found for processId " + id);
-        }
-
-        final FormDataMultiPart multipart = new FormDataMultiPart();
-
-        try {
-
-            multipart.bodyPart(new BodyPart(result, MediaType.APPLICATION_JSON_TYPE));
-
-            if (ProcessResultTypeEnum.valueOf(result.getDataType()).equals(ProcessResultTypeEnum.JSON)) {
-                String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
-                multipart.bodyPart(new BodyPart(jsonString, MediaType.APPLICATION_JSON_TYPE));
-            }
-            else if (ProcessResultTypeEnum.valueOf(result.getDataType()).equals(ProcessResultTypeEnum.CSV)) {
-                multipart.bodyPart(new StreamDataBodyPart("myFile.csv", result.getData().getBinaryStream()));
-            }
-        }
-        catch (SQLException sqle) {
-            logger.error("Failed: service getProcessData(Integer): caught SQLException:", sqle);
-            try {
-                multipart.close();
-            }
-            catch (Throwable e) { // no more closing attempt
-            }
-
-            throw sqle;
-        }
-        catch (Throwable e) {
-            IkatsException ierror = new IkatsException("Failed: service getProcessData(Integer): caught unexpected Throwable:", e);
-            logger.error(ierror);
-
-            try {
-                multipart.close();
-            }
-            catch (Throwable xe) { // no more closing attempt
-            }
-
-            throw ierror;
-        }
-
-        return Response.ok(multipart).build();
-    }
-
-    class FileStreamingOutput implements StreamingOutput {
-
-        InputStream is;
-
-        public FileStreamingOutput(InputStream inS) {
-            is = inS;
-        }
-
-        @Override
-        public void write(OutputStream output) throws IOException, WebApplicationException {
-            output.write(is.read());
-        }
-
-    }
-
-    /**
-     * return a new Instance of OutputStreaming, used for streaming out the csv
-     * file
-     * 
-     * @param bs
-     *            the bytes to write
-     * @return
-     */
-    private StreamingOutput getOut(final byte[] bs) {
-        return new StreamingOutput() {
-            @Override
-            public void write(OutputStream out) throws IOException, WebApplicationException {
-                out.write(bs);
-            }
-        };
-    }
-
-    /**
-     * @param processId
-     *            the process id to delete
-     */
-    @DELETE
-    @Path("/{processId}")
-    public void deleteProcessData(@PathParam("processId") String processId) {
-        processDataManager.removeProcessData(processId);
     }
 
     /**
@@ -306,7 +109,7 @@ public class TableResource extends AbstractResource {
             }
         }
         chrono.stop(logger);
-        String id = processDataManager.importProcessData(fileis, fileSize, processId, fileType, fileName);
+        String id = processDataManager.importProcessData(fileis, fileSize, tableName, fileType, fileName);
         return id;
     }
 
