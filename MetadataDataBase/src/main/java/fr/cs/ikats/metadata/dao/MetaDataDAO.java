@@ -1,27 +1,5 @@
 package fr.cs.ikats.metadata.dao;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.log4j.Logger;
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.NonUniqueResultException;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.hibernate.criterion.Conjunction;
-import org.hibernate.criterion.Junction;
-import org.hibernate.criterion.Order;
-import org.hibernate.criterion.Projections;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.exception.ConstraintViolationException;
-
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
@@ -36,6 +14,12 @@ import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
+import org.apache.log4j.Logger;
+import org.hibernate.*;
+import org.hibernate.criterion.*;
+import org.hibernate.exception.ConstraintViolationException;
+
+import java.util.*;
 
 /**
  * DAO class for MetaData model class
@@ -82,14 +66,11 @@ public class MetaDataDAO extends DataBaseDAO {
 
     /**
      * persist metadata into database
-     * 
-     * @param md
-     *            the metadata
+     *
+     * @param md the metadata
      * @return the internal Id for this metadata
-     * @throws IkatsDaoConflictException
-     *             conflict error with existing metadata
-     * @throws IkatsDaoException
-     *             any other error
+     * @throws IkatsDaoConflictException conflict error with existing metadata
+     * @throws IkatsDaoException         any other error
      */
     public Integer persist(MetaData md) throws IkatsDaoConflictException, IkatsDaoException {
         Session session = getSession();
@@ -102,44 +83,37 @@ public class MetaDataDAO extends DataBaseDAO {
             mdId = (Integer) session.save(md);
             tx.commit();
             LOGGER.debug("Created " + mdInfo + " with value=" + md.getValue());
-        }
-        catch (ConstraintViolationException e) {
+        } catch (ConstraintViolationException e) {
 
             String msg = "Creating: " + mdInfo + ": already exists in base for same (TSUID, name)";
             LOGGER.warn(msg);
 
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
-        }
-        catch (HibernateException e) {
+        } catch (HibernateException e) {
             String msg = "Creating: " + mdInfo + ": unexpected HibernateException";
             LOGGER.error(msg, e);
 
             rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
-        }
-        catch (Exception anotherError) {
+        } catch (Exception anotherError) {
             // deals with null pointer exceptions ...
             String msg = "Creating MetaData: " + mdInfo + ": unexpected Exception";
             LOGGER.error(msg, anotherError);
 
             rollbackAndThrowException(tx, new IkatsDaoException(msg, anotherError));
-        }
-        finally {
+        } finally {
             session.close();
         }
         return mdId;
     }
 
     /**
-     * 
      * persist a list of metadata into database metadata are created or
      * created/updated, according to optional boolean 'update' a list of
      * database identifiers is returned
-     * 
-     * @param mdList
-     *            list of metadata to persist in database
-     * @param update
-     *            if true, already existing metadata is updated otherwise no
-     *            metadata is persisted if one of them already exists
+     *
+     * @param mdList list of metadata to persist in database
+     * @param update if true, already existing metadata is updated otherwise no
+     *               metadata is persisted if one of them already exists
      * @return a list of imported metadata identifiers in db
      * @throws IkatsDaoConflictException
      * @throws IkatsDaoException
@@ -155,7 +129,7 @@ public class MetaDataDAO extends DataBaseDAO {
         try {
             tx = session.beginTransaction();
             LOGGER.info("MetaDataDAO::persist(Lis<MetaData>): started transaction [" + date + "] ...");
-            for (Iterator<MetaData> iterator = mdList.iterator(); iterator.hasNext();) {
+            for (Iterator<MetaData> iterator = mdList.iterator(); iterator.hasNext(); ) {
                 currentRow = iterator.next();
                 if (update) {
                     // check if metadata already exists
@@ -166,8 +140,7 @@ public class MetaDataDAO extends DataBaseDAO {
                         // creation of metadata
                         mdId = (Integer) session.save(currentRow);
                         LOGGER.debug("- ... created metadata id=" + mdId);
-                    }
-                    else {
+                    } else {
                         // update of metadata
                         mdId = (Integer) result.get(0);
                         MetaData meta = (MetaData) session.get(MetaData.class, mdId);
@@ -176,8 +149,7 @@ public class MetaDataDAO extends DataBaseDAO {
                         session.update(meta);
                         LOGGER.debug("- ... updated metadata id=" + mdId);
                     }
-                }
-                else {
+                } else {
                     // creation of metadata
                     mdId = (Integer) session.save(currentRow);
                     LOGGER.debug("- ... created metadata id=" + mdId);
@@ -186,31 +158,27 @@ public class MetaDataDAO extends DataBaseDAO {
             }
             LOGGER.info("MetaDataDAO::persist(List<MetaData>) has successfully imported " + mdList.size() + " metadata rows");
             tx.commit();
-            LOGGER.info("MetaDataDAO::persist(List<MetaData>): commited transaction [" + date + "]");
-        }
-        catch (ConstraintViolationException e) {
+            LOGGER.info("MetaDataDAO::persist(List<MetaData>): committed transaction [" + date + "]");
+        } catch (ConstraintViolationException e) {
             mdInfo = (currentRow != null) ? currentRow.toString() : "null";
-            String msg = "Importing: " + mdInfo + ": ConstraintViolationException occured: see the full error stack in the logs for further details";
+            String msg = "Importing: " + mdInfo + ": ConstraintViolationException occurred: see the full error stack in the logs for further details";
             LOGGER.error(msg);
 
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
-        }
-        catch (HibernateException e) {
+        } catch (HibernateException e) {
             mdInfo = (currentRow != null) ? currentRow.toString() : "null";
             String msg = "Importing: " + mdInfo + ": unexpected HibernateException";
             LOGGER.error(msg, e);
 
             rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
-        }
-        catch (Exception anotherError) {
+        } catch (Exception anotherError) {
             mdInfo = (currentRow != null) ? currentRow.toString() : "null";
             // deals with null pointer exceptions ...
             String msg = "Importing MetaData: " + mdInfo + ": unexpected Exception";
             LOGGER.error(msg, anotherError);
 
             rollbackAndThrowException(tx, new IkatsDaoException(msg, anotherError));
-        }
-        finally {
+        } finally {
             session.close();
         }
         return lProcessedIds;
@@ -218,16 +186,13 @@ public class MetaDataDAO extends DataBaseDAO {
 
     /**
      * update an existing metadata into database
-     * 
-     * @param md
-     *            the metadata
+     *
+     * @param md the metadata
      * @return the internal Id for this metadata
-     * @throws IkatsDaoConflictException
-     *             in case of conflict with existing ( tsuid, name ) pair
-     * @throws IkatsDaoException
-     *             if the meta doesn't exists or if database can't be accessed
+     * @throws IkatsDaoConflictException in case of conflict with existing ( tsuid, name ) pair
+     * @throws IkatsDaoException         if the meta doesn't exists or if database can't be accessed
      * @since [#142998] manage IkatsDaoConflictException, IkatsDaoException and
-     *        method rollbackAndThrowException
+     * method rollbackAndThrowException
      */
     public boolean update(MetaData md) throws IkatsDaoConflictException, IkatsDaoException {
         Session session = getSession();
@@ -241,28 +206,24 @@ public class MetaDataDAO extends DataBaseDAO {
             tx.commit();
             updated = true;
             LOGGER.debug("Updated:" + mdInfo + " with value=" + md.getValue());
-        }
-        catch (ConstraintViolationException e) {
+        } catch (ConstraintViolationException e) {
 
             String msg = "Updating: " + mdInfo + ": already exists in base for same (TSUID, name)";
             LOGGER.warn(msg);
 
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
-        }
-        catch (HibernateException e) {
+        } catch (HibernateException e) {
             String msg = "Updating: " + mdInfo + ": unexpected HibernateException";
             LOGGER.error(msg, e);
 
             rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
-        }
-        catch (Exception anotherError) {
+        } catch (Exception anotherError) {
             // deals with null pointer exceptions ...
             String msg = "Updating MetaData: " + mdInfo + ": unexpected Exception";
             LOGGER.error(msg, anotherError);
 
             rollbackAndThrowException(tx, new IkatsDaoException(msg, anotherError));
-        }
-        finally {
+        } finally {
             session.close();
         }
         return updated;
@@ -270,9 +231,8 @@ public class MetaDataDAO extends DataBaseDAO {
 
     /**
      * Remove the set of MetaData matching the defined tsuid from database
-     * 
-     * @param tsuid
-     *            identifier of tsuids
+     *
+     * @param tsuid identifier of tsuids
      * @return number of removals
      * @throws IkatsDaoException
      */
@@ -287,13 +247,11 @@ public class MetaDataDAO extends DataBaseDAO {
             query.setString("uid", tsuid);
             result = query.executeUpdate();
             tx.commit();
-        }
-        catch (HibernateException e) {
+        } catch (HibernateException e) {
             IkatsDaoException ierror = new IkatsDaoException("Deleting MetaData rows matching tsuid=" + tsuid, e);
             LOGGER.error(ierror);
             rollbackAndThrowException(tx, ierror);
-        }
-        finally {
+        } finally {
             session.close();
         }
         return result;
@@ -301,14 +259,11 @@ public class MetaDataDAO extends DataBaseDAO {
 
     /**
      * remove Metadata from database.
-     * 
-     * @param tsuid
-     *            identifier of tsuids
-     * @param name
-     *            name ot the metadata
+     *
+     * @param tsuid identifier of tsuids
+     * @param name  name ot the metadata
      * @return number of removals
-     * @throws IkatsDaoException
-     *             error deleting the resource
+     * @throws IkatsDaoException error deleting the resource
      */
     public int remove(String tsuid, String name) throws IkatsDaoException {
         Session session = getSession();
@@ -322,14 +277,12 @@ public class MetaDataDAO extends DataBaseDAO {
             query.setString("name", name);
             result = query.executeUpdate();
             tx.commit();
-        }
-        catch (HibernateException e) {
+        } catch (HibernateException e) {
 
             IkatsDaoException ierror = new IkatsDaoException("Deleting MetaData rows matching tsuid=" + tsuid + " name=" + name, e);
             LOGGER.error(ierror);
             rollbackAndThrowException(tx, ierror);
-        }
-        finally {
+        } finally {
             session.close();
         }
         return result;
@@ -337,16 +290,12 @@ public class MetaDataDAO extends DataBaseDAO {
 
     /**
      * get list of metadata for one tsuid.
-     * 
-     * @param tsuid
-     *            the ts identifier
+     *
+     * @param tsuid the ts identifier
      * @return the list if any result found.
-     * @throws IkatsDaoMissingRessource
-     *             error raised when no matching resource is found, for a tsuid
-     *             different from '*'
-     * @throws IkatsDaoException
-     *             other errors
-     * 
+     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid
+     *                                  different from '*'
+     * @throws IkatsDaoException        other errors
      */
     @SuppressWarnings("unchecked")
     public List<MetaData> listForTS(String tsuid) throws IkatsDaoMissingRessource, IkatsDaoException {
@@ -357,8 +306,7 @@ public class MetaDataDAO extends DataBaseDAO {
             if (tsuid.equals("*")) {
                 Criteria criteria = session.createCriteria(MetaData.class);
                 result = criteria.list();
-            }
-            else {
+            } else {
                 // Query q =
                 // session.createQuery("from MetaData where tsuid = :tsuid");
                 Query q = session.createQuery(MetaData.LIST_ALL_FOR_TSUID);
@@ -371,23 +319,19 @@ public class MetaDataDAO extends DataBaseDAO {
                     throw new IkatsDaoMissingRessource(msg);
                 }
             }
-        }
-        catch (HibernateException hibException) {
+        } catch (HibernateException hibException) {
             String msg = "Searching MetaData from tsuid=" + tsuid + ": unexpected HibernateException.";
             LOGGER.error(msg);
             throw new IkatsDaoException(msg);
-        }
-        catch (Exception error) {
+        } catch (Exception error) {
             if (error instanceof IkatsDaoMissingRessource) {
                 throw error;
-            }
-            else {
+            } else {
                 String msg = "Searching MetaData from tsuid=" + tsuid + ": unexpected Exception.";
                 LOGGER.error(msg);
                 throw new IkatsDaoException(msg);
             }
-        }
-        finally {
+        } finally {
             session.close();
         }
 
@@ -396,14 +340,11 @@ public class MetaDataDAO extends DataBaseDAO {
 
     /**
      * get list of metadata/type couples.
-     * 
+     *
      * @return the list if any result found.
-     * @throws IkatsDaoMissingRessource
-     *             error raised when no matching resource is found, for a tsuid
-     *             different from '*'
-     * @throws IkatsDaoException
-     *             other errors
-     * 
+     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid
+     *                                  different from '*'
+     * @throws IkatsDaoException        other errors
      */
     @SuppressWarnings("unchecked")
     public Map<String, String> listTypes() throws IkatsDaoMissingRessource, IkatsDaoException {
@@ -416,23 +357,19 @@ public class MetaDataDAO extends DataBaseDAO {
                 Object[] obj_result = (Object[]) result_elem;
                 result.put((String) obj_result[0], (String) obj_result[1]);
             }
-        }
-        catch (HibernateException hibException) {
+        } catch (HibernateException hibException) {
             String msg = "Searching MetaData types : unexpected HibernateException.";
             LOGGER.error(msg);
             throw new IkatsDaoException(msg);
-        }
-        catch (Exception error) {
+        } catch (Exception error) {
             if (error instanceof IkatsDaoMissingRessource) {
                 throw error;
-            }
-            else {
+            } else {
                 String msg = "Searching MetaData types: unexpected Exception.";
                 LOGGER.error(msg);
                 throw new IkatsDaoException(msg);
             }
-        }
-        finally {
+        } finally {
             session.close();
         }
 
@@ -441,19 +378,14 @@ public class MetaDataDAO extends DataBaseDAO {
 
     /**
      * get the metadata entry for a TSUID and a Metadata name.
-     * 
-     * @param tsuid
-     *            the ts identifier
-     * @param name
-     *            the name of the metadata
+     *
+     * @param tsuid the ts identifier
+     * @param name  the name of the metadata
      * @return the list if any result found.
-     * @throws IkatsDaoMissingRessource
-     *             error raised when no metadata is matching the tsuid+name
-     *             criteria
-     * @throws IkatsDaoConflictException
-     *             error raised when multiple metadata are found
-     * @throws IkatsDaoException
-     *             any other exceptions
+     * @throws IkatsDaoMissingRessource  error raised when no metadata is matching the tsuid+name
+     *                                   criteria
+     * @throws IkatsDaoConflictException error raised when multiple metadata are found
+     * @throws IkatsDaoException         any other exceptions
      */
     public MetaData getMD(String tsuid, String name) throws IkatsDaoMissingRessource, IkatsDaoConflictException, IkatsDaoException {
 
@@ -469,20 +401,15 @@ public class MetaDataDAO extends DataBaseDAO {
             if (result == null) {
                 throw new IkatsDaoMissingRessource("Reading MetaData: missing ressource for " + pairCriteria);
             }
-        }
-        catch (NonUniqueResultException multipleResults) {
+        } catch (NonUniqueResultException multipleResults) {
             throw new IkatsDaoConflictException("Multiple MetaData are matching the criteria: " + pairCriteria);
-        }
-        catch (HibernateException hibError) {
+        } catch (HibernateException hibError) {
             throw new IkatsDaoException("Reading MetaData: unexpected HibernateError with: " + pairCriteria, hibError);
-        }
-        catch (IkatsDaoException daoError) {
+        } catch (IkatsDaoException daoError) {
             throw daoError; // already handled
-        }
-        catch (Exception other) {
+        } catch (Exception other) {
             throw new IkatsDaoException("Reading MetaData: unexpected exception with: " + pairCriteria, other);
-        }
-        finally {
+        } finally {
             session.close();
         }
         return result;
@@ -494,11 +421,9 @@ public class MetaDataDAO extends DataBaseDAO {
      * {MetadataCriterion M} The <MetadataCriterion> are grouped by name of
      * metadata before being processed
      *
-     * @param scope:
-     *            subset where is applied the filter
-     * @param formula:
-     *            the logical expression with metadata criteria defining the
-     *            filter
+     * @param scope:   subset where is applied the filter
+     * @param formula: the logical expression with metadata criteria defining the
+     *                 filter
      * @return the result is the subset accepted by the filter
      * @throws IkatsDaoException
      */
@@ -523,6 +448,7 @@ public class MetaDataDAO extends DataBaseDAO {
             tsuidsInScope.add(tsuid);
             mapFunctionalIdentifier.put(tsuid, tsId);
         }
+
         // step3:
         // compute the intersection of TSUIDS of all requests <i> on each
         // different metadata <name i>
@@ -553,7 +479,7 @@ public class MetaDataDAO extends DataBaseDAO {
     /**
      * Reduce a tsuid list (scope) according to criteria : expecting list of
      * criterion for one only metadata name
-     * 
+     *
      * @param tsuidsInScope
      * @param metaName
      * @param criterions
@@ -593,31 +519,38 @@ public class MetaDataDAO extends DataBaseDAO {
 
                     // date or number
                     String sqlOperator = criterionOperator.getText();
-                    boolean isCurrentCriterionNumber = ((sqlOperator == "=") || 
-                                                        (sqlOperator == "!=") || 
-                                                        (sqlOperator == ">") || 
-                                                        (sqlOperator == "<") || 
-                                                        (sqlOperator == ">=") || 
-                                                        (sqlOperator == "<="));
+                    boolean isCurrentCriterionNumber = ((Objects.equals(sqlOperator, "=")) ||
+                            (Objects.equals(sqlOperator, "!=")) ||
+                            (Objects.equals(sqlOperator, ">")) ||
+                            (Objects.equals(sqlOperator, "<")) ||
+                            (Objects.equals(sqlOperator, ">=")) ||
+                            (Objects.equals(sqlOperator, "<=")));
 
                     if (isCurrentCriterionNumber) {
                         Float numberValue = null;
                         try {
                             numberValue = Float.parseFloat(criterionPropertyValue);
-                        }
-                        catch (NumberFormatException e) {
+                        } catch (NumberFormatException e) {
                             throw new IkatsDaoException();
                         }
-                        restrictionToAdd.add(Restrictions.sqlRestriction("cast( {alias}.value as float ) " + sqlOperator  + " " + criterionPropertyValue));
-                    }
-                    else {
-                        restrictionToAdd.add(Restrictions.sqlRestriction("value " + sqlOperator + " '" + criterionPropertyValue + "'"));
+                        restrictionToAdd.add(Restrictions.sqlRestriction("cast( {alias}.value as float ) " + sqlOperator + " " + criterionPropertyValue));
+                    } else {
+
+                        if (Objects.equals(sqlOperator, "in")) {
+                            List<String> splitValues = Arrays.asList(criterionPropertyValue.split("\\s*;\\s*"));
+                            restrictionToAdd.add(Restrictions.in("value", splitValues));
+                        } else if (Objects.equals(sqlOperator, "not in")) {
+                            List<String> splitValues = Arrays.asList(criterionPropertyValue.split("\\s*;\\s*"));
+                            restrictionToAdd.add(Restrictions.not(Restrictions.in("value", splitValues)));
+                        } else {
+                            restrictionToAdd.add(Restrictions.sqlRestriction("value " + sqlOperator + " '" + criterionPropertyValue + "'"));
+                        }
+
                     }
                     lGroupJunction.add(restrictionToAdd);
                 }
                 // Get all the meta data
-            }
-            else {
+            } else {
                 throw new IkatsDaoException("Not yet implemented: operator OR grouping  expressions of metadata criterion");
             }
 
@@ -625,30 +558,25 @@ public class MetaDataDAO extends DataBaseDAO {
             criteria.addOrder(Order.asc("tsuid"));
             List l = criteria.list();
             result = (List<String>) l;
-        }
-        catch (HibernateException hibException) {
+        } catch (HibernateException hibException) {
             String msg = "Searching MetaData from criteria map: unexpected HibernateException.";
             LOGGER.error(msg);
             throw new IkatsDaoException(msg, hibException);
-        }
-        catch (IkatsDaoInvalidValueException invalidCriterionException) {
+        } catch (IkatsDaoInvalidValueException invalidCriterionException) {
             String msg = "Not found ressource, searching functional identifiers matched by metadata criteria: near metadata named " + metaName;
             LOGGER.error("NOT FOUND: " + msg);
 
             throw new IkatsDaoMissingRessource(msg, invalidCriterionException);
-        }
-        catch (IkatsDaoException invalidNumberException) {
+        } catch (IkatsDaoException invalidNumberException) {
             String msg = "searchFuncIdForMetadataNamed :: Comparison operand is not a number ";
             LOGGER.error("NOT FOUND: " + msg);
 
             throw new IkatsDaoMissingRessource(msg, invalidNumberException);
-        }
-        catch (Throwable exception) {
+        } catch (Throwable exception) {
             String msg = "Searching MetaData from criteria map: unexpected Throwable exception. ";
             LOGGER.error(msg);
             throw new IkatsDaoException(msg, exception);
-        }
-        finally {
+        } finally {
             if (session != null) {
                 session.close();
                 LOGGER.info("searchFuncIdForMetadataNamed :: Session closed");
@@ -663,10 +591,9 @@ public class MetaDataDAO extends DataBaseDAO {
 
     /**
      * Create the map grouping the criteria with same metadata name
-     * 
-     * @param formula
-     *            the formula is a simple group of atomic criteria connected
-     *            with AND operator
+     *
+     * @param formula the formula is a simple group of atomic criteria connected
+     *                with AND operator
      * @return
      */
     private Map<String, List<MetadataCriterion>> initMapGroupingSameMetadataname(Group<MetadataCriterion> formula) throws IkatsDaoException {
@@ -685,8 +612,7 @@ public class MetaDataDAO extends DataBaseDAO {
                 }
 
                 mapValue.add(metaCriterion);
-            }
-            else {
+            } else {
                 throw new IkatsDaoException("Not yet implemented: recursive expressions of metadata criterion");
             }
         }
@@ -695,9 +621,8 @@ public class MetaDataDAO extends DataBaseDAO {
 
     /**
      * Retrieve the functional ids list whose metadata metric has a given value
-     * 
-     * @param metric
-     *            value of the metadata metric
+     *
+     * @param metric value of the metadata metric
      * @return
      * @throws IkatsDaoException
      */
@@ -711,14 +636,12 @@ public class MetaDataDAO extends DataBaseDAO {
             Query query = session.createQuery(hql);
             query.setString("mid", metric);
             result = query.list();
-        }
-        catch (HibernateException e) {
+        } catch (HibernateException e) {
             IkatsDaoException ierror = new IkatsDaoException("Error while retrieving Functional identifiers of timeseries matching metric =" + metric,
                     e);
             LOGGER.error(ierror);
             throw ierror;
-        }
-        finally {
+        } finally {
             session.close();
         }
         return result;
