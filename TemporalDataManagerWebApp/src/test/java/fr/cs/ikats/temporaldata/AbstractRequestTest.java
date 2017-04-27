@@ -9,12 +9,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.configuration.CompositeConfiguration;
-import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.log4j.Level;
@@ -25,10 +23,9 @@ import fr.cs.ikats.common.junit.CommonTest;
 import fr.cs.ikats.datamanager.client.RequestSender;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
-import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.temporaldata.application.ApplicationConfiguration;
-import fr.cs.ikats.ts.dataset.DataSetFacade;
+import org.junit.BeforeClass;
 
 /**
  * This superclass is designed for the junit tests of IKATS web services: it
@@ -104,6 +101,7 @@ public abstract class AbstractRequestTest extends CommonTest {
      * 
      * @deprecated use setUpBeforClass(String) instead
      */
+    @BeforeClass
     public static void setUpBeforClass() {
 
         try {

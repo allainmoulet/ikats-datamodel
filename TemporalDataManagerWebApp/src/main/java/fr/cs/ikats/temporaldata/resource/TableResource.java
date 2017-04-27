@@ -20,6 +20,7 @@ import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
 import org.apache.log4j.Logger;
+import org.apache.commons.io.IOUtils;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -113,8 +114,8 @@ public class TableResource extends AbstractResource {
     @Path("/{tableName}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response importTable(@PathParam("tableName") String tableName, @FormDataParam("file") InputStream fileis,
-                              @FormDataParam("file") FormDataContentDisposition fileDisposition, @FormDataParam("rowName") String rowName,
-                              FormDataMultiPart formData, @Context UriInfo uriInfo) throws IOException {
+                                @FormDataParam("file") FormDataContentDisposition fileDisposition, @FormDataParam("rowName") String rowName,
+                                FormDataMultiPart formData, @Context UriInfo uriInfo) throws IOException {
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         String fileName = fileDisposition.getFileName();
         logger.info("Import csv file : " + fileName);
@@ -122,11 +123,15 @@ public class TableResource extends AbstractResource {
         Map<String, List<FormDataBodyPart>> params = formData.getFields();
         Long fileSize = fileDisposition.getSize();
 
+        // duplicate inputstream for both parsing and storing in db
+        byte[] byteArray = IOUtils.toByteArray(fileis);
+        InputStream fileis1 = new ByteArrayInputStream(byteArray);
+        InputStream fileis2 = new ByteArrayInputStream(byteArray);
+
         // default value to file
-        String fileType;
+        String fileType = "file";
         for (String key : params.keySet()) {
-            switch (key)
-            {
+            switch (key) {
                 case "fileType":
                     fileType = params.get(key).get(0).getValue();
                     break;
@@ -135,8 +140,8 @@ public class TableResource extends AbstractResource {
             }
         }
 
-        BufferedReader reader = new BufferedReader(new InputStreamReader(fileis));
-        String separator = ";";
+        BufferedReader reader = new BufferedReader(new InputStreamReader(fileis1));
+        String separator = ",";
         Integer rowIndexId = -1;
         String[] columnHeaders;
         try {
@@ -147,6 +152,12 @@ public class TableResource extends AbstractResource {
                     rowIndexId = i;
                     break;
                 }
+            }
+
+            if (rowIndexId == -1){
+                String context = "Row name not found in csv file header : "+ rowName;
+                logger.error(context);
+                return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
             }
 
             HashMap<String, String> keyTableMap = new HashMap<>();
@@ -161,7 +172,7 @@ public class TableResource extends AbstractResource {
                 } else {
                     String context = "Duplicate found in csv file : " + idRef;
                     logger.error(context);
-                    return Response.status(Response.Status.CONFLICT).entity(context).build();
+                    return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
                 }
                 line = reader.readLine();
             }
@@ -171,17 +182,25 @@ public class TableResource extends AbstractResource {
             throw new IOException(contextError, e);
         }
 
-        chrono.stop(logger);
-        processDataManager.importProcessData(fileis, fileSize, tableName, fileType, fileName);
-        return Response.status(Response.Status.OK).build();
-
+        // check that tableName does not already exist
+        if (processDataManager.getProcessData(tableName).size() == 0) {
+            processDataManager.importProcessData(fileis2, fileSize, tableName, fileType, fileName);
+            logger.info("Table stored Ok in db : " + tableName);
+            chrono.stop(logger);
+            return Response.status(Response.Status.OK).build();
+        } else {
+            String context = "Table name already exists : " + tableName;
+            logger.error(context);
+            chrono.stop(logger);
+            return Response.status(Response.Status.CONFLICT).entity(context).build();
+        }
     }
+
     /**
      * return a new Instance of OutputStreaming, used for streaming out the csv
      * file
      *
-     * @param bs
-     *            the bytes to write
+     * @param bs the bytes to write
      * @return
      */
     private StreamingOutput getOut(final byte[] bs) {
