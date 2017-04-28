@@ -72,7 +72,7 @@ public class MetaDataTest {
     }
 
     /**
-     * For each test case: purge the
+     * For each test case: purge the database
      */
     @Before
     public void init_db() {
@@ -642,4 +642,5 @@ public class MetaDataTest {
             fail("Unexpected error");
         }
     }
+    // REVIEW#156275 : case where metadata doesn't exist (in some or all TSmetadata) is not tested
 }
