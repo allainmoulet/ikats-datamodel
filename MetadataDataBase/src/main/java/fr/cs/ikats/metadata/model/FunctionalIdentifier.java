@@ -98,7 +98,7 @@ public class FunctionalIdentifier {
     @Override
     public boolean equals(Object obj) {
         return ((obj instanceof FunctionalIdentifier) &&
-                (((FunctionalIdentifier) obj).getTsuid().equals(tsuid)) &&
-                (((FunctionalIdentifier) obj).getFuncId().equals(funcId)));
+                ((FunctionalIdentifier) obj).getTsuid().equals(tsuid) &&
+                ((FunctionalIdentifier) obj).getFuncId().equals(funcId));
     }
 }
