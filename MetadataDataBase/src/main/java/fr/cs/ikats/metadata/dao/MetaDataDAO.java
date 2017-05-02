@@ -543,7 +543,7 @@ public class MetaDataDAO extends DataBaseDAO {
                             List<String> splitValues = Arrays.asList(criterionPropertyValue.split("\\s*;\\s*"));
                             restrictionToAdd.add(Restrictions.not(Restrictions.in("value", splitValues)));
                         } else {
-                            // REVIEW#156275 : Question : is this case really linked to story?
+                            // Handle "like" and "not like" operators
                             restrictionToAdd.add(Restrictions.sqlRestriction("value " + sqlOperator + " '" + criterionPropertyValue + "'"));
                         }
 

@@ -642,5 +642,71 @@ public class MetaDataTest {
             fail("Unexpected error");
         }
     }
-    // REVIEW#156275 : case where metadata doesn't exist (in some or all TSmetadata) is not tested
+
+    /**
+     * Test the metadata filtering based on mixed "in" and "not in" operators with multiple items in operand list
+     */
+    @Test
+    public void testSearchFuncId_empty_result() {
+
+        try {
+            MetaDataFacade facade = new MetaDataFacade();
+
+            // Create the test set
+            facade.persistMetaData("TS1", "MD1", "A");
+            facade.persistMetaData("TS2", "MD2", "A");
+            facade.persistMetaData("TS3", "MD1", "A");
+            facade.persistMetaData("TS3", "MD2", "A");
+            facade.persistMetaData("TS4", "MD1", "B");
+            facade.persistMetaData("TS4", "MD2", "A");
+            facade.persistMetaData("TS5", "MD1", "A");
+            facade.persistMetaData("TS5", "MD2", "B");
+            facade.persistMetaData("TS6", "MD1", "B");
+            facade.persistMetaData("TS6", "MD2", "B");
+            facade.persistMetaData("TS7", "MD1", "C");
+            facade.persistMetaData("TS7", "MD2", "B");
+            facade.persistMetaData("TS8", "MD1", "A");
+            facade.persistMetaData("TS8", "MD2", "C");
+
+            // Create the initial scope
+            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+            addToScope(scope, "TS1", "FID1");
+            addToScope(scope, "TS2", "FID2");
+            addToScope(scope, "TS3", "FID3");
+            addToScope(scope, "TS4", "FID4");
+            addToScope(scope, "TS5", "FID5");
+            addToScope(scope, "TS6", "FID6");
+            addToScope(scope, "TS7", "FID7");
+            addToScope(scope, "TS8", "FID8");
+
+            // Formula
+            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+            formula.connector = Expression.ConnectorExpression.AND;
+            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+
+            ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+
+            // Preparing results
+            addCrit(formula, "MD1", "in", "F");
+
+            // Compute
+            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
+
+            // Check results
+            assertTrue(obtained.equals(expected));
+
+            // Cleanup
+            facade.removeMetaDataForTS("TS1");
+            facade.removeMetaDataForTS("TS2");
+            facade.removeMetaDataForTS("TS3");
+            facade.removeMetaDataForTS("TS4");
+            facade.removeMetaDataForTS("TS5");
+            facade.removeMetaDataForTS("TS6");
+            facade.removeMetaDataForTS("TS7");
+            facade.removeMetaDataForTS("TS8");
+
+        } catch (Exception e) {
+            fail("Unexpected error");
+        }
+    }
 }
