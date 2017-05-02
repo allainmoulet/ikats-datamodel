@@ -17,7 +17,7 @@ import java.nio.charset.Charset;
 import static org.junit.Assert.assertEquals;
 
 /**
- *
+ *  Review#156259:MBD: si tu as le temps ... completer un peu la javadoc des TU
  */
 public class TableRequestTest extends AbstractRequestTest {
 
