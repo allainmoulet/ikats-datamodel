@@ -91,7 +91,7 @@ public class ImportRequestTestAirbus extends ImportRequestTest {
 		String metric = subdirs[3];
 		String flightId = subdirs[4].substring("raw_".length(), subdirs[4].lastIndexOf(".csv"));
 		
-		String url = "http://localhost:8080/myapp/import/put/"+dataset+"/"+metric;
+		String url = "http://localhost:8180/myapp/import/put/"+dataset+"/"+metric;
 		File file = new File(rootDirectory,relativePath);
 		FileDataBodyPart bodyPart = new FileDataBodyPart("file", file);
 		final FormDataMultiPart multipart = new FormDataMultiPart();
