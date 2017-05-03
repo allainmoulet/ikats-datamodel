@@ -1,12 +1,3 @@
-/**
- * $Id$
- *
- * HISTORIQUE
- *
- * VERSION : 1.0 : <US> : <NumUS> : 18 mai 2016 : Creation 
- *
- * FIN-HISTORIQUE
- */
 package fr.cs.ikats.common.expr;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
@@ -16,10 +7,19 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
  * 
  */
 public enum SingleValueComparator {
-    EQUAL("="), NEQUAL("!="), LT("<"), GT(">"), LE("<="), GE(">="), LIKE("like"), NLIKE("not like");
+    EQUAL("="),
+    NEQUAL("!="),
+    LT("<"),
+    GT(">"),
+    LE("<="),
+    GE(">="),
+    LIKE("like"),
+    NLIKE("not like"),
+    IN("in"),
+    NIN("not in") ;
 
     final private String text; 
-    private SingleValueComparator(String aText) { 
+    SingleValueComparator(String aText) {
         text = aText;
     }
     public String getText()
