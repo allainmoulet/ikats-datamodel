@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -141,14 +142,14 @@ public class TableResource extends AbstractResource {
         BufferedReader reader = new BufferedReader(new InputStreamReader(fileis));
         String separator = ",";
         Integer rowIndexId = -1;
-        String[] columnHeaders;
+        List<String> columnHeaders = new ArrayList<String>();
         List<String> rowHeaders = new ArrayList<String>();
         List<List<String>> cells = new ArrayList<List<String>>();
         try {
             // consume header to retrieve column index of unique identifier in the table
-            columnHeaders = reader.readLine().split(separator);
-            for (int i = 0; i < columnHeaders.length; i++) {
-                if (!columnHeaders[i].isEmpty() && columnHeaders[i].equals(rowName)) {
+            columnHeaders = Arrays.asList(reader.readLine().split(separator));
+            for (int i = 0; i < columnHeaders.size(); i++) {
+                if (!columnHeaders.get(i).isEmpty() && columnHeaders.get(i).equals(rowName)) {
                     rowIndexId = i;
                     break;
                 }
