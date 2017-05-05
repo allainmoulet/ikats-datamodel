@@ -16,15 +16,15 @@ import java.nio.charset.Charset;
 
 import static org.junit.Assert.assertEquals;
 
-/**
- *  Review#156259:MBD: si tu as le temps ... completer un peu la javadoc des TU
- */
 public class TableRequestTest extends AbstractRequestTest {
 
 
+    /**
+     * test of table creation from a csv file
+     * case : nominal (http code 200 returned)
+     */
     @Test
     public void testImportTablefromCSVFileNominal() {
-
         String testCaseName = "testImportTablefromCSVFile";
         boolean isNominal = true;
         try {
@@ -34,17 +34,19 @@ public class TableRequestTest extends AbstractRequestTest {
 
             getLogger().info("CSV table file : " + file.getAbsolutePath());
             String tableName = "tableTestNominal";
-            String url = getAPIURL() + "/table/" + tableName;
-            doImport(url, file, "CSV", 200, "timestamp");
+            String url = getAPIURL() + "/table";
+            doImport(url, file, "CSV", 200, "timestamp", tableName);
 
             endNominal(testCaseName);
         } catch (Throwable e) {
             endWithFailure(testCaseName, e);
-        } finally {
-
         }
     }
 
+    /**
+     * test of table creation from a csv file
+     * case : table already exists (http code 409 returned)
+     */
     @Test
     public void testImportTableAlreadyExists() {
 
@@ -57,25 +59,27 @@ public class TableRequestTest extends AbstractRequestTest {
 
             getLogger().info("CSV table file : " + file.getAbsolutePath());
             String tableName = "tableTestAlreadyExists";
-            String url = getAPIURL() + "/table/" + tableName;
+            String url = getAPIURL() + "/table";
 
             // fist import : status 200 (ok)
-            doImport(url, file, "CSV", 200, "timestamp");
+            doImport(url, file, "CSV", 200, "timestamp", tableName);
 
             // second import : status 409 (conflict)
-            doImport(url, file, "CSV", 409, "timestamp");
+            doImport(url, file, "CSV", 409, "timestamp", tableName);
 
             endNominal(testCaseName);
         } catch (Throwable e) {
             endWithFailure(testCaseName, e);
-        } finally {
-
         }
     }
 
 
+    /**
+     * test of table creation from a csv file
+     * case : table contains doubloons (http code 400 returned)
+     */
     @Test
-    public void testImportTablefromCSVFileWithDoublon() {
+    public void testImportTablefromCSVFileWithDoubloon() {
 
         String testCaseName = "testImportTablefromCSVFile";
         boolean isNominal = true;
@@ -86,22 +90,16 @@ public class TableRequestTest extends AbstractRequestTest {
 
             getLogger().info("CSV table file : " + file.getAbsolutePath());
             String tableName = "tableTestDoublon";
-            String url = getAPIURL() + "/table/" + tableName;
-            doImport(url, file, "CSV", 400, "timestamp");
+            String url = getAPIURL() + "/table";
+            doImport(url, file, "CSV", 400, "timestamp", tableName);
 
             endNominal(testCaseName);
         } catch (Throwable e) {
             endWithFailure(testCaseName, e);
-        } finally {
-
         }
     }
 
-    /**
-     * @param file
-     * @param url
-     */
-    protected String doImport(String url, File file, String dataType, int statusExpected, String rowName) {
+    protected String doImport(String url, File file, String dataType, int statusExpected, String rowName, String tableName) {
         Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
                 .build();
         WebTarget target = client.target(url);
@@ -113,6 +111,7 @@ public class TableRequestTest extends AbstractRequestTest {
         multipart.bodyPart(fileBodyPart);
         multipart.field("fileType", dataType);
         multipart.field("rowName", rowName);
+        multipart.field("tableName", tableName);
 
         getLogger().info("sending url : " + url);
         Response response = target.request().post(Entity.entity(multipart, multipart.getMediaType()));
@@ -121,7 +120,7 @@ public class TableRequestTest extends AbstractRequestTest {
         int status = response.getStatus();
         String result = response.readEntity(String.class);
         getLogger().info(result);
-        // check status 204 - all data points stored successfully
+        // check expected status
         assertEquals(statusExpected, status);
         return result;
     }
