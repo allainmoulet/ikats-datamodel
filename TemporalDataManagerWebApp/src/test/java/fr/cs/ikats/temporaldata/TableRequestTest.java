@@ -16,6 +16,9 @@ import java.nio.charset.Charset;
 
 import static org.junit.Assert.assertEquals;
 
+/**
+ *  JUNit class testing TableResource services.
+ */
 public class TableRequestTest extends AbstractRequestTest {
 
 
