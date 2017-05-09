@@ -2,26 +2,25 @@ package fr.cs.ikats.temporaldata.resource;
 
 import java.io.*;
 import java.util.List;
-import java.util.Map;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
-import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.StreamingOutput;
 import javax.ws.rs.core.UriInfo;
 
+import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import org.apache.log4j.Logger;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -41,6 +40,7 @@ import org.json.simple.JSONObject;
 public class TableResource extends AbstractResource {
 
     private static Logger logger = Logger.getLogger(TableResource.class);
+    private static final Pattern TABLE_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
 
     /**
      * ProcessManager
@@ -52,6 +52,11 @@ public class TableResource extends AbstractResource {
      */
     public TableResource() {
         processDataManager = new ProcessDataManager();
+    }
+
+    private boolean validatetableName(String tableName) {
+        Matcher matcher = TableResource.TABLE_NAME_PATTERN.matcher(tableName);
+        return matcher.matches();
     }
 
     /**
@@ -116,27 +121,29 @@ public class TableResource extends AbstractResource {
     @SuppressWarnings("unchecked")
     public Response importTable(@FormDataParam("tableName") String tableName, @FormDataParam("file") InputStream fileis,
                                 @FormDataParam("file") FormDataContentDisposition fileDisposition, @FormDataParam("rowName") String rowName, FormDataMultiPart formData,
-                                @Context UriInfo uriInfo) throws IOException, IkatsDaoException {
+                                @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException {
 
         String fileName = "";
         try {
+            if (!validatetableName(tableName)) {
+                String context = "empty parameter 'tableName' provided";
+                logger.error(context);
+                throw new InvalidValueException("String", "tableName", TableResource.TABLE_NAME_PATTERN.pattern(), tableName, null);
+            }
             Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
             fileName = fileDisposition.getFileName();
             logger.info("Import csv file : " + fileName);
             logger.info("Table Name : " + tableName);
-            Map<String, List<FormDataBodyPart>> params = formData.getFields();
             Long fileSize = fileDisposition.getSize();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(fileis));
             String separator = ",";
             Integer rowIndexId = -1;
-            List<String> columnHeaders = new ArrayList<String>();
-            List<String> rowHeaders = new ArrayList<String>();
-            rowHeaders.add(null);
-            List<List<String>> cells = new ArrayList<List<String>>();
+            List<String> columnHeaders;
+            List<String> rowHeaders = new ArrayList<>();
+            List<List<String>> cells = new ArrayList<>();
 
-            // consume header to retrieve column index of unique identifier in
-            // the table
+            // consume header to retrieve column index of unique identifier in the table
             columnHeaders = Arrays.asList(reader.readLine().split(separator));
             for (int i = 0; i < columnHeaders.size(); i++) {
                 if (!columnHeaders.get(i).isEmpty() && columnHeaders.get(i).equals(rowName)) {
@@ -152,27 +159,35 @@ public class TableResource extends AbstractResource {
             }
 
             HashMap<String, String> keyTableMap = new HashMap<>();
+            String line;
+            // first element of row header is column header : set to null
+            rowHeaders.add(null);
 
             // parse csv content to :
             // 1. retrieving data to build json table structure to store
             // 2. fix duplicates : if occurs, we stop at first duplicate and
             // send back 409 http code
-            String line = reader.readLine();
-            while (line != null) {
+            while ((line = reader.readLine()) != null) {
 
+                // skip empty lines
+                if (line.isEmpty()) {
+                    continue;
+                }
                 // Review:MBD:156259 ce serait bien de verifier que la taille de
                 // columnHeaders vale
                 // Review:MBD:156259 celle de items du while ... sinon il manque
                 // un separateur ...
-                // Review:MBD:156259 a discuter aussi : et si une ligne est
-                // Review:MBD:156259 "1,,,,33,a" => comment sont gerees les
-                // valeurs vides par le split ? l'ideal serait "" ou null
 
-                String[] items = line.split(separator);
+                String[] items = line.split(separator, -1);
+                if (items.length != columnHeaders.size()){
+                    String context = "Line length does not fit headers size in csv file : " + fileName;
+                    logger.error(context);
+                    return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
+                }
 
                 // retrieving table data
                 rowHeaders.add(items[0]);
-                List<String> cells_content = new ArrayList<String>();
+                List<String> cells_content = new ArrayList<>();
                 for (int i = 1; i < items.length; i++) {
                     cells_content.add(items[i]);
                 }
@@ -187,7 +202,6 @@ public class TableResource extends AbstractResource {
                     logger.error(context);
                     return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
                 }
-                line = reader.readLine();
             }
 
             // check that tableName does not already exist
@@ -217,7 +231,8 @@ public class TableResource extends AbstractResource {
 
                 // fill content
                 JSONObject content = new JSONObject();
-                json.put("content", cells);
+                content.put("cells", cells);
+                json.put("content", content);
 
                 InputStream is = new ByteArrayInputStream(json.toString().getBytes());
                 String rid = processDataManager.importProcessData(is, fileSize, tableName, "JSON", fileName);
@@ -237,23 +252,6 @@ public class TableResource extends AbstractResource {
             throw new IOException(contextError, e);
         }
 
-    }
-
-    /**
-     * return a new Instance of OutputStreaming, used for streaming out the csv
-     * file
-     *
-     * @param bs the bytes to write
-     * @return
-     */
-
-    private StreamingOutput getOut(final byte[] bs) {
-        return new StreamingOutput() {
-            @Override
-            public void write(OutputStream out) throws IOException, WebApplicationException {
-                out.write(bs);
-            }
-        };
     }
 
 }

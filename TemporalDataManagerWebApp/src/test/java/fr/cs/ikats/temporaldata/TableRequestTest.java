@@ -17,9 +17,9 @@ import java.nio.charset.Charset;
 import static org.junit.Assert.assertEquals;
 
 /**
- *  JUNit class testing TableResource services.
- *  
- *  Review:MBD:156259 il manquerait un test dégradé: quand nombre de champs d'une ligne du csv n'est pas constant => erreur
+ * JUNit class testing TableResource services.
+ * <p>
+ * Review:MBD:156259 il manquerait un test dégradé: quand nombre de champs d'une ligne du csv n'est pas constant => erreur
  */
 public class TableRequestTest extends AbstractRequestTest {
 
@@ -41,6 +41,30 @@ public class TableRequestTest extends AbstractRequestTest {
             String tableName = "tableTestNominal";
             String url = getAPIURL() + "/table";
             doImport(url, file, "CSV", 200, "timestamp", tableName);
+
+            endNominal(testCaseName);
+        } catch (Throwable e) {
+            endWithFailure(testCaseName, e);
+        }
+    }
+
+    /**
+     * test of table creation from a csv file
+     * case : table name provided with illegal characters (http code 406 returned)
+     */
+    @Test
+    public void testImportTableIncorrectName() {
+        String testCaseName = "testImportTablefromCSVFile";
+        boolean isNominal = true;
+        try {
+            start(testCaseName, isNominal);
+
+            File file = getFileMatchingResource(testCaseName, "/data/test_import_table_nominal.csv");
+
+            getLogger().info("CSV table file : " + file.getAbsolutePath());
+            String tableName = "TableIncorrectName%";
+            String url = getAPIURL() + "/table";
+            doImport(url, file, "CSV", 406, "timestamp", tableName);
 
             endNominal(testCaseName);
         } catch (Throwable e) {
@@ -104,6 +128,31 @@ public class TableRequestTest extends AbstractRequestTest {
         }
     }
 
+    /**
+     * test of table creation from a csv file
+     * case : table contains incorrect line length (http code 400 returned)
+     */
+    @Test
+    public void testImportTablefromIncorrectCSVFile() {
+
+        String testCaseName = "testImportTablefromIncorrectCSVFile";
+        boolean isNominal = true;
+        try {
+            start(testCaseName, isNominal);
+
+            File file = getFileMatchingResource(testCaseName, "/data/test_import_table_incorrect_line_length.csv");
+
+            getLogger().info("CSV table file : " + file.getAbsolutePath());
+            String tableName = "TableTestIncorrectCSVFile";
+            String url = getAPIURL() + "/table";
+            doImport(url, file, "CSV", 400, "timestamp", tableName);
+
+            endNominal(testCaseName);
+        } catch (Throwable e) {
+            endWithFailure(testCaseName, e);
+        }
+    }
+
     protected String doImport(String url, File file, String dataType, int statusExpected, String rowName, String tableName) {
         Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
                 .build();
@@ -153,4 +202,5 @@ public class TableRequestTest extends AbstractRequestTest {
         getLogger().info("Result written in file " + outputFile.getAbsolutePath());
         return outputFile;
     }
+
 }
