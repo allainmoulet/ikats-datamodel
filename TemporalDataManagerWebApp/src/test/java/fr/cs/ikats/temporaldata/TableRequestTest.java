@@ -18,6 +18,8 @@ import static org.junit.Assert.assertEquals;
 
 /**
  *  JUNit class testing TableResource services.
+ *  
+ *  Review:MBD:156259 il manquerait un test dégradé: quand nombre de champs d'une ligne du csv n'est pas constant => erreur
  */
 public class TableRequestTest extends AbstractRequestTest {
 
