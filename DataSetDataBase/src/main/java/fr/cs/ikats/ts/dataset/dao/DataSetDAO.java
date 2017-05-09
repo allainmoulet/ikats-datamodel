@@ -14,9 +14,9 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import fr.cs.ikats.common.dao.DataBaseDAO;
-import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.ts.dataset.model.DataSet;
 import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 
@@ -145,6 +145,41 @@ public class DataSetDAO extends DataBaseDAO {
             session.close();
         }
         return count;
+    }
+
+    /**
+     * update the dataset : add only one time serie,
+     * 
+     * @param name
+     *            the name of the dataset to update
+     * @param funcId
+     *            the functional identifier of the time serie to add
+     * @return the number of TS added while updating
+     */
+    public void updateAddOneTimeserie(String name, String funcId) throws IkatsDaoException {
+        Session session = getSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+            DataSet ds = (DataSet) session.get(DataSet.class, name);
+            FunctionalIdentifier fid = (FunctionalIdentifier) session.get(FunctionalIdentifier.class, name);
+            LinkDatasetTimeSeries linkDatasetTimeSeries = new LinkDatasetTimeSeries(fid, ds);
+            session.save(linkDatasetTimeSeries);
+            tx.commit();
+        }
+        catch (HibernateException e) {
+            IkatsDaoException error = new IkatsDaoException(
+                    "Failed to add the timeserie " + funcId + " to dataset " + name, e);
+            rollbackAndThrowException(tx, error);
+        }
+        catch (Throwable te) {
+            IkatsDaoException error = new IkatsDaoException(
+                    te.getClass().getSimpleName() + "unexpectedly occured => Failed to add the timeserie " + funcId + " to dataset " + name, te);
+            rollbackAndThrowException(tx, error);
+        }
+        finally {
+            session.close();
+        }
     }
 
     /**
