@@ -10,6 +10,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 import javax.persistence.Transient;
+import javax.persistence.UniqueConstraint;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
@@ -40,7 +42,8 @@ import fr.cs.ikats.metadata.model.FunctionalIdentifier;
  * </ul>
  */
 @Entity
-@Table(name="TimeSeries_Dataset")
+@Table(name="TimeSeries_Dataset",
+	uniqueConstraints={@UniqueConstraint(columnNames={"tsuid", "dataset_name"})})
 public class LinkDatasetTimeSeries {
 
     /**
