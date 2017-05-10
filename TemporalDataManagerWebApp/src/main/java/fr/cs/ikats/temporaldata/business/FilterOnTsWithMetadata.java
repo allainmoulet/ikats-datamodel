@@ -1,22 +1,13 @@
-/**
- * $Id$
- *
- * HISTORIQUE
- *
- * VERSION : 1.0 : <US> : <NumUS> : 17 mai 2016 : Creation 
- *
- * FIN-HISTORIQUE
- */
 package fr.cs.ikats.temporaldata.business;
-
-import java.util.Collections;
-import java.util.List;
 
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
- * This Class is JSONifiable: defines a filter on timeseries with tsmetadata criteria
+ * This Class is JSONizable: defines a filter on timeseries with tsmetadata criteria
  */
 public class FilterOnTsWithMetadata {
 
@@ -52,7 +43,7 @@ public class FilterOnTsWithMetadata {
 
     /**
      * Setter
-     * 
+     *
      * @param criteria
      *            the criteria to set
      */
