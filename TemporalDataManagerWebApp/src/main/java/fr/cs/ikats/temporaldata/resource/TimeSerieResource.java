@@ -3,7 +3,7 @@
  *
  * HISTORIQUE
  *
- * VERSION : 1.0 : <US> : <NumUS> : 17 nov. 2015 : Creation 
+ * VERSION : 1.0 : <US> : <NumUS> : 17 nov. 2015 : Creation
  *
  * FIN-HISTORIQUE
  */
@@ -121,11 +121,9 @@ public class TimeSerieResource extends AbstractResource {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters(true);
         try {
             response = temporalDataManager.getTS(metrique, queryParams);
-        }
-        catch (IkatsWebClientException e) {
+        } catch (IkatsWebClientException e) {
             throw new ResourceNotFoundException("Get TS returned exception", e);
-        }
-        catch (UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             throw new ResourceNotFoundException("Get TS returned exception", e);
         }
         // TODO : ne pas renvoyer la reponse brute, mais un JSON standardisé
@@ -135,7 +133,7 @@ public class TimeSerieResource extends AbstractResource {
     /**
      * get the TSinformation for a tsuid :<br>
      * Response returns a JSON like this
-     * 
+     *
      * <pre>
      * {"tsuid":"0000110000030003F20000040003F1",
      *  "funcId":"A320001_1_WS1",
@@ -144,7 +142,7 @@ public class TimeSerieResource extends AbstractResource {
      *          "aircraftIdentifier":"A320001"}
      * }
      * </pre>
-     * 
+     *
      * @param tsuid
      *            the tsuid
      * @return a TSInfo
@@ -160,8 +158,7 @@ public class TimeSerieResource extends AbstractResource {
         String response = null;
         try {
             response = temporalDataManager.getMetaData(tsuid);
-        }
-        catch (IkatsWebClientException e) {
+        } catch (IkatsWebClientException e) {
             throw new ResourceNotFoundException("Get TS returned exception", e);
         }
 
@@ -180,8 +177,7 @@ public class TimeSerieResource extends AbstractResource {
                 String value = (String) itemValue.get("name");
                 returnValue.addTag(name, value);
             }
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             throw new IkatsException("Error parsing response from db", e);
         }
 
@@ -195,7 +191,7 @@ public class TimeSerieResource extends AbstractResource {
 
     /**
      * get all the TSinformation
-     * 
+     *
      * @return a list of TSInfo
      * @throws ResourceNotFoundException
      *             if getTS sends an error
@@ -209,11 +205,9 @@ public class TimeSerieResource extends AbstractResource {
         String response = null;
         try {
             response = temporalDataManager.getTS("*", null);
-        }
-        catch (IkatsWebClientException e) {
+        } catch (IkatsWebClientException e) {
             throw new ResourceNotFoundException("Get TS returned exception", e);
-        }
-        catch (UnsupportedEncodingException e) {
+        } catch (UnsupportedEncodingException e) {
             throw new ResourceNotFoundException("Get TS returned exception", e);
         }
 
@@ -235,8 +229,7 @@ public class TimeSerieResource extends AbstractResource {
                     returnValue.add(tsinfo);
                 }
             }
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             throw new IkatsException("Error parsing response from db", e);
         }
 
@@ -268,9 +261,9 @@ public class TimeSerieResource extends AbstractResource {
     @Path("extract/metric/{metrique}")
     @Produces(MediaType.APPLICATION_JSON)
     public String getTS(@PathParam("metrique") String metrique, @QueryParam("sd") String startDate, @QueryParam("ed") String endDate,
-            @QueryParam("o") String urlOptions, @QueryParam("t") String tags, @QueryParam("ag") String aggregationMethod,
-            @QueryParam("ds") String downSampler, @QueryParam("dp") String downSamplerPeriod,
-            @QueryParam("di") @DefaultValue("false") boolean downSamplingAdditionalInformation) {
+                        @QueryParam("o") String urlOptions, @QueryParam("t") String tags, @QueryParam("ag") String aggregationMethod,
+                        @QueryParam("ds") String downSampler, @QueryParam("dp") String downSamplerPeriod,
+                        @QueryParam("di") @DefaultValue("false") boolean downSamplingAdditionalInformation) {
         Chronometer chrono = new Chronometer("QueryResource:getTS", true);
         String response;
         try {
@@ -278,8 +271,7 @@ public class TimeSerieResource extends AbstractResource {
                     downSamplerPeriod, downSamplingAdditionalInformation);
             response = webResponse.readEntity(String.class);
 
-        }
-        catch (IkatsWebClientException e) {
+        } catch (IkatsWebClientException e) {
             e.printStackTrace();
             response = e.getMessage();
         }
@@ -288,7 +280,7 @@ public class TimeSerieResource extends AbstractResource {
     }
 
     /**
-     * 
+     *
      * @param tsuid
      *            the tsuid
      * @param startDate
@@ -311,8 +303,8 @@ public class TimeSerieResource extends AbstractResource {
     @Path("extract/tsuid")
     @Produces(MediaType.APPLICATION_JSON)
     public String getTSFromTSUID(@QueryParam("tsuid") List<String> tsuid, @QueryParam("sd") String startDate, @QueryParam("ed") String endDate,
-            @QueryParam("o") String urlOptions, @QueryParam("ag") String aggregationMethod, @QueryParam("ds") String downSampler,
-            @QueryParam("dp") String downSamplerPeriod) throws Exception {
+                                 @QueryParam("o") String urlOptions, @QueryParam("ag") String aggregationMethod, @QueryParam("ds") String downSampler,
+                                 @QueryParam("dp") String downSamplerPeriod) throws Exception {
         Chronometer chrono = new Chronometer("QueryResource:getTS", true);
         String response;
         try {
@@ -322,8 +314,7 @@ public class TimeSerieResource extends AbstractResource {
                 throw new ResourceNotFoundException(webResponse.readEntity(String.class));
             }
             response = webResponse.readEntity(String.class);
-        }
-        catch (IkatsWebClientException e) {
+        } catch (IkatsWebClientException e) {
             e.printStackTrace();
             response = e.getMessage();
         }
@@ -336,7 +327,7 @@ public class TimeSerieResource extends AbstractResource {
      * server side. metric and dataset are part of the resource. Other tags must
      * be added as query parameters. They will be set as it into the JSON ( or
      * line) representation of the data sent to the db API.
-     * 
+     *
      * @param metric
      *            value of dataset
      * @param filePath
@@ -351,13 +342,17 @@ public class TimeSerieResource extends AbstractResource {
     @Path("{metric}")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
-    public ApiResponse importTSLocal(@PathParam("metric") String metric, @FormParam("file") String tsFilepath, @FormParam("funcId") String funcId,
-            MultivaluedMap<String, String> formParams, @Context UriInfo uriInfo) throws Exception {
+    public ApiResponse importTSLocal(
+            @PathParam("metric") String metric,
+            @FormParam("file") String tsFilepath,
+            @FormParam("funcId") String funcId,
+            MultivaluedMap<String, String> formParams,
+            @Context UriInfo uriInfo) throws Exception {
 
         // Check parameters
         File tsFile = new File(IKATSDATA_IMPORT_ROOT_PATH + tsFilepath);
         if (!tsFile.exists() || !tsFile.canRead()) {
-        	// FIXME a changer par une exception plus précise et/ou un retour d'état 404 ou 50X pour ressource inaccessible
+            // FIXME a changer par une exception plus précise et/ou un retour d'état 404 ou 50X pour ressource inaccessible
             throw new ImportException("Can't access " + tsFile.getAbsolutePath());
         }
 
@@ -387,26 +382,21 @@ public class TimeSerieResource extends AbstractResource {
                     metadataManager.deleteFunctionalIdentifier(tsuid);
                 }
                 return Response.status(Status.NO_CONTENT).entity(response.readEntity(String.class)).build();
-            }
-            else {
+            } else {
                 return Response.status(Status.CONFLICT).build();
             }
-        }
-        catch (ResourceNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             // kept different kind of errors : see error handlers dealing with
             // specific status
             // ResourceNotFoundException => Status.MISSING_RESSOURCE
             throw new ResourceNotFoundException("Failed removeTimeSeries with tsuid=" + tsuid, e);
-        }
-        catch (IkatsDaoException e) {
+        } catch (IkatsDaoException e) {
             // IkatsDaoException => Status.MISSING_RESSOURCE
             throw new IkatsDaoException("Failed removeTimeSeries with tsuid=" + tsuid + " : failed deleting associated metadata or functional id", e);
-        }
-        catch (IkatsWebClientException ew) {
+        } catch (IkatsWebClientException ew) {
             // IkatsDaoException => server error Status.BAD_REQUEST
             throw new IkatsWebClientException("Failed removeTimeSeries with tsuid=" + tsuid, ew);
-        }
-        catch (Throwable i) {
+        } catch (Throwable i) {
             // or else ...
             // see error handlers dealing with specific status
             // WebApplicationException => server error
@@ -427,15 +417,14 @@ public class TimeSerieResource extends AbstractResource {
         List<String> result = facade.getDataSetNamesForTsuid(tsuid);
         if (result.isEmpty()) {
             return Response.status(Status.NO_CONTENT).build();
-        }
-        else {
+        } else {
             return Response.status(Status.OK).entity(result.toString()).build();
         }
     }
 
     /**
      * override of the import without parameter dataset
-     * 
+     *
      * @param metric
      *            value of metric
      * @param fileis
@@ -449,14 +438,14 @@ public class TimeSerieResource extends AbstractResource {
      * @return an ImportResult
      * @throws ImportException
      *             if error occurs
-     * 
+     *
      */
     @POST
     @Path("/put/{metric}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public ApiResponse importTSFromHTTP(@PathParam("metric") String metric, @FormDataParam("file") InputStream fileis,
-            @FormDataParam("file") FormDataContentDisposition fileDisposition, FormDataMultiPart formData, @Context UriInfo uriInfo)
+                                        @FormDataParam("file") FormDataContentDisposition fileDisposition, FormDataMultiPart formData, @Context UriInfo uriInfo)
             throws ImportException {
         String filename = fileDisposition.getFileName();
 
@@ -479,7 +468,7 @@ public class TimeSerieResource extends AbstractResource {
      * -startDate -endDate -tags Map<String, List<String>> but values are
      * constraint to one Import in openTSDB if funID provided Import startdate,
      * enddate and tags in pgsql
-     * 
+     *
      * @param metric
      *            value of metric
      * @param fileis
@@ -494,55 +483,58 @@ public class TimeSerieResource extends AbstractResource {
      * @throws ImportException
      *             if problems occurs
      */
-	private ApiResponse doImport(String filename, String metric, String funcId, MultivaluedMap<String, String> formParams,
-			InputStream tsStream) throws ImportException {
-		
-		logger.info("Import file: " + filename);
-		logger.info("Metric: " + metric);
-		logger.info("Provided FunctionalIdentifier: " + funcId);
-		
+    private ApiResponse doImport(
+            String filename,
+            String metric,
+            String funcId,
+            MultivaluedMap<String, String> formParams,
+            InputStream tsStream) throws ImportException {
+
+        logger.info("Import file: " + filename);
+        logger.info("Metric: " + metric);
+        logger.info("Provided FunctionalIdentifier: " + funcId);
+
         if (funcId == null || funcId.isEmpty()) {
-        	// no import if no functional identifier provided into form
-        	throw new ImportException("No functional id provided in the form or is null, import canceled");
+            // no import if no functional identifier provided into form
+            throw new ImportException("No functional id provided in the form or is null, import canceled");
         }
-        
-		// Throw exception for a non valid funcId (openTSDB tag format) 
+
+        // Throw exception for a non valid funcId (openTSDB tag format)
         try {
-			temporalDataManager.validateFuncId(funcId);
-		} catch (InvalidValueException e1) {
-			throw new ImportException(e1.getMessage(), e1);
-		}
-        
+            temporalDataManager.validateFuncId(funcId);
+        } catch (InvalidValueException e1) {
+            throw new ImportException(e1.getMessage(), e1);
+        }
+
         Chronometer chrono = new Chronometer("TimeSeriResource.doImport|TS -> TSDB", false);
         List<Future<ImportResult>> resultats = new ArrayList<Future<ImportResult>>();
         Map<String, String> tags = new HashMap<String, String>();
         ImportResult importResult = null;
 
         try {
-        	// Prepare the tags map
-	        for (String key : formParams.keySet()) {
-	        	if (key.equals("file")) {
-	        		// skip
-	        		continue;
-	        	}
+            // Prepare the tags map
+            for (String key : formParams.keySet()) {
+                if (key.equals("file")) {
+                    // skip
+                    continue;
+                }
 
-        		if (formParams.get(key).size() > 0) {
-        			for (String value : formParams.get(key)) {
-        				if (!tags.containsKey(key)) {
-        					tags.put(key, value);
-        					logger.info("Tag : " + key + " - " + value);
-        				}
-        				else {
-        					// modif agn 04/24: List<String> for tag value
-        					// kept to avoid too much modifications
-        					// in sub-function and interfaces, but we force
-        					// the list to have only one value
-        					logger.warn("Tag already exist: " + key + " ");
-        				}
-        			}
-        		}
-	        }
-	        logger.info("Tags: " + tags.toString());
+                if (formParams.get(key).size() > 0) {
+                    for (String value : formParams.get(key)) {
+                        if (!tags.containsKey(key)) {
+                            tags.put(key, value);
+                            logger.info("Tag : " + key + " - " + value);
+                        } else {
+                            // modif agn 04/24: List<String> for tag value
+                            // kept to avoid too much modifications
+                            // in sub-function and interfaces, but we force
+                            // the list to have only one value
+                            logger.warn("Tag already exist: " + key + " ");
+                        }
+                    }
+                }
+            }
+            logger.info("Tags: " + tags.toString());
 
             // import into openTSDB
             chrono.start();
@@ -550,26 +542,25 @@ public class TimeSerieResource extends AbstractResource {
             // Thread.sleep(TemporalDataApplication.getApplicationConfiguration().getLongValue(ApplicationConfiguration.DB_FLUSHING_INTERVAL));
             importResult = temporalDataManager.parseImportResults(metric, resultats, tags, dates[0], dates[1]);
             chrono.stop(logger);
-            
+
             importResult.setFuncId(funcId);
 
             if (importResult.getTsuid() == null || importResult.getTsuid().isEmpty()) {
-            	String message = "TS not imported or no tsuid returned";
-            	StringBuilder sb = new StringBuilder(message);
-            	sb.append("OpenTSDB return code: ").append(importResult.getStatusCode());
-            	sb.append("Return summary: ").append(importResult.getSummary());
-            	sb.append("file: ").append(filename);
-            	
-            	logger.debug(sb.toString());
-            	throw new ImportException(message);
+                String message = "TS not imported or no tsuid returned";
+                StringBuilder sb = new StringBuilder(message);
+                sb.append("OpenTSDB return code: ").append(importResult.getStatusCode());
+                sb.append("Return summary: ").append(importResult.getSummary());
+                sb.append("file: ").append(filename);
+
+                logger.debug(sb.toString());
+                throw new ImportException(message);
             }
-            
+
             chrono = new Chronometer("TimeSeriResource.doImport|Metas -> SGBD", false);
             // store functional identifier
             try {
                 metadataManager.persistFunctionalIdentifier(importResult.getTsuid(), importResult.getFuncId());
-            }
-            catch (IkatsDaoConflictException e) {
+            } catch (IkatsDaoConflictException e) {
                 // Functional Identifier already exists : adding data to existing timeseries
             }
 
@@ -577,8 +568,7 @@ public class TimeSerieResource extends AbstractResource {
             // store metadata metric
             try {
                 metadataManager.persistMetaData(importResult.getTsuid(), "metric", metric, "string");
-            }
-            catch (IkatsDaoConflictException e) {
+            } catch (IkatsDaoConflictException e) {
                 // metric already exists : adding data to existing timeseries
             }
 
@@ -587,62 +577,55 @@ public class TimeSerieResource extends AbstractResource {
                 for (Map.Entry<String, String> theTag : tags.entrySet()) {
                     metadataManager.persistMetaData(importResult.getTsuid(), theTag.getKey(), theTag.getValue(), "string");
                 }
-            }
-            catch (IkatsDaoConflictException e) {
+            } catch (IkatsDaoConflictException e) {
                 // Metadata already exists : adding data to existing timeseries
             }
-            
+
             // first date is the start_date
             // update in the case start date already exists
             try {
                 MetaData metadata = metadataManager.getMetaData(importResult.getTsuid(), "ikats_start_date");
-                if (dates[0] < Long.valueOf(metadata.getValue()).longValue()){
+                if (dates[0] < Long.valueOf(metadata.getValue()).longValue()) {
                     metadataManager.updateMetaData(importResult.getTsuid(), "ikats_start_date", Long.toString(dates[0]));
                 }
-            }
-            catch (IkatsDaoMissingRessource e){
+            } catch (IkatsDaoMissingRessource e) {
                 metadataManager.persistMetaData(importResult.getTsuid(), "ikats_start_date", Long.toString(dates[0]), "date");
             }
             // last date is the end_date
             // update in the case end date already exists
             try {
                 MetaData metadata = metadataManager.getMetaData(importResult.getTsuid(), "ikats_end_date");
-                if (dates[1] > Long.valueOf(metadata.getValue()).longValue()){
+                if (dates[1] > Long.valueOf(metadata.getValue()).longValue()) {
                     metadataManager.updateMetaData(importResult.getTsuid(), "ikats_end_date", Long.toString(dates[1]));
                 }
-            }
-            catch (IkatsDaoMissingRessource e){
+            } catch (IkatsDaoMissingRessource e) {
                 metadataManager.persistMetaData(importResult.getTsuid(), "ikats_end_date", Long.toString(dates[1]), "date");
             }
-            
+
             chrono.stop(logger);
 
-        }
-        catch (ImportException e) {
-            logger.error("Error during import:",  e );
+        } catch (ImportException e) {
+            logger.error("Error during import:", e);
             throw e;
-        }
-        catch (IkatsDaoException e) {
+        } catch (IkatsDaoException e) {
             ImportException le = new ImportException("DAO Error during import:", e);
-            logger.error( le );
+            logger.error(le);
             throw le;
-        }        
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new ImportException("Unknown Error during import", e);
+        } finally {
+            try {
+                tsStream.close();
+            } catch (IOException ioe) {
+                // That not an application problem, but a problem in the system.
+                // If that exception is raised : there will be more urgent and critical problems in the system.
+                // so do not try to do other thing here.
+                logger.warn("TS stream exception on close", ioe);
+            }
         }
-        finally {
-        	try {
-				tsStream.close();
-			} catch (IOException ioe) {
-				// That not an application problem, but a problem in the system. 
-				// If that exception is raised : there will be more urgent and critical problems in the system.
-				// so do not try to do other thing here.
-				logger.warn("TS stream exception on close", ioe); 
-			}
-        }
-        
+
         return importResult;
-	}
+    }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
@@ -650,14 +633,19 @@ public class TimeSerieResource extends AbstractResource {
     public List<FunctionalIdentifier> searchTsMatchingMetadataCriteria(FilterOnTsWithMetadata filterByMeta) throws IkatsDaoException {
 
         List<MetadataCriterion> metaCriteria = filterByMeta.getCriteria();
+        String datasetName = filterByMeta.getDatasetName();
         List<FunctionalIdentifier> subSetList = filterByMeta.getTsList();
+
         if ((metaCriteria != null) && (!metaCriteria.isEmpty())) {
             if ((subSetList != null) && (subSetList.size() > 0)) {
                 return metadataManager.searchFunctionalIdentifiers(filterByMeta);
-            }
-            else {
-                // Subset undefined
-                throw new IkatsDaoInvalidValueException("Not yet implemented: filter on metadata with undefined subset AND defined criteria list.");
+            } else {
+                if (datasetName.isEmpty()) {
+                    // Subset undefined
+                    throw new IkatsDaoInvalidValueException("Not yet implemented: filter on metadata with undefined subset AND defined criteria list.");
+                }
+                return metadataManager.searchFunctionalIdentifiers(filterByMeta);
+
             }
         }
         else {
@@ -666,8 +654,7 @@ public class TimeSerieResource extends AbstractResource {
             if ((subSetList == null) || subSetList.isEmpty()) {
                 // no subset defined + no criteria defined => error
                 throw new IkatsDaoInvalidValueException("Not yet implemented: filter on metadata without criteria AND without defined subset.");
-            }
-            else {
+            } else {
                 logger.warn(
                         "searchTsMatchingMetadataCriteria: applying zero filter on input subset has no effect => return the subset defined in input");
                 return subSetList;

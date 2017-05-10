@@ -15,6 +15,7 @@ import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
 import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
+import fr.cs.ikats.ts.dataset.DataSetFacade;
 import org.apache.log4j.Logger;
 
 import java.io.InputStream;
@@ -398,8 +399,24 @@ public class MetaDataManager {
      */
     public List<FunctionalIdentifier> searchFunctionalIdentifiers(FilterOnTsWithMetadata filterByMeta) throws IkatsDaoException {
 
+        List<FunctionalIdentifier> lFuncIdentifiers = new ArrayList<FunctionalIdentifier>();
+
         try {
-            List<FunctionalIdentifier> lFuncIdentifiers = filterByMeta.getTsList();
+            String datasetName = filterByMeta.getDatasetName();
+            if (!datasetName.isEmpty()) {
+                // Get the TS list matching the Dataset name
+                DataSetFacade facade = new DataSetFacade();
+                MetaDataFacade facadeFuncId = new MetaDataFacade();
+                List<String> tsuids = facade.getDataSet(datasetName).getTsuidsAsString();
+                for (String tsuid : tsuids) {
+                    FunctionalIdentifier fids = facadeFuncId.getFunctionalIdentifierByTsuid(tsuid);
+                    lFuncIdentifiers.add(fids);
+                }
+
+            } else {
+                // Use the TS list
+                lFuncIdentifiers = filterByMeta.getTsList();
+            }
             List<MetadataCriterion> lCriteria = filterByMeta.getCriteria();
 
             Group<MetadataCriterion> lFormula = new Group<MetadataCriterion>();

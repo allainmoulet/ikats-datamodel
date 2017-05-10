@@ -20,8 +20,10 @@ import fr.cs.ikats.metadata.model.MetadataCriterion;
  */
 public class FilterOnTsWithMetadata {
 
+    private String datasetName = "";
+
     private List<FunctionalIdentifier> tsList = Collections.emptyList();
-    
+
     private List<MetadataCriterion> criteria = Collections.emptyList();
 
     /**
@@ -58,4 +60,19 @@ public class FilterOnTsWithMetadata {
         this.criteria = criteria;
     }
 
+    /**
+     * Getter
+     * @return the datasetName
+     */
+    public String getDatasetName() {
+        return datasetName;
+    }
+
+    /**
+     * Setter
+     * @param datasetName the datasetName to set
+     */
+    public void setDatasetName(String datasetName) {
+        this.datasetName = datasetName;
+    }
 }
