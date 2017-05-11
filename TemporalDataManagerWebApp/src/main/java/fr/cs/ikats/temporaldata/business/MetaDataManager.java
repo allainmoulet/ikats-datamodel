@@ -408,10 +408,7 @@ public class MetaDataManager {
                 DataSetFacade facade = new DataSetFacade();
                 MetaDataFacade facadeFuncId = new MetaDataFacade();
                 List<String> tsuids = facade.getDataSet(datasetName).getTsuidsAsString();
-                for (String tsuid : tsuids) {
-                    FunctionalIdentifier fids = facadeFuncId.getFunctionalIdentifierByTsuid(tsuid);
-                    lFuncIdentifiers.add(fids);
-                }
+                lFuncIdentifiers = facadeFuncId.getFunctionalIdentifierByTsuidList(tsuids);
 
             } else {
                 // Use the TS list
@@ -438,14 +435,14 @@ public class MetaDataManager {
 
             List<List<FunctionalIdentifier>> lWellDimensionedTsIdLists = new ArrayList<List<FunctionalIdentifier>>();
             int currentSize = 0;
-            int maxsize = 20000;
+            int maxsize = 100;
             List<FunctionalIdentifier> lCurrentListIdentifiers = null;
 
             // case of no scope is provided => retrieve all funcId from db
             if (lFuncIdentifiers.isEmpty() || lFuncIdentifiers == null) {
                 lFuncIdentifiers = getMetaDataFacade().getFunctionalIdentifiersList();
             }
-            // creating samples of 20000 funcId
+            // creating samples of 100 funcId
             for (FunctionalIdentifier functionalIdentifier : lFuncIdentifiers) {
                 if ((currentSize == maxsize) || (currentSize == 0)) {
                     lCurrentListIdentifiers = new ArrayList<FunctionalIdentifier>();
@@ -458,7 +455,6 @@ public class MetaDataManager {
 
             List<FunctionalIdentifier> lResult = new ArrayList<FunctionalIdentifier>();
             for (List<FunctionalIdentifier> currentWellDimensionedList : lWellDimensionedTsIdLists) {
-                logger.info("- Adding new tsuids to result: searching by metadata criteria ...");
                 lResult.addAll(getMetaDataFacade().searchFuncId(currentWellDimensionedList, lFormula));
             }
             return lResult;
