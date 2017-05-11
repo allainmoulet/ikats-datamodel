@@ -97,7 +97,9 @@ public class ProcessDataDAO extends DataBaseDAO {
      * return a ProcessData instance from database,
      * null if no ProcessData is found.
      * @param processId identifier of the producer
-     * @return a ProcessData or null if no ProcessData is found.
+     * @return a ProcessData
+     *         or an empty list if no ProcessData is found
+     *         or null if an HibernateException is raised.
      */
     public List<ProcessData> getProcessData(String processId) {
         List<ProcessData> result = null;
@@ -111,7 +113,7 @@ public class ProcessDataDAO extends DataBaseDAO {
         } finally {
             session.close();
         }
-        if(result == null) {
+        if(result.isEmpty()) {
             LOGGER.info("No process Data for processId "+result+" found in database");
         }
         return result;
