@@ -14,7 +14,6 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 
 import fr.cs.ikats.common.dao.DataBaseDAO;
-import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.ts.dataset.model.DataSet;
@@ -145,6 +144,38 @@ public class DataSetDAO extends DataBaseDAO {
             session.close();
         }
         return count;
+    }
+
+    /**
+     * update the dataset : add only one time serie
+     * 
+     * @param tsuid	the identifier of the time serie to add
+     * @param datasetName	the name of the dataset to update
+     * 
+     * @return 		the number of TS added while updating
+     */
+    public void updateAddOneTimeserie(String tsuid, String datasetName) throws IkatsDaoException {
+        Session session = getSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
+            LinkDatasetTimeSeries linkDatasetTimeSeries = new LinkDatasetTimeSeries(tsuid, datasetName);
+            session.save(linkDatasetTimeSeries);
+            tx.commit();
+        }
+        catch (HibernateException e) {
+            IkatsDaoException error = new IkatsDaoException(
+                    "Failed to add the timeserie " + tsuid + " to dataset " + datasetName, e);
+            rollbackAndThrowException(tx, error);
+        }
+        catch (Throwable te) {
+            IkatsDaoException error = new IkatsDaoException(
+                    te.getClass().getSimpleName() + "unexpectedly occured => Failed to add the timeserie " + tsuid + " to dataset " + datasetName, te);
+            rollbackAndThrowException(tx, error);
+        }
+        finally {
+            session.close();
+        }
     }
 
     /**

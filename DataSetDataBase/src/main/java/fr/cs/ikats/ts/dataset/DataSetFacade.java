@@ -205,4 +205,16 @@ public class DataSetFacade {
         }
         return dao.updateAddingTimeseries(datasetName,theDescription,tsList);
     }
+    
+
+    /**
+     * update the dataset : add only one time serie,
+     * 
+     * @param tsuid	the identifier of the time serie to add
+     * @param datasetName 	the name of the dataset to update
+     * @return the number of TS added while updating
+     */
+    public void updateInAppendMode(String tsuid, String datasetName) throws IkatsDaoMissingRessource, IkatsDaoException {
+        dao.updateAddOneTimeserie(tsuid, datasetName);
+    }
 }

@@ -67,5 +67,11 @@ public interface IImportSerializer extends Cloneable {
      */
     boolean test(String inputline);
 
+    /**
+     * Get the total number of points read
+     * @return the number of points
+     */
+	public long getTotalPointsRead();
+
 
 }

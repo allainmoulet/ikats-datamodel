@@ -48,6 +48,9 @@ public abstract class AbstractDataJsonIzer implements IImportSerializer {
      */
     private AdvancedJsonGenerator generateur;
 
+    /** Total number of points read */
+	private long totalPointsRead = 0;
+
     @Override
     public long[] getDates() {
         return new long[]{startDate,endDate};
@@ -106,6 +109,8 @@ public abstract class AbstractDataJsonIzer implements IImportSerializer {
             builder.append(readLine).append(";");
             readLine = reader.readLine();
 		}
+        // store the number of point read (minus one for the last increment)
+        totalPointsRead += (long) (pointRead - 1); 
         
         if(readLine!=null) {
             builder.append(readLine);
@@ -151,7 +156,6 @@ public abstract class AbstractDataJsonIzer implements IImportSerializer {
     /**
      * close the input stream.
      * 
-     * 
      * @see fr.cs.ikats.datamanager.client.importer.IImportSerializer#close()
      */
     public void close() {
@@ -184,5 +188,14 @@ public abstract class AbstractDataJsonIzer implements IImportSerializer {
      * @return the reader
      */
     public abstract SplittedLineReader getReader();
+    
+    /**
+     * Get the total number of points
+     * 
+     * @return the number of points
+     */
+	public long getTotalPointsRead() {
+		return totalPointsRead;
+	}
 
 }
