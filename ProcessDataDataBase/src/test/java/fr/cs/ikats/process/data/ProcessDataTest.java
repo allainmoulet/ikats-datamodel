@@ -12,6 +12,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -46,6 +47,65 @@ public class ProcessDataTest {
         assertEquals("Ceci est le contenu du fichier de test", resultData);
         facade.removeProcessData("execId1");
         
+    }
+
+
+    /**
+     * Test the persistence of a string to database
+     */
+    @Test
+    public void testInsertAny() {
+        ProcessDataFacade facade = new ProcessDataFacade();
+
+        String dataToInsert = "This is a content to store";
+        ProcessData data = new ProcessData("execId1", "ANY","test_pdata");
+
+        facade.importProcessData(data, dataToInsert);
+
+        List<ProcessData> result = facade.getProcessData("execId1");
+        assertNotNull(result);
+        assertEquals(1,result.size());
+        assertEquals("ANY",result.get(0).getDataType());
+
+        String resultData = getDataFromResult(result.get(0));
+
+        System.out.println("BLOB content : ");
+        System.out.println(resultData);
+        System.out.println("END OB BLOB content : ");
+        assertNotNull(resultData);
+        assertEquals(dataToInsert, resultData);
+        facade.removeProcessData("execId1");
+    }
+
+    /**
+     * Test the persistence of an opaque byte to database
+     */
+    @Test
+    public void testInsertAnyBytes() {
+        ProcessDataFacade facade = new ProcessDataFacade();
+
+        // Random bytes generation
+        SecureRandom random = new SecureRandom();
+        byte[] dataToInsert = new byte[20];
+        random.nextBytes(dataToInsert);
+
+        ProcessData data = new ProcessData("execId2", "ANY","test_pdata2");
+
+        facade.importProcessData(data, dataToInsert.toString());
+
+        List<ProcessData> result = facade.getProcessData("execId2");
+        assertNotNull(result);
+        assertEquals(1,result.size());
+        assertEquals("ANY",result.get(0).getDataType());
+
+        String resultData = getDataFromResult(result.get(0));
+
+        System.out.println("BLOB content : ");
+        System.out.println(resultData);
+        System.out.println("END OB BLOB content : ");
+        assertNotNull(resultData);
+        assertEquals(dataToInsert.toString(), resultData.toString());
+        facade.removeProcessData("execId1");
     }
 
 
