@@ -1,5 +1,19 @@
 package fr.cs.ikats.temporaldata.resource;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.process.data.model.ProcessData;
+import fr.cs.ikats.temporaldata.business.ProcessDataManager;
+import fr.cs.ikats.temporaldata.business.ProcessDataManager.ProcessResultTypeEnum;
+import fr.cs.ikats.temporaldata.exception.IkatsException;
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
+import fr.cs.ikats.temporaldata.utils.Chronometer;
+import org.apache.log4j.Logger;
+import org.glassfish.jersey.media.multipart.*;
+import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -8,50 +22,16 @@ import java.sql.SQLException;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.FormParam;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.WebApplicationException;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
-import javax.ws.rs.core.StreamingOutput;
-import javax.ws.rs.core.UriInfo;
-
-import org.apache.log4j.Logger;
-import org.glassfish.jersey.media.multipart.BodyPart;
-import org.glassfish.jersey.media.multipart.FormDataBodyPart;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
-
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.process.data.model.ProcessData;
-import fr.cs.ikats.temporaldata.business.ProcessDataManager;
-import fr.cs.ikats.temporaldata.business.ProcessDataManager.ProcessResultTypeEnum;
-import fr.cs.ikats.temporaldata.exception.IkatsException;
-import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
-import fr.cs.ikats.temporaldata.utils.Chronometer;
-
 /**
  * resource for ProcessData
- * 
+ * <p>
  * TODO [#143428] Correction sur la gestion des exceptions sur le gest. de
  * données.
- * 
- *    ICI: refactoring exceptions: simplifier avec IkatsDaoException => revoir les 
- *    declaratons throws et les handlers sous-jacents afin 
- *    - d'unifier sous IkatsDaoException
- *    - et reduire le nombre de classes (redondances de code)
- *
- * 
+ * <p>
+ * ICI: refactoring exceptions: simplifier avec IkatsDaoException => revoir les
+ * declaratons throws et les handlers sous-jacents afin
+ * - d'unifier sous IkatsDaoException
+ * - et reduire le nombre de classes (redondances de code)
  */
 @Path("processdata")
 public class ProcessDataResource extends AbstractResource {
@@ -72,12 +52,10 @@ public class ProcessDataResource extends AbstractResource {
 
     /**
      * get the processData for processid exec identifier.
-     * 
-     * @param processId
-     *            the process id
+     *
+     * @param processId the process id
      * @return a list of processData
-     * @throws ResourceNotFoundException
-     *             if nothing is found.
+     * @throws ResourceNotFoundException if nothing is found.
      */
     @GET
     @Path("/{processId}")
@@ -94,14 +72,11 @@ public class ProcessDataResource extends AbstractResource {
     /**
      * get the result as an attachement file in the response. media type will
      * depends on the dataType of the result.
-     * 
-     * @param id
-     *            the internal id
+     *
+     * @param id the internal id
      * @return a Response with content-type depending on the processData type
-     * @throws ResourceNotFoundException
-     *             if result is null
-     * @throws SQLException
-     *             if Blob cannot be read
+     * @throws ResourceNotFoundException if result is null
+     * @throws SQLException              if Blob cannot be read
      */
     @GET
     @Path("/id/download/{id}")
@@ -126,8 +101,7 @@ public class ProcessDataResource extends AbstractResource {
                 String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
                 logger.info("JSON String written : " + jsonString + " END");
                 responseBuilder = Response.ok(jsonString, MediaType.APPLICATION_JSON_TYPE);
-            }
-            else {
+            } else {
 
                 responseBuilder = Response.ok(getOut(result.getData().getBytes(1, (int) result.getData().length()))).header("Content-Disposition",
                         "attachment;filename=" + fileName);
@@ -138,12 +112,10 @@ public class ProcessDataResource extends AbstractResource {
             }
 
             return responseBuilder.build();
-        }
-        catch (SQLException sqle) {
+        } catch (SQLException sqle) {
             logger.error("Failed: service downloadProcessData(): caught SQLException:", sqle);
             throw sqle;
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             IkatsDaoException ierror = new IkatsDaoException("Failed: service downloadProcessData(): caught unexpected Throwable:", e);
             logger.error(ierror);
             throw ierror;
@@ -156,18 +128,13 @@ public class ProcessDataResource extends AbstractResource {
      * multipart response containing two parts : 1 containing a JSON
      * representation of the data. 2 containing a OutputStream to download the
      * data.
-     * 
-     * @param id
-     *            the internal id
+     *
+     * @param id the internal id
      * @return a Response with mutlipart
-     * @throws ResourceNotFoundException
-     *             if nothing is found.
-     * @throws IkatsException
-     *             when error occured
-     * @throws IOException
-     *             when error occured
-     * @throws SQLException
-     *             when error occured
+     * @throws ResourceNotFoundException if nothing is found.
+     * @throws IkatsException            when error occured
+     * @throws IOException               when error occured
+     * @throws SQLException              when error occured
      */
     @GET
     @Path("/id/{id}")
@@ -191,29 +158,24 @@ public class ProcessDataResource extends AbstractResource {
             if (ProcessResultTypeEnum.valueOf(result.getDataType()).equals(ProcessResultTypeEnum.JSON)) {
                 String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
                 multipart.bodyPart(new BodyPart(jsonString, MediaType.APPLICATION_JSON_TYPE));
-            }
-            else if (ProcessResultTypeEnum.valueOf(result.getDataType()).equals(ProcessResultTypeEnum.CSV)) {
+            } else if (ProcessResultTypeEnum.valueOf(result.getDataType()).equals(ProcessResultTypeEnum.CSV)) {
                 multipart.bodyPart(new StreamDataBodyPart("myFile.csv", result.getData().getBinaryStream()));
             }
-        }
-        catch (SQLException sqle) {
+        } catch (SQLException sqle) {
             logger.error("Failed: service getProcessData(Integer): caught SQLException:", sqle);
             try {
                 multipart.close();
-            }
-            catch (Throwable e) { // no more closing attempt
+            } catch (Throwable e) { // no more closing attempt
             }
 
             throw sqle;
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             IkatsException ierror = new IkatsException("Failed: service getProcessData(Integer): caught unexpected Throwable:", e);
             logger.error(ierror);
 
             try {
                 multipart.close();
-            }
-            catch (Throwable xe) { // no more closing attempt
+            } catch (Throwable xe) { // no more closing attempt
             }
 
             throw ierror;
@@ -240,9 +202,8 @@ public class ProcessDataResource extends AbstractResource {
     /**
      * return a new Instance of OutputStreaming, used for streaming out the csv
      * file
-     * 
-     * @param bs
-     *            the bytes to write
+     *
+     * @param bs the bytes to write
      * @return
      */
     private StreamingOutput getOut(final byte[] bs) {
@@ -255,8 +216,7 @@ public class ProcessDataResource extends AbstractResource {
     }
 
     /**
-     * @param processId
-     *            the process id to delete
+     * @param processId the process id to delete
      */
     @DELETE
     @Path("/{processId}")
@@ -265,18 +225,39 @@ public class ProcessDataResource extends AbstractResource {
     }
 
     /**
+     * Import any process data type
+     *
+     * @param processId the processId
+     * @param name      the name of the processResult
+     * @param data      the data to save
+     * @param uriInfo   all info on URI
+     * @return the internal id
+     */
+    @POST
+    @Consumes(MediaType.TEXT_PLAIN)
+    @Produces(MediaType.APPLICATION_JSON)
+    public String importProcessResult(
+            @QueryParam("processId") String processId,
+            @QueryParam("name") String name,
+            String data,
+            @Context UriInfo uriInfo) {
+
+        Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
+        logger.info("ProcessId : " + processId);
+        String id = processDataManager.importProcessData(processId, name, data);
+        chrono.stop(logger);
+        return id;
+    }
+
+
+    /**
      * lance l'import d'un resultat de type fichier.
-     * 
-     * @param processId
-     *            the processId
-     * @param fileis
-     *            the file input stream
-     * @param fileDisposition
-     *            information about the Multipart with file
-     * @param formData
-     *            the form data
-     * @param uriInfo
-     *            all info on URI
+     *
+     * @param processId       the processId
+     * @param fileis          the file input stream
+     * @param fileDisposition information about the Multipart with file
+     * @param formData        the form data
+     * @param uriInfo         all info on URI
      * @return the internal id
      */
     @POST
@@ -284,7 +265,7 @@ public class ProcessDataResource extends AbstractResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public String importProcessResult(@PathParam("processId") String processId, @FormDataParam("file") InputStream fileis,
-            @FormDataParam("file") FormDataContentDisposition fileDisposition, FormDataMultiPart formData, @Context UriInfo uriInfo) {
+                                      @FormDataParam("file") FormDataContentDisposition fileDisposition, FormDataMultiPart formData, @Context UriInfo uriInfo) {
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         String fileName = fileDisposition.getFileName();
         logger.info("Import result file : " + fileName);
@@ -297,11 +278,9 @@ public class ProcessDataResource extends AbstractResource {
         for (String key : params.keySet()) {
             if (key.equals("fileType")) {
                 fileType = params.get(key).get(0).getValue();
-            }
-            else if (key.equals("fileSize")) {
+            } else if (key.equals("fileSize")) {
                 fileSize = new Long(Integer.parseInt((params.get(key).get(0).getValue())));
-            }
-            else if (key.equals("file")) {
+            } else if (key.equals("file")) {
                 // do nothing it is the file inputStream, not a tag.
             }
         }
@@ -312,28 +291,28 @@ public class ProcessDataResource extends AbstractResource {
 
     /**
      * lance l'import d'un resultat de type fichier.
-     * 
+     *
      * @param processId the processId
-     * @param name the name of the processResult
-     * @param json the contained json
+     * @param name      the name of the processResult
+     * @param json      the contained json
      * @param sizeParam the size of the json string
-     * @param uriInfo all info on URI
+     * @param uriInfo   all info on URI
      * @return the internal id
      */
     @POST
     @Path("/{processId}/JSON")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
-    public String importProcessResultAsJson(@PathParam("processId") String processId, @FormParam("name") String name, @FormParam("json") String json, @FormParam("size") String sizeParam,@Context UriInfo uriInfo) {
-      
+    public String importProcessResultAsJson(@PathParam("processId") String processId, @FormParam("name") String name, @FormParam("json") String json, @FormParam("size") String sizeParam, @Context UriInfo uriInfo) {
+
         // TODO EVOL REST: simplifier: se passer de sizeParam ? US/FT a creer
         //    => consumes JSON + param name: passe par URL @PathParam ...
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
-        logger.info("processId : " + processId);        
-        Long size =Long.parseLong(sizeParam);
+        logger.info("processId : " + processId);
+        Long size = Long.parseLong(sizeParam);
         String type = "JSON";
         InputStream is = new ByteArrayInputStream(json.getBytes());
-        String id = processDataManager.importProcessData(is, size, processId, type,name);
+        String id = processDataManager.importProcessData(is, size, processId, type, name);
         chrono.stop(logger);
         return id;
     }
