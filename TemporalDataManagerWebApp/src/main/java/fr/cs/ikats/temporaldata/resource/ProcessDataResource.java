@@ -250,6 +250,7 @@ public class ProcessDataResource extends AbstractResource {
     }
 
 
+    // Review#156651 gestion de l'IOException sur erreur de lecture du fichier. 
     /**
      * lance l'import d'un resultat de type fichier.
      *
@@ -259,13 +260,14 @@ public class ProcessDataResource extends AbstractResource {
      * @param formData        the form data
      * @param uriInfo         all info on URI
      * @return the internal id
+     * @throws IkatsException if the result couldn't be read from the file parameter 
      */
     @POST
     @Path("/{processId}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
     public String importProcessResult(@PathParam("processId") String processId, @FormDataParam("file") InputStream fileis,
-                                      @FormDataParam("file") FormDataContentDisposition fileDisposition, FormDataMultiPart formData, @Context UriInfo uriInfo) {
+                                      @FormDataParam("file") FormDataContentDisposition fileDisposition, FormDataMultiPart formData, @Context UriInfo uriInfo) throws IkatsException {
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         String fileName = fileDisposition.getFileName();
         logger.info("Import result file : " + fileName);
@@ -285,10 +287,16 @@ public class ProcessDataResource extends AbstractResource {
             }
         }
         chrono.stop(logger);
-        String id = processDataManager.importProcessData(fileis, fileSize, processId, fileType, fileName);
+        String id;
+		try {
+			id = processDataManager.importProcessData(fileis, fileSize, processId, fileType, fileName);
+		} catch (IOException e) {
+			throw new IkatsException("Could not import result", e);
+		}
         return id;
     }
 
+    // Review#156651 gestion de l'IOException sur erreur de lecture du fichier -> throw Error car ce cas ne devrait pas arriver
     /**
      * lance l'import d'un resultat de type fichier.
      *
@@ -312,7 +320,13 @@ public class ProcessDataResource extends AbstractResource {
         Long size = Long.parseLong(sizeParam);
         String type = "JSON";
         InputStream is = new ByteArrayInputStream(json.getBytes());
-        String id = processDataManager.importProcessData(is, size, processId, type, name);
+        String id;
+		try {
+			id = processDataManager.importProcessData(is, size, processId, type, name);
+		} catch (IOException e) {
+			// that catch should never be raised because the InputStream is managed from a ByteArrayInputStream in memory.
+			throw new Error("Could not import result", e);
+		}
         chrono.stop(logger);
         return id;
     }

@@ -2,7 +2,6 @@ package fr.cs.ikats.process.data;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -12,7 +11,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
-import java.security.SecureRandom;
 import java.sql.SQLException;
 import java.util.List;
 
@@ -26,7 +24,8 @@ public class ProcessDataTest {
 
     
     @Test
-    public void testInsert() {
+    // Review#156651 ajout du throw IOException pour changement signature de ProcessDataFacade.importProcessData(ProcessData, InputStream, int) 
+    public void testInsert() throws IOException {
         ProcessDataFacade facade = new ProcessDataFacade();
         InputStream stream = new ByteArrayInputStream("Ceci est le contenu du fichier de test".getBytes());
         ProcessData data = new ProcessData("execId1", "JSON","Chaine_char");
@@ -77,38 +76,42 @@ public class ProcessDataTest {
         facade.removeProcessData("execId1");
     }
 
-    /**
-     * Test the persistence of an opaque byte to database
-     */
-    @Test
-    public void testInsertAnyBytes() {
-        ProcessDataFacade facade = new ProcessDataFacade();
-
-        // Random bytes generation
-        SecureRandom random = new SecureRandom();
-        byte[] dataToInsert = new byte[20];
-        random.nextBytes(dataToInsert);
-
-        ProcessData data = new ProcessData("execId2", "ANY","test_pdata2");
-
-        facade.importProcessData(data, dataToInsert.toString());
-
-        List<ProcessData> result = facade.getProcessData("execId2");
-        assertNotNull(result);
-        assertEquals(1,result.size());
-        assertEquals("ANY",result.get(0).getDataType());
-
-        String resultData = getDataFromResult(result.get(0));
-
-        System.out.println("BLOB content : ");
-        System.out.println(resultData);
-        System.out.println("END OB BLOB content : ");
-        assertNotNull(resultData);
-        assertEquals(dataToInsert.toString(), resultData.toString());
-        facade.removeProcessData("execId1");
-    }
-
-
+// Review#156651 begin 
+// Ce test n'a pas de sens dû au fait qu'il n'existe pas de facade permettant d'importer un byte[]. 
+// Il n'y a donc pas de sens à tester le passage d'un paramètre byte[] converti en String cela revient au test testInsertAny()
+// 
+//    /**
+//     * Test the persistence of an opaque byte to database
+//     */
+//    @Test
+//    public void testInsertAnyBytes() {
+//        ProcessDataFacade facade = new ProcessDataFacade();
+//
+//        // Random bytes generation
+//        SecureRandom random = new SecureRandom();
+//        byte[] dataToInsert = new byte[20];
+//        random.nextBytes(dataToInsert);
+//
+//        ProcessData data = new ProcessData("execId2", "ANY","test_pdata2");
+//
+//        facade.importProcessData(data, dataToInsert.toString());
+//
+//        List<ProcessData> result = facade.getProcessData("execId2");
+//        assertNotNull(result);
+//        assertEquals(1,result.size());
+//        assertEquals("ANY",result.get(0).getDataType());
+//
+//        String resultData = getDataFromResult(result.get(0));
+//
+//        System.out.println("BLOB content : ");
+//        System.out.println(resultData);
+//        System.out.println("END OB BLOB content : ");
+//        assertNotNull(resultData);
+//        assertEquals(dataToInsert.toString(), resultData.toString());
+//        facade.removeProcessData("execId1");
+//    }
+// Review#156651 end
+    
     /**
      * @param result
      * @return
@@ -138,7 +141,8 @@ public class ProcessDataTest {
     
     
     @Test
-    public void testGetForProcessId() {
+    // Review#156651 ajout du throw IOException pour changement signature de ProcessDataFacade.importProcessData(ProcessData, InputStream, int) 
+    public void testGetForProcessId() throws IOException {
         ProcessDataFacade facade = new ProcessDataFacade();
         InputStream stream = new ByteArrayInputStream("Ceci est le contenu du fichier de test".getBytes());
         InputStream stream2 = new ByteArrayInputStream("Ceci est le contenu du fichier de test 1".getBytes());
@@ -188,7 +192,8 @@ public class ProcessDataTest {
     }
     
     @Test
-    public void testDelete() {
+    // Review#156651 ajout du throw IOException pour changement signature de ProcessDataFacade.importProcessData(ProcessData, InputStream, int) 
+    public void testDelete() throws IOException {
         ProcessDataFacade facade = new ProcessDataFacade();
         InputStream stream = new ByteArrayInputStream("Ceci est le contenu du fichier de test".getBytes());
         ProcessData data = new ProcessData("execId1", "JSON","Chaine_char");
@@ -199,7 +204,8 @@ public class ProcessDataTest {
     }
     
     @Test
-    public void testGetById() {
+    // Review#156651 ajout du throw IOException pour changement signature de ProcessDataFacade.importProcessData(ProcessData, InputStream, int) 
+    public void testGetById() throws IOException {
         ProcessDataFacade facade = new ProcessDataFacade();
         InputStream stream = new ByteArrayInputStream("Ceci est le contenu du fichier de test".getBytes());
         ProcessData data = new ProcessData("execId1", "JSON","Chaine_char");

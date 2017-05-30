@@ -4,6 +4,7 @@ import fr.cs.ikats.process.data.ProcessDataFacade;
 import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -31,8 +32,10 @@ public class ProcessDataManager {
      * @param processId  the data producer identifier
      * @param dataType   the dataType
      * @return the internal identifier of the result.
+     * @throws IOException In case of error when reading fileis 
      */
-    public String importProcessData(InputStream fileis, Long fileLength, String processId, String dataType, String name) {
+    // Review#156651 ajout du throw IOException pour changement signature de ProcessDataFacade.importProcessData(ProcessData, InputStream, int) 
+    public String importProcessData(InputStream fileis, Long fileLength, String processId, String dataType, String name) throws IOException {
         ProcessData data = new ProcessData(processId, dataType, name);
         return getProcessDataFacade().importProcessData(data, fileis, fileLength.intValue());
     }
