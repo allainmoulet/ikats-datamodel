@@ -97,15 +97,17 @@ public class ProcessDataResource extends AbstractResource {
             ResponseBuilder responseBuilder;
 
             // TODO robustness: result.getFormat() may be null ?
-            if (result.getDataType().equals(ProcessResultTypeEnum.JSON.toString())) {
+            if (result.getDataType().equals(ProcessResultTypeEnum.ANY.toString())) {
+                String data = new String(result.getData().getBytes(1, (int) result.getData().length()));
+                logger.info("Body written : " + data + " END");
+                responseBuilder = Response.ok(data, MediaType.TEXT_PLAIN);
+            } else if (result.getDataType().equals(ProcessResultTypeEnum.JSON.toString())) {
                 String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
                 logger.info("JSON String written : " + jsonString + " END");
                 responseBuilder = Response.ok(jsonString, MediaType.APPLICATION_JSON_TYPE);
             } else {
-
                 responseBuilder = Response.ok(getOut(result.getData().getBytes(1, (int) result.getData().length()))).header("Content-Disposition",
                         "attachment;filename=" + fileName);
-                // TODO robustness: result.getFormat() may be null ?
                 if (result.getDataType().equals(ProcessResultTypeEnum.CSV.toString())) {
                     responseBuilder.header("Content-Type", "application/ms-excel");
                 }
@@ -132,9 +134,9 @@ public class ProcessDataResource extends AbstractResource {
      * @param id the internal id
      * @return a Response with mutlipart
      * @throws ResourceNotFoundException if nothing is found.
-     * @throws IkatsException            when error occured
-     * @throws IOException               when error occured
-     * @throws SQLException              when error occured
+     * @throws IkatsException            when error occurred
+     * @throws IOException               when error occurred
+     * @throws SQLException              when error occurred
      */
     @GET
     @Path("/id/{id}")
@@ -239,7 +241,7 @@ public class ProcessDataResource extends AbstractResource {
     public String importProcessResult(
             @QueryParam("processId") String processId,
             @QueryParam("name") String name,
-            String data,
+            byte[] data,
             @Context UriInfo uriInfo) {
 
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);

@@ -7,7 +7,10 @@ import org.springframework.core.io.Resource;
 
 import java.io.*;
 import java.nio.charset.Charset;
+import java.security.SecureRandom;
+import java.sql.Blob;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -47,8 +50,12 @@ public class ProcessDataTest {
     public void testInsertAny() {
         ProcessDataFacade facade = new ProcessDataFacade();
 
-        String dataToInsert = "This is a content to store";
-        ProcessData data = new ProcessData("execId1", "ANY", "test_pdata");
+        // Random bytes generation
+        SecureRandom random = new SecureRandom();
+        byte[] dataToInsert = new byte[200];
+        random.nextBytes(dataToInsert);
+
+        ProcessData data = new ProcessData("execId1", "ANY", "test_pdata1");
 
         facade.importProcessData(data, dataToInsert);
 
@@ -57,13 +64,9 @@ public class ProcessDataTest {
         assertEquals(1, result.size());
         assertEquals("ANY", result.get(0).getDataType());
 
-        String resultData = getDataFromResult(result.get(0));
-
-        System.out.println("BLOB content : ");
-        System.out.println(resultData);
-        System.out.println("END OB BLOB content : ");
+        byte[] resultData = getRawDataFromResult(result.get(0));
         assertNotNull(resultData);
-        assertEquals(dataToInsert, resultData);
+        assertTrue(Arrays.equals(dataToInsert, resultData));
         facade.removeProcessData("execId1");
     }
 
@@ -84,19 +87,31 @@ public class ProcessDataTest {
                 strBuff.append(new String(buff, Charset.defaultCharset()));
             }
             resultData = strBuff.toString().trim();
-        } catch (SQLException e1) {
+        } catch (SQLException | IOException e1) {
             e1.printStackTrace();
-            fail();
-        } catch (IOException e) {
-            e.printStackTrace();
             fail();
         }
         return resultData;
     }
 
+    /**
+     * @param processData
+     * @return
+     */
+    private byte[] getRawDataFromResult(ProcessData processData) {
+        Blob data = processData.getData();
+        byte[] result = null;
+        try {
+            result = data.getBytes(1, (int) data.length());
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+            fail();
+        }
+        return result;
+    }
+
 
     @Test
-    // Review#156651 ajout du throw IOException pour changement signature de ProcessDataFacade.importProcessData(ProcessData, InputStream, int) 
     public void testGetForProcessId() throws IOException {
         ProcessDataFacade facade = new ProcessDataFacade();
         InputStream stream = new ByteArrayInputStream("Ceci est le contenu du fichier de test".getBytes());

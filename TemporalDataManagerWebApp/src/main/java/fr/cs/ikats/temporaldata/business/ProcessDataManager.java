@@ -47,7 +47,7 @@ public class ProcessDataManager {
      * @param data      the data
      * @return the internal identifier of the result.
      */
-    public String importProcessData(String processId, String name, String data) {
+    public String importProcessData(String processId, String name, byte[] data) {
         ProcessData processData = new ProcessData(processId, "ANY", name);
         return getProcessDataFacade().importProcessData(processData, data);
     }
@@ -61,17 +61,13 @@ public class ProcessDataManager {
          */
         JSON,
         /**
-         * Value for matrix type
-         */
-        MATRIX,
-        /**
          * Value for CSV file type
          */
         CSV,
         /**
-         * Value for Other type
+         * Value for Any other type
          */
-        OTHER;
+        ANY
     }
 
 

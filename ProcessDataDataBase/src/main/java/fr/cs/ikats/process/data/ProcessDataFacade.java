@@ -27,7 +27,7 @@ public class ProcessDataFacade {
 
     /**
      * DataSetFacade
-     * the DAO for acces to MetaData storage
+     * the DAO for access to MetaData storage
      */
     private ProcessDataDAO dao;
 
@@ -52,8 +52,7 @@ public class ProcessDataFacade {
     /**
      * @param data   processData
      * @param is     input stream
-     *               Review#156651 ajout d'un commentaire sur la possibilité d'utiliser -1 comme longueur utilisé {@link ProcessDataTest}
-     * @param length size of data, could -1 to read until the end of the stream.
+     * @param length size of data, could be -1 to read until the end of the stream.
      * @return the internal identifier
      * @throws IOException
      */
@@ -85,8 +84,8 @@ public class ProcessDataFacade {
      * @param data        data to save
      * @return the internal identifier
      */
-    public String importProcessData(ProcessData processData, String data) {
-        return dao.persist(processData, data.getBytes());
+    public String importProcessData(ProcessData processData, byte[] data) {
+        return dao.persist(processData, data);
     }
 
     /**
