@@ -250,7 +250,6 @@ public class ProcessDataResource extends AbstractResource {
     }
 
 
-    // Review#156651 gestion de l'IOException sur erreur de lecture du fichier. 
     /**
      * lance l'import d'un resultat de type fichier.
      *
@@ -260,14 +259,18 @@ public class ProcessDataResource extends AbstractResource {
      * @param formData        the form data
      * @param uriInfo         all info on URI
      * @return the internal id
-     * @throws IkatsException if the result couldn't be read from the file parameter 
+     * @throws IkatsException if the result couldn't be read from the file parameter
      */
     @POST
     @Path("/{processId}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public String importProcessResult(@PathParam("processId") String processId, @FormDataParam("file") InputStream fileis,
-                                      @FormDataParam("file") FormDataContentDisposition fileDisposition, FormDataMultiPart formData, @Context UriInfo uriInfo) throws IkatsException {
+    public String importProcessResult(
+            @PathParam("processId") String processId,
+            @FormDataParam("file") InputStream fileis,
+            @FormDataParam("file") FormDataContentDisposition fileDisposition,
+            FormDataMultiPart formData,
+            @Context UriInfo uriInfo) throws IkatsException {
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         String fileName = fileDisposition.getFileName();
         logger.info("Import result file : " + fileName);
@@ -286,17 +289,17 @@ public class ProcessDataResource extends AbstractResource {
                 // do nothing it is the file inputStream, not a tag.
             }
         }
-        chrono.stop(logger);
         String id;
-		try {
-			id = processDataManager.importProcessData(fileis, fileSize, processId, fileType, fileName);
-		} catch (IOException e) {
-			throw new IkatsException("Could not import result", e);
-		}
+        try {
+            id = processDataManager.importProcessData(fileis, fileSize, processId, fileType, fileName);
+        } catch (IOException e) {
+            throw new IkatsException("Could not import result", e);
+        } finally {
+            chrono.stop(logger);
+        }
         return id;
     }
 
-    // Review#156651 gestion de l'IOException sur erreur de lecture du fichier -> throw Error car ce cas ne devrait pas arriver
     /**
      * lance l'import d'un resultat de type fichier.
      *
@@ -313,21 +316,20 @@ public class ProcessDataResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public String importProcessResultAsJson(@PathParam("processId") String processId, @FormParam("name") String name, @FormParam("json") String json, @FormParam("size") String sizeParam, @Context UriInfo uriInfo) {
 
-        // TODO EVOL REST: simplifier: se passer de sizeParam ? US/FT a creer
-        //    => consumes JSON + param name: passe par URL @PathParam ...
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         logger.info("processId : " + processId);
         Long size = Long.parseLong(sizeParam);
         String type = "JSON";
         InputStream is = new ByteArrayInputStream(json.getBytes());
         String id;
-		try {
-			id = processDataManager.importProcessData(is, size, processId, type, name);
-		} catch (IOException e) {
-			// that catch should never be raised because the InputStream is managed from a ByteArrayInputStream in memory.
-			throw new Error("Could not import result", e);
-		}
-        chrono.stop(logger);
+        try {
+            id = processDataManager.importProcessData(is, size, processId, type, name);
+        } catch (IOException e) {
+            // that catch should never be raised because the InputStream is managed from a ByteArrayInputStream in memory.
+            throw new Error("Could not import result", e);
+        } finally {
+            chrono.stop(logger);
+        }
         return id;
     }
 

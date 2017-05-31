@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,33 +52,30 @@ public class ProcessDataFacade {
     /**
      * @param data   processData
      * @param is     input stream
-     * Review#156651 ajout d'un commentaire sur la possibilité d'utiliser -1 comme longueur utilisé {@link ProcessDataTest}   
-     * @param length size of data, could -1 to read until the end of the stream. 
+     *               Review#156651 ajout d'un commentaire sur la possibilité d'utiliser -1 comme longueur utilisé {@link ProcessDataTest}
+     * @param length size of data, could -1 to read until the end of the stream.
      * @return the internal identifier
-     * @throws IOException 
+     * @throws IOException
      */
     public String importProcessData(ProcessData data, InputStream is, int length) throws IOException {
-        
-    	// Review#156651 pour faire suite à la proposition de suppression de la méthode qui prend un IS dans la DAO, 
-    	// voilà le code pour appel la méthode utilisant le tableau d'octets.
-    	
-    	// Prepare a buffer to get the table of bytes from the InputStream
-		ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-		
-		// Put a boolean flag for the case where length = -1
-		boolean canRead = true;
-		
-		for (int i = 0; i < length || canRead; i++) {
-			int read = is.read();
-			if (read != -1) {
-				buffer.write(read);
-			} else {
-				canRead = false;
-			}
-		}
-		buffer.flush();
-		
-		return dao.persist(data, buffer.toByteArray());
+
+        // Prepare a buffer to get the table of bytes from the InputStream
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        // Put a boolean flag for the case where length = -1
+        boolean canRead = true;
+
+        for (int i = 0; i < length || canRead; i++) {
+            int read = is.read();
+            if (read != -1) {
+                buffer.write(read);
+            } else {
+                canRead = false;
+            }
+        }
+        buffer.flush();
+
+        return dao.persist(data, buffer.toByteArray());
     }
 
     /**

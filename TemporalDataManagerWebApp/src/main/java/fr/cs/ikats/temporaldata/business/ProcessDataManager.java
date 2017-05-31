@@ -32,9 +32,8 @@ public class ProcessDataManager {
      * @param processId  the data producer identifier
      * @param dataType   the dataType
      * @return the internal identifier of the result.
-     * @throws IOException In case of error when reading fileis 
+     * @throws IOException In case of error when reading fileis
      */
-    // Review#156651 ajout du throw IOException pour changement signature de ProcessDataFacade.importProcessData(ProcessData, InputStream, int) 
     public String importProcessData(InputStream fileis, Long fileLength, String processId, String dataType, String name) throws IOException {
         ProcessData data = new ProcessData(processId, dataType, name);
         return getProcessDataFacade().importProcessData(data, fileis, fileLength.intValue());
