@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -96,14 +97,13 @@ public class ProcessDataResource extends AbstractResource {
             String fileName = result.getName();
             ResponseBuilder responseBuilder;
 
-            // TODO robustness: result.getFormat() may be null ?
             if (result.getDataType().equals(ProcessResultTypeEnum.ANY.toString())) {
-                String data = new String(result.getData().getBytes(1, (int) result.getData().length()));
-                logger.info("Body written : " + data + " END");
-                responseBuilder = Response.ok(data, MediaType.TEXT_PLAIN);
+                byte[] bytes = result.getData().getBytes(1, (int) result.getData().length());
+                logger.trace("Body written : " + Arrays.toString(bytes) + " END");
+                responseBuilder = Response.ok(bytes, MediaType.APPLICATION_OCTET_STREAM);
             } else if (result.getDataType().equals(ProcessResultTypeEnum.JSON.toString())) {
                 String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
-                logger.info("JSON String written : " + jsonString + " END");
+                logger.trace("JSON String written : " + jsonString + " END");
                 responseBuilder = Response.ok(jsonString, MediaType.APPLICATION_JSON_TYPE);
             } else {
                 responseBuilder = Response.ok(getOut(result.getData().getBytes(1, (int) result.getData().length()))).header("Content-Disposition",
