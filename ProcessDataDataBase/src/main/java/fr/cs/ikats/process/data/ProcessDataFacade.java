@@ -7,6 +7,8 @@ import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PreDestroy;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -25,7 +27,7 @@ public class ProcessDataFacade {
 
     /**
      * DataSetFacade
-     * the DAO for acces to MetaData storage
+     * the DAO for access to MetaData storage
      */
     private ProcessDataDAO dao;
 
@@ -50,11 +52,29 @@ public class ProcessDataFacade {
     /**
      * @param data   processData
      * @param is     input stream
-     * @param length size of data
+     * @param length size of data, could be -1 to read until the end of the stream.
      * @return the internal identifier
+     * @throws IOException
      */
-    public String importProcessData(ProcessData data, InputStream is, int length) {
-        return dao.persist(data, is, length);
+    public String importProcessData(ProcessData data, InputStream is, int length) throws IOException {
+
+        // Prepare a buffer to get the table of bytes from the InputStream
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        // Put a boolean flag for the case where length = -1
+        boolean canRead = true;
+
+        for (int i = 0; i < length || canRead; i++) {
+            int read = is.read();
+            if (read != -1) {
+                buffer.write(read);
+            } else {
+                canRead = false;
+            }
+        }
+        buffer.flush();
+
+        return dao.persist(data, buffer.toByteArray());
     }
 
     /**
@@ -64,7 +84,7 @@ public class ProcessDataFacade {
      * @param data        data to save
      * @return the internal identifier
      */
-    public String importProcessData(ProcessData processData, String data) {
+    public String importProcessData(ProcessData processData, byte[] data) {
         return dao.persist(processData, data);
     }
 

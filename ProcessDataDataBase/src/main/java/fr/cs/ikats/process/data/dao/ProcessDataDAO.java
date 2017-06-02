@@ -6,8 +6,6 @@ import org.apache.log4j.Logger;
 import org.hibernate.*;
 import org.hibernate.criterion.Restrictions;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.sql.Blob;
 import java.util.List;
 
@@ -26,57 +24,15 @@ public class ProcessDataDAO extends DataBaseDAO {
 
     }
 
-    /**
-     * persist the ProcessData
-     *
-     * @param ds     the process data
-     * @param is     input stream to read
-     * @param length lenght of data
-     * @return the internal identifier if ProcessData has been correctly persisted,
-     */
-    public String persist(ProcessData ds, InputStream is, int length) {
-
-        Session session = getSession();
-        Transaction tx = null;
-        Integer processDataId = null;
-        try {
-            tx = session.beginTransaction();
-            LOGGER.info("Bytes available " + is.available());
-            Blob blob;
-            if (length == -1) {
-                blob = Hibernate.createBlob(is);
-            } else {
-                blob = Hibernate.createBlob(is, length);
-            }
-            ds.setData(blob);
-            processDataId = (Integer) session.save(ds);
-            session.flush();
-            tx.commit();
-            LOGGER.debug("ProcessData stored " + ds);
-        } catch (IOException e) {
-            if (tx != null) {
-                tx.rollback();
-            }
-            LOGGER.error("unable to read data from inputStream ", e);
-        } catch (HibernateException e) {
-            if (tx != null) {
-                tx.rollback();
-            }
-            LOGGER.error("", e);
-        } finally {
-            session.close();
-        }
-        return processDataId.toString();
-    }
 
     /**
      * persist the ProcessData
      *
-     * @param ds     the process data
-     * @param data   data to save
+     * @param ds   the process data
+     * @param data data to save
      * @return the internal identifier if ProcessData has been correctly persisted,
      */
-    public String persist(ProcessData ds, String data) {
+    public String persist(ProcessData ds, byte[] data) {
 
         Session session = getSession();
         Transaction tx = null;
@@ -84,7 +40,7 @@ public class ProcessDataDAO extends DataBaseDAO {
         try {
             tx = session.beginTransaction();
             Blob blob;
-            blob = Hibernate.createBlob(data.getBytes());
+            blob = Hibernate.createBlob(data);
             ds.setData(blob);
             processDataId = (Integer) session.save(ds);
             session.flush();

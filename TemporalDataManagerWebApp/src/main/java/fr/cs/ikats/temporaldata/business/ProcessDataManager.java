@@ -4,6 +4,7 @@ import fr.cs.ikats.process.data.ProcessDataFacade;
 import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
@@ -31,8 +32,9 @@ public class ProcessDataManager {
      * @param processId  the data producer identifier
      * @param dataType   the dataType
      * @return the internal identifier of the result.
+     * @throws IOException In case of error when reading fileis
      */
-    public String importProcessData(InputStream fileis, Long fileLength, String processId, String dataType, String name) {
+    public String importProcessData(InputStream fileis, Long fileLength, String processId, String dataType, String name) throws IOException {
         ProcessData data = new ProcessData(processId, dataType, name);
         return getProcessDataFacade().importProcessData(data, fileis, fileLength.intValue());
     }
@@ -45,7 +47,7 @@ public class ProcessDataManager {
      * @param data      the data
      * @return the internal identifier of the result.
      */
-    public String importProcessData(String processId, String name, String data) {
+    public String importProcessData(String processId, String name, byte[] data) {
         ProcessData processData = new ProcessData(processId, "ANY", name);
         return getProcessDataFacade().importProcessData(processData, data);
     }
@@ -59,17 +61,13 @@ public class ProcessDataManager {
          */
         JSON,
         /**
-         * Value for matrix type
-         */
-        MATRIX,
-        /**
          * Value for CSV file type
          */
         CSV,
         /**
-         * Value for Other type
+         * Value for Any other type
          */
-        OTHER;
+        ANY
     }
 
 

@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.sql.SQLException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -96,16 +97,17 @@ public class ProcessDataResource extends AbstractResource {
             String fileName = result.getName();
             ResponseBuilder responseBuilder;
 
-            // TODO robustness: result.getFormat() may be null ?
-            if (result.getDataType().equals(ProcessResultTypeEnum.JSON.toString())) {
+            if (result.getDataType().equals(ProcessResultTypeEnum.ANY.toString())) {
+                byte[] bytes = result.getData().getBytes(1, (int) result.getData().length());
+                logger.trace("Body written : " + Arrays.toString(bytes) + " END");
+                responseBuilder = Response.ok(bytes, MediaType.APPLICATION_OCTET_STREAM);
+            } else if (result.getDataType().equals(ProcessResultTypeEnum.JSON.toString())) {
                 String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
-                logger.info("JSON String written : " + jsonString + " END");
+                logger.trace("JSON String written : " + jsonString + " END");
                 responseBuilder = Response.ok(jsonString, MediaType.APPLICATION_JSON_TYPE);
             } else {
-
                 responseBuilder = Response.ok(getOut(result.getData().getBytes(1, (int) result.getData().length()))).header("Content-Disposition",
                         "attachment;filename=" + fileName);
-                // TODO robustness: result.getFormat() may be null ?
                 if (result.getDataType().equals(ProcessResultTypeEnum.CSV.toString())) {
                     responseBuilder.header("Content-Type", "application/ms-excel");
                 }
@@ -132,9 +134,9 @@ public class ProcessDataResource extends AbstractResource {
      * @param id the internal id
      * @return a Response with mutlipart
      * @throws ResourceNotFoundException if nothing is found.
-     * @throws IkatsException            when error occured
-     * @throws IOException               when error occured
-     * @throws SQLException              when error occured
+     * @throws IkatsException            when error occurred
+     * @throws IOException               when error occurred
+     * @throws SQLException              when error occurred
      */
     @GET
     @Path("/id/{id}")
@@ -239,7 +241,7 @@ public class ProcessDataResource extends AbstractResource {
     public String importProcessResult(
             @QueryParam("processId") String processId,
             @QueryParam("name") String name,
-            String data,
+            byte[] data,
             @Context UriInfo uriInfo) {
 
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
@@ -259,13 +261,18 @@ public class ProcessDataResource extends AbstractResource {
      * @param formData        the form data
      * @param uriInfo         all info on URI
      * @return the internal id
+     * @throws IkatsException if the result couldn't be read from the file parameter
      */
     @POST
     @Path("/{processId}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.APPLICATION_JSON)
-    public String importProcessResult(@PathParam("processId") String processId, @FormDataParam("file") InputStream fileis,
-                                      @FormDataParam("file") FormDataContentDisposition fileDisposition, FormDataMultiPart formData, @Context UriInfo uriInfo) {
+    public String importProcessResult(
+            @PathParam("processId") String processId,
+            @FormDataParam("file") InputStream fileis,
+            @FormDataParam("file") FormDataContentDisposition fileDisposition,
+            FormDataMultiPart formData,
+            @Context UriInfo uriInfo) throws IkatsException {
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         String fileName = fileDisposition.getFileName();
         logger.info("Import result file : " + fileName);
@@ -284,8 +291,14 @@ public class ProcessDataResource extends AbstractResource {
                 // do nothing it is the file inputStream, not a tag.
             }
         }
-        chrono.stop(logger);
-        String id = processDataManager.importProcessData(fileis, fileSize, processId, fileType, fileName);
+        String id;
+        try {
+            id = processDataManager.importProcessData(fileis, fileSize, processId, fileType, fileName);
+        } catch (IOException e) {
+            throw new IkatsException("Could not import result", e);
+        } finally {
+            chrono.stop(logger);
+        }
         return id;
     }
 
@@ -305,15 +318,20 @@ public class ProcessDataResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public String importProcessResultAsJson(@PathParam("processId") String processId, @FormParam("name") String name, @FormParam("json") String json, @FormParam("size") String sizeParam, @Context UriInfo uriInfo) {
 
-        // TODO EVOL REST: simplifier: se passer de sizeParam ? US/FT a creer
-        //    => consumes JSON + param name: passe par URL @PathParam ...
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         logger.info("processId : " + processId);
         Long size = Long.parseLong(sizeParam);
         String type = "JSON";
         InputStream is = new ByteArrayInputStream(json.getBytes());
-        String id = processDataManager.importProcessData(is, size, processId, type, name);
-        chrono.stop(logger);
+        String id;
+        try {
+            id = processDataManager.importProcessData(is, size, processId, type, name);
+        } catch (IOException e) {
+            // that catch should never be raised because the InputStream is managed from a ByteArrayInputStream in memory.
+            throw new Error("Could not import result", e);
+        } finally {
+            chrono.stop(logger);
+        }
         return id;
     }
 
