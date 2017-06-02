@@ -90,7 +90,7 @@ public class Chronometer {
         StringBuilder sb = new StringBuilder();
         sb.append("[name= ").append(name).append(",");
         sb.append("startTime=").append(DateFormatUtils.ISO_DATETIME_FORMAT.format(startTime)).append(",");
-        sb.append("stopTime=").append(DateFormatUtils.ISO_DATETIME_FORMAT.format(startTime)).append(",");
+        sb.append("stopTime=").append(DateFormatUtils.ISO_DATETIME_FORMAT.format(stopTime)).append(",");
         sb.append("timeElapsed=").append(timeElapsed).append("]");
         return sb.toString();
     }
