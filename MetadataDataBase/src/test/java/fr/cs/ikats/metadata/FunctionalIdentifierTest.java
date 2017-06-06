@@ -56,19 +56,16 @@ public class FunctionalIdentifierTest extends CommonTest {
 		facade.removeFunctionalIdentifier(tsuids);
 	}
 
-	@Test
+	@Test(expected=IkatsDaoConflictException.class)
 	public void testPersist_DG_Doublon() throws IkatsDaoConflictException, IkatsDaoException {
 
 		MetaDataFacade facade = new MetaDataFacade();
 
-		Map<String, String> values = new HashMap<String, String>();
-		values.put("tsuid1_dg", "mon_id_fonctionel1");
-		values.put("tsuid1_dg", "mon_id_fonctionel2");
-		int added = facade.persistFunctionalIdentifier(values);
+		int added = facade.persistFunctionalIdentifier("tsuid1_dg", "mon_id_fonctionel1");
 		assertEquals(1, added);
-		List<String> tsuids = new ArrayList<String>();
-		tsuids.add("tsuid1_dg");
-		facade.removeFunctionalIdentifier(tsuids);
+		
+		// Will throw the IkatsDaoConflictException
+		added = facade.persistFunctionalIdentifier("tsuid1_dg", "mon_id_fonctionel1");
 	}
 
 	/**
