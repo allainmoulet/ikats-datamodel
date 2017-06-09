@@ -1,16 +1,16 @@
 package fr.cs.ikats.process.data;
 
-import java.io.InputStream;
-import java.util.List;
-
-import javax.annotation.PreDestroy;
-
+import fr.cs.ikats.process.data.dao.ProcessDataDAO;
+import fr.cs.ikats.process.data.model.ProcessData;
 import org.apache.log4j.Logger;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import fr.cs.ikats.process.data.dao.ProcessDataDAO;
-import fr.cs.ikats.process.data.model.ProcessData;
+import javax.annotation.PreDestroy;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
 
 /**
  * Facade to the storage facility for datasets
@@ -19,14 +19,15 @@ import fr.cs.ikats.process.data.model.ProcessData;
 @Scope("singleton")
 public class ProcessDataFacade {
 
-    
+
     /**
      * the logger instance for this class
      */
     private static final Logger LOGGER = Logger.getLogger(ProcessDataFacade.class);
 
-    /**DataSetFacade
-     * the DAO for acces to MetaData storage
+    /**
+     * DataSetFacade
+     * the DAO for access to MetaData storage
      */
     private ProcessDataDAO dao;
 
@@ -49,28 +50,57 @@ public class ProcessDataFacade {
     }
 
     /**
-     * 
-     * @param data processData
-     * @param is input stream
-     * @param length size of data
+     * @param data   processData
+     * @param is     input stream
+     * @param length size of data, could be -1 to read until the end of the stream.
+     * @return the internal identifier
+     * @throws IOException
+     */
+    public String importProcessData(ProcessData data, InputStream is, int length) throws IOException {
+
+        // Prepare a buffer to get the table of bytes from the InputStream
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+
+        // Put a boolean flag for the case where length = -1
+        boolean canRead = true;
+
+        for (int i = 0; i < length || canRead; i++) {
+            int read = is.read();
+            if (read != -1) {
+                buffer.write(read);
+            } else {
+                canRead = false;
+            }
+        }
+        buffer.flush();
+
+        return dao.persist(data, buffer.toByteArray());
+    }
+
+    /**
+     * Import a data to database
+     *
+     * @param processData processData to use
+     * @param data        data to save
      * @return the internal identifier
      */
-    public String importProcessData(ProcessData data,InputStream is,int length) {
-        return dao.persist(data,is,length);
+    public String importProcessData(ProcessData processData, byte[] data) {
+        return dao.persist(processData, data);
     }
-    
+
     /**
-     * get all processData for processId 
-     * 
+     * get all processData for processId
+     *
      * @param processId the producer
      * @return null if nothing is found.
      */
     public List<ProcessData> getProcessData(String processId) {
         return dao.getProcessData(processId);
     }
-    
+
     /**
      * get the processData for internal id id
+     *
      * @param id the internal identifier.
      * @return null if not found.
      */
@@ -80,13 +110,13 @@ public class ProcessDataFacade {
 
     /**
      * remove all processResults for processId
-     * 
-     * @param processId the producer 
+     *
+     * @param processId the producer
      */
     public void removeProcessData(String processId) {
         dao.removeAllProcessData(processId);
     }
-    
+
     /**
      * destroy the facade
      */
