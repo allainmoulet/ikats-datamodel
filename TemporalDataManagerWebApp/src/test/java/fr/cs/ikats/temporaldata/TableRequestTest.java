@@ -29,6 +29,31 @@ public class TableRequestTest extends AbstractRequestTest {
      * case : nominal (http code 200 returned)
      */
     @Test
+    public void testJoinTableNominal() {
+        String testCaseName = "testImportTablefromCSVFile";
+        boolean isNominal = true;
+        try {
+            start(testCaseName, isNominal);
+
+            File file1 = getFileMatchingResource(testCaseName, "/data/test_import_table_nominal.csv");
+            doImport(getAPIURL() + "/table", file1, "CSV", 200, "timestamp", "tableTest1");
+
+            File file2 = getFileMatchingResource(testCaseName, "/data/test_import_table_nominal.csv");
+            doImport(getAPIURL() + "/table", file2, "CSV", 200, "timestamp", "tableTest2");
+
+
+
+            endNominal(testCaseName);
+        } catch (Throwable e) {
+            endWithFailure(testCaseName, e);
+        }
+    }
+
+    /**
+     * test of table creation from a csv file
+     * case : nominal (http code 200 returned)
+     */
+    @Test
     public void testImportTablefromCSVFileNominal() {
         String testCaseName = "testImportTablefromCSVFile";
         boolean isNominal = true;
@@ -179,10 +204,10 @@ public class TableRequestTest extends AbstractRequestTest {
         return result;
     }
 
-    protected File doGetDataDownload(String id) throws IOException {
+    protected File doGetDataDownload(String tableName) throws IOException {
         Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
                 .build();
-        String url = getAPIURL() + "/processdata/id/download/" + id;
+        String url = getAPIURL() + "/table/" + tableName;
         WebTarget target = client.target(url);
         Response response = target.request().get();
         response.bufferEntity();

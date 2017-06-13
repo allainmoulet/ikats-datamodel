@@ -1,6 +1,7 @@
 package fr.cs.ikats.temporaldata.resource;
 
 import java.io.*;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.HashMap;
 import java.util.ArrayList;
@@ -19,6 +20,10 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import fr.cs.ikats.metadata.MetaDataFacade;
+import fr.cs.ikats.metadata.model.MetaData;
+import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -32,6 +37,7 @@ import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.temporaldata.utils.Chronometer;
 import org.json.simple.JSONObject;
+
 
 /**
  * resource for Table
@@ -173,13 +179,9 @@ public class TableResource extends AbstractResource {
                 if (line.isEmpty()) {
                     continue;
                 }
-                // Review:MBD:156259 ce serait bien de verifier que la taille de
-                // columnHeaders vale
-                // Review:MBD:156259 celle de items du while ... sinon il manque
-                // un separateur ...
 
                 String[] items = line.split(separator, -1);
-                if (items.length != columnHeaders.size()){
+                if (items.length != columnHeaders.size()) {
                     String context = "Line length does not fit headers size in csv file : " + fileName;
                     logger.error(context);
                     return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
@@ -254,4 +256,54 @@ public class TableResource extends AbstractResource {
 
     }
 
+    /**
+     * Database (processData table) import of a csv table
+     *
+     * @param tableName    name of the table to convert
+     * @param metaName     name of metadata to concat with agregates ref
+     * @param populationId id of population (which is in fact a metadata name) = key of output table
+     * @param formData     the form data
+     * @param uriInfo      all info on URI
+     * @return the internal id
+     * @throws IOException       error when parsing input csv file
+     * @throws IkatsDaoException error while accessing database to check if table already
+     *                           exists
+     */
+    @POST
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @SuppressWarnings("unchecked")
+    public Response joinTable(@FormDataParam("tableName") String tableName,
+                              @FormDataParam("metaName") String metaName,
+                              @FormDataParam("populationId") String populationId, FormDataMultiPart formData,
+                              @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, SQLException, ParseException {
+
+
+        try {
+
+            Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
+            logger.info("Working on table (" + tableName + ") " +
+                    "with metaName (" + metaName + ") " +
+                    "and with populationId (" + populationId + ")");
+
+            IkatsTable outputTable = new IkatsTable()
+
+            ProcessData dataTable = processDataManager.getProcessData(tableName).get(0);
+            ObjectMapper mapper = new ObjectMapper();
+            String jsonString = new String(dataTable.getData().getBytes(1, (int) dataTable.getData().length()));
+            IkatsTable table = mapper.readValue(jsonString, IkatsTable.class);
+
+            List<String> col_headers = table.headers.col.data;
+            List<String> row_headers = table.headers.row.data;
+
+            MetaDataFacade metaFacade = new MetaDataFacade();
+            result = metaFacade.getFunctionalIdentifierByFuncId("mon_id_fonctionel11");
+
+            List<FunctionalIdentifier> funcIds = metaFacade.getFunctionalIdentifierByFuncIdList(row_headers);
+            for (int i = 1; i < row_headers.size(); i++) {
+                List<MetaData> metaDataList = metaFacade.getMetaData()
+            }
+        }
+    }
+
+}
 }
