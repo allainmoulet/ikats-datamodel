@@ -104,13 +104,13 @@ public abstract class AbstractDataJsonIzer implements IImportSerializer {
         StringBuilder builder = new StringBuilder();
         
         String readLine = reader.readLine();
-        int pointRead = 1;
-        for (; pointRead < numberOfPointsByImport && readLine != null; pointRead++) {
+        int pointRead = 0;
+        for (; pointRead < numberOfPointsByImport && readLine != null && !readLine.isEmpty(); pointRead++) {
             builder.append(readLine).append(";");
             readLine = reader.readLine();
 		}
         // store the number of point read (minus one for the last increment)
-        totalPointsRead += (long) (pointRead - 1); 
+        totalPointsRead += (long) pointRead; 
         
         if(readLine!=null) {
             builder.append(readLine);
