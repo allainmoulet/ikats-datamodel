@@ -2,10 +2,7 @@ package fr.cs.ikats.temporaldata.resource;
 
 import java.io.*;
 import java.sql.SQLException;
-import java.util.List;
-import java.util.HashMap;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -270,12 +267,13 @@ public class TableResource extends AbstractResource {
      *                           exists
      */
     @POST
+    @Path("/{tableName}")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @SuppressWarnings("unchecked")
-    public Response joinTable(@FormDataParam("tableName") String tableName,
-                              @FormDataParam("metaName") String metaName,
-                              @FormDataParam("populationId") String populationId, FormDataMultiPart formData,
-                              @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, SQLException, ParseException {
+    public Response featureTable(@FormDataParam("tableName") String tableName,
+                                 @FormDataParam("metaName") String metaName,
+                                 @FormDataParam("populationId") String populationId, FormDataMultiPart formData,
+                                 @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, SQLException, ParseException {
 
 
         try {
@@ -285,25 +283,59 @@ public class TableResource extends AbstractResource {
                     "with metaName (" + metaName + ") " +
                     "and with populationId (" + populationId + ")");
 
-            IkatsTable outputTable = new IkatsTable()
+            Table outputTable = new Table();
 
             ProcessData dataTable = processDataManager.getProcessData(tableName).get(0);
             ObjectMapper mapper = new ObjectMapper();
             String jsonString = new String(dataTable.getData().getBytes(1, (int) dataTable.getData().length()));
-            IkatsTable table = mapper.readValue(jsonString, IkatsTable.class);
+            Table table = mapper.readValue(jsonString, Table.class);
 
-            List<String> col_headers = table.headers.col.data;
-            List<String> row_headers = table.headers.row.data;
+            List<String> colHeaders = table.headers.col.data;
+            List<String> rowHeaders = table.headers.row.data;
 
             MetaDataFacade metaFacade = new MetaDataFacade();
-            result = metaFacade.getFunctionalIdentifierByFuncId("mon_id_fonctionel11");
+            // assuming row headers are functional identifiers
+            List<FunctionalIdentifier> funcIds = metaFacade.getFunctionalIdentifierByFuncIdList(rowHeaders);
 
-            List<FunctionalIdentifier> funcIds = metaFacade.getFunctionalIdentifierByFuncIdList(row_headers);
-            for (int i = 1; i < row_headers.size(); i++) {
-                List<MetaData> metaDataList = metaFacade.getMetaData()
+            List<String> colPopId = new ArrayList<>();
+            List<String> colMetaTs = new ArrayList<>();
+            for (FunctionalIdentifier funcId : funcIds) {
+                // retrieving tsuids of input
+                String tsuid = funcId.getTsuid();
+                MetaData metaTs = metaFacade.getMetaData(tsuid = tsuid, name = metaName);
+                MetaData metaPopId = metaFacade.getMetaData(tsuid = tsuid, name = populationId);
+
+                // filling new colPopId column
+                colPopId.add(metaPopId.getValue());
+
+                // filling new colMetaTs column
+                colMetaTs.add(metaTs.getValue());
+            }
+
+            // processing an ordered list of population ids
+            Set<String> setPopId = new HashSet<>();
+            setPopId.addAll(colPopId);
+            List<String> listPopId = new ArrayList<>();
+            listPopId.addAll(setPopId);
+            Collections.sort(listPopId);
+
+            outputTable.headers.row.data.add(null);
+            for (String popId : listPopId) {
+                outputTable.headers.row.data.add(popId);
+                List<Integer> listIndexPopId = retrieveIndexesListOfEltInList(popId, colPopId);
+
+
+            }
+        } catch () {
+        }
+
+    }
+
+    private List<Integer> retrieveIndexesListOfEltInList(String element, List<String> list) {
+        List<Integer> result = new ArrayList<>();
+        for (int i = 0; i < list.size(); i++) {
+            if (list.get(i) == element) {
+                result.add(i);
             }
         }
     }
-
-}
-}

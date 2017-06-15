@@ -29,8 +29,8 @@ public class TableRequestTest extends AbstractRequestTest {
      * case : nominal (http code 200 returned)
      */
     @Test
-    public void testJoinTableNominal() {
-        String testCaseName = "testImportTablefromCSVFile";
+    public void testFeatureTableNominal() {
+        String testCaseName = "testFeatureTableNominal";
         boolean isNominal = true;
         try {
             start(testCaseName, isNominal);
@@ -38,8 +38,6 @@ public class TableRequestTest extends AbstractRequestTest {
             File file1 = getFileMatchingResource(testCaseName, "/data/test_import_table_nominal.csv");
             doImport(getAPIURL() + "/table", file1, "CSV", 200, "timestamp", "tableTest1");
 
-            File file2 = getFileMatchingResource(testCaseName, "/data/test_import_table_nominal.csv");
-            doImport(getAPIURL() + "/table", file2, "CSV", 200, "timestamp", "tableTest2");
 
 
 
@@ -213,6 +211,30 @@ public class TableRequestTest extends AbstractRequestTest {
         response.bufferEntity();
         ByteArrayInputStream output = (ByteArrayInputStream) response.getEntity();
         File outputFile = File.createTempFile("ikats", "dogetTestResult.csv");
+        outputFile.deleteOnExit();
+        FileWriter fos = new FileWriter(outputFile);
+        try {
+            byte[] buff = new byte[512];
+            while ((output.read(buff)) != -1) {
+                fos.write(new String(buff, Charset.defaultCharset()));
+            }
+        } finally {
+            fos.close();
+        }
+
+        getLogger().info("Result written in file " + outputFile.getAbsolutePath());
+        return outputFile;
+    }
+
+    protected File doFeature(String tableName, String metaName, String populationId) throws IOException {
+        Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
+                .build();
+        String url = getAPIURL() + "/table/" + tableName;
+        WebTarget target = client.target(url);
+        Response response = target.request().get();
+        response.bufferEntity();
+        ByteArrayInputStream output = (ByteArrayInputStream) response.getEntity();
+        File outputFile = File.createTempFile("ikats", "doFeature.csv");
         outputFile.deleteOnExit();
         FileWriter fos = new FileWriter(outputFile);
         try {
