@@ -1,5 +1,7 @@
 package fr.cs.ikats.temporaldata;
 
+import fr.cs.ikats.datamanager.client.RequestSender;
+import fr.cs.ikats.metadata.MetaDataFacade;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -18,8 +20,6 @@ import static org.junit.Assert.assertEquals;
 
 /**
  * JUNit class testing TableResource services.
- * <p>
- * Review:MBD:156259 il manquerait un test dégradé: quand nombre de champs d'une ligne du csv n'est pas constant => erreur
  */
 public class TableRequestTest extends AbstractRequestTest {
 
@@ -29,17 +29,72 @@ public class TableRequestTest extends AbstractRequestTest {
      * case : nominal (http code 200 returned)
      */
     @Test
-    public void testFeatureTableNominal() {
-        String testCaseName = "testFeatureTableNominal";
+    public void testAddPopMetaNominal() {
+        String testCaseName = "testAddPopMetaNominal";
         boolean isNominal = true;
         try {
             start(testCaseName, isNominal);
 
-            File file1 = getFileMatchingResource(testCaseName, "/data/test_import_table_nominal.csv");
-            doImport(getAPIURL() + "/table", file1, "CSV", 200, "timestamp", "tableTest1");
+            File file = getFileMatchingResource(testCaseName, "/data/test_addPopMetaTable.csv");
 
+            getLogger().info("CSV table file : " + file.getAbsolutePath());
+            String tableName = "tabletest";
+            String url = getAPIURL() + "/table";
+            doImport(url, file, "CSV", 200, "funcId", tableName);
 
+            doFuncIdImport("tsuidTest1", "funcidTest1", false, 1);
+            doFuncIdImport("tsuidTest2", "funcidTest2", false, 1);
+            doFuncIdImport("tsuidTest3", "funcidTest3", false, 1);
+            doFuncIdImport("tsuidTest4", "funcidTest4", false, 1);
+            launchMetaDataImport("tsuidTest1", "flightId", "1");
+            launchMetaDataImport("tsuidTest2", "flightId", "1");
+            launchMetaDataImport("tsuidTest3", "flightId", "2");
+            launchMetaDataImport("tsuidTest4", "flightId", "2");
+            launchMetaDataImport("tsuidTest1", "metric", "M1");
+            launchMetaDataImport("tsuidTest2", "metric", "M2");
+            launchMetaDataImport("tsuidTest3", "metric", "M1");
+            launchMetaDataImport("tsuidTest4", "metric", "M2");
 
+            doAddPopMeta("tabletest", "metric", "flightId", "outputTableTest", 200);
+
+            endNominal(testCaseName);
+        } catch (Throwable e) {
+            endWithFailure(testCaseName, e);
+        }
+    }
+
+    /**
+     * test of table creation from a csv file
+     * case : nominal (http code 200 returned)
+     */
+    @Test
+    public void testAddPopMetaNominal2() {
+        String testCaseName = "testAddPopMetaNominal";
+        boolean isNominal = true;
+        try {
+            start(testCaseName, isNominal);
+
+            File file = getFileMatchingResource(testCaseName, "/data/test_addPopMetaTable.csv");
+
+            getLogger().info("CSV table file : " + file.getAbsolutePath());
+            String tableName = "tabletest";
+            String url = getAPIURL() + "/table";
+            doImport(url, file, "CSV", 200, "funcId", tableName);
+
+            doFuncIdImport("tsuidTest1", "funcidTest1", false, 1);
+            doFuncIdImport("tsuidTest2", "funcidTest2", false, 1);
+            doFuncIdImport("tsuidTest3", "funcidTest3", false, 1);
+            doFuncIdImport("tsuidTest4", "funcidTest4", false, 1);
+            launchMetaDataImport("tsuidTest1", "flightId", "3");
+            launchMetaDataImport("tsuidTest2", "flightId", "1");
+            launchMetaDataImport("tsuidTest3", "flightId", "2");
+            launchMetaDataImport("tsuidTest4", "flightId", "2");
+            launchMetaDataImport("tsuidTest1", "metric", "M1");
+            launchMetaDataImport("tsuidTest2", "metric", "M2");
+            launchMetaDataImport("tsuidTest3", "metric", "M1");
+            launchMetaDataImport("tsuidTest4", "metric", "M2");
+
+            doAddPopMeta("tabletest", "metric", "flightId", "outputTableTest", 200);
 
             endNominal(testCaseName);
         } catch (Throwable e) {
@@ -226,28 +281,30 @@ public class TableRequestTest extends AbstractRequestTest {
         return outputFile;
     }
 
-    protected File doFeature(String tableName, String metaName, String populationId) throws IOException {
+    protected String doAddPopMeta(String tableName, String metaName, String populationId, String outputTableName, int statusExpected) throws IOException {
         Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
                 .build();
-        String url = getAPIURL() + "/table/" + tableName;
+        String url = getAPIURL() + "/table/addpopmeta";
         WebTarget target = client.target(url);
-        Response response = target.request().get();
-        response.bufferEntity();
-        ByteArrayInputStream output = (ByteArrayInputStream) response.getEntity();
-        File outputFile = File.createTempFile("ikats", "doFeature.csv");
-        outputFile.deleteOnExit();
-        FileWriter fos = new FileWriter(outputFile);
-        try {
-            byte[] buff = new byte[512];
-            while ((output.read(buff)) != -1) {
-                fos.write(new String(buff, Charset.defaultCharset()));
-            }
-        } finally {
-            fos.close();
-        }
 
-        getLogger().info("Result written in file " + outputFile.getAbsolutePath());
-        return outputFile;
+        // build form param
+        final FormDataMultiPart multipart = new FormDataMultiPart();
+
+        multipart.field("metaName", metaName);
+        multipart.field("populationId", populationId);
+        multipart.field("tableName", tableName);
+        multipart.field("outputTableName", outputTableName);
+
+        getLogger().info("sending url : " + url);
+        Response response = target.request().post(Entity.entity(multipart, multipart.getMediaType()));
+        getLogger().info("parsing response of " + url);
+        getLogger().info(response);
+        int status = response.getStatus();
+        String result = response.readEntity(String.class);
+        getLogger().info(result);
+        // check expected status
+        assertEquals(statusExpected, status);
+        return result;
+
     }
-
 }

@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -20,7 +21,9 @@ import javax.ws.rs.core.UriInfo;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.MetaData;
-import fr.cs.ikats.metadata.model.FunctionalIdentifier;
+import fr.cs.ikats.temporaldata.business.Table;
+import fr.cs.ikats.temporaldata.business.TableManager;
+import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -51,16 +54,18 @@ public class TableResource extends AbstractResource {
     private ProcessDataManager processDataManager;
 
     /**
-     * init the processDataManager
+     * ProcessManager
+     */
+    private TableManager tableManager;
+
+    /**
+     * init the processDataManager and the tableManager
      */
     public TableResource() {
         processDataManager = new ProcessDataManager();
+        tableManager = new TableManager();
     }
 
-    private boolean validatetableName(String tableName) {
-        Matcher matcher = TableResource.TABLE_NAME_PATTERN.matcher(tableName);
-        return matcher.matches();
-    }
 
     /**
      * get the JSON result as an attachement file in the response.
@@ -80,7 +85,7 @@ public class TableResource extends AbstractResource {
         List<ProcessData> dataTables = processDataManager.getProcessData(tableName);
 
         if (dataTables == null) {
-            throw new IkatsDaoException("DAO exception while attempting to store table : " + tableName);
+            throw new IkatsDaoException("DAO exception while attempting to download table : " + tableName);
         } else if (dataTables.isEmpty()) {
             throw new ResourceNotFoundException("No result found for tableName " + tableName);
         }
@@ -124,11 +129,11 @@ public class TableResource extends AbstractResource {
     @SuppressWarnings("unchecked")
     public Response importTable(@FormDataParam("tableName") String tableName, @FormDataParam("file") InputStream fileis,
                                 @FormDataParam("file") FormDataContentDisposition fileDisposition, @FormDataParam("rowName") String rowName, FormDataMultiPart formData,
-                                @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException {
+                                @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, IkatsJsonException {
 
         String fileName = "";
         try {
-            if (!validatetableName(tableName)) {
+            if (!validaTetableName(tableName)) {
                 String context = "empty parameter 'tableName' provided";
                 logger.error(context);
                 throw new InvalidValueException("String", "tableName", TableResource.TABLE_NAME_PATTERN.pattern(), tableName, null);
@@ -137,7 +142,6 @@ public class TableResource extends AbstractResource {
             fileName = fileDisposition.getFileName();
             logger.info("Import csv file : " + fileName);
             logger.info("Table Name : " + tableName);
-            Long fileSize = fileDisposition.getSize();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(fileis));
             String separator = ",";
@@ -167,7 +171,7 @@ public class TableResource extends AbstractResource {
             rowHeaders.add(null);
 
             // parse csv content to :
-            // 1. retrieving data to build json table structure to store
+            // 1. retrieve data to build json table structure to store
             // 2. fix duplicates : if occurs, we stop at first duplicate and
             // send back 409 http code
             while ((line = reader.readLine()) != null) {
@@ -209,33 +213,21 @@ public class TableResource extends AbstractResource {
                 throw new IkatsDaoException("DAO exception while searching table : " + tableName);
             }
             if (dataTables.isEmpty()) {
-                // filling json structure
-                JSONObject json = new JSONObject();
+                Table outputTable = tableManager.initTableStructure();
 
                 // fill table description
-                JSONObject table_desc = new JSONObject();
-                table_desc.put("title", tableName);
-                table_desc.put("desc", fileName);
-                json.put("table_desc", table_desc);
+                outputTable.table_desc.title = tableName;
+                outputTable.table_desc.desc = fileName;
 
                 // fill headers
-                JSONObject headers = new JSONObject();
-                JSONObject col = new JSONObject();
-                col.put("data", columnHeaders);
-                JSONObject row = new JSONObject();
-                row.put("data", rowHeaders);
-                headers.put("col", col);
-                headers.put("row", row);
-                json.put("headers", headers);
+                outputTable.headers.col.data = convertToListOfObject(columnHeaders);
+                outputTable.headers.row.data = convertToListOfObject(rowHeaders);
 
                 // fill content
-                JSONObject content = new JSONObject();
-                content.put("cells", cells);
-                json.put("content", content);
+                outputTable.content.cells = convertToListOfListOfObject(cells);
 
-                InputStream is = new ByteArrayInputStream(json.toString().getBytes());
-                String rid = processDataManager.importProcessData(is, fileSize, tableName, "JSON", fileName);
-                logger.info("Table stored Ok in db : " + tableName);
+                // store Table
+                String rid = storeTableinProcessData(tableName, outputTable);
                 chrono.stop(logger);
 
                 // result id is returned in the body
@@ -256,86 +248,188 @@ public class TableResource extends AbstractResource {
     /**
      * Database (processData table) import of a csv table
      *
-     * @param tableName    name of the table to convert
-     * @param metaName     name of metadata to concat with agregates ref
-     * @param populationId id of population (which is in fact a metadata name) = key of output table
-     * @param formData     the form data
-     * @param uriInfo      all info on URI
+     * @param tableName       name of the table to convert
+     * @param metaName        name of metadata to concat with agregates ref
+     * @param populationId    id of population (which is in fact a metadata name) = key of output table
+     * @param outputTableName name of the table generated
+     * @param formData        the form data
+     * @param uriInfo         all info on URI
      * @return the internal id
      * @throws IOException       error when parsing input csv file
      * @throws IkatsDaoException error while accessing database to check if table already
      *                           exists
      */
     @POST
-    @Path("/{tableName}")
+    @Path("/addpopmeta")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @SuppressWarnings("unchecked")
-    public Response featureTable(@FormDataParam("tableName") String tableName,
-                                 @FormDataParam("metaName") String metaName,
-                                 @FormDataParam("populationId") String populationId, FormDataMultiPart formData,
-                                 @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, SQLException, ParseException {
+    public Response addPopMetaTable(@FormDataParam("tableName") String tableName,
+                                    @FormDataParam("metaName") String metaName,
+                                    @FormDataParam("populationId") String populationId,
+                                    @FormDataParam("outputTableName") String outputTableName,
+                                    FormDataMultiPart formData,
+                                    @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, SQLException, IkatsJsonException {
 
 
-        try {
+        Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
 
-            Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
-            logger.info("Working on table (" + tableName + ") " +
-                    "with metaName (" + metaName + ") " +
-                    "and with populationId (" + populationId + ")");
-
-            Table outputTable = new Table();
-
-            ProcessData dataTable = processDataManager.getProcessData(tableName).get(0);
-            ObjectMapper mapper = new ObjectMapper();
-            String jsonString = new String(dataTable.getData().getBytes(1, (int) dataTable.getData().length()));
-            Table table = mapper.readValue(jsonString, Table.class);
-
-            List<String> colHeaders = table.headers.col.data;
-            List<String> rowHeaders = table.headers.row.data;
-
-            MetaDataFacade metaFacade = new MetaDataFacade();
-            // assuming row headers are functional identifiers
-            List<FunctionalIdentifier> funcIds = metaFacade.getFunctionalIdentifierByFuncIdList(rowHeaders);
-
-            List<String> colPopId = new ArrayList<>();
-            List<String> colMetaTs = new ArrayList<>();
-            for (FunctionalIdentifier funcId : funcIds) {
-                // retrieving tsuids of input
-                String tsuid = funcId.getTsuid();
-                MetaData metaTs = metaFacade.getMetaData(tsuid = tsuid, name = metaName);
-                MetaData metaPopId = metaFacade.getMetaData(tsuid = tsuid, name = populationId);
-
-                // filling new colPopId column
-                colPopId.add(metaPopId.getValue());
-
-                // filling new colMetaTs column
-                colMetaTs.add(metaTs.getValue());
-            }
-
-            // processing an ordered list of population ids
-            Set<String> setPopId = new HashSet<>();
-            setPopId.addAll(colPopId);
-            List<String> listPopId = new ArrayList<>();
-            listPopId.addAll(setPopId);
-            Collections.sort(listPopId);
-
-            outputTable.headers.row.data.add(null);
-            for (String popId : listPopId) {
-                outputTable.headers.row.data.add(popId);
-                List<Integer> listIndexPopId = retrieveIndexesListOfEltInList(popId, colPopId);
-
-
-            }
-        } catch () {
+        if (outputTableName == null) {
+            String context = "Output table name shall not be null";
+            return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
         }
 
+        // check that outputTableName does not already exist
+        List<ProcessData> dataTables = processDataManager.getProcessData(outputTableName);
+        if (dataTables == null) {
+            throw new IkatsDaoException("DAO exception while searching table : " + outputTableName);
+        }
+        if (!dataTables.isEmpty()) {
+            String context = "Output table name already exists : choose a different one";
+            return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
+        }
+
+        logger.info("Working on table (" + tableName + ") " +
+                "with metaName (" + metaName + ") " +
+                "and with populationId (" + populationId + ")");
+        logger.info("Output table name is (" + outputTableName + ")");
+
+        Table outputTable = tableManager.initTableStructure();
+
+        // retrieve input table in process data and map to Table type
+        ProcessData dataTable = processDataManager.getProcessData(tableName).get(0);
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonString = new String(dataTable.getData().getBytes(1, (int) dataTable.getData().length()));
+        Table table = mapper.readValue(jsonString, Table.class);
+
+        // retrieve headers
+        List<Object> colHeaders = table.headers.col.data;
+        List<Object> rowHeaders = table.headers.row.data;
+
+        MetaDataFacade metaFacade = new MetaDataFacade();
+        List<String> colPopId = new ArrayList<>();
+        List<String> colMetaTs = new ArrayList<>();
+        for (int i = 1; i < rowHeaders.size(); i++) {
+
+            // retrieving tsuids of input
+            String tsuid = metaFacade.getFunctionalIdentifierByFuncId(rowHeaders.get(i).toString()).getTsuid();
+            MetaData metaTs = metaFacade.getMetaData(tsuid, metaName);
+            MetaData metaPopId = metaFacade.getMetaData(tsuid, populationId);
+
+            // filling new colPopId column
+            colPopId.add(metaPopId.getValue());
+
+            // filling new colMetaTs column
+            colMetaTs.add(metaTs.getValue());
+        }
+
+        // processing an ordered list of population ids without doubloons
+        Set<String> setPopId = new HashSet<>(colPopId);
+        List<String> listPopId = new ArrayList<>(setPopId);
+        Collections.sort(listPopId);
+
+        // processing an ordered list of metaName by ts without doubloons
+        Set<String> setMetaTs = new HashSet<>(colMetaTs);
+        List<String> listMetaTs = new ArrayList<>(setMetaTs);
+        Collections.sort(listMetaTs);
+
+        // filling col headers
+        // first element is null
+        outputTable.headers.col.data.add(null);
+        for (String metaTs : listMetaTs) {
+            for (int i = 1; i < colHeaders.size(); i++) {
+                outputTable.headers.col.data.add(metaTs + "_" + colHeaders.get(i));
+            }
+        }
+        Integer tableContentWidth = outputTable.headers.col.data.size() - 1;
+
+        // filling rows headers and content by popId
+        outputTable.headers.row.data.add(populationId);
+        for (String popId : listPopId) {
+            outputTable.headers.row.data.add(popId);
+            List<Integer> listIndexPopId = retrieveIndexesListOfEltInList(popId, colPopId);
+
+            List<Object> cellsLine = new ArrayList<>();
+            for (String metaTS : colMetaTs) {
+                for (Integer index : listIndexPopId) {
+                    if (metaTS == colMetaTs.get(index)) {
+                        cellsLine.addAll(table.content.cells.get(index));
+                    }
+                }
+            }
+            // check line size
+            if (cellsLine.size() != tableContentWidth){
+                String context = "Output table ";
+                return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
+            }
+            outputTable.content.cells.add(cellsLine);
+        }
+        // store table in db
+        String rid = storeTableinProcessData(outputTableName, outputTable);
+
+        chrono.stop(logger);
+
+        // result id is returned in the body
+        return Response.status(Response.Status.OK).entity(rid).build();
     }
 
+    /**
+     * Return list of indexes where element is present in the list
+     */
     private List<Integer> retrieveIndexesListOfEltInList(String element, List<String> list) {
         List<Integer> result = new ArrayList<>();
         for (int i = 0; i < list.size(); i++) {
-            if (list.get(i) == element) {
+            if (list.get(i).equals(element)) {
                 result.add(i);
             }
         }
+        return result;
     }
+
+    /**
+     * Store a Table in process data database
+     */
+    private String storeTableinProcessData(String tableName, Table tableToStore) throws IkatsJsonException {
+        byte[] data = tableManager.serializeToJson(tableToStore).getBytes();
+        String rid = processDataManager.importProcessData(tableName, tableToStore.table_desc.desc, data);
+        logger.info("Table stored Ok in db : " + tableName);
+
+        return rid;
+    }
+
+    /**
+     * Validate table name according to TABLE_NAME_PATTERN
+     */
+    private boolean validaTetableName(String tableName) {
+        Matcher matcher = TableResource.TABLE_NAME_PATTERN.matcher(tableName);
+        return matcher.matches();
+    }
+
+    /**
+     * Convert list of Object to list of String
+     */
+    private List<String> convertToListOfString(List<Object> listObject) {
+        return listObject.stream()
+                .map(object -> Objects.toString(object, null))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Convert list of String to list of Object
+     */
+    private List<Object> convertToListOfObject(List<String> listString) {
+        return listString.stream()
+                .map(object -> Objects.toString(object, null))
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Convert list of list of String to list of list of Object
+     */
+    private List<List<Object>> convertToListOfListOfObject(List<List<String>> listString) {
+        List<List<Object>> output = new ArrayList<>();
+        for (List<String> list : listString) {
+            output.add(new ArrayList<>(list));
+        }
+        return output;
+    }
+}
