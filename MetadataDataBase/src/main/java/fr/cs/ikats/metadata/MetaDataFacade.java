@@ -817,4 +817,17 @@ public class MetaDataFacade {
         return dao.searchFuncId(scope, formula);
     }
 
+    /**
+     * Searches the ts in the dataset matched by the metadata criteria list, with AND group.
+     * Facade delegates the searching request to the metadata dao.
+     *
+     * @param datasetName
+     * @param criteria
+     * @return the result
+     * @throws IkatsDaoException 
+     */
+	public List<FunctionalIdentifier> searchFuncId(String datasetName, List<MetadataCriterion> criteria) throws IkatsDaoException {
+	   return dao.searchFuncId(datasetName, criteria);	
+	}
+
 }

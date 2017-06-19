@@ -16,7 +16,8 @@ public enum SingleValueComparator {
     LIKE("like"),
     NLIKE("not like"),
     IN("in"),
-    NIN("not in") ;
+    NIN("not in"),
+    IN_TABLE("in table");
 
     final private String text; 
     SingleValueComparator(String aText) {

@@ -404,61 +404,14 @@ public class MetaDataManager {
         try {
             String datasetName = filterByMeta.getDatasetName();
             if (!datasetName.isEmpty()) {
-                // Get the TS list matching the Dataset name
-                DataSetFacade facade = new DataSetFacade();
-                MetaDataFacade facadeFuncId = new MetaDataFacade();
-                List<String> tsuids = facade.getDataSet(datasetName).getTsuidsAsString();
-                lFuncIdentifiers = facadeFuncId.getFunctionalIdentifierByTsuidList(tsuids);
+            	
+            	return filterByMetaWithDatasetName(filterByMeta.getDatasetName(), filterByMeta.getCriteria());
+            	
 
             } else {
-                // Use the TS list
-                lFuncIdentifiers = filterByMeta.getTsList();
+                return filterByMetaWithTsuidList(filterByMeta.getTsList(), filterByMeta.getCriteria());
             }
-            List<MetadataCriterion> lCriteria = filterByMeta.getCriteria();
-
-            Group<MetadataCriterion> lFormula = new Group<MetadataCriterion>();
-            lFormula.connector = ConnectorExpression.AND;
-            lFormula.terms = new ArrayList<Expression<MetadataCriterion>>();
-
-            // expression is always a group with depth = 1 and connector AND
-            for (MetadataCriterion metadataCriterion : lCriteria) {
-                metadataCriterion.computeServerValue(); // '*' to '%' for operator like
-                Atom<MetadataCriterion> atomCriterion = new Atom<MetadataCriterion>();
-                atomCriterion.atomicTerm = metadataCriterion;
-                lFormula.terms.add(atomCriterion);
-            }
-
-            // plug the restriction of size below
-            // instead of:
-            // return getMetaDataFacade().searchFuncId(lFuncIdentifiers,
-            // lFormula);
-
-            List<List<FunctionalIdentifier>> lWellDimensionedTsIdLists = new ArrayList<List<FunctionalIdentifier>>();
-            int currentSize = 0;
-            int maxsize = 100;
-            List<FunctionalIdentifier> lCurrentListIdentifiers = null;
-
-            // case of no scope is provided => retrieve all funcId from db
-            if (lFuncIdentifiers.isEmpty() || lFuncIdentifiers == null) {
-                lFuncIdentifiers = getMetaDataFacade().getFunctionalIdentifiersList();
-            }
-            // creating samples of 100 funcId
-            for (FunctionalIdentifier functionalIdentifier : lFuncIdentifiers) {
-                if ((currentSize == maxsize) || (currentSize == 0)) {
-                    lCurrentListIdentifiers = new ArrayList<FunctionalIdentifier>();
-                    lWellDimensionedTsIdLists.add(lCurrentListIdentifiers);
-                    currentSize = 0;
-                }
-                lCurrentListIdentifiers.add(functionalIdentifier);
-                currentSize++;
-            }
-
-            List<FunctionalIdentifier> lResult = new ArrayList<FunctionalIdentifier>();
-            for (List<FunctionalIdentifier> currentWellDimensionedList : lWellDimensionedTsIdLists) {
-                lResult.addAll(getMetaDataFacade().searchFuncId(currentWellDimensionedList, lFormula));
-            }
-            return lResult;
-
+            
         } catch (IkatsDaoException daoError) {
             throw daoError;
         } catch (Throwable e) {
@@ -466,5 +419,69 @@ public class MetaDataManager {
         }
 
     }
+
+    private List<FunctionalIdentifier> filterByMetaWithDatasetName(String datasetName,
+			List<MetadataCriterion> criteria) {
+
+    	getMetaDataFacade().searchFuncId(datasetName, criteria);
+    	
+    	return null;
+	}
+
+	/**
+     * Get the filtered list of TS from the input list with the criteria
+     * 
+     * @param tsuidList
+     * @param lCriteria
+     * @return
+     * @throws IkatsDaoInvalidValueException
+     * @throws IkatsDaoException
+     */
+	private List<FunctionalIdentifier> filterByMetaWithTsuidList(List<FunctionalIdentifier> tsuidList, List<MetadataCriterion> lCriteria)
+			throws IkatsDaoInvalidValueException, IkatsDaoException {
+
+		Group<MetadataCriterion> lFormula = new Group<MetadataCriterion>();
+		lFormula.connector = ConnectorExpression.AND;
+		lFormula.terms = new ArrayList<Expression<MetadataCriterion>>();
+		
+		// expression is always a group with depth = 1 and connector AND
+		for (MetadataCriterion metadataCriterion : lCriteria) {
+			metadataCriterion.computeServerValue(); // '*' to '%' for operator like
+			Atom<MetadataCriterion> atomCriterion = new Atom<MetadataCriterion>();
+			atomCriterion.atomicTerm = metadataCriterion;
+			lFormula.terms.add(atomCriterion);
+		}
+		
+		// plug the restriction of size below
+		// instead of:
+		// return getMetaDataFacade().searchFuncId(lFuncIdentifiers,
+		// lFormula);
+		
+		List<List<FunctionalIdentifier>> lWellDimensionedTsIdLists = new ArrayList<List<FunctionalIdentifier>>();
+		int currentSize = 0;
+		int maxsize = 100;
+		List<FunctionalIdentifier> lCurrentListIdentifiers = null;
+		
+		// case of no scope is provided => retrieve all funcId from db
+		if (tsuidList.isEmpty() || tsuidList == null) {
+			tsuidList = getMetaDataFacade().getFunctionalIdentifiersList();
+		}
+		// creating samples of 100 funcId
+		for (FunctionalIdentifier functionalIdentifier : tsuidList) {
+			if ((currentSize == maxsize) || (currentSize == 0)) {
+				lCurrentListIdentifiers = new ArrayList<FunctionalIdentifier>();
+				lWellDimensionedTsIdLists.add(lCurrentListIdentifiers);
+				currentSize = 0;
+			}
+			lCurrentListIdentifiers.add(functionalIdentifier);
+			currentSize++;
+		}
+		
+		List<FunctionalIdentifier> lResult = new ArrayList<FunctionalIdentifier>();
+		for (List<FunctionalIdentifier> currentWellDimensionedList : lWellDimensionedTsIdLists) {
+			lResult.addAll(getMetaDataFacade().searchFuncId(currentWellDimensionedList, lFormula));
+		}
+		return lResult;
+	}
 
 }
