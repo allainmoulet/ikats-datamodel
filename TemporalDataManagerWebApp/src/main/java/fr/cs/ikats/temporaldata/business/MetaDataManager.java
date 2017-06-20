@@ -15,7 +15,6 @@ import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
 import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
-import fr.cs.ikats.ts.dataset.DataSetFacade;
 import org.apache.log4j.Logger;
 
 import java.io.InputStream;
@@ -404,14 +403,14 @@ public class MetaDataManager {
         try {
             String datasetName = filterByMeta.getDatasetName();
             if (!datasetName.isEmpty()) {
-            	
-            	return filterByMetaWithDatasetName(filterByMeta.getDatasetName(), filterByMeta.getCriteria());
-            	
+
+                return filterByMetaWithDatasetName(filterByMeta.getDatasetName(), filterByMeta.getCriteria());
+
 
             } else {
                 return filterByMetaWithTsuidList(filterByMeta.getTsList(), filterByMeta.getCriteria());
             }
-            
+
         } catch (IkatsDaoException daoError) {
             throw daoError;
         } catch (Throwable e) {
@@ -421,67 +420,70 @@ public class MetaDataManager {
     }
 
     private List<FunctionalIdentifier> filterByMetaWithDatasetName(String datasetName,
-			List<MetadataCriterion> criteria) {
+                                                                   List<MetadataCriterion> criteria)
+            throws IkatsDaoException {
 
-    	getMetaDataFacade().searchFuncId(datasetName, criteria);
-    	
-    	return null;
-	}
+        getMetaDataFacade().searchFuncId(datasetName, criteria);
 
-	/**
+        return null;
+    }
+
+    /**
      * Get the filtered list of TS from the input list with the criteria
-     * 
+     *
      * @param tsuidList
      * @param lCriteria
      * @return
      * @throws IkatsDaoInvalidValueException
      * @throws IkatsDaoException
      */
-	private List<FunctionalIdentifier> filterByMetaWithTsuidList(List<FunctionalIdentifier> tsuidList, List<MetadataCriterion> lCriteria)
-			throws IkatsDaoInvalidValueException, IkatsDaoException {
+    private List<FunctionalIdentifier> filterByMetaWithTsuidList(
+            List<FunctionalIdentifier> tsuidList,
+            List<MetadataCriterion> lCriteria)
+            throws IkatsDaoInvalidValueException, IkatsDaoException {
 
-		Group<MetadataCriterion> lFormula = new Group<MetadataCriterion>();
-		lFormula.connector = ConnectorExpression.AND;
-		lFormula.terms = new ArrayList<Expression<MetadataCriterion>>();
-		
-		// expression is always a group with depth = 1 and connector AND
-		for (MetadataCriterion metadataCriterion : lCriteria) {
-			metadataCriterion.computeServerValue(); // '*' to '%' for operator like
-			Atom<MetadataCriterion> atomCriterion = new Atom<MetadataCriterion>();
-			atomCriterion.atomicTerm = metadataCriterion;
-			lFormula.terms.add(atomCriterion);
-		}
-		
-		// plug the restriction of size below
-		// instead of:
-		// return getMetaDataFacade().searchFuncId(lFuncIdentifiers,
-		// lFormula);
-		
-		List<List<FunctionalIdentifier>> lWellDimensionedTsIdLists = new ArrayList<List<FunctionalIdentifier>>();
-		int currentSize = 0;
-		int maxsize = 100;
-		List<FunctionalIdentifier> lCurrentListIdentifiers = null;
-		
-		// case of no scope is provided => retrieve all funcId from db
-		if (tsuidList.isEmpty() || tsuidList == null) {
-			tsuidList = getMetaDataFacade().getFunctionalIdentifiersList();
-		}
-		// creating samples of 100 funcId
-		for (FunctionalIdentifier functionalIdentifier : tsuidList) {
-			if ((currentSize == maxsize) || (currentSize == 0)) {
-				lCurrentListIdentifiers = new ArrayList<FunctionalIdentifier>();
-				lWellDimensionedTsIdLists.add(lCurrentListIdentifiers);
-				currentSize = 0;
-			}
-			lCurrentListIdentifiers.add(functionalIdentifier);
-			currentSize++;
-		}
-		
-		List<FunctionalIdentifier> lResult = new ArrayList<FunctionalIdentifier>();
-		for (List<FunctionalIdentifier> currentWellDimensionedList : lWellDimensionedTsIdLists) {
-			lResult.addAll(getMetaDataFacade().searchFuncId(currentWellDimensionedList, lFormula));
-		}
-		return lResult;
-	}
+        Group<MetadataCriterion> lFormula = new Group<MetadataCriterion>();
+        lFormula.connector = ConnectorExpression.AND;
+        lFormula.terms = new ArrayList<Expression<MetadataCriterion>>();
+
+        // expression is always a group with depth = 1 and connector AND
+        for (MetadataCriterion metadataCriterion : lCriteria) {
+            metadataCriterion.computeServerValue(); // '*' to '%' for operator like
+            Atom<MetadataCriterion> atomCriterion = new Atom<MetadataCriterion>();
+            atomCriterion.atomicTerm = metadataCriterion;
+            lFormula.terms.add(atomCriterion);
+        }
+
+        // plug the restriction of size below
+        // instead of:
+        // return getMetaDataFacade().searchFuncId(lFuncIdentifiers,
+        // lFormula);
+
+        List<List<FunctionalIdentifier>> lWellDimensionedTsIdLists = new ArrayList<List<FunctionalIdentifier>>();
+        int currentSize = 0;
+        int maxsize = 100;
+        List<FunctionalIdentifier> lCurrentListIdentifiers = null;
+
+        // case of no scope is provided => retrieve all funcId from db
+        if (tsuidList.isEmpty()) {
+            tsuidList = getMetaDataFacade().getFunctionalIdentifiersList();
+        }
+        // creating samples of 100 funcId
+        for (FunctionalIdentifier functionalIdentifier : tsuidList) {
+            if ((currentSize == maxsize) || (currentSize == 0)) {
+                lCurrentListIdentifiers = new ArrayList<FunctionalIdentifier>();
+                lWellDimensionedTsIdLists.add(lCurrentListIdentifiers);
+                currentSize = 0;
+            }
+            lCurrentListIdentifiers.add(functionalIdentifier);
+            currentSize++;
+        }
+
+        List<FunctionalIdentifier> lResult = new ArrayList<FunctionalIdentifier>();
+        for (List<FunctionalIdentifier> currentWellDimensionedList : lWellDimensionedTsIdLists) {
+            lResult.addAll(getMetaDataFacade().searchFuncId(currentWellDimensionedList, lFormula));
+        }
+        return lResult;
+    }
 
 }
