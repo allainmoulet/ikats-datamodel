@@ -602,16 +602,25 @@ public class MetaDataDAO extends DataBaseDAO {
                 case IN_TABLE: {
 
                     // Get the table information
-                    List<String> tableInformation = Arrays.asList(criterionPropertyValue.split("\\s*;\\s*"));
+                    List<String> tableInformation = Arrays.asList(criterionPropertyValue.split("\\s*[\\.:]\\s*"));
                     String tableName = tableInformation.get(0);
-                    String column = tableInformation.get(1);
+
+                    // Use the same name as Metadata Name by default for column selection
+                    String column = criterion.getMetadataName();
+                    if (tableInformation.size() == 2) {
+                        // But if a column is specified, use this name.
+                        column = tableInformation.get(1);
+                    }
+
                     /*
                     // Extract the desired column form the table content
                     // TODO
                     List<String> splitValues = table_getter(tableName, column);
 
                     // Then use the standard "in" to fill in this criterion
-                    restrictionToAdd.add(Restrictions.in("value", splitValues));
+                    restrictionToAdd
+                        .add(Restrictions.in("value", splitValues))
+                        .add(Restrictions.in("", splitValues));
                     */
                 }
                 break;
