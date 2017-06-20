@@ -49,6 +49,17 @@ public class MetaDataTest {
     };
 
     /**
+     * Saves the content of a CSV as a Table
+     *
+     * @param name    name identifying the Table
+     * @param content text corresponding to the CSV format
+     */
+    private static void saveTable(String name, String content) {
+        //TODO Save the table
+
+    }
+
+    /**
      * Initializing the class
      */
     @BeforeClass
@@ -98,7 +109,7 @@ public class MetaDataTest {
 
     /**
      * Test method for
-     * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.util.List)}
+     * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.lang.String)}
      * .
      */
     @Test
@@ -724,6 +735,10 @@ public class MetaDataTest {
      *     * metadata name with value not in expected values
      *     * different metadata name matching the value
      *     * No metadata name for a TS
+     *
+     * Test method for
+     * {@link fr.cs.ikats.metadata.MetaDataFacade#searchFuncId}
+
      */
     @Test
     public void testSearchFuncId_inTable_Nominal() {
@@ -753,7 +768,7 @@ public class MetaDataTest {
                     + "6;B\n"
                     + "7;C\n"
                     + "8;D\n";
-            // TODO Save the table
+            saveTable("TestTable", tableContent);
 
             // Create the initial scope
             List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
@@ -813,6 +828,9 @@ public class MetaDataTest {
      *     * metadata name with value not in expected values
      *     * different metadata name matching the value
      *     * No metadata name for a TS
+     *
+     * Test method for
+     * {@link fr.cs.ikats.metadata.MetaDataFacade#searchFuncId}
      */
     @Test
     public void testSearchFuncId_inTable_RedundantIdentifiers() {
@@ -843,7 +861,7 @@ public class MetaDataTest {
                     + "6;B\n"
                     + "7;C\n"
                     + "8;D\n";
-            // TODO Save the table
+            saveTable("TestTable", tableContent);
 
             // Create the initial scope
             List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
@@ -899,6 +917,9 @@ public class MetaDataTest {
      * - Table well formatted (The filter will be done on column "FlightId")
      *     * all necessary columns are present
      *     * Id are not contiguous
+     *
+     * Test method for
+     * {@link fr.cs.ikats.metadata.MetaDataFacade#searchFuncId}
      */
     @Test
     public void testSearchFuncId_inTable_NoMatch() {
@@ -928,8 +949,7 @@ public class MetaDataTest {
                     + "106;B\n"
                     + "107;C\n"
                     + "108;D\n";
-            // TODO Save the table
-            // TODO create facade pour table
+            saveTable("TestTable", tableContent);
 
             // Create the initial scope
             List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
@@ -984,6 +1004,9 @@ public class MetaDataTest {
      *     * metadata name with value not in expected values
      *     * different metadata name matching the value
      *     * No metadata name for a TS
+     *
+     * Test method for
+     * {@link fr.cs.ikats.metadata.MetaDataFacade#searchFuncId}
      */
     @Test
     public void testSearchFuncId_inTable_NoColumnButMatch() {
@@ -1013,7 +1036,7 @@ public class MetaDataTest {
                     + "6;B\n"
                     + "7;C\n"
                     + "8;D\n";
-            // TODO Save the table
+            saveTable("TestTable", tableContent);
 
             // Create the initial scope
             List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
@@ -1067,9 +1090,12 @@ public class MetaDataTest {
     /**
      * Test the metadata filtering based on "inTable" operator with no match:
      * - Table well formatted (The filter will be done on column "FlightId")
-     *     * all necessary columns are present
-     *     * Id are not contiguous
+     *    * all necessary columns are present
+     *    * Id are not contiguous
      * - No column defined in criterion and metadata name doesn't match the column name
+     *
+     * Test method for
+     * {@link fr.cs.ikats.metadata.MetaDataFacade#searchFuncId}
      */
     @Test
     public void testSearchFuncId_inTable_NoColumnNoMatch() {
@@ -1099,7 +1125,7 @@ public class MetaDataTest {
                     + "6;B\n"
                     + "7;C\n"
                     + "8;D\n";
-            // TODO Save the table
+            saveTable("TestTable", tableContent);
 
             // Create the initial scope
             List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
@@ -1146,9 +1172,12 @@ public class MetaDataTest {
     /**
      * Test the metadata filtering based on "inTable" operator with no match (different case):
      * - Table well formatted (The filter will be done on column "FlightId")
-     *     * all necessary columns are present
-     *     * Id are not contiguous
+     *    * all necessary columns are present
+     *    * Id are not contiguous
      * - No column defined in criterion and metadata name doesn't match the column name (they have different case)
+     *
+     * Test method for
+     * {@link fr.cs.ikats.metadata.MetaDataFacade#searchFuncId}
      */
     @Test
     public void testSearchFuncId_inTable_NoColumnDiffCase() {
@@ -1178,7 +1207,7 @@ public class MetaDataTest {
                     + "6;B\n"
                     + "7;C\n"
                     + "8;D\n";
-            // TODO Save the table
+            saveTable("TestTable", tableContent);
 
             // Create the initial scope
             List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
@@ -1224,6 +1253,9 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on "inTable" operator with table not found
+     *
+     * Test method for
+     * {@link fr.cs.ikats.metadata.MetaDataFacade#searchFuncId}
      */
     @Test
     public void testSearchFuncId_inTable_NoTableFound() {
@@ -1253,7 +1285,7 @@ public class MetaDataTest {
                     + "6;B\n"
                     + "7;C\n"
                     + "8;D\n";
-            // TODO Save the table
+            saveTable("TestTable", tableContent);
 
             // Create the initial scope
             List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
