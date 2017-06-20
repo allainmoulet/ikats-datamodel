@@ -437,7 +437,7 @@ public class MetaDataDAO extends DataBaseDAO {
 
         // step 1:
         // Group <MetadataCriterion> by metadata having same name
-        Map<String, List<MetadataCriterion>> groupByMetadataName = initMapGroupingSameMetadataname(formula);
+        Map<String, List<MetadataCriterion>> groupByMetadataName = initMapGroupingSameMetadataName(formula);
 
         // step2:
         // prepare initial scope: tsuid list
@@ -457,9 +457,9 @@ public class MetaDataDAO extends DataBaseDAO {
             // new tsuidsInScope is a subset of previous tsuidsInScope
             if (!tsuidsInScope.isEmpty()) {
                 String metaName = mapEntry.getKey();
-                List<MetadataCriterion> criterions = mapEntry.getValue();
+                List<MetadataCriterion> criteria = mapEntry.getValue();
 
-                tsuidsInScope = searchFuncIdForMetadataNamed(tsuidsInScope, metaName, criterions);
+                tsuidsInScope = searchFuncIdForMetadataNamed(tsuidsInScope, metaName, criteria);
             }
         }
 
@@ -482,10 +482,12 @@ public class MetaDataDAO extends DataBaseDAO {
      *
      * @param tsuidsInScope
      * @param metaName
-     * @param criterions
+     * @param criteria
      * @return
      */
-    private List<String> searchFuncIdForMetadataNamed(List<String> tsuidsInScope, String metaName, List<MetadataCriterion> criterions)
+    private List<String> searchFuncIdForMetadataNamed(List<String> tsuidsInScope,
+                                                      String metaName,
+                                                      List<MetadataCriterion> criteria)
             throws IkatsDaoException {
 
         if ((tsuidsInScope == null) || (tsuidsInScope.isEmpty())) {
@@ -500,32 +502,32 @@ public class MetaDataDAO extends DataBaseDAO {
         try {
             session = getSession();
 
-            Criteria criteria = session.createCriteria(MetaData.class);
+            Criteria sessionCriteria = session.createCriteria(MetaData.class);
             Junction lGroupJunction;
 
             if (lOperator == ConnectorExpression.AND) {
                 lGroupJunction = Restrictions.conjunction();
                 lGroupJunction.add(Restrictions.in("tsuid", tsuidsInScope));
                 lGroupJunction.add(Restrictions.eq("name", metaName));
-                criteria.add(lGroupJunction);
+                sessionCriteria.add(lGroupJunction);
 
                 // Create the subquery from the filters
-                Conjunction prepareFiltersCritQuery = prepareFiltersCritQuery(criterions);
-                criteria.add(prepareFiltersCritQuery);
+                Conjunction filtersCritQuery = prepareFiltersCritQuery(criteria);
+                sessionCriteria.add(filtersCritQuery);
             } else {
                 throw new IkatsDaoException("Not yet implemented: operator OR grouping  expressions of metadata criterion");
             }
 
-            criteria.setProjection(Projections.projectionList().add(Projections.groupProperty("tsuid")));
-            criteria.addOrder(Order.asc("tsuid"));
-            List l = criteria.list();
+            sessionCriteria.setProjection(Projections.projectionList().add(Projections.groupProperty("tsuid")));
+            sessionCriteria.addOrder(Order.asc("tsuid"));
+            List l = sessionCriteria.list();
             result = (List<String>) l;
         } catch (HibernateException hibException) {
             String msg = "Searching MetaData from criteria map: unexpected HibernateException.";
             LOGGER.error(msg);
             throw new IkatsDaoException(msg, hibException);
         } catch (IkatsDaoInvalidValueException invalidCriterionException) {
-            String msg = "Not found ressource, searching functional identifiers matched by metadata criteria: near metadata named " + metaName;
+            String msg = "Resource Not found, searching functional identifiers matched by metadata criteria: near metadata named " + metaName;
             LOGGER.error("NOT FOUND: " + msg);
             throw new IkatsDaoMissingRessource(msg, invalidCriterionException);
         } catch (Throwable exception) {
@@ -548,20 +550,22 @@ public class MetaDataDAO extends DataBaseDAO {
     /**
      * Prepare the criteria depending on the list of metadata filters
      *
-     * @param criterions
-     * @return
-     * @throws IkatsDaoInvalidValueException
+     * @param criteria list of criterion to use for request build
+     * @return the SQL part (as criteria) containing the metadata filters
+     * @throws IkatsDaoInvalidValueException if a filter operand is not a number
+     * @throws IkatsDaoInvalidValueException if a comparator is unknown
      */
-    private Conjunction prepareFiltersCritQuery(List<MetadataCriterion> criterions) throws IkatsDaoInvalidValueException {
+    private Conjunction prepareFiltersCritQuery(List<MetadataCriterion> criteria)
+            throws IkatsDaoInvalidValueException {
 
         Conjunction restrictionToAdd = Restrictions.conjunction();
 
         // expecting criteria grouped by metadata name => one type of
         // criterion per request ...
-        for (MetadataCriterion metaCriterion : criterions) {
+        for (MetadataCriterion criterion : criteria) {
 
-            String criterionPropertyValue = metaCriterion.getValue();
-            SingleValueComparator criterionOperator = metaCriterion.getTypedComparator();
+            String criterionPropertyValue = criterion.getValue();
+            SingleValueComparator criterionOperator = criterion.getTypedComparator();
             String sqlOperator = criterionOperator.getText();
             SingleValueComparator comparator = SingleValueComparator.parseComparator(sqlOperator);
 
@@ -572,15 +576,16 @@ public class MetaDataDAO extends DataBaseDAO {
                 case LT:
                 case GE:
                 case LE:
-                    // date or number
+                    // Date or number
                     try {
-                        Float numberValue = Float.parseFloat(criterionPropertyValue);
-                        restrictionToAdd.add(Restrictions.sqlRestriction("cast( {alias}.value as float ) " + sqlOperator + " " + criterionPropertyValue));
+                        restrictionToAdd.add(Restrictions.sqlRestriction(
+                                "cast( {alias}.value as float ) " + sqlOperator + " " + criterionPropertyValue));
                     } catch (NumberFormatException e) {
                         throw new IkatsDaoInvalidValueException("Operand is not a number; " + e.getMessage(), e);
                     }
                     break;
                 case IN: {
+                    // List of values separated by ";"
                     List<String> splitValues = Arrays.asList(criterionPropertyValue.split("\\s*;\\s*"));
                     restrictionToAdd.add(Restrictions.in("value", splitValues));
                 }
@@ -594,15 +599,26 @@ public class MetaDataDAO extends DataBaseDAO {
                 case NLIKE:
                     restrictionToAdd.add(Restrictions.sqlRestriction("value " + sqlOperator + " '" + criterionPropertyValue + "'"));
                     break;
-                case IN_TABLE:
+                case IN_TABLE: {
 
+                    // Get the table information
+                    List<String> tableInformation = Arrays.asList(criterionPropertyValue.split("\\s*;\\s*"));
+                    String tableName = tableInformation.get(0);
+                    String column = tableInformation.get(1);
+                    /*
+                    // Extract the desired column form the table content
                     // TODO
+                    List<String> splitValues = table_getter(tableName, column);
 
-                    break;
+                    // Then use the standard "in" to fill in this criterion
+                    restrictionToAdd.add(Restrictions.in("value", splitValues));
+                    */
+                }
+                break;
 
                 default:
-                    // unreachable
-                    throw new IkatsDaoInvalidValueException();
+                    // Unreachable
+                    throw new IkatsDaoInvalidValueException("Unknown comparator : " + comparator);
             }
         }
 
@@ -620,7 +636,8 @@ public class MetaDataDAO extends DataBaseDAO {
      * @return the result list of tuple tsuid/funcid filtered
      * @throws IkatsDaoException
      */
-    public List<FunctionalIdentifier> searchFuncId(String datasetName, List<MetadataCriterion> criteria) throws IkatsDaoException {
+    public List<FunctionalIdentifier> searchFuncId(String datasetName, List<MetadataCriterion> criteria)
+            throws IkatsDaoException {
 
         // Example request :
 
@@ -640,8 +657,8 @@ public class MetaDataDAO extends DataBaseDAO {
                 .add(Restrictions.eq("tsds.dataset", datasetName));
 
         // Loop over the criteria to eval metadata name with value
-        Conjunction prepareFiltersCritQuery = prepareFiltersCritQuery(criteria);
-        critQuery.add(prepareFiltersCritQuery);
+        Conjunction filtersCritQuery = prepareFiltersCritQuery(criteria);
+        critQuery.add(filtersCritQuery);
 
         @SuppressWarnings("unchecked")
         List<FunctionalIdentifier> result = (List<FunctionalIdentifier>) critQuery.list();
@@ -656,7 +673,7 @@ public class MetaDataDAO extends DataBaseDAO {
      *                with AND operator
      * @return
      */
-    private Map<String, List<MetadataCriterion>> initMapGroupingSameMetadataname(Group<MetadataCriterion> formula)
+    private Map<String, List<MetadataCriterion>> initMapGroupingSameMetadataName(Group<MetadataCriterion> formula)
             throws IkatsDaoException {
 
         Map<String, List<MetadataCriterion>> map = new HashMap<String, List<MetadataCriterion>>();
