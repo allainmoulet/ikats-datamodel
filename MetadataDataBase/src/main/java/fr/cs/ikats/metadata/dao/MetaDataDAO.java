@@ -14,6 +14,7 @@ import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
+import fr.cs.ikats.temporaldata.resource.TableResource;
 import org.apache.log4j.Logger;
 import org.hibernate.*;
 import org.hibernate.criterion.*;
@@ -621,16 +622,13 @@ public class MetaDataDAO extends DataBaseDAO {
                         column = tableInformation.get(1);
                     }
 
-                    /*
                     // Extract the desired column form the table content
-                    // TODO
                     List<String> splitValues = TableResource.getColumnFromTable(tableName, column);
 
                     // Then use the standard "in" to fill in this criterion
                     restrictionToAdd
                         .add(Restrictions.eq("name", metadataName))
                         .add(Restrictions.in("value", splitValues));
-                    */
                 }
                 break;
 
