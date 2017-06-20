@@ -456,10 +456,8 @@ public class MetaDataDAO extends DataBaseDAO {
 
             // new tsuidsInScope is a subset of previous tsuidsInScope
             if (!tsuidsInScope.isEmpty()) {
-                String metaName = mapEntry.getKey();
                 List<MetadataCriterion> criteria = mapEntry.getValue();
-
-                tsuidsInScope = searchFuncIdForMetadataNamed(tsuidsInScope, metaName, criteria);
+                tsuidsInScope = searchFuncIdForMetadataNamed(tsuidsInScope, criteria);
             }
         }
 
@@ -481,12 +479,10 @@ public class MetaDataDAO extends DataBaseDAO {
      * criterion for one only metadata name
      *
      * @param tsuidsInScope
-     * @param metaName
      * @param criteria
      * @return
      */
     private List<String> searchFuncIdForMetadataNamed(List<String> tsuidsInScope,
-                                                      String metaName,
                                                       List<MetadataCriterion> criteria)
             throws IkatsDaoException {
 
@@ -508,7 +504,6 @@ public class MetaDataDAO extends DataBaseDAO {
             if (lOperator == ConnectorExpression.AND) {
                 lGroupJunction = Restrictions.conjunction();
                 lGroupJunction.add(Restrictions.in("tsuid", tsuidsInScope));
-                lGroupJunction.add(Restrictions.eq("name", metaName));
                 sessionCriteria.add(lGroupJunction);
 
                 // Create the subquery from the filters
@@ -527,7 +522,7 @@ public class MetaDataDAO extends DataBaseDAO {
             LOGGER.error(msg);
             throw new IkatsDaoException(msg, hibException);
         } catch (IkatsDaoInvalidValueException invalidCriterionException) {
-            String msg = "Resource Not found, searching functional identifiers matched by metadata criteria: near metadata named " + metaName;
+            String msg = "Resource Not found, searching functional identifiers matched by metadata criteria";
             LOGGER.error("NOT FOUND: " + msg);
             throw new IkatsDaoMissingRessource(msg, invalidCriterionException);
         } catch (Throwable exception) {
@@ -564,7 +559,8 @@ public class MetaDataDAO extends DataBaseDAO {
         // criterion per request ...
         for (MetadataCriterion criterion : criteria) {
 
-            String criterionPropertyValue = criterion.getValue();
+            String metadataName = criterion.getMetadataName();
+            String criterionValue = criterion.getValue();
             SingleValueComparator criterionOperator = criterion.getTypedComparator();
             String sqlOperator = criterionOperator.getText();
             SingleValueComparator comparator = SingleValueComparator.parseComparator(sqlOperator);
@@ -578,35 +574,48 @@ public class MetaDataDAO extends DataBaseDAO {
                 case LE:
                     // Date or number
                     try {
-                        restrictionToAdd.add(Restrictions.sqlRestriction(
-                                "cast( {alias}.value as float ) " + sqlOperator + " " + criterionPropertyValue));
+                        // Even if numberValue is not used, this trick allow to verify the criterionValue can be casted
+                        // to float number
+                        Float numberValue = Float.parseFloat(criterionValue);
+
+                        restrictionToAdd
+                                .add(Restrictions.eq("name", metadataName))
+                                .add(Restrictions.sqlRestriction(
+                                        "cast( {alias}.value as float ) " + sqlOperator + " " + criterionValue));
                     } catch (NumberFormatException e) {
                         throw new IkatsDaoInvalidValueException("Operand is not a number; " + e.getMessage(), e);
                     }
                     break;
                 case IN: {
                     // List of values separated by ";"
-                    List<String> splitValues = Arrays.asList(criterionPropertyValue.split("\\s*;\\s*"));
-                    restrictionToAdd.add(Restrictions.in("value", splitValues));
+                    List<String> splitValues = Arrays.asList(criterionValue.split("\\s*;\\s*"));
+                    restrictionToAdd
+                            .add(Restrictions.eq("name", metadataName))
+                            .add(Restrictions.in("value", splitValues));
                 }
                 break;
                 case NIN: {
-                    List<String> splitValues = Arrays.asList(criterionPropertyValue.split("\\s*;\\s*"));
-                    restrictionToAdd.add(Restrictions.not(Restrictions.in("value", splitValues)));
+                    List<String> splitValues = Arrays.asList(criterionValue.split("\\s*;\\s*"));
+                    restrictionToAdd
+                            .add(Restrictions.eq("name", metadataName))
+                            .add(Restrictions.not(Restrictions.in("value", splitValues)));
                 }
                 break;
                 case LIKE:
                 case NLIKE:
-                    restrictionToAdd.add(Restrictions.sqlRestriction("value " + sqlOperator + " '" + criterionPropertyValue + "'"));
+                    restrictionToAdd
+                            .add(Restrictions.eq("name", metadataName))
+                            .add(Restrictions.sqlRestriction("value " + sqlOperator + " '" + criterionValue + "'"));
                     break;
                 case IN_TABLE: {
 
                     // Get the table information
-                    List<String> tableInformation = Arrays.asList(criterionPropertyValue.split("\\s*[\\.:]\\s*"));
+                    // Allowed pattern is 'tableName.column'
+                    List<String> tableInformation = Arrays.asList(criterionValue.split("\\."));
                     String tableName = tableInformation.get(0);
 
                     // Use the same name as Metadata Name by default for column selection
-                    String column = criterion.getMetadataName();
+                    String column = metadataName;
                     if (tableInformation.size() == 2) {
                         // But if a column is specified, use this name.
                         column = tableInformation.get(1);
@@ -615,12 +624,12 @@ public class MetaDataDAO extends DataBaseDAO {
                     /*
                     // Extract the desired column form the table content
                     // TODO
-                    List<String> splitValues = table_getter(tableName, column);
+                    List<String> splitValues = TableResource.getColumnFromTable(tableName, column);
 
                     // Then use the standard "in" to fill in this criterion
                     restrictionToAdd
-                        .add(Restrictions.in("value", splitValues))
-                        .add(Restrictions.in("", splitValues));
+                        .add(Restrictions.eq("name", metadataName))
+                        .add(Restrictions.in("value", splitValues));
                     */
                 }
                 break;
