@@ -29,7 +29,7 @@ public class TableRequestTest extends AbstractRequestTest {
      * case : nominal (http code 200 returned)
      */
     @Test
-    public void testAddPopMetaNominal() {
+    public void testChangeKeyNominal() {
         String testCaseName = "testAddPopMetaNominal";
         boolean isNominal = true;
         try {
@@ -55,46 +55,7 @@ public class TableRequestTest extends AbstractRequestTest {
             launchMetaDataImport("tsuidTest3", "metric", "M1");
             launchMetaDataImport("tsuidTest4", "metric", "M2");
 
-            doAddPopMeta("tabletest", "metric", "flightId", "outputTableTest", 200);
-
-            endNominal(testCaseName);
-        } catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
-    }
-
-    /**
-     * test of table creation from a csv file
-     * case : nominal (http code 200 returned)
-     */
-    @Test
-    public void testAddPopMetaNominal2() {
-        String testCaseName = "testAddPopMetaNominal";
-        boolean isNominal = true;
-        try {
-            start(testCaseName, isNominal);
-
-            File file = getFileMatchingResource(testCaseName, "/data/test_addPopMetaTable.csv");
-
-            getLogger().info("CSV table file : " + file.getAbsolutePath());
-            String tableName = "tabletest";
-            String url = getAPIURL() + "/table";
-            doImport(url, file, "CSV", 200, "funcId", tableName);
-
-            doFuncIdImport("tsuidTest1", "funcidTest1", false, 1);
-            doFuncIdImport("tsuidTest2", "funcidTest2", false, 1);
-            doFuncIdImport("tsuidTest3", "funcidTest3", false, 1);
-            doFuncIdImport("tsuidTest4", "funcidTest4", false, 1);
-            launchMetaDataImport("tsuidTest1", "flightId", "3");
-            launchMetaDataImport("tsuidTest2", "flightId", "1");
-            launchMetaDataImport("tsuidTest3", "flightId", "2");
-            launchMetaDataImport("tsuidTest4", "flightId", "2");
-            launchMetaDataImport("tsuidTest1", "metric", "M1");
-            launchMetaDataImport("tsuidTest2", "metric", "M2");
-            launchMetaDataImport("tsuidTest3", "metric", "M1");
-            launchMetaDataImport("tsuidTest4", "metric", "M2");
-
-            doAddPopMeta("tabletest", "metric", "flightId", "outputTableTest", 200);
+            doChangeKey("tabletest", "metric", "flightId", "outputTableTest", 200);
 
             endNominal(testCaseName);
         } catch (Throwable e) {
@@ -281,10 +242,10 @@ public class TableRequestTest extends AbstractRequestTest {
         return outputFile;
     }
 
-    protected String doAddPopMeta(String tableName, String metaName, String populationId, String outputTableName, int statusExpected) throws IOException {
+    protected String doChangeKey(String tableName, String metaName, String populationId, String outputTableName, int statusExpected) throws IOException {
         Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
                 .build();
-        String url = getAPIURL() + "/table/addpopmeta";
+        String url = getAPIURL() + "/table/changekey";
         WebTarget target = client.target(url);
 
         // build form param
