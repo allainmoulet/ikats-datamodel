@@ -118,8 +118,8 @@ public class MetaDataTest {
     public void testMetaDataTypes() {
         MetaDataFacade facade = new MetaDataFacade();
         try {
-            facade.persistMetaData("tsuidA01", "thatsastring", "blabla", "string");
-            facade.persistMetaData("tsuidA02", "thatsanumber", "12", "number");
+            facade.persistMetaData("tsuidB01", "thatsastring", "blabla", "string");
+            facade.persistMetaData("tsuidB02", "thatsanumber", "12", "number");
             Map metaTypesTable = facade.getMetaDataTypes();
             assertNotNull(metaTypesTable);
             assertEquals("number", metaTypesTable.get("thatsanumber"));
@@ -381,6 +381,7 @@ public class MetaDataTest {
             facade.persistMetaData("TS7", "MD2", "B");
             facade.persistMetaData("TS8", "MD1", "A");
             facade.persistMetaData("TS8", "MD2", "C");
+            facade.persistMetaData("TS9", "MD2", "A");
 
             // Create the initial scope
             List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
@@ -408,7 +409,8 @@ public class MetaDataTest {
             addToScope(expected, "TS8", "FID8");
 
             // Compute
-            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
+            ArrayList<FunctionalIdentifier> obtained =
+                    (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
 
             // Check results
             assertTrue(obtained.equals(expected));
@@ -422,6 +424,7 @@ public class MetaDataTest {
             facade.removeMetaDataForTS("TS6");
             facade.removeMetaDataForTS("TS7");
             facade.removeMetaDataForTS("TS8");
+            facade.removeMetaDataForTS("TS9");
 
 
         } catch (Exception e) {
@@ -704,6 +707,589 @@ public class MetaDataTest {
             facade.removeMetaDataForTS("TS6");
             facade.removeMetaDataForTS("TS7");
             facade.removeMetaDataForTS("TS8");
+
+        } catch (Exception e) {
+            fail("Unexpected error");
+        }
+    }
+
+
+    /**
+     * Test the metadata filtering based on "inTable" operator with nominal behavior:
+     * - Table well formatted (The filter will be done on column "FlightId")
+     *     * all necessary columns are present
+     *     * Id are not contiguous
+     * - TS match metadata name / value pair
+     * - TS doesn't match the following cases:
+     *     * metadata name with value not in expected values
+     *     * different metadata name matching the value
+     *     * No metadata name for a TS
+     */
+    @Test
+    public void testSearchFuncId_inTable_Nominal() {
+
+        try {
+            MetaDataFacade facade = new MetaDataFacade();
+
+            // Create the test set
+            facade.persistMetaData("TS1", "Identifier", "1"); // Match
+            facade.persistMetaData("TS2", "Identifier", "2"); // Match
+            facade.persistMetaData("TS3", "Identifier", "5");
+            facade.persistMetaData("TS4", "Identifier", "8"); // Match
+            facade.persistMetaData("TS5", "Identifier", "9");
+            facade.persistMetaData("TS5", "OtherIdentifier", "4");
+            facade.persistMetaData("TS6", "Identifier", "0");
+            facade.persistMetaData("TS7", "NoIdentifier", "4");
+            facade.persistMetaData("TS8", "Identifier", "10");
+            facade.persistMetaData("TS9", "Identifier", "42"); // Match
+
+            // Prepare the Table data
+            String tableContent = "MainId;Target\n"
+                    + "1;A\n"
+                    + "2;B\n"
+                    + "3;C\n"
+                    + "4;D\n"
+                    + "42;A\n"
+                    + "6;B\n"
+                    + "7;C\n"
+                    + "8;D\n";
+            // TODO Save the table
+
+            // Create the initial scope
+            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+            addToScope(scope, "TS1", "FID1");
+            addToScope(scope, "TS2", "FID2");
+            addToScope(scope, "TS3", "FID3");
+            addToScope(scope, "TS4", "FID4");
+            addToScope(scope, "TS5", "FID5");
+            addToScope(scope, "TS6", "FID6");
+            addToScope(scope, "TS7", "FID7");
+            addToScope(scope, "TS8", "FID8");
+            addToScope(scope, "TS9", "FID9");
+
+            // Formula
+            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+            formula.connector = Expression.ConnectorExpression.AND;
+            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+            addCrit(formula, "Identifier", "inTable", "TestTable.MainId");
+
+            // Preparing results
+            ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+            addToScope(expected, "TS1", "FID1");
+            addToScope(expected, "TS3", "FID3");
+            addToScope(expected, "TS4", "FID4");
+            addToScope(expected, "TS9", "FID9");
+
+            // Compute
+            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>)
+                    facade.searchFuncId(scope, formula);
+
+            // Check results
+            assertTrue(obtained.equals(expected));
+
+            // Cleanup
+            facade.removeMetaDataForTS("TS1");
+            facade.removeMetaDataForTS("TS2");
+            facade.removeMetaDataForTS("TS3");
+            facade.removeMetaDataForTS("TS4");
+            facade.removeMetaDataForTS("TS5");
+            facade.removeMetaDataForTS("TS6");
+            facade.removeMetaDataForTS("TS7");
+            facade.removeMetaDataForTS("TS8");
+            facade.removeMetaDataForTS("TS9");
+
+
+        } catch (Exception e) {
+            fail("Unexpected error");
+        }
+    }
+
+    /**
+     * Test the metadata filtering based on "inTable" operator with redundant identifier:
+     * - Table well formatted (The filter will be done on column "FlightId")
+     *     * Id contains a doubloon
+     * - TS match metadata name / value pair
+     * - TS doesn't match the following cases:
+     *     * metadata name with value not in expected values
+     *     * different metadata name matching the value
+     *     * No metadata name for a TS
+     */
+    @Test
+    public void testSearchFuncId_inTable_RedundantIdentifiers() {
+
+        try {
+            MetaDataFacade facade = new MetaDataFacade();
+
+            // Create the test set
+            facade.persistMetaData("TS1", "Identifier", "1"); // Match
+            facade.persistMetaData("TS2", "Identifier", "2"); // Match
+            facade.persistMetaData("TS3", "Identifier", "5");
+            facade.persistMetaData("TS4", "Identifier", "8"); // Match
+            facade.persistMetaData("TS5", "Identifier", "9");
+            facade.persistMetaData("TS5", "NoIdentifier", "4");
+            facade.persistMetaData("TS6", "Identifier", "0");
+            facade.persistMetaData("TS7", "NoIdentifier", "4");
+            facade.persistMetaData("TS8", "Identifier", "10");
+            facade.persistMetaData("TS9", "Identifier", "42"); // Match
+
+            // Prepare the Table data
+            String tableContent = "MainId;Target\n"
+                    + "1;A\n"
+                    + "1;A\n"
+                    + "2;B\n"
+                    + "3;C\n"
+                    + "4;D\n"
+                    + "42;A\n"
+                    + "6;B\n"
+                    + "7;C\n"
+                    + "8;D\n";
+            // TODO Save the table
+
+            // Create the initial scope
+            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+            addToScope(scope, "TS1", "FID1");
+            addToScope(scope, "TS2", "FID2");
+            addToScope(scope, "TS3", "FID3");
+            addToScope(scope, "TS4", "FID4");
+            addToScope(scope, "TS5", "FID5");
+            addToScope(scope, "TS6", "FID6");
+            addToScope(scope, "TS7", "FID7");
+            addToScope(scope, "TS8", "FID8");
+            addToScope(scope, "TS9", "FID9");
+
+            // Formula
+            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+            formula.connector = Expression.ConnectorExpression.AND;
+            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+            addCrit(formula, "Identifier", "inTable", "TestTable.MainId");
+
+            // Preparing results
+            ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+            addToScope(expected, "TS1", "FID1");
+            addToScope(expected, "TS3", "FID3");
+            addToScope(expected, "TS4", "FID4");
+            addToScope(expected, "TS9", "FID9");
+
+            // Compute
+            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>)
+                    facade.searchFuncId(scope, formula);
+
+            // Check results
+            assertTrue(obtained.equals(expected));
+
+            // Cleanup
+            facade.removeMetaDataForTS("TS1");
+            facade.removeMetaDataForTS("TS2");
+            facade.removeMetaDataForTS("TS3");
+            facade.removeMetaDataForTS("TS4");
+            facade.removeMetaDataForTS("TS5");
+            facade.removeMetaDataForTS("TS6");
+            facade.removeMetaDataForTS("TS7");
+            facade.removeMetaDataForTS("TS8");
+            facade.removeMetaDataForTS("TS9");
+
+
+        } catch (Exception e) {
+            fail("Unexpected error");
+        }
+    }
+
+    /**
+     * Test the metadata filtering based on "inTable" operator without any match:
+     * - Table well formatted (The filter will be done on column "FlightId")
+     *     * all necessary columns are present
+     *     * Id are not contiguous
+     */
+    @Test
+    public void testSearchFuncId_inTable_NoMatch() {
+
+        try {
+            MetaDataFacade facade = new MetaDataFacade();
+
+            // Create the test set
+            facade.persistMetaData("TS1", "Identifier", "1"); // Match
+            facade.persistMetaData("TS2", "Identifier", "2"); // Match
+            facade.persistMetaData("TS3", "Identifier", "5");
+            facade.persistMetaData("TS4", "Identifier", "8"); // Match
+            facade.persistMetaData("TS5", "Identifier", "9");
+            facade.persistMetaData("TS5", "NoIdentifier", "4");
+            facade.persistMetaData("TS6", "Identifier", "0");
+            facade.persistMetaData("TS7", "NoIdentifier", "4");
+            facade.persistMetaData("TS8", "Identifier", "10");
+            facade.persistMetaData("TS9", "Identifier", "42"); // Match
+
+            // Prepare the Table data
+            String tableContent = "MainId;Target\n"
+                    + "101;A\n"
+                    + "102;B\n"
+                    + "103;C\n"
+                    + "104;D\n"
+                    + "142;A\n"
+                    + "106;B\n"
+                    + "107;C\n"
+                    + "108;D\n";
+            // TODO Save the table
+            // TODO create facade pour table
+
+            // Create the initial scope
+            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+            addToScope(scope, "TS1", "FID1");
+            addToScope(scope, "TS2", "FID2");
+            addToScope(scope, "TS3", "FID3");
+            addToScope(scope, "TS4", "FID4");
+            addToScope(scope, "TS5", "FID5");
+            addToScope(scope, "TS6", "FID6");
+            addToScope(scope, "TS7", "FID7");
+            addToScope(scope, "TS8", "FID8");
+            addToScope(scope, "TS9", "FID9");
+
+            // Formula
+            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+            formula.connector = Expression.ConnectorExpression.AND;
+            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+            addCrit(formula, "Identifier", "inTable", "TestTable.MainId");
+
+            // Compute
+            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>)
+                    facade.searchFuncId(scope, formula);
+
+            // Check results
+            assertEquals(0, obtained.size());
+
+            // Cleanup
+            facade.removeMetaDataForTS("TS1");
+            facade.removeMetaDataForTS("TS2");
+            facade.removeMetaDataForTS("TS3");
+            facade.removeMetaDataForTS("TS4");
+            facade.removeMetaDataForTS("TS5");
+            facade.removeMetaDataForTS("TS6");
+            facade.removeMetaDataForTS("TS7");
+            facade.removeMetaDataForTS("TS8");
+            facade.removeMetaDataForTS("TS9");
+
+
+        } catch (Exception e) {
+            fail("Unexpected error");
+        }
+    }
+
+    /**
+     * Test the metadata filtering based on "inTable" operator with nominal behavior:
+     * - Table well formatted (The filter will be done on column "FlightId")
+     *     * all necessary columns are present
+     *     * Id are not contiguous
+     * - No column defined in criterion but metadata name match the column name
+     * - TS match metadata name / value pair
+     * - TS doesn't match the following cases:
+     *     * metadata name with value not in expected values
+     *     * different metadata name matching the value
+     *     * No metadata name for a TS
+     */
+    @Test
+    public void testSearchFuncId_inTable_NoColumnButMatch() {
+
+        try {
+            MetaDataFacade facade = new MetaDataFacade();
+
+            // Create the test set
+            facade.persistMetaData("TS1", "Identifier", "1"); // Match
+            facade.persistMetaData("TS2", "Identifier", "2"); // Match
+            facade.persistMetaData("TS3", "Identifier", "5");
+            facade.persistMetaData("TS4", "Identifier", "8"); // Match
+            facade.persistMetaData("TS5", "Identifier", "9");
+            facade.persistMetaData("TS5", "NoIdentifier", "4");
+            facade.persistMetaData("TS6", "Identifier", "0");
+            facade.persistMetaData("TS7", "NoIdentifier", "4");
+            facade.persistMetaData("TS8", "Identifier", "10");
+            facade.persistMetaData("TS9", "Identifier", "42"); // Match
+
+            // Prepare the Table data
+            String tableContent = "Identifier;Target\n"
+                    + "1;A\n"
+                    + "2;B\n"
+                    + "3;C\n"
+                    + "4;D\n"
+                    + "42;A\n"
+                    + "6;B\n"
+                    + "7;C\n"
+                    + "8;D\n";
+            // TODO Save the table
+
+            // Create the initial scope
+            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+            addToScope(scope, "TS1", "FID1");
+            addToScope(scope, "TS2", "FID2");
+            addToScope(scope, "TS3", "FID3");
+            addToScope(scope, "TS4", "FID4");
+            addToScope(scope, "TS5", "FID5");
+            addToScope(scope, "TS6", "FID6");
+            addToScope(scope, "TS7", "FID7");
+            addToScope(scope, "TS8", "FID8");
+            addToScope(scope, "TS9", "FID9");
+
+            // Formula
+            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+            formula.connector = Expression.ConnectorExpression.AND;
+            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+            addCrit(formula, "Identifier", "inTable", "TestTable");
+
+            // Preparing results
+            ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+            addToScope(expected, "TS1", "FID1");
+            addToScope(expected, "TS3", "FID3");
+            addToScope(expected, "TS4", "FID4");
+            addToScope(expected, "TS9", "FID9");
+
+            // Compute
+            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>)
+                    facade.searchFuncId(scope, formula);
+
+            // Check results
+            assertTrue(obtained.equals(expected));
+
+            // Cleanup
+            facade.removeMetaDataForTS("TS1");
+            facade.removeMetaDataForTS("TS2");
+            facade.removeMetaDataForTS("TS3");
+            facade.removeMetaDataForTS("TS4");
+            facade.removeMetaDataForTS("TS5");
+            facade.removeMetaDataForTS("TS6");
+            facade.removeMetaDataForTS("TS7");
+            facade.removeMetaDataForTS("TS8");
+            facade.removeMetaDataForTS("TS9");
+
+
+        } catch (Exception e) {
+            fail("Unexpected error");
+        }
+    }
+
+    /**
+     * Test the metadata filtering based on "inTable" operator with no match:
+     * - Table well formatted (The filter will be done on column "FlightId")
+     *     * all necessary columns are present
+     *     * Id are not contiguous
+     * - No column defined in criterion and metadata name doesn't match the column name
+     */
+    @Test
+    public void testSearchFuncId_inTable_NoColumnNoMatch() {
+
+        try {
+            MetaDataFacade facade = new MetaDataFacade();
+
+            // Create the test set
+            facade.persistMetaData("TS1", "Identifier", "1"); // Match
+            facade.persistMetaData("TS2", "Identifier", "2"); // Match
+            facade.persistMetaData("TS3", "Identifier", "5");
+            facade.persistMetaData("TS4", "Identifier", "8"); // Match
+            facade.persistMetaData("TS5", "Identifier", "9");
+            facade.persistMetaData("TS5", "NoIdentifier", "4");
+            facade.persistMetaData("TS6", "Identifier", "0");
+            facade.persistMetaData("TS7", "NoIdentifier", "4");
+            facade.persistMetaData("TS8", "Identifier", "10");
+            facade.persistMetaData("TS9", "Identifier", "42"); // Match
+
+            // Prepare the Table data
+            String tableContent = "FlightId;Target\n"
+                    + "1;A\n"
+                    + "2;B\n"
+                    + "3;C\n"
+                    + "4;D\n"
+                    + "42;A\n"
+                    + "6;B\n"
+                    + "7;C\n"
+                    + "8;D\n";
+            // TODO Save the table
+
+            // Create the initial scope
+            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+            addToScope(scope, "TS1", "FID1");
+            addToScope(scope, "TS2", "FID2");
+            addToScope(scope, "TS3", "FID3");
+            addToScope(scope, "TS4", "FID4");
+            addToScope(scope, "TS5", "FID5");
+            addToScope(scope, "TS6", "FID6");
+            addToScope(scope, "TS7", "FID7");
+            addToScope(scope, "TS8", "FID8");
+            addToScope(scope, "TS9", "FID9");
+
+            // Formula
+            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+            formula.connector = Expression.ConnectorExpression.AND;
+            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+            addCrit(formula, "Identifier", "inTable", "TestTable");
+
+            // Compute
+            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>)
+                    facade.searchFuncId(scope, formula);
+
+            // Check results
+            assertEquals(0, obtained.size());
+
+            // Cleanup
+            facade.removeMetaDataForTS("TS1");
+            facade.removeMetaDataForTS("TS2");
+            facade.removeMetaDataForTS("TS3");
+            facade.removeMetaDataForTS("TS4");
+            facade.removeMetaDataForTS("TS5");
+            facade.removeMetaDataForTS("TS6");
+            facade.removeMetaDataForTS("TS7");
+            facade.removeMetaDataForTS("TS8");
+            facade.removeMetaDataForTS("TS9");
+
+
+        } catch (Exception e) {
+            fail("Unexpected error");
+        }
+    }
+
+    /**
+     * Test the metadata filtering based on "inTable" operator with no match (different case):
+     * - Table well formatted (The filter will be done on column "FlightId")
+     *     * all necessary columns are present
+     *     * Id are not contiguous
+     * - No column defined in criterion and metadata name doesn't match the column name (they have different case)
+     */
+    @Test
+    public void testSearchFuncId_inTable_NoColumnDiffCase() {
+
+        try {
+            MetaDataFacade facade = new MetaDataFacade();
+
+            // Create the test set
+            facade.persistMetaData("TS1", "Identifier", "1"); // Match
+            facade.persistMetaData("TS2", "Identifier", "2"); // Match
+            facade.persistMetaData("TS3", "Identifier", "5");
+            facade.persistMetaData("TS4", "Identifier", "8"); // Match
+            facade.persistMetaData("TS5", "Identifier", "9");
+            facade.persistMetaData("TS5", "NoIdentifier", "4");
+            facade.persistMetaData("TS6", "Identifier", "0");
+            facade.persistMetaData("TS7", "NoIdentifier", "4");
+            facade.persistMetaData("TS8", "Identifier", "10");
+            facade.persistMetaData("TS9", "Identifier", "42"); // Match
+
+            // Prepare the Table data (with "Identifier" column having different case than expected)
+            String tableContent = "identifier;Target\n"
+                    + "1;A\n"
+                    + "2;B\n"
+                    + "3;C\n"
+                    + "4;D\n"
+                    + "42;A\n"
+                    + "6;B\n"
+                    + "7;C\n"
+                    + "8;D\n";
+            // TODO Save the table
+
+            // Create the initial scope
+            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+            addToScope(scope, "TS1", "FID1");
+            addToScope(scope, "TS2", "FID2");
+            addToScope(scope, "TS3", "FID3");
+            addToScope(scope, "TS4", "FID4");
+            addToScope(scope, "TS5", "FID5");
+            addToScope(scope, "TS6", "FID6");
+            addToScope(scope, "TS7", "FID7");
+            addToScope(scope, "TS8", "FID8");
+            addToScope(scope, "TS9", "FID9");
+
+            // Formula
+            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+            formula.connector = Expression.ConnectorExpression.AND;
+            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+            addCrit(formula, "Identifier", "inTable", "TestTable");
+
+            // Compute
+            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>)
+                    facade.searchFuncId(scope, formula);
+
+            // Check results
+            assertEquals(0, obtained.size());
+
+            // Cleanup
+            facade.removeMetaDataForTS("TS1");
+            facade.removeMetaDataForTS("TS2");
+            facade.removeMetaDataForTS("TS3");
+            facade.removeMetaDataForTS("TS4");
+            facade.removeMetaDataForTS("TS5");
+            facade.removeMetaDataForTS("TS6");
+            facade.removeMetaDataForTS("TS7");
+            facade.removeMetaDataForTS("TS8");
+            facade.removeMetaDataForTS("TS9");
+
+
+        } catch (Exception e) {
+            fail("Unexpected error");
+        }
+    }
+
+    /**
+     * Test the metadata filtering based on "inTable" operator with table not found
+     */
+    @Test
+    public void testSearchFuncId_inTable_NoTableFound() {
+
+        try {
+            MetaDataFacade facade = new MetaDataFacade();
+
+            // Create the test set
+            facade.persistMetaData("TS1", "Identifier", "1"); // Match
+            facade.persistMetaData("TS2", "Identifier", "2"); // Match
+            facade.persistMetaData("TS3", "Identifier", "5");
+            facade.persistMetaData("TS4", "Identifier", "8"); // Match
+            facade.persistMetaData("TS5", "Identifier", "9");
+            facade.persistMetaData("TS5", "NoIdentifier", "4");
+            facade.persistMetaData("TS6", "Identifier", "0");
+            facade.persistMetaData("TS7", "NoIdentifier", "4");
+            facade.persistMetaData("TS8", "Identifier", "10");
+            facade.persistMetaData("TS9", "Identifier", "42"); // Match
+
+            // Prepare the Table data (with "Identifier" column having different case than expected)
+            String tableContent = "identifier;Target\n"
+                    + "1;A\n"
+                    + "2;B\n"
+                    + "3;C\n"
+                    + "4;D\n"
+                    + "42;A\n"
+                    + "6;B\n"
+                    + "7;C\n"
+                    + "8;D\n";
+            // TODO Save the table
+
+            // Create the initial scope
+            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+            addToScope(scope, "TS1", "FID1");
+            addToScope(scope, "TS2", "FID2");
+            addToScope(scope, "TS3", "FID3");
+            addToScope(scope, "TS4", "FID4");
+            addToScope(scope, "TS5", "FID5");
+            addToScope(scope, "TS6", "FID6");
+            addToScope(scope, "TS7", "FID7");
+            addToScope(scope, "TS8", "FID8");
+            addToScope(scope, "TS9", "FID9");
+
+            // Formula
+            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+            formula.connector = Expression.ConnectorExpression.AND;
+            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+            addCrit(formula, "Identifier", "inTable", "TestTable");
+
+
+            // Compute
+            //TODO Handle exception here
+            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>)
+                    facade.searchFuncId(scope, formula);
+
+            // Cleanup
+            facade.removeMetaDataForTS("TS1");
+            facade.removeMetaDataForTS("TS2");
+            facade.removeMetaDataForTS("TS3");
+            facade.removeMetaDataForTS("TS4");
+            facade.removeMetaDataForTS("TS5");
+            facade.removeMetaDataForTS("TS6");
+            facade.removeMetaDataForTS("TS7");
+            facade.removeMetaDataForTS("TS8");
+            facade.removeMetaDataForTS("TS9");
+
 
         } catch (Exception e) {
             fail("Unexpected error");
