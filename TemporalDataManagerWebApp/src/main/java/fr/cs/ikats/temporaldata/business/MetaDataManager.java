@@ -498,7 +498,7 @@ public class MetaDataManager {
      * @throws IkatsDaoInvalidValueException
      * @throws IkatsDaoException
      */
-    private List<FunctionalIdentifier> filterByMetaWithTsuidList(
+    protected List<FunctionalIdentifier> filterByMetaWithTsuidList(
             List<FunctionalIdentifier> tsuidList,
             List<MetadataCriterion> lCriteria)
             throws IkatsDaoInvalidValueException, IkatsDaoException {
