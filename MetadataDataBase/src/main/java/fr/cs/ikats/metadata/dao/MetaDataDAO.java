@@ -14,7 +14,6 @@ import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
-import fr.cs.ikats.temporaldata.resource.TableResource;
 import org.apache.log4j.Logger;
 import org.hibernate.*;
 import org.hibernate.criterion.*;
@@ -608,30 +607,6 @@ public class MetaDataDAO extends DataBaseDAO {
                             .add(Restrictions.eq("name", metadataName))
                             .add(Restrictions.sqlRestriction("value " + sqlOperator + " '" + criterionValue + "'"));
                     break;
-                case IN_TABLE: {
-
-                    // Get the table information
-                    // Allowed pattern is 'tableName.column'
-                    List<String> tableInformation = Arrays.asList(criterionValue.split("\\."));
-                    String tableName = tableInformation.get(0);
-
-                    // Use the same name as Metadata Name by default for column selection
-                    String column = metadataName;
-                    if (tableInformation.size() == 2) {
-                        // But if a column is specified, use this name.
-                        column = tableInformation.get(1);
-                    }
-
-                    // Extract the desired column form the table content
-                    List<String> splitValues = TableResource.getColumnFromTable(tableName, column);
-
-                    // Then use the standard "in" to fill in this criterion
-                    restrictionToAdd
-                        .add(Restrictions.eq("name", metadataName))
-                        .add(Restrictions.in("value", splitValues));
-                }
-                break;
-
                 default:
                     // Unreachable
                     throw new IkatsDaoInvalidValueException("Unknown comparator : " + comparator);
