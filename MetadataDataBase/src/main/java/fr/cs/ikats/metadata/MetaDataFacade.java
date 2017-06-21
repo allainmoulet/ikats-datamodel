@@ -658,7 +658,7 @@ public class MetaDataFacade {
     /**
      * @param funcId the funcId
      * @return a list of FunctionalIdentifier, or null if nothing is found.
-     * @see FunctionalIdentifierDAO#get(String)
+     * @see FunctionalIdentifierDAO#getFromFuncId(String)
      */
     public FunctionalIdentifier getFunctionalIdentifierByFuncId(String funcId)
             throws IkatsDaoConflictException, IkatsDaoMissingRessource, IkatsDaoException {
