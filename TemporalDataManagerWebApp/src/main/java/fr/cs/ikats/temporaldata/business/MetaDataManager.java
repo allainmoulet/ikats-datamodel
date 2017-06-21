@@ -8,6 +8,7 @@ import fr.cs.ikats.common.expr.Atom;
 import fr.cs.ikats.common.expr.Expression;
 import fr.cs.ikats.common.expr.Expression.ConnectorExpression;
 import fr.cs.ikats.common.expr.Group;
+import fr.cs.ikats.common.expr.SingleValueComparator;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
@@ -15,10 +16,13 @@ import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
 import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
+import fr.cs.ikats.temporaldata.resource.TableResource;
 import org.apache.log4j.Logger;
 
 import java.io.InputStream;
 import java.util.*;
+
+import static fr.cs.ikats.common.expr.SingleValueComparator.IN;
 
 /**
  * MetaData Business Manager singleton.
@@ -419,11 +423,68 @@ public class MetaDataManager {
 
     }
 
+
+    /**
+     * Simplify a criteria list by converting some comparators
+     *
+     * @param criteria criteria list to convert
+     * @return the new criteria list
+     */
+    private List<MetadataCriterion> criteriaConverter(List<MetadataCriterion> criteria)
+            throws IkatsDaoInvalidValueException {
+
+        ArrayList<MetadataCriterion> convertedCriteria = new ArrayList<MetadataCriterion>();
+
+        // Parsing every criterion to detect which one must be converted
+        for (MetadataCriterion criterion : criteria) {
+
+            String metadataName = criterion.getMetadataName();
+            String criterionValue = criterion.getValue();
+            SingleValueComparator criterionOperator = criterion.getTypedComparator();
+            String sqlOperator = criterionOperator.getText();
+            SingleValueComparator comparator = SingleValueComparator.parseComparator(sqlOperator);
+
+            switch (comparator) {
+                case IN_TABLE: {
+
+                    // Get the table information
+                    // Allowed pattern is 'tableName.column'
+                    List<String> tableInformation = Arrays.asList(criterionValue.split("\\."));
+                    String tableName = tableInformation.get(0);
+
+                    // Use the same name as Metadata Name by default for column selection
+                    String column = metadataName;
+                    if (tableInformation.size() == 2) {
+                        // But if a column is specified, use this name.
+                        column = tableInformation.get(1);
+                    }
+
+                    // Extract the desired column form the table content
+                    List<String> splitValues = TableResource.getColumnFromTable(tableName, column);
+
+                    // Changing comparator to IN
+                    criterion.setComparator(IN.toString());
+
+                    // Setting the extracted list from the column as new value content
+                    criterion.setValue(String.join(";", splitValues));
+
+                    convertedCriteria.add(criterion);
+                }
+                default:
+                    // No conversion, use it directly
+                    convertedCriteria.add(criterion);
+            }
+        }
+        return convertedCriteria;
+    }
+
     private List<FunctionalIdentifier> filterByMetaWithDatasetName(String datasetName,
                                                                    List<MetadataCriterion> criteria)
             throws IkatsDaoException {
 
-        getMetaDataFacade().searchFuncId(datasetName, criteria);
+        List<MetadataCriterion> convertedCriteria = criteriaConverter(criteria);
+
+        getMetaDataFacade().searchFuncId(datasetName, convertedCriteria);
 
         return null;
     }
@@ -446,8 +507,10 @@ public class MetaDataManager {
         lFormula.connector = ConnectorExpression.AND;
         lFormula.terms = new ArrayList<Expression<MetadataCriterion>>();
 
+        List<MetadataCriterion> convertedCriteria = criteriaConverter(lCriteria);
+
         // expression is always a group with depth = 1 and connector AND
-        for (MetadataCriterion metadataCriterion : lCriteria) {
+        for (MetadataCriterion metadataCriterion : convertedCriteria) {
             metadataCriterion.computeServerValue(); // '*' to '%' for operator like
             Atom<MetadataCriterion> atomCriterion = new Atom<MetadataCriterion>();
             atomCriterion.atomicTerm = metadataCriterion;
