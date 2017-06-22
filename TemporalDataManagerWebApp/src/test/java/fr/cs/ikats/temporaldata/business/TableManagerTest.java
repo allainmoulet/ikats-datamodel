@@ -97,51 +97,94 @@ public class TableManagerTest extends TestCase {
 
     }
 
-    public void testAppendRowWithoutLinks()
-    {
-       
+    /**
+     * Tests initCsvLikeTable: case of the creation of a simple-csv Table: with one column header and
+     * simple rows (without row header).
+     */
+    public void testInitCsvLikeTableSimple() {
+
+        TableManager mng = new TableManager();
+        Table table = new Table();
+        TableHandler tableH = mng.getHandler(table);
+        try {
+
+            tableH.initColumnsHeader(false, null, false).addItem("One", null).addItem("Two", null).addItem("Three", null);
+            tableH.initContent(false, null);
+            
+            TableHandler tableHBis = mng.initCsvLikeTable( Arrays.asList(new String[]{ "One", "Two", "Three"} ));
+            
+            Object[] row1 = new Object[] { "One", new Double(2.0), Boolean.FALSE };
+
+            Double[] row2 = new Double[] { 1.0, 2.2, 3.5 };
+
+            Boolean[] row3 = new Boolean[] { Boolean.TRUE, false, Boolean.TRUE };
+            
+            tableH.appendRow(Arrays.asList(row1), null);
+            tableH.appendRow(Arrays.asList(row2), null);
+            tableH.appendRow(Arrays.asList(row3), null);
+            tableHBis.appendRow(Arrays.asList(row1), null);
+            tableHBis.appendRow(Arrays.asList(row2), null);
+            tableHBis.appendRow(Arrays.asList(row3), null);
+
+            assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTable()));
+            // System.out.println(mng.serializeToJson(table));
+            // System.out.println(mng.serializeToJson(tableHBis.getTable()));
+            
+            List<Object> columnn = tableH.getColumnFromTable("One");
+            // System.out.println( colOne );
+
+        }
+        catch (Exception e) {
+            e.printStackTrace(System.err);
+            fail("Failed test: unexpected error");
+        }
+
+    }
+
+    public void testAppendRowWithoutLinks() {
+
         try {
             TableManager mng = new TableManager();
-            
+
             mng = new TableManager();
-            
-            Table table = mng.loadFromJson( TableManagerTest.JSON_CONTENT_SAMPLE_1 );
-            
-            
+
+            Table table = mng.loadFromJson(TableManagerTest.JSON_CONTENT_SAMPLE_1);
+
             TableHandler tableH = mng.getHandler(table);
-            int initialRowCount    = tableH.getRowCount(true);
+            int initialRowCount = tableH.getRowCount(true);
             int initialColumnCount = tableH.getColumnCount(true);
-            
-            System.out.println( TableManagerTest.JSON_CONTENT_SAMPLE_1 );
-            
+
+            System.out.println(TableManagerTest.JSON_CONTENT_SAMPLE_1);
+
             List<Object> addedList = new ArrayList<>();
-            for (int i=0; i<4; i++) addedList.add( "item" + i );
-            
-            // Should accept different types in a row: 
+            for (int i = 0; i < 4; i++)
+                addedList.add("item" + i);
+
+            // Should accept different types in a row:
             // => insert a different Type: int instead of String
-            addedList.add( 10);
-            
+            addedList.add(10);
+
             // Tests appended row with not links
             String addedRowHeaderData = "AddedRow";
             int index = tableH.appendRow(addedRowHeaderData, null, addedList, null);
-            
-            System.out.println("Row header data: " +  table.headers.row.data.get(5));
+
+            System.out.println("Row header data: " + table.headers.row.data.get(5));
             System.out.println("" + table.content.cells.get(4));
-            
-            int finalRowCount    = tableH.getRowCount(true);
+
+            int finalRowCount = tableH.getRowCount(true);
             int finalColumnCount = tableH.getColumnCount(true);
-            
-            assertTrue( initialColumnCount == finalColumnCount);
-            assertTrue( initialRowCount + 1 == finalRowCount);
-            
-            assertEquals( table.headers.row.data.get(finalRowCount-1), addedRowHeaderData );
-            assertEquals( table.content.cells.get(finalRowCount-2), addedList );
+
+            assertTrue(initialColumnCount == finalColumnCount);
+            assertTrue(initialRowCount + 1 == finalRowCount);
+
+            assertEquals(table.headers.row.data.get(finalRowCount - 1), addedRowHeaderData);
+            assertEquals(table.content.cells.get(finalRowCount - 2), addedList);
         }
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
         }
-       
+
     }
 
 }

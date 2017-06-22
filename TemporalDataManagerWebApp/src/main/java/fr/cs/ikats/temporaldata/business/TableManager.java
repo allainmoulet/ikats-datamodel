@@ -27,32 +27,12 @@ import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 public class TableManager {
     
     /**
-     * Wrapper of object Table, providing services.
+     * Wrapper of object Table: this handler provides services.
      * 
      */
     static public class TableHandler {
-        // /**
-        // * There is 0 or 1 header for columns: first co
-        // */
-        // private int nbColumnsHeader=0;
-        // /**
-        // * There is 0 or 1 header for rows: first column if exists
-        // */
-        // private int nbRowsHeader=0;
-        //
-        // /**
-        // * Number of columns, including the optional rows-header when
-        // nbRowHeader == 1
-        // */
-        // private int nbColumns=0;
-        //
-        // /**
-        // * Number of rows, including the optional columns-header when
-        // nbRowHeader == 1
-        // */
-        // private int nbRows=0;
 
-        private final Table handledTable;
+        private final Table table;
 
         /**
          * Create the handler - either from an existing Table, for exemple, the
@@ -63,7 +43,7 @@ public class TableManager {
          */
         TableHandler(Table handledTable) {
             super();
-            this.handledTable = handledTable;
+            this.table = handledTable;
         }
 
         public String toString()
@@ -76,17 +56,25 @@ public class TableManager {
             return "Table title=" + titleStr + " desc=" + descStr;
         }
         
+        /**
+         * Getter
+         * @return the table
+         */
+        public Table getTable() {
+            return table;
+        }
+
         public String getDescription() {
-            if (handledTable.table_desc != null) {
-                return handledTable.table_desc.desc;
+            if (table.table_desc != null) {
+                return table.table_desc.desc;
             }
             else
                 return null;
         }
 
         public String getTitle() {
-            if (handledTable.table_desc != null) {
-                return handledTable.table_desc.title;
+            if (table.table_desc != null) {
+                return table.table_desc.title;
             }
             else
                 return null;
@@ -136,8 +124,8 @@ public class TableManager {
          * @return
          */
         public Header getColumnsHeader() {
-            if (this.handledTable.headers != null) {
-                return this.handledTable.headers.col;
+            if (this.table.headers != null) {
+                return this.table.headers.col;
             }
             else
                 return null;
@@ -150,8 +138,8 @@ public class TableManager {
          * @return
          */
         public Table.Header getRowsHeader() {
-            if (this.handledTable.headers != null) {
-                return this.handledTable.headers.row;
+            if (this.table.headers != null) {
+                return this.table.headers.row;
             }
             else
                 return null;
@@ -283,49 +271,54 @@ public class TableManager {
                 throw new IkatsException("Failed getColumnFromTable() in table: " + this.toString(), e);
             }
         }
-
+        
+        /**
+         * Getter pf the content part of the table.
+         * Beware: content may not be initialized.
+         * @return handled content or null
+         */
         TableContent getContent()
         {
-            return this.handledTable.content;
+            return this.table.content;
         }
         
         private List<List<Object>> getContentData()
         {
-            if ( this.handledTable.content == null ) return null;
+            if ( this.table.content == null ) return null;
             
-            return this.handledTable.content.cells;
+            return this.table.content.cells;
         }
         
         private List<List<DataLink>> getContentDataLinks()
         {
-            if ( this.handledTable.content == null ) return null;
+            if ( this.table.content == null ) return null;
             
-            return this.handledTable.content.links;
+            return this.table.content.links;
         }
         
         public void disableColumnsHeader() {
-            if (this.handledTable.headers != null)
-                this.handledTable.headers.col = null;
+            if (this.table.headers != null)
+                this.table.headers.col = null;
         }
         
         public void disableRowsHeader() {
-            if (this.handledTable.headers != null)
-                this.handledTable.headers.row = null;
+            if (this.table.headers != null)
+                this.table.headers.row = null;
         }
 
         public void setDescription(String description) {
-            if (handledTable.table_desc == null) {
-                handledTable.table_desc = new Table.TableDesc();
+            if (table.table_desc == null) {
+                table.table_desc = new Table.TableDesc();
             }
-            handledTable.table_desc.desc = description;
+            table.table_desc.desc = description;
 
         }
 
         public void setTitle(String title) {
-            if (handledTable.table_desc == null) {
-                handledTable.table_desc = new Table.TableDesc();
+            if (table.table_desc == null) {
+                table.table_desc = new Table.TableDesc();
             }
-            handledTable.table_desc.title = title;
+            table.table_desc.title = title;
         }
 
         /**
@@ -361,11 +354,11 @@ public class TableManager {
             if (defaultLink != null && headerLinks == null) {
                 throw new IkatsException("Inconsistency: default link cannot be defined if the links are not manages (headerLinks == null)");
             }
-            if (this.handledTable.headers == null)
-                this.handledTable.headers = new TableHeaders();
+            if (this.table.headers == null)
+                this.table.headers = new TableHeaders();
 
-            this.handledTable.headers.col = createHeader(headerData, headerLinks, defaultLink, startWithTopLeftCorner);
-            return this.handledTable.headers.col;
+            this.table.headers.col = createHeader(headerData, headerLinks, defaultLink, startWithTopLeftCorner);
+            return this.table.headers.col;
         }
 
         /**
@@ -396,11 +389,11 @@ public class TableManager {
             if (defaultLink != null && headerLinks == null) {
                 throw new IkatsException("Inconsistency: default link cannot be defined if the links are not manages (headerLinks == null)");
             }
-            if (this.handledTable.headers == null)
-                this.handledTable.headers = new TableHeaders();
+            if (this.table.headers == null)
+                this.table.headers = new TableHeaders();
 
-            this.handledTable.headers.row = createHeader(headerData, headerLinks, defaultLink, startWithTopLeftCorner);
-            return this.handledTable.headers.row;
+            this.table.headers.row = createHeader(headerData, headerLinks, defaultLink, startWithTopLeftCorner);
+            return this.table.headers.row;
         }
         
         private Header createHeader(List<Object> headerData, 
@@ -435,7 +428,7 @@ public class TableManager {
          */
         public TableContent initContent(boolean manageLinks, DataLink defaultLink) throws IkatsException {
         
-            return this.handledTable.content = initContent(new ArrayList<List<Object>>(), manageLinks ? new ArrayList<List<DataLink>>() : null,
+            return this.table.content = initContent(new ArrayList<List<Object>>(), manageLinks ? new ArrayList<List<DataLink>>() : null,
                     defaultLink);
         }
 
@@ -452,13 +445,13 @@ public class TableManager {
             if (links == null && defaultLink != null)
                 throw new IkatsException("Inconsistency: content cannot have defined default link if links are not managed");
         
-            if (this.handledTable.content == null) {
-                this.handledTable.content = new TableContent();
+            if (this.table.content == null) {
+                this.table.content = new TableContent();
             }
-            this.handledTable.content.cells = cellData;
-            this.handledTable.content.links = links;
-            this.handledTable.content.default_links = defaultLink;
-            return this.handledTable.content;
+            this.table.content.cells = cellData;
+            this.table.content.links = links;
+            this.table.content.default_links = defaultLink;
+            return this.table.content;
         
         }
 
@@ -555,13 +548,42 @@ public class TableManager {
         
         
     }
+    
+    /**
+     * Initializer of a table CSV-like, simple, without links, without row header.
+     * @param columnHeaders
+     * @return the handler of the table
+     * @throws IkatsException
+     */
+    public TableHandler initCsvLikeTable( List<String> columnHeaders ) throws IkatsException
+    {
+        return initCsvLikeTable( columnHeaders, false);
+       
+    }
  
+    /**
+     * Initializer of a table CSV-like, without links.
+     * @param columnHeaders
+     * @param withRowHeader 
+     * @return the handler of the table: ready to use appendRow() for example.
+     */
+    public TableHandler initCsvLikeTable(List<String> columnHeaders, boolean withRowHeader)  throws IkatsException {
+        TableHandler csvLikeTableH = getHandler(new Table());
+        
+        Header colHeader = csvLikeTableH.initColumnsHeader(withRowHeader, null, 
+                new ArrayList<Object>(columnHeaders), null);
+       
+        csvLikeTableH.initContent(false, null);
+        
+        return csvLikeTableH;
+    }
+
     /**
      * Get the handler, which proposes public services for end-user, or other services for the TableManager.
      * 
      * Note: before using the handler: please check the end-user services of TableManager, with public visibility.
      * @param table
-     * @return
+     * @return the handler of the table: ready to use appendRow() for example
      */
     public TableHandler getHandler(Table table) {
         return new TableHandler(table);
@@ -581,27 +603,5 @@ public class TableManager {
             throw new IkatsJsonException("Failed to serialize Table business resource to the json content", e);
         }
     }
-    
-    // /**
-    // *
-    // * @param cellData
-    // * @param links
-    // * @param defaultLink
-    // * @return
-    // */
-    // static TableContent createContent(List<List<Object>> cellData,
-    // List<List<DataLink>> links,
-    // DataLink defaultLink) {
-    // TableContent initContent = new TableContent();
-    // initContent.cells= cellData;
-    // initContent.links= links;
-    // initContent.default_links = defaultLink;
-    //
-    // return initContent;
-    // }
-
-  
-    
-    
     
 }

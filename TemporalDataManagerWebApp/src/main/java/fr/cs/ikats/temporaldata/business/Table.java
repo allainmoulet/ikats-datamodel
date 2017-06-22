@@ -24,8 +24,10 @@ import fr.cs.ikats.temporaldata.exception.IkatsException;
 public class Table {
 
     /**
+     * The TableElement is a view of the pair (data, link) stored in the table.
+     * 
      * The TableElement is not used in json serialization, but is quite useful
-     * for the API.
+     * for the Table API: see services of Header and Content classes.
      */
     static public class TableElement {
         public Object data;
