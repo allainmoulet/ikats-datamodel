@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.cs.ikats.temporaldata.business.Table.DataLink;
 import fr.cs.ikats.temporaldata.business.TableManager.TableHandler;
 import junit.framework.TestCase;
 
@@ -108,10 +109,12 @@ public class TableManagerTest extends TestCase {
         TableHandler tableH = mng.getHandler(table);
         try {
 
+            // Deprecated for end-user
             tableH.initColumnsHeader(false, null, false).addItem("One", null).addItem("Two", null).addItem("Three", null);
             tableH.initContent(false, null);
             
-            TableHandler tableHBis = mng.initCsvLikeTable( Arrays.asList(new String[]{ "One", "Two", "Three"} ));
+            // Simple initializer
+            TableHandler tableHBis = mng.initCsvLikeTable( Arrays.asList( "One", "Two", "Three" ));
             
             Object[] row1 = new Object[] { "One", new Double(2.0), Boolean.FALSE };
 
@@ -119,28 +122,176 @@ public class TableManagerTest extends TestCase {
 
             Boolean[] row3 = new Boolean[] { Boolean.TRUE, false, Boolean.TRUE };
             
-            tableH.appendRow(Arrays.asList(row1), null);
-            tableH.appendRow(Arrays.asList(row2), null);
-            tableH.appendRow(Arrays.asList(row3), null);
-            tableHBis.appendRow(Arrays.asList(row1), null);
-            tableHBis.appendRow(Arrays.asList(row2), null);
-            tableHBis.appendRow(Arrays.asList(row3), null);
+            tableH.appendRow(Arrays.asList(row1));
+            tableH.appendRow(Arrays.asList(row2));
+            tableH.appendRow(Arrays.asList(row3));
+            tableHBis.appendRow(Arrays.asList(row1));
+            tableHBis.appendRow(Arrays.asList(row2));
+            tableHBis.appendRow(Arrays.asList(row3));
 
-            assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTable()));
-            // System.out.println(mng.serializeToJson(table));
-            // System.out.println(mng.serializeToJson(tableHBis.getTable()));
             
+            
+            assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTable()));
+           
             List<Object> columnn = tableH.getColumnFromTable("One");
             // System.out.println( colOne );
 
         }
         catch (Exception e) {
-            e.printStackTrace(System.err);
+            e.printStackTrace();
             fail("Failed test: unexpected error");
         }
 
     }
+    
+    /**
+     * Tests initCsvLikeTable: case of the creation of a simple-csv Table: with column header and rows header.
+     */
+    public void testInitCsvLikeTableWithRowHeader() {
 
+        TableManager mng = new TableManager();
+        Table table = new Table();
+        TableHandler tableH = mng.getHandler(table);
+        try {
+
+            tableH.initColumnsHeader(true, null, false).addItem("Above row header", null).addItem("One", null).addItem("Two", null).addItem("Three", null);
+            tableH.initRowsHeader(false, null, false);
+            tableH.initContent(false, null);
+            
+            // Simplified initializer used with tableHBis
+            TableHandler tableHBis = mng.initCsvLikeTable( Arrays.asList(new String[]{ "Above row header", "One", "Two", "Three"} ), true);
+            
+            // Defining the content rows - excluding row header part-
+            Object[] row1 = new Object[] { "One", new Double(2.0), Boolean.FALSE };
+
+            Double[] row2 = new Double[] { 1.0, 2.2, 3.5 };
+
+            Boolean[] row3 = new Boolean[] { Boolean.TRUE, false, Boolean.TRUE };
+            
+            // append content rows + defines headers "A" "B" ...
+            tableH.appendRow("A", Arrays.asList(row1));
+            tableH.appendRow("B", Arrays.asList(row2));
+            tableH.appendRow("C", Arrays.asList(row3));
+            tableHBis.appendRow("A", Arrays.asList(row1));
+            tableHBis.appendRow("B", Arrays.asList(row2));
+            tableHBis.appendRow("C", Arrays.asList(row3));
+
+            // System.out.println(mng.serializeToJson(table));
+            // System.out.println(mng.serializeToJson(tableHBis.getTable()));
+            
+            assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTable()));
+          
+            
+            List<Object> columnnTwo = tableH.getColumnFromTable("Two");
+            // System.out.println( columnnTwo );
+            
+            assertEquals( columnnTwo, Arrays.asList(new Object[]{ 2.0, 2.2, false} ) );
+            
+            List<Object> columnnOfRowHeaders = tableH.getColumnFromTable("Above row header");
+            // System.out.println( columnnOfRowHeaders );
+
+            assertEquals( columnnOfRowHeaders, Arrays.asList(new Object[]{"A", "B", "C"} ) );
+        }
+        catch (Exception e) {
+            e.printStackTrace(System.err);
+            fail("Failed test: unexpected error");
+        }
+    }
+    
+    /**
+     * 
+     */
+    public void testInitCsvLikeTableWithRowHeaderWithLinks() {
+
+        TableManager mng = new TableManager();
+        Table table = new Table();
+        TableHandler tableH = mng.getHandler(table);
+        try {
+            DataLink defColH= new DataLink();
+            defColH.context = "conf col header link";
+            DataLink defRowH= new DataLink();
+            defRowH.context = "conf row header link";
+            DataLink defContent= new DataLink();
+            defContent.context = "conf content link";
+            
+            
+            tableH.initColumnsHeader(true, null, false).addItem("Above row header", null).addItem("One", null).addItem("Two", null).addItem("Three", null);
+            tableH.initRowsHeader(false, null, false);
+            tableH.initContent(false, null);
+            tableH.enableLinks(true, defColH, true, defRowH, true, defContent);
+
+            // Simplified initializer used with tableHBis
+            TableHandler tableHBis = mng.initCsvLikeTable( Arrays.asList(new String[]{ "Above row header", "One", "Two", "Three"} ), true);
+            tableHBis.enableLinks(true, defColH, true, defRowH, true, defContent);
+            
+            // Defining the content rows - excluding row header part-
+            Object[] row1 = new Object[] { "One", new Double(2.0), Boolean.FALSE };
+ 
+            // Row2 ....
+            DataLink linkOne = new DataLink();
+            linkOne.context= "ctx 1";
+            linkOne.val= "val 1";
+            
+            DataLink linkTwo = new DataLink();
+            linkTwo.type= "typ 2";
+            linkTwo.val= "val 2";
+            
+            // ... this row has defined links ...
+            List<TableElement> row2AsList = TableElement.encodeElements( new TableElement("Prem", linkOne ),
+                    new TableElement("Sec", linkTwo ), "Tri" );
+            
+            // Row3
+            List<TableElement> row3 = TableElement.encodeElements( 1, 2, 3);
+            
+            // Init tableH with links ...
+            // 
+            // append content rows + defines headers "A" "B" ...
+            
+            tableH.appendRow("A", Arrays.asList(row1));
+            
+           
+            tableH.appendRow("B", row2AsList);
+            
+            tableH.appendRow("C", row3);
+            
+            // Tests the same content with tableHBis: testing that 2 initializations are equivalent.
+            tableHBis.appendRow("A", Arrays.asList(row1));
+            
+            // ... this row has defined links ...
+            tableHBis.appendRow("B", row2AsList);
+            
+            tableHBis.appendRow("C", row3);
+
+            // System.out.println(mng.serializeToJson(table));
+            // System.out.println(mng.serializeToJson(tableHBis.getTable()));
+            assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTable()));
+          
+            
+            List<Object> columnnTwo = tableH.getColumnFromTable("Two");
+            // System.out.println( columnnTwo );
+            
+            assertEquals( columnnTwo, Arrays.asList(new Object[]{ row1[1], row2AsList.get(1).data, row3.get(1).data } ) );
+            assertEquals( columnnTwo, tableHBis.getColumnFromTable("Two") );
+            // Tests link selection: linkTwo.type= "typ 2";
+            //                       linkTwo.val= "val 2";
+            // assertEquals( tableH.cells.links.get(1).get(1).type, tableHBis.getColumnFromTable("Two") );
+            
+            
+            
+            List<Object> columnnOfRowHeaders = tableH.getColumnFromTable("Above row header");
+            // System.out.println( columnnOfRowHeaders );
+
+            assertEquals( columnnOfRowHeaders, Arrays.asList(new Object[]{"A", "B", "C"} ) );
+        }
+        catch (Exception e) {
+            e.printStackTrace(System.err);
+            fail("Failed test: unexpected error");
+        }
+    }
+
+    /**
+     * 
+     */
     public void testAppendRowWithoutLinks() {
 
         try {
@@ -154,7 +305,7 @@ public class TableManagerTest extends TestCase {
             int initialRowCount = tableH.getRowCount(true);
             int initialColumnCount = tableH.getColumnCount(true);
 
-            System.out.println(TableManagerTest.JSON_CONTENT_SAMPLE_1);
+            // System.out.println(TableManagerTest.JSON_CONTENT_SAMPLE_1);
 
             List<Object> addedList = new ArrayList<>();
             for (int i = 0; i < 4; i++)
@@ -166,10 +317,10 @@ public class TableManagerTest extends TestCase {
 
             // Tests appended row with not links
             String addedRowHeaderData = "AddedRow";
-            int index = tableH.appendRow(addedRowHeaderData, null, addedList, null);
+            int index = tableH.appendRow(addedRowHeaderData, addedList );
 
-            System.out.println("Row header data: " + table.headers.row.data.get(5));
-            System.out.println("" + table.content.cells.get(4));
+            // System.out.println("Row header data: " + table.headers.row.data.get(5));
+            // System.out.println("" + table.content.cells.get(4));
 
             int finalRowCount = tableH.getRowCount(true);
             int finalColumnCount = tableH.getColumnCount(true);

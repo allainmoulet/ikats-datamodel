@@ -5,12 +5,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import fr.cs.ikats.temporaldata.business.Table.DataLink;
-import fr.cs.ikats.temporaldata.business.Table.TableElement;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 
 /**
@@ -22,40 +22,6 @@ import fr.cs.ikats.temporaldata.exception.IkatsException;
  * section.
  */
 public class Table {
-
-    /**
-     * The TableElement is a view of the pair (data, link) stored in the table.
-     * 
-     * The TableElement is not used in json serialization, but is quite useful
-     * for the Table API: see services of Header and Content classes.
-     */
-    static public class TableElement {
-        public Object data;
-        public DataLink link;
-
-        /**
-         * @param data:
-         *            any immutable Object (String, subclass of Number, Boolean,
-         *            BigInteger, BigDecimal ...)
-         * @param link:
-         *            optional link. null accepted
-         */
-        public TableElement(Object data, DataLink link) {
-            super();
-            this.data = data;
-            this.link = link;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public String toString() {
-            String linkStr = link == null ? "null" : link.toString();
-            String dataStr = data == null ? "null" : data.toString();
-            return "TableElement [data=" + dataStr + ", link=" + linkStr + "]";
-        }
-    }
 
     /**
      * The TableContent is the central part of the table, aside TableHeaders,
@@ -232,6 +198,15 @@ public class Table {
                 throw new IkatsException(message + " links and cells have different sizes");
         }
 
+        public void enableLinks(DataLink defaultProperties )
+        {
+            if ( links == null )
+            {
+                links = new ArrayList<List<DataLink>>();
+                default_links = defaultProperties;
+            }
+        }
+        
         public TableContent addRow(List<TableElement> elements) throws IkatsException {
             int posCol = 0;
             int posRow = cells.size();
@@ -426,6 +401,17 @@ public class Table {
         }
 
         /**
+         * Adds new Header data in the table
+         * @param data: header data can be TableElement -including optional link-, or immutable object.
+         * @return
+         * @throws IkatsException
+         */
+        public Header addItem(Object data) throws IkatsException {
+            if ( data == null ) return addItem( null, null);
+            if ( data instanceof TableElement) return addItem( ((TableElement) data).data, ((TableElement) data).link);
+            return addItem(data, null);
+        }
+        /**
          * 
          * @param data
          *            the information added as data: immutable object or null.
@@ -455,7 +441,17 @@ public class Table {
          */
         @JsonIgnore
         public List<TableElement> getElements() throws IkatsException {
-            return Table.encodeElements(this.data, this.links);
+            return TableElement.encodeElements(this.data, this.links);
+        }
+        
+        public void enableLinks(DataLink defaultProperties )
+        {
+            if ( links == null )
+            {
+                links = new ArrayList<DataLink>();
+                default_links = defaultProperties;
+            }
+            // else: ignored !
         }
     }
 
@@ -506,6 +502,13 @@ public class Table {
         public String desc;
 
         /**
+         * The name of the table, used as unique identifier.
+         * 
+         *  Specifically used in database storage.
+         */
+        public String name;
+        
+        /**
          * The public contructor required by jackson ObjectMapper.
          */
         public TableDesc() {
@@ -544,31 +547,6 @@ public class Table {
      */
     public Table() {
         super();
-    }
-
-    /**
-     * Internal method used to encode the List<TableElement> from the API
-     * 
-     * @param data
-     * @param links
-     * @return
-     * @throws IkatsException
-     */
-    static List<TableElement> encodeElements(List<Object> data, List<DataLink> links) throws IkatsException {
-
-        if (data == null)
-            throw new IkatsException("Failed Table.encodeElements(): at least data must be defined.");
-        if (links != null && data.size() != links.size())
-            throw new IkatsException("Failed Table.encodeElements(): expected when links not null: links size == data size");
-
-        List<TableElement> resultList = new ArrayList<>();
-        Iterator<DataLink> iterLinks = (links != null) ? links.iterator() : null;
-        for (Object dataElt : data) {
-            DataLink link = (iterLinks != null) ? iterLinks.next() : null;
-            resultList.add(new TableElement(dataElt, link));
-        }
-        return resultList;
-
     }
 
     /**
