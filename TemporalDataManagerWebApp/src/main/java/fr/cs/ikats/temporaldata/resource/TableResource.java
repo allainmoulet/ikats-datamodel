@@ -15,15 +15,13 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableManager;
+import fr.cs.ikats.temporaldata.business.TableManager.TableHandler;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import org.apache.log4j.Logger;
@@ -32,12 +30,9 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.process.data.model.ProcessData;
-import fr.cs.ikats.temporaldata.business.ProcessDataManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.temporaldata.utils.Chronometer;
-import org.json.simple.JSONObject;
 
 
 /**
@@ -47,23 +42,16 @@ import org.json.simple.JSONObject;
 public class TableResource extends AbstractResource {
 
     private static Logger logger = Logger.getLogger(TableResource.class);
-    private static final Pattern TABLE_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
 
     /**
-     * ProcessManager
-     */
-    private ProcessDataManager processDataManager;
-
-    /**
-     * ProcessManager
+     * TableManager
      */
     private TableManager tableManager;
 
     /**
-     * init the processDataManager and the tableManager
+     * init the tableManager
      */
     public TableResource() {
-        processDataManager = new ProcessDataManager();
         tableManager = new TableManager();
     }
 
@@ -83,7 +71,7 @@ public class TableResource extends AbstractResource {
         // get id of table in processData db
         // assuming there is only one table by tableName
 
-        Table table = getTableFromProcessData(tableName);
+        Table table = tableManager.readFromDatabase(tableName);
 
         try {
 
@@ -115,20 +103,15 @@ public class TableResource extends AbstractResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @SuppressWarnings("unchecked")
-    public Response importTable(@FormDataParam("tableName") String tableName,
-                                @FormDataParam("file") InputStream fileis,
-                                @FormDataParam("file") FormDataContentDisposition fileDisposition,
-                                @FormDataParam("rowName") String rowName, FormDataMultiPart formData,
-                                @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, IkatsJsonException {
+    public Response importTableFromCSV(@FormDataParam("tableName") String tableName,
+                                       @FormDataParam("file") InputStream fileis,
+                                       @FormDataParam("file") FormDataContentDisposition fileDisposition,
+                                       @FormDataParam("rowName") String rowName, FormDataMultiPart formData,
+                                       @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, IkatsJsonException {
 
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         String fileName = fileDisposition.getFileName();
         try {
-            if (!validaTetableName(tableName)) {
-                String context = "empty parameter 'tableName' provided";
-                logger.error(context);
-                throw new InvalidValueException("String", "tableName", TableResource.TABLE_NAME_PATTERN.pattern(), tableName, null);
-            }
             logger.info("Import csv file : " + fileName);
             logger.info("Table Name : " + tableName);
 
@@ -197,14 +180,16 @@ public class TableResource extends AbstractResource {
             }
 
             // check that tableName does not already exist
-            List<ProcessData> dataTables = processDataManager.getProcessData(tableName);
-            if (dataTables == null) {
-                throw new IkatsDaoException("DAO exception while searching table : " + tableName);
-            }
-            if (dataTables.isEmpty()) {
+            if (tableManager.existsInDatabase(tableName)) {
+                String context = "Table name already exists : " + tableName;
+                logger.error(context);
+                chrono.stop(logger);
+                return Response.status(Response.Status.CONFLICT).entity(context).build();
+            } else {
                 Table outputTable = tableManager.initTableStructure();
 
                 // fill table description
+                outputTable.table_desc.name = tableName;
                 outputTable.table_desc.title = tableName;
                 outputTable.table_desc.desc = fileName;
 
@@ -216,16 +201,11 @@ public class TableResource extends AbstractResource {
                 outputTable.content.cells = convertToListOfListOfObject(cells);
 
                 // store Table
-                String rid = storeTableinProcessData(tableName, outputTable);
+                String rid = tableManager.createInDatabase(tableName, outputTable);
                 chrono.stop(logger);
 
                 // result id is returned in the body
                 return Response.status(Response.Status.OK).entity(rid).build();
-            } else {
-                String context = "Table name already exists : " + tableName;
-                logger.error(context);
-                chrono.stop(logger);
-                return Response.status(Response.Status.CONFLICT).entity(context).build();
             }
         } catch (IOException e) {
             String contextError = "Unexpected interruption while parsing CSV file : " + fileName;
@@ -261,10 +241,8 @@ public class TableResource extends AbstractResource {
                               @FormDataParam("populationId") String populationId,
                               @FormDataParam("outputTableName") String outputTableName,
                               FormDataMultiPart formData,
-                              @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, SQLException, IkatsJsonException, ResourceNotFoundException {
+                              @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, SQLException, IkatsException, ResourceNotFoundException {
 
-
-        Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
 
         if (outputTableName == null) {
             String context = "Output table name shall not be null";
@@ -276,29 +254,27 @@ public class TableResource extends AbstractResource {
             return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
         }
 
-        // check that outputTableName does not already exist
-        List<ProcessData> dataTables = processDataManager.getProcessData(outputTableName);
-        if (dataTables == null) {
-            throw new IkatsDaoException("DAO exception while searching table : " + outputTableName);
-        }
-        if (!dataTables.isEmpty()) {
+        if (tableManager.existsInDatabase(outputTableName)) {
             String context = "Output table name already exists : choose a different one";
             return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
         }
 
+        Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         logger.info("Working on table (" + tableName + ") " +
                 "with metaName (" + metaName + ") " +
                 "and with populationId (" + populationId + ")");
         logger.info("Output table name is (" + outputTableName + ")");
 
         Table outputTable = tableManager.initTableStructure();
+        TableHandler outputTableHandler = tableManager.getHandler(outputTable);
 
         // retrieve input table from process data
-        Table table = getTableFromProcessData(tableName);
+        Table table = tableManager.readFromDatabase(tableName);
+        TableHandler tableHandler = tableManager.getHandler(table);
 
         // retrieve headers
-        List<Object> colHeaders = table.headers.col.data;
-        List<Object> rowHeaders = table.headers.row.data;
+        List<Object> colHeaders = tableHandler.getColumnsHeader().getSimpleElements();
+        List<Object> rowHeaders = tableHandler.getRowsHeader().getSimpleElements();
 
         MetaDataFacade metaFacade = new MetaDataFacade();
         List<String> colPopId = new ArrayList<>();
@@ -329,24 +305,24 @@ public class TableResource extends AbstractResource {
 
         // filling col headers
         // first element is null
-        outputTable.headers.col.data.add(null);
+        outputTableHandler.getColumnsHeader().addItem(null);
         for (String metaTs : listMetaTs) {
             for (int i = 1; i < colHeaders.size(); i++) {
-                outputTable.headers.col.data.add(metaTs + "_" + colHeaders.get(i));
+                outputTableHandler.getColumnsHeader().addItem(metaTs + "_" + colHeaders.get(i));
             }
         }
-        Integer tableContentWidth = outputTable.headers.col.data.size() - 1;
+        Integer tableContentWidth = outputTableHandler.getColumnsHeader().getElements().size() -1;
 
         // filling rows headers and content by popId
-        outputTable.headers.row.data.add(populationId);
+        outputTableHandler.getRowsHeader().addItem(populationId);
         for (String popId : listPopId) {
-            outputTable.headers.row.data.add(popId);
+            outputTableHandler.getRowsHeader().addItem(popId);
             List<Integer> listIndexPopId = retrieveIndexesListOfEltInList(popId, colPopId);
 
             List<Object> cellsLine = new ArrayList<>();
-            for (String metaTS : colMetaTs) {
+            for (String metaTS : listMetaTs) {
                 for (Integer index : listIndexPopId) {
-                    if (metaTS == colMetaTs.get(index)) {
+                    if (metaTS.equals(colMetaTs.get(index))) {
                         cellsLine.addAll(table.content.cells.get(index));
                     }
                 }
@@ -359,7 +335,7 @@ public class TableResource extends AbstractResource {
             outputTable.content.cells.add(cellsLine);
         }
         // store table in db
-        String rid = storeTableinProcessData(outputTableName, outputTable);
+        String rid = tableManager.createInDatabase(outputTableName, outputTable);
 
         chrono.stop(logger);
 
@@ -368,50 +344,13 @@ public class TableResource extends AbstractResource {
     }
 
     /**
-     * Store a Table in process data database
-     */
-    public String storeTableinProcessData(String tableName, Table tableToStore) throws IkatsJsonException {
-        byte[] data = tableManager.serializeToJson(tableToStore).getBytes();
-        String rid = processDataManager.importProcessData(tableName, tableToStore.table_desc.desc, data);
-        logger.info("Table stored Ok in db : " + tableName);
-
-        return rid;
-    }
-
-    /**
-     * Get a Table from process data database
-     */
-    public Table getTableFromProcessData(String tableName) throws IkatsJsonException, IkatsDaoException, ResourceNotFoundException, SQLException {
-
-        List<ProcessData> dataTables = processDataManager.getProcessData(tableName);
-
-        if (dataTables == null) {
-            throw new IkatsDaoException("DAO exception while attempting to get table : " + tableName);
-        } else if (dataTables.isEmpty()) {
-            throw new ResourceNotFoundException("No result found for tableName " + tableName);
-        }
-
-        ProcessData dataTable = dataTables.get(0);
-
-        // extract data to json string
-        String jsonString = new String(dataTable.getData().getBytes(1, (int) dataTable.getData().length()));
-
-        // convert to Table type
-        Table table = tableManager.loadFromJson(jsonString);
-
-        logger.info("Table retrieved from db OK : " + tableName);
-
-        return table;
-    }
-
-    /**
      * Get a table column from a table
      */
     public <T> List<T> getColumnfromTable(String tableName, String columnName) throws IkatsException, IkatsDaoException, ResourceNotFoundException, SQLException {
 
-        Table table = getTableFromProcessData(tableName);
-
-        List<T> column = tableManager.getColumnfromTable(table, columnName);
+        Table table = tableManager.readFromDatabase(tableName);
+        TableHandler tablehandler = new TableHandler(table);
+        List<T> column = tablehandler.getColumnFromTable(columnName);
 
         logger.info("Column " + columnName + " retrieved from table : " + tableName);
 
@@ -419,17 +358,9 @@ public class TableResource extends AbstractResource {
     }
 
     /**
-     * Validate table name according to TABLE_NAME_PATTERN
-     */
-    private boolean validaTetableName(String tableName) {
-        Matcher matcher = TableResource.TABLE_NAME_PATTERN.matcher(tableName);
-        return matcher.matches();
-    }
-
-    /**
      * Convert list of Object to list of String
      */
-    public List<String> convertToListOfString(List<Object> listObject) {
+    private List<String> convertToListOfString(List<Object> listObject) {
         return listObject.stream()
                 .map(object -> Objects.toString(object, null))
                 .collect(Collectors.toList());

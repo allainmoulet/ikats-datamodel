@@ -1,13 +1,14 @@
 package fr.cs.ikats.temporaldata;
 
-import fr.cs.ikats.datamanager.client.RequestSender;
-import fr.cs.ikats.metadata.MetaDataFacade;
+import fr.cs.ikats.temporaldata.business.Table;
+import fr.cs.ikats.temporaldata.business.TableManager;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.junit.Test;
 
+import javax.validation.constraints.AssertFalse;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -15,7 +16,10 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import java.io.*;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -30,12 +34,12 @@ public class TableRequestTest extends AbstractRequestTest {
      */
     @Test
     public void testChangeKeyNominal() {
-        String testCaseName = "testAddPopMetaNominal";
+        String testCaseName = "testChangeKeyNominal";
         boolean isNominal = true;
         try {
             start(testCaseName, isNominal);
 
-            File file = getFileMatchingResource(testCaseName, "/data/test_addPopMetaTable.csv");
+            File file = getFileMatchingResource(testCaseName, "/data/test_changeKeyTable.csv");
 
             getLogger().info("CSV table file : " + file.getAbsolutePath());
             String tableName = "tabletest";
@@ -52,10 +56,20 @@ public class TableRequestTest extends AbstractRequestTest {
             launchMetaDataImport("tsuidTest4", "flightId", "2");
             launchMetaDataImport("tsuidTest1", "metric", "M1");
             launchMetaDataImport("tsuidTest2", "metric", "M2");
-            launchMetaDataImport("tsuidTest3", "metric", "M1");
-            launchMetaDataImport("tsuidTest4", "metric", "M2");
+            launchMetaDataImport("tsuidTest3", "metric", "M2");
+            launchMetaDataImport("tsuidTest4", "metric", "M1");
 
             doChangeKey("tabletest", "metric", "flightId", "outputTableTest", 200);
+
+            String jsonTable = doGetDataDownload("outputTableTest");
+            TableManager tableManager = new TableManager();
+            Table table = tableManager.loadFromJson(jsonTable);
+
+            assertEquals(table.headers.col.data, Arrays.asList(null, "M1_B1_OP1",
+                    "M1_B2_OP1", "M1_B1_OP2", "M1_B2_OP2", "M2_B1_OP1", "M2_B2_OP1", "M2_B1_OP2", "M2_B2_OP2"));
+            assertEquals(table.headers.row.data, Arrays.asList("flightId", "1", "2"));
+            assertEquals(table.content.cells.get(0), Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8"));
+            assertEquals(table.content.cells.get(1), Arrays.asList("13", "14", "15", "16", "9", "10", "11", "12"));
 
             endNominal(testCaseName);
         } catch (Throwable e) {
@@ -218,7 +232,7 @@ public class TableRequestTest extends AbstractRequestTest {
         return result;
     }
 
-    protected File doGetDataDownload(String tableName) throws IOException {
+    protected String doGetDataDownload(String tableName) throws IOException {
         Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
                 .build();
         String url = getAPIURL() + "/table/" + tableName;
@@ -226,20 +240,14 @@ public class TableRequestTest extends AbstractRequestTest {
         Response response = target.request().get();
         response.bufferEntity();
         ByteArrayInputStream output = (ByteArrayInputStream) response.getEntity();
-        File outputFile = File.createTempFile("ikats", "dogetTestResult.csv");
-        outputFile.deleteOnExit();
-        FileWriter fos = new FileWriter(outputFile);
-        try {
-            byte[] buff = new byte[512];
-            while ((output.read(buff)) != -1) {
-                fos.write(new String(buff, Charset.defaultCharset()));
-            }
-        } finally {
-            fos.close();
-        }
+        String stringJson = convertStreamToString(output);
 
-        getLogger().info("Result written in file " + outputFile.getAbsolutePath());
-        return outputFile;
+        return stringJson;
+    }
+
+    static String convertStreamToString(java.io.InputStream is) {
+        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
     }
 
     protected String doChangeKey(String tableName, String metaName, String populationId, String outputTableName, int statusExpected) throws IOException {
