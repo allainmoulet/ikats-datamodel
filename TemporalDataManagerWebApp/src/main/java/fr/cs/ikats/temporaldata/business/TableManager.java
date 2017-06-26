@@ -946,7 +946,20 @@ public class TableManager {
 
         return rid;
     }
-
+    
+    /**
+     * Deletes the table from the database.
+     * @param tableName the name of the table
+     */
+    public void deteteFromDatabase(String tableName)
+    {
+        // The name of the table is in the processId column of table processData
+        // => so, we can use directly the removeProcessData(processId) service. 
+        
+        // No exception raised by this remove
+        processDataManager.removeProcessData(tableName);
+    }
+    
     /**
      * Basically checks if tableName exists as processId in the database.
      * 
