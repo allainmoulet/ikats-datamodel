@@ -214,6 +214,40 @@ public class TableResource extends AbstractResource {
         }
 
     }
+    
+    /**
+     * Extends the defined table with columns joined from the selected metrics from selected dataset:
+     * for each selected metric, adds one new column of timeseries references. In inserted column, each joined timseries 
+     * has its metadata join criterion (defined by joinMetaName argument) equal to the column join criterion 
+     * (defined by joinColName argument).
+     * 
+     * @param tableName
+     * @param metrics selected metrics separated by ";". Spaces are ignored.
+     * @param dataset the dataset name.
+     * @param joinColName the name of the table column used by the join. Optional: if undefined (""), 
+     * the first column will be used by the join. 
+     * @param joinMetaName defines the name of metadata used by the join, useful when the column and metadata names are different.
+     * Optional: if joinMetaName is undefined (""), then the metadata has the name of the table column used by the join (see joinColName), 
+     * and if both criteria (joinColName + joinMetaName) are undefined: it is assumed that the first column header provides
+     * the expected metadata name.
+     * @param targetColName name of the target column. Optional: default is undefined (""). When target name is defined, the joined columns are inserted before the target column; 
+     * when undefined, the joined columns are appended at the end.
+     * @return
+     */
+    @PUT
+    @SuppressWarnings("unchecked")
+    @Path("/{tableName}/join/metrics")
+    public Response joinByMetrics(@PathParam("tableName") String tableName, 
+                                  @PathParam("metrics") String metrics, 
+                                  @QueryParam("dataset") String dataset, 
+                                  @QueryParam("joinColName") @DefaultValue("") String joinColName,
+                                  @QueryParam("joinMetaName") @DefaultValue("") String joinMetaName,
+                                  @QueryParam("targetColName") @DefaultValue("") String targetColName)
+    {
+        // 1: evaluates the  
+        
+        return null;
+    }
 
     /**
      * Table process to :
