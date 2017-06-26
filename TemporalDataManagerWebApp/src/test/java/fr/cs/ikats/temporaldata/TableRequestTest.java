@@ -1,25 +1,22 @@
 package fr.cs.ikats.temporaldata;
 
-import fr.cs.ikats.temporaldata.business.Table;
+import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableManager;
+import fr.cs.ikats.temporaldata.business.TableManager.Table;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.junit.Test;
 
-import javax.validation.constraints.AssertFalse;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
 import java.io.*;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -63,13 +60,14 @@ public class TableRequestTest extends AbstractRequestTest {
 
             String jsonTable = doGetDataDownload("outputTableTest");
             TableManager tableManager = new TableManager();
-            Table table = tableManager.loadFromJson(jsonTable);
+            TableInfo table = tableManager.loadFromJson(jsonTable);
 
-            assertEquals(table.headers.col.data, Arrays.asList(null, "M1_B1_OP1",
-                    "M1_B2_OP1", "M1_B1_OP2", "M1_B2_OP2", "M2_B1_OP1", "M2_B2_OP1", "M2_B1_OP2", "M2_B2_OP2"));
-            assertEquals(table.headers.row.data, Arrays.asList("flightId", "1", "2"));
-            assertEquals(table.content.cells.get(0), Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8"));
-            assertEquals(table.content.cells.get(1), Arrays.asList("13", "14", "15", "16", "9", "10", "11", "12"));
+            assertEquals(Arrays.asList(null,
+                    "M1_B1_OP1", "M1_B2_OP1", "M1_B1_OP2", "M1_B2_OP2",
+                    "M2_B1_OP1", "M2_B2_OP1", "M2_B1_OP2", "M2_B2_OP2"), table.headers.col.data);
+            assertEquals(Arrays.asList("flightId", "1", "2"), table.headers.row.data);
+            assertEquals(Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8"), table.content.cells.get(0));
+            assertEquals(Arrays.asList("13", "14", "15", "16", "9", "10", "11", "12"), table.content.cells.get(1));
 
             endNominal(testCaseName);
         } catch (Throwable e) {
@@ -97,10 +95,11 @@ public class TableRequestTest extends AbstractRequestTest {
 
             String jsonTable = doGetDataDownload(tableName);
             TableManager tableManager = new TableManager();
-            Table table = tableManager.loadFromJson(jsonTable);
+            TableInfo tableInfo = tableManager.loadFromJson(jsonTable);
+            Table table = tableManager.initTable(tableInfo, false);
 
-            assertEquals(table.headers.col.data, Arrays.asList(null, "timestamp", "value"));
-            assertEquals(table.headers.row.data, Arrays.asList(
+            assertEquals(Arrays.asList("timestamp", "value"), table.getColumnsHeader().getData());
+            assertEquals(Arrays.asList(null,
                     "2015-12-10T14:55:30.5"
                     , "2015-12-10T14:55:31.0"
                     , "2015-12-10T14:55:31.5"
@@ -113,10 +112,21 @@ public class TableRequestTest extends AbstractRequestTest {
                     , "2015-12-10T14:56:76.0"
                     , "2015-12-10T14:56:37.5"
                     , "2015-12-10T14:56:59.0"
-                    , "2015-12-10T14:56:40.5"));
+                    , "2015-12-10T14:56:40.5"), table.getRowsHeader().getData());
 
-//            assertEquals(table.content.cells.get(0), Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8"));
-//            assertEquals(table.content.cells.get(1), Arrays.asList("13", "14", "15", "16", "9", "10", "11", "12"));
+            assertEquals(Arrays.asList("6"
+                    , "3"
+                    , "2"
+                    , "5"
+                    , "8"
+                    , "5"
+                    , "6"
+                    , "8"
+                    , "5"
+                    , "2"
+                    , "6"
+                    , "9"
+                    , "2"), table.getColumn(1));
 
             endNominal(testCaseName);
         } catch (Throwable e) {
@@ -155,7 +165,7 @@ public class TableRequestTest extends AbstractRequestTest {
     @Test
     public void testImportTableIncorrectName() {
         String testCaseName = "testImportTablefromCSVFile";
-        boolean isNominal = true;
+        boolean isNominal = false;
         try {
             start(testCaseName, isNominal);
 
@@ -180,7 +190,7 @@ public class TableRequestTest extends AbstractRequestTest {
     public void testImportTableAlreadyExists() {
 
         String testCaseName = "testImportTablefromCSVFile";
-        boolean isNominal = true;
+        boolean isNominal = false;
         try {
             start(testCaseName, isNominal);
 
@@ -211,7 +221,7 @@ public class TableRequestTest extends AbstractRequestTest {
     public void testImportTablefromCSVFileWithDoubloon() {
 
         String testCaseName = "testImportTablefromCSVFile";
-        boolean isNominal = true;
+        boolean isNominal = false;
         try {
             start(testCaseName, isNominal);
 
@@ -236,7 +246,7 @@ public class TableRequestTest extends AbstractRequestTest {
     public void testImportTablefromIncorrectCSVFile() {
 
         String testCaseName = "testImportTablefromIncorrectCSVFile";
-        boolean isNominal = true;
+        boolean isNominal = false;
         try {
             start(testCaseName, isNominal);
 

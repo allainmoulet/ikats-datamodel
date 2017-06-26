@@ -3,8 +3,6 @@ package fr.cs.ikats.temporaldata.resource;
 import java.io.*;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
@@ -19,9 +17,9 @@ import javax.ws.rs.core.UriInfo;
 
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.MetaData;
-import fr.cs.ikats.temporaldata.business.Table;
+import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableManager;
-import fr.cs.ikats.temporaldata.business.TableManager.TableHandler;
+import fr.cs.ikats.temporaldata.business.TableManager.Table;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import org.apache.log4j.Logger;
@@ -71,7 +69,7 @@ public class TableResource extends AbstractResource {
         // get id of table in processData db
         // assuming there is only one table by tableName
 
-        Table table = tableManager.readFromDatabase(tableName);
+        TableInfo table = tableManager.readFromDatabase(tableName);
 
         try {
 
@@ -186,7 +184,7 @@ public class TableResource extends AbstractResource {
                 chrono.stop(logger);
                 return Response.status(Response.Status.CONFLICT).entity(context).build();
             } else {
-                Table outputTable = tableManager.initTableStructure();
+                TableInfo outputTable = tableManager.initEmptyTable().getTable();
 
                 // fill table description
                 outputTable.table_desc.name = tableName;
@@ -265,16 +263,13 @@ public class TableResource extends AbstractResource {
                 "and with populationId (" + populationId + ")");
         logger.info("Output table name is (" + outputTableName + ")");
 
-        Table outputTable = tableManager.initTableStructure();
-        TableHandler outputTableHandler = tableManager.getHandler(outputTable);
-
         // retrieve input table from process data
-        Table table = tableManager.readFromDatabase(tableName);
-        TableHandler tableHandler = tableManager.getHandler(table);
+        TableInfo tableInfo = tableManager.readFromDatabase(tableName);
+        Table table = tableManager.initTable(tableInfo, false);
 
         // retrieve headers
-        List<Object> colHeaders = tableHandler.getColumnsHeader().getSimpleElements();
-        List<Object> rowHeaders = tableHandler.getRowsHeader().getSimpleElements();
+        List<Object> colHeaders = table.getColumnsHeader().getData();
+        List<Object> rowHeaders = table.getRowsHeader().getData();
 
         MetaDataFacade metaFacade = new MetaDataFacade();
         List<String> colPopId = new ArrayList<>();
@@ -303,27 +298,29 @@ public class TableResource extends AbstractResource {
         List<String> listMetaTs = new ArrayList<>(setMetaTs);
         Collections.sort(listMetaTs);
 
+        // filling outputTable
         // filling col headers
         // first element is null
-        outputTableHandler.getColumnsHeader().addItem(null);
+        Table outputTable = tableManager.initEmptyTable();
+        outputTable.getColumnsHeader().addItem(null);
         for (String metaTs : listMetaTs) {
             for (int i = 1; i < colHeaders.size(); i++) {
-                outputTableHandler.getColumnsHeader().addItem(metaTs + "_" + colHeaders.get(i));
+                outputTable.getColumnsHeader().addItem(metaTs + "_" + colHeaders.get(i));
             }
         }
-        Integer tableContentWidth = outputTableHandler.getColumnsHeader().getElements().size() -1;
+        Integer tableContentWidth = outputTable.getColumnsHeader().getData().size() - 1;
 
         // filling rows headers and content by popId
-        outputTableHandler.getRowsHeader().addItem(populationId);
+        outputTable.getRowsHeader().addItem(populationId);
         for (String popId : listPopId) {
-            outputTableHandler.getRowsHeader().addItem(popId);
+            outputTable.getRowsHeader().addItem(popId);
             List<Integer> listIndexPopId = retrieveIndexesListOfEltInList(popId, colPopId);
 
             List<Object> cellsLine = new ArrayList<>();
             for (String metaTS : listMetaTs) {
                 for (Integer index : listIndexPopId) {
                     if (metaTS.equals(colMetaTs.get(index))) {
-                        cellsLine.addAll(table.content.cells.get(index));
+                        cellsLine.addAll(table.getRow(index + 1));
                     }
                 }
             }
@@ -332,10 +329,10 @@ public class TableResource extends AbstractResource {
                 String context = "Output table ";
                 return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
             }
-            outputTable.content.cells.add(cellsLine);
+            outputTable.appendRow(cellsLine);
         }
         // store table in db
-        String rid = tableManager.createInDatabase(outputTableName, outputTable);
+        String rid = tableManager.createInDatabase(outputTableName, outputTable.getTable());
 
         chrono.stop(logger);
 
