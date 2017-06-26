@@ -13,7 +13,7 @@ import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
 import junit.framework.TestCase;
 
 /**
- * JUnit tests on Table business resource
+ * JUnit tests on TableInfo resource: this class is responsible of JSON persistence; it is mapping the functional type 'table'
  */
 public class TableTest extends TestCase {
 
@@ -23,7 +23,7 @@ public class TableTest extends TestCase {
     public void testLoadJSON()
     { 
         try { 
-            // V3: table first version (before 15/06/17)
+            // json functional type ta first version (before 15/06/17)
             String jsonContent= TableTest.JSON_CONTENT_SAMPLE_1;
             
             // Prepare expected config of ObjectMapper.
@@ -35,14 +35,14 @@ public class TableTest extends TestCase {
             objectMapper.configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS,  false);
             objectMapper.setSerializationInclusion(Include.NON_NULL);
             TableInfo testedTable = objectMapper.readValue( jsonContent, TableInfo.class);
-            System.out.println( testedTable );
+            // System.out.println( testedTable );
             
             
              String written1 = new ObjectMapper().writeValueAsString(testedTable);
-             System.out.println( "avec null: " + written1);
+             // System.out.println( "avec null: " + written1);
              String written2 = objectMapper.writeValueAsString(testedTable);
-             System.out.println( "sans null: " + written2);
-             System.out.println( "ref input: " + jsonContent);
+             // System.out.println( "sans null: " + written2);
+             // System.out.println( "ref input: " + jsonContent);
             
             // non-exhaustive test
             //

@@ -14,9 +14,17 @@ import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 
 /**
- * The Table is a business resource for IKATS: it is composed of one TableDesc
+ * The TableInfo is mapping the functional IKATS type 'table', as a JSON resource.
+ * TableInfo class can be used as a JSON resource in the Rest services, to be developped in TableResource.
+ * <br/>
+ * The TableInfo is composed of one TableDesc
  * section, one TableHeaders section and finally one TableContent section. Each
  * section is detailed below.
+ * <br/> 
+ * Note the difference with Table: the business resource Table is a wrapper of TableInfo, managed by TableManager, 
+ * and providing end-user services in java world.
+ * 
+
  * 
  * TODO 158227/157215 complete table: add a map for metadata in the TableDesc
  * section.

@@ -44,8 +44,11 @@ public class TableManager {
     private static final Pattern TABLE_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
 
     /**
-     * Wrapper of object Table: this handler provides services.
-     * 
+     * The Table class is the business resource for the 'table' IKATS functional type, it is a wrapper of TableInfo. 
+     * The Table class provides end-user services in java world.
+     * <br/>
+     * Note the difference with TableInfo: TableInfo manages the JSON persistence, and can be used by the REST web services, 
+     * involving JSON media type, grouped in the class TableResource. You can get the TableInfo managed thanks to the getter getTableInfo()
      */
     static public class Table {
 
@@ -79,9 +82,19 @@ public class TableManager {
         /**
          * Getter
          * 
-         * @return the table
+         * @return the table info
+         * @deprecated to be replaced by getTableInfo()
          */
         public TableInfo getTable() {
+            return tableInfo;
+        }
+        
+        /**
+         * Getter
+         * 
+         * @return the table  info
+         */
+        public TableInfo getTableInfo() {
             return tableInfo;
         }
 
@@ -379,11 +392,11 @@ public class TableManager {
          * Gets the selected row values from this table.
          * 
          * Note: this getter ignores the links possibly defined on the row.
-         * 
-         * 
+         *
          * @param index content index of selected row. Note: index relative to the whole table.
          * If column header exists: 0 points to columnHeaders; otherwise 0 points to first row of this.getContent().
-         * @return selected row values. Note: row header value is not included.
+         * @return selected row values. Note the row header part is not included. And if Columns header is selected: 
+         * first header element is not included.
          * @throws IkatsException row header is undefined
          * @throws ResourceNotFoundException row is not found
          */
@@ -840,7 +853,7 @@ public class TableManager {
         // 2: optional Init Row Header
         // 3: Init Content
 
-        csvLikeTableH.initColumnsHeader(withRowHeader, null, new ArrayList<Object>(columnHeaders), null);
+        csvLikeTableH.initColumnsHeader(true, null, new ArrayList<Object>(columnHeaders), null);
 
         if (withRowHeader)
             csvLikeTableH.initRowsHeader(false, null, false);
@@ -853,7 +866,7 @@ public class TableManager {
     /**
      * Get the Table business view of a TableInfo. 
      * 
-     * Table and TableManager propose public services for end-
+     * Table and TableManager propose public services for end-users
      * 
      * @param tableInfo the tableinfo basic structure is jsonifiable resource.
      * @param copyTableInfo true demands that returned Table manages a copy of tableInfo.
@@ -868,7 +881,6 @@ public class TableManager {
         {
             return new Table(tableInfo);
         }
-        
     }
 
     /**

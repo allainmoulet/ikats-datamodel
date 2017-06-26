@@ -20,7 +20,7 @@ public class TableManagerTest extends TestCase {
     private final static String JSON_CONTENT_SAMPLE_1 = "{\"table_desc\":{\"title\":\"Discretized matrix\",\"desc\":\"This is a ...\"},\"headers\":{\"col\":{\"data\":[\"funcId\",\"metric\",\"min_B1\",\"max_B1\",\"min_B2\",\"max_B2\"],\"links\":null,\"default_links\":null},\"row\":{\"data\":[null,\"Flid1_VIB2\",\"Flid1_VIB3\",\"Flid1_VIB4\",\"Flid1_VIB5\"],\"default_links\":{\"type\":\"ts_bucket\",\"context\":\"processdata\"},\"links\":[null,{\"val\":\"1\"},{\"val\":\"2\"},{\"val\":\"3\"},{\"val\":\"4\"}]}},\"content\":{\"cells\":[[\"VIB2\",-50.0,12.1,1.0,3.4],[\"VIB3\",-5.0,2.1,1.0,3.4],[\"VIB4\",0.0,2.1,12.0,3.4],[\"VIB5\",0.0,2.1,1.0,3.4]]}}";
 
     /**
-     * Tests getColumnFromTable: case selecting the row-header values
+     * Tests getColumnFromTable: case when selected column is the row-header values (below top-left corner)
      */
     public void testGetFirstColumnFromTable() {
         try {
@@ -45,8 +45,6 @@ public class TableManagerTest extends TestCase {
 
     }
     
-   
-
     /**
      * Tests getColumnFromTable: case selecting the content values
      */
@@ -101,6 +99,44 @@ public class TableManagerTest extends TestCase {
 
     }
     
+    /**
+     * Tests getting a column with col header name, from a table with columns header and without rows header.
+     */
+    public void testGetColumnFromHeaderName()
+    {
+        try {
+            TableManager mng = new TableManager();
+            
+            // Test first subcase: without rows header
+            Table lTestedTable = mng.initTable(Arrays.asList("Id", "Target"), false);
+            lTestedTable.appendRow( Arrays.asList( "hello", 1 ));
+            lTestedTable.appendRow( Arrays.asList( "hello2", 10 ));
+            lTestedTable.appendRow( Arrays.asList( "hello3", 100 ));
+            
+            List<String> myIds= lTestedTable.getColumn("Id");
+            List<String> myTargets= lTestedTable.getColumn("Target");
+            assertEquals(Arrays.asList("hello", "hello2", "hello3"), myIds);
+            assertEquals(Arrays.asList(1, 10, 100), myTargets);
+            
+            // Test second subcase: with rows header
+            Table lTestedTableWithRowsH = mng.initTable(Arrays.asList("Id", "Target"), true);
+            lTestedTableWithRowsH.appendRow( "hello", Arrays.asList( 1 ));
+            lTestedTableWithRowsH.appendRow( "hello2", Arrays.asList( 10 ));
+            lTestedTableWithRowsH.appendRow( "hello3", Arrays.asList( 100 ));
+            
+            List<String> myIdsBIS= lTestedTableWithRowsH.getColumn("Id");
+            List<String> myTargetsBIS= lTestedTableWithRowsH.getColumn("Target");
+          
+            assertEquals(Arrays.asList("hello", "hello2", "hello3"), myIdsBIS);
+            assertEquals(Arrays.asList(1, 10, 100), myTargetsBIS);
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        }
+    }
+
     public void testGetRowFromTable() {
         try {
             TableManager mng = new TableManager();
@@ -148,7 +184,7 @@ public class TableManagerTest extends TestCase {
         try {
 
             // Deprecated for end-user
-            tableH.initColumnsHeader(false, null, false).addItem("One", null).addItem("Two", null).addItem("Three", null);
+            tableH.initColumnsHeader(true, null, false).addItem("One", null).addItem("Two", null).addItem("Three", null);
             tableH.initContent(false, null);
             
             // Simple initializer
@@ -167,7 +203,8 @@ public class TableManagerTest extends TestCase {
             tableHBis.appendRow(Arrays.asList(row2));
             tableHBis.appendRow(Arrays.asList(row3));
 
-            
+            System.out.println( mng.serializeToJson(table) );
+            System.out.println( mng.serializeToJson(tableHBis.getTable()) );
             
             assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTable()));
            
