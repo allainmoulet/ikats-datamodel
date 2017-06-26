@@ -3,11 +3,10 @@ package fr.cs.ikats.temporaldata.business;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
-import org.hsqldb.persist.TableSpaceManagerBlocks;
+
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -17,15 +16,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.process.data.model.ProcessData;
-import fr.cs.ikats.temporaldata.business.Table.DataLink;
-import fr.cs.ikats.temporaldata.business.Table.Header;
-import fr.cs.ikats.temporaldata.business.Table.TableContent;
-import fr.cs.ikats.temporaldata.business.Table.TableHeaders;
+import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
+import fr.cs.ikats.temporaldata.business.TableInfo.Header;
+import fr.cs.ikats.temporaldata.business.TableInfo.TableContent;
+import fr.cs.ikats.temporaldata.business.TableInfo.TableDesc;
+import fr.cs.ikats.temporaldata.business.TableInfo.TableHeaders;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
-import fr.cs.ikats.temporaldata.resource.TableResource;
 
 /**
  * The manager is grouping services on the Table objects
@@ -48,20 +47,20 @@ public class TableManager {
      * Wrapper of object Table: this handler provides services.
      * 
      */
-    static public class TableHandler {
+    static public class Table {
 
-        private final Table table;
+        private final TableInfo tableInfo;
 
         /**
-         * Create the handler - either from an existing Table, for exemple, the
-         * Table loaded from a json content - or from new Table(), in order to
-         * initialize it.
+         * Create the business Table handling TableInfo.
          * 
-         * @param handledTable
+         * @param handledTable  either from an
+         * existing TableInfo, for exemple, the Table loaded from a json content
+         * or from new TableInfo(), in order to initialize it.
          */
-        TableHandler(Table handledTable) {
+        Table(TableInfo handledTable) {
             super();
-            this.table = handledTable;
+            this.tableInfo = handledTable;
         }
 
         public String toString() {
@@ -82,8 +81,8 @@ public class TableManager {
          * 
          * @return the table
          */
-        public Table getTable() {
-            return table;
+        public TableInfo getTable() {
+            return tableInfo;
         }
 
         /**
@@ -92,8 +91,8 @@ public class TableManager {
          * @return the title of the Table. null when undefined
          */
         public String getDescription() {
-            if (table.table_desc != null) {
-                return table.table_desc.desc;
+            if (tableInfo.table_desc != null) {
+                return tableInfo.table_desc.desc;
             }
             else
                 return null;
@@ -105,8 +104,8 @@ public class TableManager {
          * @return the title of the Table. null when undefined
          */
         public String getTitle() {
-            if (table.table_desc != null) {
-                return table.table_desc.title;
+            if (tableInfo.table_desc != null) {
+                return tableInfo.table_desc.title;
             }
             else
                 return null;
@@ -118,8 +117,8 @@ public class TableManager {
          * @return the name of the Table. null when undefined
          */
         public String getName() {
-            if (table.table_desc != null) {
-                return table.table_desc.name;
+            if (tableInfo.table_desc != null) {
+                return tableInfo.table_desc.name;
             }
             else
                 return null;
@@ -170,8 +169,8 @@ public class TableManager {
          * @return
          */
         public Header getColumnsHeader() {
-            if (this.table.headers != null) {
-                return this.table.headers.col;
+            if (this.tableInfo.headers != null) {
+                return this.tableInfo.headers.col;
             }
             else
                 return null;
@@ -182,9 +181,9 @@ public class TableManager {
          * 
          * @return
          */
-        public Table.Header getRowsHeader() {
-            if (this.table.headers != null) {
-                return this.table.headers.row;
+        public TableInfo.Header getRowsHeader() {
+            if (this.tableInfo.headers != null) {
+                return this.tableInfo.headers.row;
             }
             else
                 return null;
@@ -220,6 +219,7 @@ public class TableManager {
          * @return
          */
         public <T> List<T> getColumnsHeaderItems() {
+            // To do ...
             throw new Error("Not yet implemented");
         }
 
@@ -275,33 +275,62 @@ public class TableManager {
          * Gets the column values from the Table.
          * 
          * Note: this getter ignores the links possibly defined on the column.
-         * @param columnName
-         * @return
+         * 
+         * @param columnName name of the selected column: this criteria is in the column header.
+         * @return the content column below selected column header name.
          * @throws ResourceNotFoundException
+         *             when the column is not found
          * @throws IkatsException
+         *             unexpected error occured: for exemple ClassCastException
+         *             error.
          */
-        public <T> List<T> getColumnFromTable(String columnName) throws IkatsException {
-            int posCastItem = 0;
+        public <T> List<T> getColumn(String columnName) throws IkatsException, ResourceNotFoundException {
+         
             try {
 
                 int matchedIndex = this.getIndexColumnHeader(columnName);
                 if (matchedIndex < 0) {
-                    logger.warn("Unmatched getColumnFromTable(): in Columns header: no column named " + columnName + " of table " + this.toString());
+                    throw new ResourceNotFoundException(
+                            "Unmatched getColumn(): in Columns header: no column named " + columnName + " of table " + this.toString());
                 }
+                return getColumn(matchedIndex);
+            }
+            catch (IkatsException e) {
+                throw new IkatsException("Failed getColumn("+ columnName +") in table: " + this.toString(), e);
+            }
+        }
 
+        /**
+         * Gets the column values from the Table.
+         * 
+         * Note: this getter ignores the links possibly defined on the column.
+         * 
+         * @param index of selected column. Note: index relative to the global table, including headers, when defined.
+         * @return the selected column values. Excluding column optional header value.
+         * @throws IkatsException 
+         * @throws ResourceNotFoundException when the column is not found
+         */
+        public <T> List<T> getColumn(int index) throws IkatsException, ResourceNotFoundException {
+            int posCastItem = 0;
+            try {
+                if (index < 0) {
+                    throw new ResourceNotFoundException(
+                            "Unmatched getColumn(): in Columns header: no column at content index=" + index + " of table " + this.toString());
+                }
+                
                 List<T> result = new ArrayList<>();
                 List<Object> matchedData;
-                if (matchedIndex == 0) {
-                    // Read the rows header and ignore its first element
-                    matchedData = new ArrayList<Object>();
-                    matchedData = new ArrayList<>(this.getRowsHeader().getSimpleElements());
+                Header rowsHeader = this.getRowsHeader();
+                if ((rowsHeader != null) && index == 0) {
+                    // Read the rows header and ignore its first element 
+                    matchedData = new ArrayList<>(rowsHeader.getData());
                     matchedData.remove(0);
 
                 }
                 else {
-                    // inside the content part: the column is indexed by
-                    // matchedIndex - 1
-                    matchedData = this.getContent().getSimpleDataColumn(matchedIndex - 1);
+                    // inside the content part: the column is indexed by 
+                    int contentIndex = ( rowsHeader == null ) ? index : index -1;
+                    matchedData = this.getContent().getColumnData(contentIndex);
                 }
 
                 // iterate and cast the value to T ...
@@ -312,11 +341,90 @@ public class TableManager {
                 return result;
             }
             catch (ClassCastException typeError) {
-                throw new IkatsException("Failed getColumnFromTable() in table: cast failed on item at index=" + posCastItem + " in column named "
-                        + columnName + " in table " + this.toString(), typeError);
+                throw new IkatsException("Failed getColumn() in table: cast failed on item at index=" + posCastItem + " in column at content index="
+                        + index + " in table " + this.toString(), typeError);
             }
             catch (IkatsException e) {
-                throw new IkatsException("Failed getColumnFromTable() in table: " + this.toString(), e);
+                throw new IkatsException("Failed getColumn() in table: " + this.toString(), e);
+            }
+        }
+        
+        /**
+         * Gets the row values from this table/
+         * 
+         * Note: this getter ignores the links possibly defined on the row.
+         * 
+         * @param rowName name of the selected row: this criteria is in the row header.
+         * @return
+         * @throws IkatsException row header is undefined
+         * @throws ResourceNotFoundException row is not found
+         */
+        public <T> List<T> getRow(String rowName) throws IkatsException, ResourceNotFoundException {
+            
+            try {
+
+                int matchedIndex = this.getIndexRowHeader(rowName);
+                if (matchedIndex < 0) {
+                    throw new ResourceNotFoundException(
+                            "Unmatched getRow(): in Rows header: no row named " + rowName + " of table " + this.toString());
+                }
+                return getRow(matchedIndex);
+            }
+            catch (IkatsException e) {
+                throw new IkatsException("Failed getColumn("+ rowName +") in table: " + this.toString(), e);
+            }
+        }
+        
+        /**
+         * Gets the selected row values from this table.
+         * 
+         * Note: this getter ignores the links possibly defined on the row.
+         * 
+         * 
+         * @param index content index of selected row. Note: index relative to the whole table.
+         * If column header exists: 0 points to columnHeaders; otherwise 0 points to first row of this.getContent().
+         * @return selected row values. Note: row header value is not included.
+         * @throws IkatsException row header is undefined
+         * @throws ResourceNotFoundException row is not found
+         */
+        public <T> List<T> getRow(int index) throws IkatsException, ResourceNotFoundException {
+            int posCastItem = 0;
+            try {
+                if (index < 0) {
+                    throw new ResourceNotFoundException(
+                            "Unmatched getRow(): in Rows header: no row at content index=" + index + " of table " + this.toString());
+                }
+                
+                List<T> result = new ArrayList<>();
+                List<Object> matchedData;
+                Header columnsHeader = this.getColumnsHeader();
+                if ((columnsHeader != null) && index == 0) {
+                    // Read the columns header and ignore its first element
+                    
+                    matchedData = new ArrayList<>(columnsHeader.getData());
+                    matchedData.remove(0);
+
+                }
+                else {
+                    // inside the content part: the row is indexed by
+                    // matchedIndex - 1
+                    int contentIndex = ( columnsHeader == null ) ? index : index -1; 
+                    matchedData = this.getContent().getRowData(contentIndex);
+                }
+
+                // iterate and cast the value to T ...
+                for (Object dataItem : matchedData) {
+                    result.add((T) dataItem);
+                    posCastItem++;
+                }
+                return result;
+            }
+            catch (ClassCastException typeError) {
+                throw new IkatsException("Failed getRow() in table: cast failed on item at index=" + posCastItem + " in row at content index="
+                        + index + " in table " + this.toString(), typeError);
+            }
+            catch (IkatsException e) {
+                throw new IkatsException("Failed getColumn() in table: " + this.toString(), e);
             }
         }
 
@@ -327,78 +435,79 @@ public class TableManager {
          * @return handled content or null
          */
         TableContent getContent() {
-            return this.table.content;
+            return this.tableInfo.content;
         }
 
         private List<List<Object>> getContentData() {
-            if (this.table.content == null)
+            if (this.tableInfo.content == null)
                 return null;
 
-            return this.table.content.cells;
+            return this.tableInfo.content.cells;
         }
 
         private List<List<DataLink>> getContentDataLinks() {
-            if (this.table.content == null)
+            if (this.tableInfo.content == null)
                 return null;
 
-            return this.table.content.links;
+            return this.tableInfo.content.links;
         }
 
         public void disableColumnsHeader() {
-            if (this.table.headers != null)
-                this.table.headers.col = null;
+            if (this.tableInfo.headers != null)
+                this.tableInfo.headers.col = null;
         }
 
         public void disableRowsHeader() {
-            if (this.table.headers != null)
-                this.table.headers.row = null;
+            if (this.tableInfo.headers != null)
+                this.tableInfo.headers.row = null;
         }
-        
+
         /**
          * Initializes the links configuration, when some links are required.
-         * @param enabledOnColHeader enables the links on the column header
+         * 
+         * @param enabledOnColHeader
+         *            enables the links on the column header
          * @param defaultPropertyColHeader
-         * @param enabledOnRowHeader enables the links on the row header
+         * @param enabledOnRowHeader
+         *            enables the links on the row header
          * @param defaultPropertyRowHeader
-         * @param enabledOnContent enables the links on the content
+         * @param enabledOnContent
+         *            enables the links on the content
          * @param defaultPropertyContent
          */
-        public void enableLinks( boolean enabledOnColHeader,
-                                 DataLink defaultPropertyColHeader,
-                                 boolean enabledOnRowHeader,
-                                 DataLink defaultPropertyRowHeader,
-                                 boolean enabledOnContent,
-                                 DataLink defaultPropertyContent
-                                 )
-        {
+        public void enableLinks(boolean enabledOnColHeader, DataLink defaultPropertyColHeader, boolean enabledOnRowHeader,
+                DataLink defaultPropertyRowHeader, boolean enabledOnContent, DataLink defaultPropertyContent) {
             Header columnsHeader = getColumnsHeader();
-            if ( columnsHeader != null && enabledOnColHeader) columnsHeader.enableLinks(defaultPropertyColHeader);
+            if (columnsHeader != null && enabledOnColHeader)
+                columnsHeader.enableLinks(defaultPropertyColHeader);
             Header rowsHeader = getRowsHeader();
-            if ( rowsHeader != null && enabledOnRowHeader) rowsHeader.enableLinks(defaultPropertyRowHeader);
+            if (rowsHeader != null && enabledOnRowHeader)
+                rowsHeader.enableLinks(defaultPropertyRowHeader);
             TableContent content = getContent();
-            if ( content != null && enabledOnContent) content.enableLinks(defaultPropertyContent );
+            if (content != null && enabledOnContent)
+                content.enableLinks(defaultPropertyContent);
         }
 
         public void setDescription(String description) {
-            if (table.table_desc == null) {
-                table.table_desc = new Table.TableDesc();
+            if (tableInfo.table_desc == null) {
+                tableInfo.table_desc = new TableInfo.TableDesc();
             }
-            table.table_desc.desc = description;
+            tableInfo.table_desc.desc = description;
 
         }
 
         public void setTitle(String title) {
-            if (table.table_desc == null) {
-                table.table_desc = new Table.TableDesc();
+            if (tableInfo.table_desc == null) {
+                tableInfo.table_desc = new TableInfo.TableDesc();
             }
-            table.table_desc.title = title;
+            tableInfo.table_desc.title = title;
         }
 
         public void setName(String name) {
-            if (table.table_desc == null) {
-                table.table_desc = new Table.TableDesc();
+            if (tableInfo.table_desc == null) {
+                tableInfo.table_desc = new TableInfo.TableDesc();
             }
-            table.table_desc.name = name;
+            tableInfo.table_desc.name = name;
         }
 
         /**
@@ -411,7 +520,7 @@ public class TableManager {
          * @return initialized and attached header, which can be completed using
          *         {@link Header#addItem}
          */
-        public Header initColumnsHeader(boolean startWithTopLeftCorner, DataLink defaultLink, boolean manageLinks) throws IkatsException {
+        Header initColumnsHeader(boolean startWithTopLeftCorner, DataLink defaultLink, boolean manageLinks) throws IkatsException {
             List<DataLink> headerLinks = manageLinks ? new ArrayList<>() : null;
 
             return this.initColumnsHeader(startWithTopLeftCorner, defaultLink, new ArrayList<>(), headerLinks);
@@ -429,53 +538,53 @@ public class TableManager {
          *         {@link Header#addItem}
          * @throws IkatsException
          */
-        public Header initColumnsHeader(boolean startWithTopLeftCorner, DataLink defaultLink, List<Object> headerData, List<DataLink> headerLinks)
+         Header initColumnsHeader(boolean startWithTopLeftCorner, DataLink defaultLink, List<Object> headerData, List<DataLink> headerLinks)
                 throws IkatsException {
             if (defaultLink != null && headerLinks == null) {
                 throw new IkatsException("Inconsistency: default link cannot be defined if the links are not manages (headerLinks == null)");
             }
-            if (this.table.headers == null)
-                this.table.headers = new TableHeaders();
+            if (this.tableInfo.headers == null)
+                this.tableInfo.headers = new TableHeaders();
 
-            this.table.headers.col = createHeader(headerData, headerLinks, defaultLink, startWithTopLeftCorner);
-            return this.table.headers.col;
+            this.tableInfo.headers.col = createHeader(headerData, headerLinks, defaultLink, startWithTopLeftCorner);
+            return this.tableInfo.headers.col;
         }
 
         /**
-         * TODO doc
+         * Initialize the column header. Internal purpose.
          * 
-         * @param startWithTopLeftCorner
-         * @param defaultLink
-         * @param manageLinks
-         * @return
-         * @throws IkatsException
-         */
-        public Header initRowsHeader(boolean startWithTopLeftCorner, DataLink defaultLink, boolean manageLinks) throws IkatsException {
-            List<DataLink> headerLinks = manageLinks ? new ArrayList<>() : null;
-
-            return this.initRowsHeader(startWithTopLeftCorner, defaultLink, new ArrayList<>(), headerLinks);
-        }
-
-        /**
-         * TODO doc
-         * 
-         * @param startWithTopLeftCorner
+         * @param startWithTopLeftCorner false when a null value is starting the header on the top left corner.
          * @param defaultLink
          * @param headerData
          * @param headerLinks
          * @return
          * @throws IkatsException
          */
-        public Header initRowsHeader(boolean startWithTopLeftCorner, DataLink defaultLink, List<Object> headerData, List<DataLink> headerLinks)
+        Header initRowsHeader(boolean startWithTopLeftCorner, DataLink defaultLink, List<Object> headerData, List<DataLink> headerLinks)
                 throws IkatsException {
             if (defaultLink != null && headerLinks == null) {
                 throw new IkatsException("Inconsistency: default link cannot be defined if the links are not manages (headerLinks == null)");
             }
-            if (this.table.headers == null)
-                this.table.headers = new TableHeaders();
+            if (this.tableInfo.headers == null)
+                this.tableInfo.headers = new TableHeaders();
+        
+            this.tableInfo.headers.row = createHeader(headerData, headerLinks, defaultLink, startWithTopLeftCorner);
+            return this.tableInfo.headers.row;
+        }
 
-            this.table.headers.row = createHeader(headerData, headerLinks, defaultLink, startWithTopLeftCorner);
-            return this.table.headers.row;
+        /**
+         * Initialize the column header.  Internal purpose.
+         * 
+         * @param startWithTopLeftCorner false when a null value is starting the header on the top left corner.
+         * @param defaultLink
+         * @param manageLinks
+         * @return
+         * @throws IkatsException
+         */
+        Header initRowsHeader(boolean startWithTopLeftCorner, DataLink defaultLink, boolean manageLinks) throws IkatsException {
+            List<DataLink> headerLinks = manageLinks ? new ArrayList<>() : null;
+
+            return this.initRowsHeader(startWithTopLeftCorner, defaultLink, new ArrayList<>(), headerLinks);
         }
 
         private Header createHeader(List<Object> headerData, List<DataLink> headerLinks, DataLink defaultLink, boolean startWithTopLeftCorner) {
@@ -507,7 +616,8 @@ public class TableManager {
          */
         public TableContent initContent(boolean manageLinks, DataLink defaultLink) throws IkatsException {
 
-            return this.table.content = initContent(new ArrayList<List<Object>>(), manageLinks ? new ArrayList<List<DataLink>>() : null, defaultLink);
+            return this.tableInfo.content = initContent(new ArrayList<List<Object>>(), manageLinks ? new ArrayList<List<DataLink>>() : null,
+                    defaultLink);
         }
 
         /**
@@ -523,13 +633,13 @@ public class TableManager {
             if (links == null && defaultLink != null)
                 throw new IkatsException("Inconsistency: content cannot have defined default link if links are not managed");
 
-            if (this.table.content == null) {
-                this.table.content = new TableContent();
+            if (this.tableInfo.content == null) {
+                this.tableInfo.content = new TableContent();
             }
-            this.table.content.cells = cellData;
-            this.table.content.links = links;
-            this.table.content.default_links = defaultLink;
-            return this.table.content;
+            this.tableInfo.content.cells = cellData;
+            this.tableInfo.content.links = links;
+            this.tableInfo.content.default_links = defaultLink;
+            return this.tableInfo.content;
 
         }
 
@@ -537,17 +647,21 @@ public class TableManager {
          * Sorts the rows under the column header, according to one column.
          * 
          * If a row header is managed, it is sorted the same way.
-         * @param columnName name of the sorting criteria.
+         * 
+         * @param columnName
+         *            name of the sorting criteria.
          */
-        public void sortRowsByColumnValues(String columnName)
-        {
+        public void sortRowsByColumnValues(String columnName) {
             throw new Error("Not yet implemented");
         }
-        
+
         /**
          * Adds a new row in the table, without row header information
          * 
-         * @param rowData required list of row data values. Accepted types for T: immutable Object (String, Double, Boolean ...) or TableElement.
+         * @param rowData
+         *            required list of row data values. Accepted types for T:
+         *            immutable Object (String, Double, Boolean ...) or
+         *            TableElement.
          * @return
          * @throws IkatsException
          */
@@ -561,9 +675,13 @@ public class TableManager {
          * 
          * @param rowHeaderData
          *            optional row header data. null implies that row header
-         *            will be ignored, not completed. Accepted types for H: immutable Object (String, Double, Boolean ...) or TableElement.
+         *            will be ignored, not completed. Accepted types for H:
+         *            immutable Object (String, Double, Boolean ...) or
+         *            TableElement.
          * @param rowData
-         *            required list of row data values. Accepted types for T: immutable Object (String, Double, Boolean ...) or TableElement.
+         *            required list of row data values. Accepted types for T:
+         *            immutable Object (String, Double, Boolean ...) or
+         *            TableElement.
          * @return current number of rows (this.getContent().cells.size())
          * @throws IkatsException
          */
@@ -582,10 +700,14 @@ public class TableManager {
                     this.getRowsHeader().addItem(rowHeaderData, null);
                 }
             }
-            if ((rowData != null) && rowData.size() > 0) this.getContent().addRow(TableElement.encodeElements(rowData));
+            if ((rowData != null) && rowData.size() > 0)
+                this.getContent().addRow(TableElement.encodeElements(rowData));
 
             return this.getContent().cells.size();
         }
+        
+        
+        
     }
 
     /**
@@ -612,6 +734,8 @@ public class TableManager {
         // In case of null value for an object attribute: do not serialize
         // associated json property.
         jsonObjectMapper.setSerializationInclusion(Include.NON_NULL);
+
+        processDataManager = new ProcessDataManager();
     }
 
     /**
@@ -623,9 +747,9 @@ public class TableManager {
      * @throws IkatsJsonException
      *             in case of parsing error.
      */
-    public Table loadFromJson(String jsonContent) throws IkatsJsonException {
+    public TableInfo loadFromJson(String jsonContent) throws IkatsJsonException {
         try {
-            return jsonObjectMapper.readValue(jsonContent, Table.class);
+            return jsonObjectMapper.readValue(jsonContent, TableInfo.class);
         }
         catch (Exception e) {
             throw new IkatsJsonException("Failed to load Table business resource from the json content", e);
@@ -638,7 +762,7 @@ public class TableManager {
      * @return
      * @throws IkatsJsonException
      */
-    public String serializeToJson(Table businessResource) throws IkatsJsonException {
+    public String serializeToJson(TableInfo businessResource) throws IkatsJsonException {
         try {
             return jsonObjectMapper.writeValueAsString(businessResource);
         }
@@ -648,47 +772,69 @@ public class TableManager {
     }
 
     /**
-     * Retrieve the data part of the column matching the columnName.
-     * 
-     * 
-     * Note: data part is not including the links: in next version: use the
-     * getColumnWithLinksFromTable()
-     * 
-     * @param table
-     * @param columnName:
-     *            criterion used to retrieve good column, with expected name in
-     *            the header.
-     * @return found List or null when no such column
-     * @throws IkatsException
-     * @deprecated method: please use directly the method from TableHandler.
+     * Create and intialize the whole structure of a Table, without links
      */
-    public <T> List<T> getColumnFromTable(Table table, String columnName) throws IkatsException {
-        TableHandler myT = new TableHandler(table);
-        return myT.getColumnFromTable(columnName);
+    public Table initEmptyTable()
+    {
+        TableInfo tableJson = new TableInfo();
+        Table table = new Table( tableJson );
+        
+        tableJson.table_desc = new TableDesc();
+        tableJson.headers = new TableHeaders();
+        tableJson.headers.row = new Header();
+        tableJson.headers.row.data = new ArrayList<>();
+    
+        tableJson.headers.col = new Header();
+        tableJson.headers.col.data = new ArrayList<>();
+       
+        tableJson.content = new TableContent();
+        tableJson.content.cells = new ArrayList<>();
+      
+        return new Table(tableJson);
     }
-
+    
     /**
-     * Initializer of a table CSV-like, simple, without links, without row
-     * header.
+     * Initialize empty table enhanced with links configuration.
+     * 
+     * @param enabledOnColHeader
+     * @param defaultPropertyColHeader
+     * @param enabledOnRowHeader
+     * @param defaultPropertyRowHeader
+     * @param enabledOnContent
+     * @param defaultPropertyContent
+     * @return
+     */
+    public Table initEmptyTable(boolean enabledOnColHeader, DataLink defaultPropertyColHeader, boolean enabledOnRowHeader,
+            DataLink defaultPropertyRowHeader, boolean enabledOnContent, DataLink defaultPropertyContent) {
+
+        Table emptyTable = initEmptyTable();
+        emptyTable.enableLinks(enabledOnColHeader, defaultPropertyColHeader,
+                               enabledOnRowHeader, defaultPropertyRowHeader, 
+                               enabledOnContent, defaultPropertyContent);
+
+        return emptyTable;
+    }
+    
+    /**
+     * Initialize a table, simple, without links, without row header.
      * 
      * @param columnHeaders
      * @return the handler of the table
      * @throws IkatsException
      */
-    public TableHandler initCsvLikeTable(List<String> columnHeaders) throws IkatsException {
-        return initCsvLikeTable(columnHeaders, false);
-
+    public Table initTable(List<String> columnHeaders) throws IkatsException {
+        return initTable(columnHeaders, false);
     }
 
     /**
-     * Initializer of a table CSV-like, without links.
+     * Initialize a table, without links.
      * 
-     * @param columnHeaders
-     * @param withRowHeader: true activates the row header management.
+     * @param columnHeaders defines the column header cells
+     * @param withRowHeader: true activates the row header management. But header cells are defined later
      * @return the handler of the table: ready to use appendRow() for example.
      */
-    public TableHandler initCsvLikeTable(List<String> columnHeaders, boolean withRowHeader) throws IkatsException {
-        TableHandler csvLikeTableH = getHandler(new Table());
+    public Table initTable(List<String> columnHeaders, boolean withRowHeader) throws IkatsException {
+        Table csvLikeTableH = initTable(new TableInfo(), false);
 
         // 1: Init Column header
         // 2: optional Init Row Header
@@ -703,19 +849,26 @@ public class TableManager {
 
         return csvLikeTableH;
     }
-
+ 
     /**
-     * Get the handler, which proposes public services for end-user, or other
-     * services for the TableManager.
+     * Get the Table business view of a TableInfo. 
      * 
-     * Note: before using the handler: please check the end-user services of
-     * TableManager, with public visibility.
+     * Table and TableManager propose public services for end-
      * 
-     * @param table
-     * @return the handler of the table: ready to use appendRow() for example
+     * @param tableInfo the tableinfo basic structure is jsonifiable resource.
+     * @param copyTableInfo true demands that returned Table manages a copy of tableInfo.
+     * @return
      */
-    public TableHandler getHandler(Table table) {
-        return new TableHandler(table);
+    public Table initTable(TableInfo tableInfo, boolean copyTableInfo) {
+        if ( copyTableInfo )
+        {
+            return new Table(new TableInfo( tableInfo));
+        }
+        else
+        {
+            return new Table(tableInfo);
+        }
+        
     }
 
     /**
@@ -729,7 +882,7 @@ public class TableManager {
      * @throws ResourceNotFoundException
      * @throws SQLException
      */
-    public Table readFromDatabase(String tableName) throws IkatsJsonException, IkatsDaoException, ResourceNotFoundException {
+    public TableInfo readFromDatabase(String tableName) throws IkatsJsonException, IkatsDaoException, ResourceNotFoundException {
 
         try {
             List<ProcessData> dataTables = processDataManager.getProcessData(tableName);
@@ -746,7 +899,7 @@ public class TableManager {
             // extract data to json string
             String jsonString = new String(dataTable.getData().getBytes(1, (int) dataTable.getData().length()));
             // convert to Table type
-            Table table = loadFromJson(jsonString);
+            TableInfo table = loadFromJson(jsonString);
 
             logger.info("Table retrieved from db OK : name=" + tableName);
             return table;
@@ -773,7 +926,7 @@ public class TableManager {
      *             consistency error found in the name of the table: see
      *             TABLE_NAME_PATTERN
      */
-    public String createInDatabase(String tableName, Table tableToStore)
+    public String createInDatabase(String tableName, TableInfo tableToStore)
             throws IkatsJsonException, IkatsDaoException, IkatsDaoConflictException, InvalidValueException {
 
         // validate the name consistency
@@ -781,7 +934,7 @@ public class TableManager {
 
         // record the name also inside the Table, so that it will be visible
         // from json.
-        getHandler(tableToStore).setName(tableName);
+        initTable(tableToStore, false).setName(tableName);
 
         byte[] data = serializeToJson(tableToStore).getBytes();
 
@@ -834,11 +987,11 @@ public class TableManager {
     public <T> List<T> getColumnFromTable(String tableName, String columnName)
             throws IkatsException, IkatsDaoException, ResourceNotFoundException, SQLException {
 
-        Table table = readFromDatabase(tableName);
+        TableInfo table = readFromDatabase(tableName);
 
-        TableHandler tableH = getHandler(table);
-        
-        List<T> column = tableH.getColumnFromTable(columnName);
+        Table tableH = initTable(table, false);
+
+        List<T> column = tableH.getColumn(columnName);
 
         logger.info("Column " + columnName + " retrieved from table : " + tableName);
 

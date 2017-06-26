@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import fr.cs.ikats.temporaldata.business.Table.DataLink;
+import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 
 /**

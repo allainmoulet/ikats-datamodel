@@ -4,8 +4,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.cs.ikats.temporaldata.business.Table.DataLink;
-import fr.cs.ikats.temporaldata.business.TableManager.TableHandler;
+import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
+import fr.cs.ikats.temporaldata.business.TableManager.Table;
 import junit.framework.TestCase;
 
 /**
@@ -26,11 +26,11 @@ public class TableManagerTest extends TestCase {
         try {
             TableManager mng = new TableManager();
 
-            Table table = mng.loadFromJson(TableManagerTest.JSON_CONTENT_SAMPLE_1);
+            TableInfo table = mng.loadFromJson(TableManagerTest.JSON_CONTENT_SAMPLE_1);
 
-            TableHandler tableH = mng.getHandler(table);
-            String firstColName = (String) tableH.getColumnsHeader().getSimpleElements().get(0);
-            List<String> funcIds = mng.getColumnFromTable(table, "funcId");
+            Table tableH = mng.initTable(table, false);
+            String firstColName = (String) tableH.getColumnsHeader().getData().get(0);
+            List<String> funcIds = tableH.getColumn("funcId");
             List<Object> refFuncIds = new ArrayList<Object>(table.headers.row.data);
             refFuncIds.remove(0);
 
@@ -44,6 +44,8 @@ public class TableManagerTest extends TestCase {
         }
 
     }
+    
+   
 
     /**
      * Tests getColumnFromTable: case selecting the content values
@@ -52,15 +54,16 @@ public class TableManagerTest extends TestCase {
         try {
             TableManager mng = new TableManager();
 
-            Table table = mng.loadFromJson(TableManagerTest.JSON_CONTENT_SAMPLE_1);
-            // System.out.println( TableManagerTest.JSON_CONTENT_SAMPLE_1 );
-
+            TableInfo tableJson = mng.loadFromJson(TableManagerTest.JSON_CONTENT_SAMPLE_1);
+            System.out.println( TableManagerTest.JSON_CONTENT_SAMPLE_1 );
+            
+            Table table = mng.initTable(tableJson, false);
+            
             // Testing typed String access
-            //
-
-            List<String> metrics = mng.getColumnFromTable(table, "metric");
+            // 
+            List<String> metrics = table.getColumn("metric");
             List<String> refMetrics = new ArrayList<>();
-            for (List<Object> row : table.content.cells) {
+            for (List<Object> row : tableJson.content.cells) {
                 refMetrics.add((String) row.get(0));
             }
 
@@ -69,9 +72,9 @@ public class TableManagerTest extends TestCase {
             // Testing typed Double access
             //
 
-            List<Double> otherDecimal = mng.getColumnFromTable(table, "min_B1");
+            List<Double> otherDecimal = table.getColumn("min_B1");
             List<Double> refOtherDecimal = new ArrayList<>();
-            for (List<Object> row : table.content.cells) {
+            for (List<Object> row : tableJson.content.cells) {
                 refOtherDecimal.add((Double) row.get(1));
             }
 
@@ -82,9 +85,9 @@ public class TableManagerTest extends TestCase {
 
             // Testing untyped case: Object
             //
-            List<Object> other = mng.getColumnFromTable(table, "max_B1");
+            List<Object> other = table.getColumn( "max_B1");
             List<Object> refOther = new ArrayList<>();
-            for (List<Object> row : table.content.cells) {
+            for (List<Object> row : tableJson.content.cells) {
                 refOther.add(row.get(2));
             }
 
@@ -97,16 +100,51 @@ public class TableManagerTest extends TestCase {
         }
 
     }
+    
+    public void testGetRowFromTable() {
+        try {
+            TableManager mng = new TableManager();
+
+            TableInfo table = mng.loadFromJson(TableManagerTest.JSON_CONTENT_SAMPLE_1);
+
+            Table tableH = mng.initTable(table, false);
+            
+            // The simpler getter: row at index=... from TableContent:
+            int contentIndex = 0;
+            List<Object> selectedRowValsBis = tableH.getRow(contentIndex +1 );
+            
+            // Another way: using the row header name
+            // Reads the row header value: at position (contentIndex + 1) (after top left corner)
+            String secondRowName = (String) tableH.getRowsHeader().getData().get(contentIndex +1);
+            List<Object> selectedRowVals = tableH.getRow(secondRowName);
+            List<Object> ref = new ArrayList<Object>(table.content.cells.get(contentIndex));
+            
+            System.out.println(selectedRowValsBis  );
+            System.out.println(selectedRowVals  );
+            System.out.println(ref  );
+            
+            assertEquals(selectedRowVals, selectedRowValsBis);
+            assertEquals(selectedRowVals, Arrays.asList( "VIB2",-50.0,12.1,1.0,3.4 ));
+            
+            assertEquals(selectedRowVals, ref );
+
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        }
+
+    }
 
     /**
      * Tests initCsvLikeTable: case of the creation of a simple-csv Table: with one column header and
      * simple rows (without row header).
      */
-    public void testInitCsvLikeTableSimple() {
+    public void testInitTableSimple() {
 
         TableManager mng = new TableManager();
-        Table table = new Table();
-        TableHandler tableH = mng.getHandler(table);
+        TableInfo table = new TableInfo();
+        Table tableH = mng.initTable(table, false);
         try {
 
             // Deprecated for end-user
@@ -114,7 +152,7 @@ public class TableManagerTest extends TestCase {
             tableH.initContent(false, null);
             
             // Simple initializer
-            TableHandler tableHBis = mng.initCsvLikeTable( Arrays.asList( "One", "Two", "Three" ));
+            Table tableHBis = mng.initTable( Arrays.asList( "One", "Two", "Three" ));
             
             Object[] row1 = new Object[] { "One", new Double(2.0), Boolean.FALSE };
 
@@ -133,7 +171,7 @@ public class TableManagerTest extends TestCase {
             
             assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTable()));
            
-            List<Object> columnn = tableH.getColumnFromTable("One");
+            List<Object> columnn = tableH.getColumn("One");
             // System.out.println( colOne );
 
         }
@@ -147,11 +185,11 @@ public class TableManagerTest extends TestCase {
     /**
      * Tests initCsvLikeTable: case of the creation of a simple-csv Table: with column header and rows header.
      */
-    public void testInitCsvLikeTableWithRowHeader() {
+    public void testInitTableWithRowsHeader() {
 
         TableManager mng = new TableManager();
-        Table table = new Table();
-        TableHandler tableH = mng.getHandler(table);
+        TableInfo table = new TableInfo();
+        Table tableH = mng.initTable(table, false);
         try {
 
             tableH.initColumnsHeader(true, null, false).addItem("Above row header", null).addItem("One", null).addItem("Two", null).addItem("Three", null);
@@ -159,7 +197,7 @@ public class TableManagerTest extends TestCase {
             tableH.initContent(false, null);
             
             // Simplified initializer used with tableHBis
-            TableHandler tableHBis = mng.initCsvLikeTable( Arrays.asList(new String[]{ "Above row header", "One", "Two", "Three"} ), true);
+            Table tableHBis = mng.initTable( Arrays.asList(new String[]{ "Above row header", "One", "Two", "Three"} ), true);
             
             // Defining the content rows - excluding row header part-
             Object[] row1 = new Object[] { "One", new Double(2.0), Boolean.FALSE };
@@ -182,12 +220,12 @@ public class TableManagerTest extends TestCase {
             assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTable()));
           
             
-            List<Object> columnnTwo = tableH.getColumnFromTable("Two");
+            List<Object> columnnTwo = tableH.getColumn("Two");
             // System.out.println( columnnTwo );
             
             assertEquals( columnnTwo, Arrays.asList(new Object[]{ 2.0, 2.2, false} ) );
             
-            List<Object> columnnOfRowHeaders = tableH.getColumnFromTable("Above row header");
+            List<Object> columnnOfRowHeaders = tableH.getColumn("Above row header");
             // System.out.println( columnnOfRowHeaders );
 
             assertEquals( columnnOfRowHeaders, Arrays.asList(new Object[]{"A", "B", "C"} ) );
@@ -201,11 +239,11 @@ public class TableManagerTest extends TestCase {
     /**
      * 
      */
-    public void testInitCsvLikeTableWithRowHeaderWithLinks() {
+    public void testInitTableWithRowsHeaderWithLinks() {
 
         TableManager mng = new TableManager();
-        Table table = new Table();
-        TableHandler tableH = mng.getHandler(table);
+        TableInfo table = new TableInfo();
+        Table tableH = mng.initTable(table, false);
         try {
             DataLink defColH= new DataLink();
             defColH.context = "conf col header link";
@@ -221,7 +259,7 @@ public class TableManagerTest extends TestCase {
             tableH.enableLinks(true, defColH, true, defRowH, true, defContent);
 
             // Simplified initializer used with tableHBis
-            TableHandler tableHBis = mng.initCsvLikeTable( Arrays.asList(new String[]{ "Above row header", "One", "Two", "Three"} ), true);
+            Table tableHBis = mng.initTable( Arrays.asList(new String[]{ "Above row header", "One", "Two", "Three"} ), true);
             tableHBis.enableLinks(true, defColH, true, defRowH, true, defContent);
             
             // Defining the content rows - excluding row header part-
@@ -267,18 +305,17 @@ public class TableManagerTest extends TestCase {
             assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTable()));
           
             
-            List<Object> columnnTwo = tableH.getColumnFromTable("Two");
+            List<Object> columnnTwo = tableH.getColumn("Two");
             // System.out.println( columnnTwo );
             
             assertEquals( columnnTwo, Arrays.asList(new Object[]{ row1[1], row2AsList.get(1).data, row3.get(1).data } ) );
-            assertEquals( columnnTwo, tableHBis.getColumnFromTable("Two") );
+            assertEquals( columnnTwo, tableHBis.getColumn("Two") );
+            
             // Tests link selection: linkTwo.type= "typ 2";
             //                       linkTwo.val= "val 2";
             // assertEquals( tableH.cells.links.get(1).get(1).type, tableHBis.getColumnFromTable("Two") );
             
-            
-            
-            List<Object> columnnOfRowHeaders = tableH.getColumnFromTable("Above row header");
+            List<Object> columnnOfRowHeaders = tableH.getColumn("Above row header");
             // System.out.println( columnnOfRowHeaders );
 
             assertEquals( columnnOfRowHeaders, Arrays.asList(new Object[]{"A", "B", "C"} ) );
@@ -299,9 +336,9 @@ public class TableManagerTest extends TestCase {
 
             mng = new TableManager();
 
-            Table table = mng.loadFromJson(TableManagerTest.JSON_CONTENT_SAMPLE_1);
+            TableInfo table = mng.loadFromJson(TableManagerTest.JSON_CONTENT_SAMPLE_1);
 
-            TableHandler tableH = mng.getHandler(table);
+            Table tableH = mng.initTable(table, false);
             int initialRowCount = tableH.getRowCount(true);
             int initialColumnCount = tableH.getColumnCount(true);
 

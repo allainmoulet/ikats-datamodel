@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import fr.cs.ikats.temporaldata.business.Table.DataLink;
+import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 
 /**
@@ -21,7 +21,7 @@ import fr.cs.ikats.temporaldata.exception.IkatsException;
  * TODO 158227/157215 complete table: add a map for metadata in the TableDesc
  * section.
  */
-public class Table {
+public class TableInfo {
 
     /**
      * The TableContent is the central part of the table, aside TableHeaders,
@@ -93,7 +93,7 @@ public class Table {
             }
 
             if (content.links != null) {
-                List<List<DataLink>> copyLinks = new ArrayList<List<Table.DataLink>>();
+                List<List<DataLink>> copyLinks = new ArrayList<List<TableInfo.DataLink>>();
                 for (List<DataLink> rowOfLinks : content.links) {
                     List<DataLink> copyRow = copyListOfLinks(rowOfLinks);
                     copyLinks.add(copyRow);
@@ -106,14 +106,14 @@ public class Table {
         }
 
         @JsonIgnore
-        public List<Object> getSimpleDataRow(int index) throws IkatsException, IndexOutOfBoundsException {
+        public List<Object> getRowData(int index) throws IkatsException, IndexOutOfBoundsException {
             if (cells == null)
                 throw new IkatsException("Failed: getSimpleDataRow at index=" + index + " undefined cells");
             return cells.get(index);
         }
 
         @JsonIgnore
-        public List<TableElement> getRow(int index) throws IkatsException, IndexOutOfBoundsException {
+        public List<TableElement> getRowDataWithLink(int index) throws IkatsException, IndexOutOfBoundsException {
             if (cells == null)
                 throw new IkatsException("Failed: getRow at index=" + index + " undefined cells");
             if (links == null)
@@ -132,7 +132,7 @@ public class Table {
         }
 
         @JsonIgnore
-        public List<Object> getSimpleDataColumn(int index) throws IkatsException, IndexOutOfBoundsException {
+        public List<Object> getColumnData(int index) throws IkatsException, IndexOutOfBoundsException {
             List<Object> simpleColumn = new ArrayList<>();
 
             if (cells == null)
@@ -153,7 +153,7 @@ public class Table {
         }
 
         @JsonIgnore
-        public List<TableElement> getColumn(int index, boolean requiresLinksOrdie) throws IkatsException, IndexOutOfBoundsException {
+        public List<TableElement> getColumnDataWithLink(int index, boolean requiresLinksOrdie) throws IkatsException, IndexOutOfBoundsException {
             int posRow = 0;
             try {
                 String message = "Failed: getColumn at index=" + index;
@@ -394,7 +394,7 @@ public class Table {
                 this.data = new ArrayList<>(theHeader.data);
             }
             if (theHeader.links != null) {
-                this.links = Table.copyListOfLinks(theHeader.links);
+                this.links = TableInfo.copyListOfLinks(theHeader.links);
             }
             this.default_links = theHeader.default_links;
 
@@ -431,8 +431,8 @@ public class Table {
             
             return this;
         }
-        @JsonIgnore
-        public List<Object> getSimpleElements()
+        
+        public List<Object> getData()
         {
             return this.data;
         }
@@ -440,7 +440,7 @@ public class Table {
          * @return
          */
         @JsonIgnore
-        public List<TableElement> getElements() throws IkatsException {
+        public List<TableElement> getDataWithLink() throws IkatsException {
             return TableElement.encodeElements(this.data, this.links);
         }
         
@@ -545,7 +545,7 @@ public class Table {
     /**
      * The public contructor required by jackson ObjectMapper
      */
-    public Table() {
+    public TableInfo() {
         super();
     }
 
@@ -566,7 +566,7 @@ public class Table {
      * 
      * @param source
      */
-    public Table(Table source) {
+    public TableInfo(TableInfo source) {
         this();
         if (source.table_desc != null)
             this.table_desc = new TableDesc(source.table_desc);
