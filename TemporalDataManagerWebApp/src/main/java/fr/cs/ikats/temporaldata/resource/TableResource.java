@@ -344,20 +344,6 @@ public class TableResource extends AbstractResource {
     }
 
     /**
-     * Get a table column from a table
-     */
-    public <T> List<T> getColumnfromTable(String tableName, String columnName) throws IkatsException, IkatsDaoException, ResourceNotFoundException, SQLException {
-
-        Table table = tableManager.readFromDatabase(tableName);
-        TableHandler tablehandler = new TableHandler(table);
-        List<T> column = tablehandler.getColumnFromTable(columnName);
-
-        logger.info("Column " + columnName + " retrieved from table : " + tableName);
-
-        return column;
-    }
-
-    /**
      * Convert list of Object to list of String
      */
     private List<String> convertToListOfString(List<Object> listObject) {

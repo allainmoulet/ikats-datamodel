@@ -29,7 +29,7 @@ public class TableRequestTest extends AbstractRequestTest {
 
 
     /**
-     * test of table creation from a csv file
+     * test of table change key use case
      * case : nominal (http code 200 returned)
      */
     @Test
@@ -70,6 +70,53 @@ public class TableRequestTest extends AbstractRequestTest {
             assertEquals(table.headers.row.data, Arrays.asList("flightId", "1", "2"));
             assertEquals(table.content.cells.get(0), Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8"));
             assertEquals(table.content.cells.get(1), Arrays.asList("13", "14", "15", "16", "9", "10", "11", "12"));
+
+            endNominal(testCaseName);
+        } catch (Throwable e) {
+            endWithFailure(testCaseName, e);
+        }
+    }
+
+    /**
+     * test of table download
+     * case : nominal (http code 200 returned)
+     */
+    @Test
+    public void testTableDownload() {
+        String testCaseName = "testTableDownload";
+        boolean isNominal = true;
+        try {
+            start(testCaseName, isNominal);
+
+            File file = getFileMatchingResource(testCaseName, "/data/test_import_table_nominal.csv");
+
+            getLogger().info("CSV table file : " + file.getAbsolutePath());
+            String tableName = "testTableDownload";
+            String url = getAPIURL() + "/table";
+            doImport(url, file, "CSV", 200, "timestamp", tableName);
+
+            String jsonTable = doGetDataDownload(tableName);
+            TableManager tableManager = new TableManager();
+            Table table = tableManager.loadFromJson(jsonTable);
+
+            assertEquals(table.headers.col.data, Arrays.asList(null, "timestamp", "value"));
+            assertEquals(table.headers.row.data, Arrays.asList(
+                    "2015-12-10T14:55:30.5"
+                    , "2015-12-10T14:55:31.0"
+                    , "2015-12-10T14:55:31.5"
+                    , "2015-12-10T14:55:32.0"
+                    , "2015-12-10T14:55:23.512"
+                    , "2015-12-10T14:56:20.0"
+                    , "2015-12-10T14:56:31.5"
+                    , "2015-12-10T14:56:33.0"
+                    , "2015-12-10T14:56:34.5"
+                    , "2015-12-10T14:56:76.0"
+                    , "2015-12-10T14:56:37.5"
+                    , "2015-12-10T14:56:59.0"
+                    , "2015-12-10T14:56:40.5"));
+
+//            assertEquals(table.content.cells.get(0), Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8"));
+//            assertEquals(table.content.cells.get(1), Arrays.asList("13", "14", "15", "16", "9", "10", "11", "12"));
 
             endNominal(testCaseName);
         } catch (Throwable e) {
