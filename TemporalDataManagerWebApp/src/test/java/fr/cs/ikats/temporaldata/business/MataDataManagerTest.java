@@ -1,12 +1,20 @@
 package fr.cs.ikats.temporaldata.business;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
+import fr.cs.ikats.temporaldata.exception.IkatsException;
+import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
+import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import org.apache.log4j.Logger;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.*;
@@ -16,7 +24,7 @@ import static org.junit.Assert.*;
  */
 public class MataDataManagerTest {
 
-    private final Logger logger = Logger.getLogger(MataDataManagerTest.class);
+    private static final Logger logger = Logger.getLogger(MataDataManagerTest.class);
 
     /**
      * Saves the content of a CSV as a Table
@@ -25,7 +33,58 @@ public class MataDataManagerTest {
      * @param content text corresponding to the CSV format
      */
     private static void saveTable(String name, String content) {
-        // TODO Save the table
+        TableManager tableManager = new TableManager();
+        Table outputTable = new Table();
+        TableManager.TableHandler tableH = tableManager.getHandler(outputTable);
+
+        // Check if database is clean
+        try {
+            if (tableManager.existsInDatabase(name)) {
+                // Table name already exists
+                fail("Table name already exists: " + name);
+            }
+        } catch (IkatsDaoException e) {
+            fail("Hibernate error");
+            e.printStackTrace();
+        }
+
+        // Convert the CSV table to expected Table format
+
+        tableH.disableRowsHeader();
+        BufferedReader bufReader = new BufferedReader(new StringReader(content));
+        String line = null;
+        try {
+
+            // First line contains headers
+            line = bufReader.readLine();
+            List<Object> headersTitle = Arrays.asList(line.split(";"));
+            tableH.initColumnsHeader(true, null, headersTitle,null);
+
+            // Other lines contain data
+            while ((line = bufReader.readLine()) != null) {
+                List<String> items = Arrays.asList(line.split(";"));
+                tableH.appendRow(items);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (IkatsException e) {
+            e.printStackTrace();
+        }
+
+        // Save the table into database
+        String rid = null;
+        try {
+            rid = tableManager.createInDatabase(name, outputTable);
+        } catch (IkatsJsonException e) {
+            e.printStackTrace();
+        } catch (IkatsDaoException e) {
+            e.printStackTrace();
+        } catch (InvalidValueException e) {
+            e.printStackTrace();
+        }
+
+        logger.trace("Table " + name + " saved with RID=" + rid);
 
     }
 

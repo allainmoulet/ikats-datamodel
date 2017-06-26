@@ -460,7 +460,7 @@ public class MetaDataManager {
                     }
 
                     // Extract the desired column form the table content
-                    List<String> splitValues = TableResource.getColumnFromTable(tableName, column);
+                    List<String> splitValues = TableResource.getColumnfromTable(tableName, column);
 
                     // Changing comparator to IN
                     criterion.setComparator(IN.toString());
