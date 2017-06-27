@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
-import org.dom4j.datatype.DatatypeAttribute;
-
 /**
  * Manager for ProcessData data
  */

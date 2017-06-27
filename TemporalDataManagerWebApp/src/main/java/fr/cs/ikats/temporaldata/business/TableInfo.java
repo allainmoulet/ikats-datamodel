@@ -104,6 +104,13 @@ public class TableInfo {
 
         }
 
+        /**
+         * Gets from this content the row data, at index, without links 
+         * @param index
+         * @return the row data at index
+         * @throws IkatsException when this.cells is null
+         * @throws IndexOutOfBoundsException when index is out of bound of this.cells
+         */
         @JsonIgnore
         public List<Object> getRowData(int index) throws IkatsException, IndexOutOfBoundsException {
             if (cells == null)
@@ -111,6 +118,14 @@ public class TableInfo {
             return cells.get(index);
         }
 
+        /**
+         * Gets from this content the row as list of TableElement, at index, wit optional links.
+         * Use this method if TableContent is managing links, otherwise it will throw exception.
+         * @param index
+         * @return the row
+         * @throws IkatsException when this.cells is null or this.links is null or when cells.size() != links.size()
+         * @throws IndexOutOfBoundsException when index is out of bound of this.cells
+         */
         @JsonIgnore
         public List<TableElement> getRowDataWithLink(int index) throws IkatsException, IndexOutOfBoundsException {
             if (cells == null)
@@ -130,6 +145,13 @@ public class TableInfo {
             return result;
         }
 
+        /**
+         * Gets from this content the column data, at index, without links 
+         * @param index
+         * @return the column data at index
+         * @throws IkatsException when this.cells is null
+         * @throws IndexOutOfBoundsException when index is out of bound of at least one of the rows
+         */
         @JsonIgnore
         public List<Object> getColumnData(int index) throws IkatsException, IndexOutOfBoundsException {
             List<Object> simpleColumn = new ArrayList<>();
@@ -139,10 +161,10 @@ public class TableInfo {
             int posRow = 0;
             for (List<Object> row : cells) {
                 if (row == null)
-                    throw new IkatsException("Failed: getSimpleDataColumn at row=" + posRow + " : row is null");
+                    throw new IndexOutOfBoundsException("Failed: getSimpleDataColumn at row=" + posRow + " : row is null");
 
                 if (index + 1 > row.size())
-                    throw new IkatsException("Failed: getSimpleDataColumn at row=" + posRow + " : row size < (index + 1) with index=" + index);
+                    throw new IndexOutOfBoundsException("Failed: getSimpleDataColumn at row=" + posRow + " : row size < (index + 1) with index=" + index);
 
                 simpleColumn.add(row.get(index));
 
@@ -150,7 +172,16 @@ public class TableInfo {
             }
             return simpleColumn;
         }
-
+ 
+        /**
+         * Gets from this content the column as list of TableElement, at index, wit optional links.
+         * Use this method if TableContent is managing links, otherwise it will throw exception.
+         * @param index 
+         * @param requiresLinksOrdie true activates the check requiring the links.
+         * @return the selected column at index
+         * @throws IkatsException inconsistency error. For instance undefined cells, unexpected undefined links.
+         * @throws IndexOutOfBoundsException when index is out of bound of at least one of the rows
+         */
         @JsonIgnore
         public List<TableElement> getColumnDataWithLink(int index, boolean requiresLinksOrdie) throws IkatsException, IndexOutOfBoundsException {
             int posRow = 0;
@@ -186,6 +217,12 @@ public class TableInfo {
             }
         }
 
+        /**
+         * Internal method to be generalized with links management.
+         * @param requiresLinksOrdie
+         * @param message
+         * @throws IkatsException
+         */
         private void checkLinks(boolean requiresLinksOrdie, String message) throws IkatsException {
             if (cells == null)
                 throw new IkatsException(message + " undefined cells");
@@ -197,6 +234,10 @@ public class TableInfo {
                 throw new IkatsException(message + " links and cells have different sizes");
         }
 
+        /**
+         * Activates the links management on TableContent
+         * @param defaultProperties configuration of the links is providing default values in order to reduce the volume of JSON.
+         */
         public void enableLinks(DataLink defaultProperties )
         {
             if ( links == null )
@@ -206,6 +247,12 @@ public class TableInfo {
             }
         }
         
+        /**
+         * Adds a row using TableElement list: wrapping data values and optional links
+         * @param elements
+         * @return
+         * @throws IkatsException
+         */
         public TableContent addRow(List<TableElement> elements) throws IkatsException {
             int posCol = 0;
             int posRow = cells.size();
@@ -298,9 +345,10 @@ public class TableInfo {
          * Functional type of the linked data.
          */
         public String type;
+        
         /**
          * The parameter value defining the link to the data. For example: the
-         * ID value of linked data (processdata, TS, ...)
+         * ID value of linked data (processdata, TS, ...). Note: this can be a complexe Object.
          */
         public Object val;
         /**
@@ -431,6 +479,10 @@ public class TableInfo {
             return this;
         }
         
+        /**
+         * Gets the data
+         * @return
+         */
         public List<Object> getData()
         {
             return this.data;
@@ -461,7 +513,14 @@ public class TableInfo {
     @JsonIgnoreProperties(ignoreUnknown = true)
     static public class TableHeaders {
 
+        /**
+         * The Columns header
+         */
         public Header col;
+        
+        /**
+         * The Rows header
+         */
         public Header row;
 
         /**
