@@ -963,7 +963,7 @@ public class TableManager {
      * Deletes the table from the database.
      * @param tableName the name of the table
      */
-    public void deteteFromDatabase(String tableName)
+    public void deleteFromDatabase(String tableName)
     {
         // The name of the table is in the processId column of table processData
         // => so, we can use directly the removeProcessData(processId) service. 
