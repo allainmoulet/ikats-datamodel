@@ -204,9 +204,9 @@ public class TableManagerTest extends TestCase {
             tableHBis.appendRow(Arrays.asList(row3));
 
             System.out.println( mng.serializeToJson(table) );
-            System.out.println( mng.serializeToJson(tableHBis.getTable()) );
+            System.out.println( mng.serializeToJson(tableHBis.getTableInfo()) );
             
-            assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTable()));
+            assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
            
             List<Object> columnn = tableH.getColumn("One");
             // System.out.println( colOne );
@@ -254,7 +254,7 @@ public class TableManagerTest extends TestCase {
             // System.out.println(mng.serializeToJson(table));
             // System.out.println(mng.serializeToJson(tableHBis.getTable()));
             
-            assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTable()));
+            assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
           
             
             List<Object> columnnTwo = tableH.getColumn("Two");
@@ -339,7 +339,7 @@ public class TableManagerTest extends TestCase {
 
             // System.out.println(mng.serializeToJson(table));
             // System.out.println(mng.serializeToJson(tableHBis.getTable()));
-            assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTable()));
+            assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
           
             
             List<Object> columnnTwo = tableH.getColumn("Two");

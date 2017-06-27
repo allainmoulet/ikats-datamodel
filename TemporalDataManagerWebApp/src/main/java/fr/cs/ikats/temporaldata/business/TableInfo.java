@@ -1,33 +1,24 @@
 package fr.cs.ikats.temporaldata.business;
 
-import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 
 /**
  * The TableInfo is mapping the functional IKATS type 'table', as a JSON resource.
- * TableInfo class can be used as a JSON resource in the Rest services, to be developped in TableResource.
+ * TableInfo class can be used as a JSON resource in the Rest services, to be developed in TableResource.
  * <br/>
- * The TableInfo is composed of one TableDesc
- * section, one TableHeaders section and finally one TableContent section. Each
- * section is detailed below.
+ * The TableInfo is composed of one TableDesc section, one TableHeaders section and finally one TableContent section. 
+ * Each section is detailed below.
  * <br/> 
  * Note the difference with Table: the business resource Table is a wrapper of TableInfo, managed by TableManager, 
  * and providing end-user services in java world.
  * 
-
- * 
- * TODO 158227/157215 complete table: add a map for metadata in the TableDesc
- * section.
  */
 public class TableInfo {
 
@@ -311,7 +302,7 @@ public class TableInfo {
          * The parameter value defining the link to the data. For example: the
          * ID value of linked data (processdata, TS, ...)
          */
-        public String val;
+        public Object val;
         /**
          * The context defines how to retrieve the linked data. Non exhaustive
          * exemples:
@@ -393,8 +384,8 @@ public class TableInfo {
          * BigInteger, Boolean (...), otherwise you may have side-effects
          * concerning the copy of theHeader.data.
          * 
-         * @param col
-         */
+         * @param theHeader
+         */ 
         public Header(Header theHeader) {
 
             if (theHeader.data != null) {
@@ -512,8 +503,9 @@ public class TableInfo {
         /**
          * The name of the table, used as unique identifier.
          * 
-         *  Specifically used in database storage.
+         *  Specifically used in database storage. Not written in JSON.
          */
+        @JsonIgnore
         public String name;
         
         /**
