@@ -231,29 +231,31 @@ public class TableResource extends AbstractResource {
      * @throws ResourceNotFoundException if table not found
      */
     @POST
-    @Path("/changekey")
+    @Path("/ts2feature")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @SuppressWarnings("unchecked")
-    public Response changeKey(@FormDataParam("tableName") String tableName,
-                              @FormDataParam("metaName") String metaName,
-                              @FormDataParam("populationId") String populationId,
-                              @FormDataParam("outputTableName") String outputTableName,
-                              FormDataMultiPart formData,
-                              @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, SQLException, IkatsException, ResourceNotFoundException {
+    public Response ts2Feature(@FormDataParam("tableName") String tableName,
+                               @FormDataParam("metaName") String metaName,
+                               @FormDataParam("populationId") String populationId,
+                               @FormDataParam("outputTableName") String outputTableName,
+                               FormDataMultiPart formData,
+                               @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, SQLException, IkatsException, ResourceNotFoundException {
 
 
         if (outputTableName == null) {
-            String context = "Output table name shall not be null";
+            // initialize not mandatory parameter if null
+            outputTableName = tableName + "_ts2Feature_" + populationId;
+        }
+
+        if (tableManager.existsInDatabase(outputTableName)) {
+            // check output table name does not already exists
+            String context = "Output table name already exists : choose a different one (" + outputTableName + ")";
             return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
         }
 
         if (populationId == null) {
+            // check population id is not null
             String context = "populationId shall not be null";
-            return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
-        }
-
-        if (tableManager.existsInDatabase(outputTableName)) {
-            String context = "Output table name already exists : choose a different one";
             return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
         }
 
@@ -288,12 +290,12 @@ public class TableResource extends AbstractResource {
             colMetaTs.add(metaTs.getValue());
         }
 
-        // processing an ordered list of population ids without doubloons
+        // processing an ordered list of populationId values without doubloons
         Set<String> setPopId = new HashSet<>(colPopId);
         List<String> listPopId = new ArrayList<>(setPopId);
         Collections.sort(listPopId);
 
-        // processing an ordered list of metaName by ts without doubloons
+        // processing an ordered list of metaName values by ts without doubloons
         Set<String> setMetaTs = new HashSet<>(colMetaTs);
         List<String> listMetaTs = new ArrayList<>(setMetaTs);
         Collections.sort(listMetaTs);
@@ -324,7 +326,7 @@ public class TableResource extends AbstractResource {
                     }
                 }
             }
-            // check line size
+            // check line size is consistent
             if (cellsLine.size() != tableContentWidth) {
                 String context = "Output table ";
                 return Response.status(Response.Status.BAD_REQUEST).entity(context).build();

@@ -26,7 +26,7 @@ public class TableRequestTest extends AbstractRequestTest {
 
 
     /**
-     * test of table change key use case
+     * test of table ts2feature use case
      * case : nominal (http code 200 returned)
      */
     @Test
@@ -36,7 +36,7 @@ public class TableRequestTest extends AbstractRequestTest {
         try {
             start(testCaseName, isNominal);
 
-            File file = getFileMatchingResource(testCaseName, "/data/test_changeKeyTable.csv");
+            File file = getFileMatchingResource(testCaseName, "/data/test_ts2FeatureTable.csv");
 
             getLogger().info("CSV table file : " + file.getAbsolutePath());
             String tableName = "tabletest";
@@ -310,7 +310,7 @@ public class TableRequestTest extends AbstractRequestTest {
     protected String doChangeKey(String tableName, String metaName, String populationId, String outputTableName, int statusExpected) throws IOException {
         Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
                 .build();
-        String url = getAPIURL() + "/table/changekey";
+        String url = getAPIURL() + "/table/ts2feature";
         WebTarget target = client.target(url);
 
         // build form param
