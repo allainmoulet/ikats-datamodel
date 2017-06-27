@@ -582,6 +582,8 @@ public class TableInfo {
         public TableDesc(TableDesc source) {
             this.title = source.title;
             this.desc = source.desc;
+            // the copy shall not have same identifier:
+            // => do not copy source.name
         }
 
     }
