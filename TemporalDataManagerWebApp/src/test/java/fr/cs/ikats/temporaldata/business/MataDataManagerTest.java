@@ -19,7 +19,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
- * Test for TemporalDataManager
+ * Test for MataDataManager
  */
 public class MataDataManagerTest {
 
@@ -36,7 +36,6 @@ public class MataDataManagerTest {
             TableManager tableManager = new TableManager();
 
             // Check if database is clean
-
             if (tableManager.existsInDatabase(name)) {
                 // Table name already exists
                 fail("Table name already exists: " + name);
@@ -45,7 +44,7 @@ public class MataDataManagerTest {
             // Convert the CSV table to expected Table format
             BufferedReader bufReader = new BufferedReader(new StringReader(content));
 
-            // First line contains headers
+            // Assuming first line contains headers
             String line = bufReader.readLine();
             List<String> headersTitle = Arrays.asList(line.split(";"));
             Table table = tableManager.initTable(headersTitle, false);
@@ -57,7 +56,7 @@ public class MataDataManagerTest {
             }
 
             // Save the table into database
-            String rid = tableManager.createInDatabase(name, table.getTable());
+            String rid = tableManager.createInDatabase(name, table.getTableInfo());
 
             logger.trace("Table " + name + " saved with RID=" + rid);
         } catch (Exception e) {
@@ -66,12 +65,17 @@ public class MataDataManagerTest {
         }
     }
 
+    /**
+     * Delete a table from the database (cleanup)
+     *
+     * @param tableName the name identifying the table
+     */
     private void deleteTable(String tableName) {
         try {
             TableManager tableManager = new TableManager();
-
-            tableManager.deteteFromDatabase(tableName);
+            tableManager.deleteFromDatabase(tableName);
         } catch (Exception e) {
+            // Should not produce error
             e.printStackTrace();
             fail();
         }
@@ -93,13 +97,13 @@ public class MataDataManagerTest {
     /**
      * Add Functional Identifier to expected list
      *
-     * @param expected list containing the expected values
-     * @param tsuid    tsuid matching the expected value
-     * @param funcId   Functional Identifier matching the expected value
+     * @param scope  list containing the expected values
+     * @param tsuid  tsuid matching the expected value
+     * @param funcId Functional Identifier matching the expected value
      */
-    private void addToScope(List<FunctionalIdentifier> expected, String tsuid, String funcId) {
+    private void addToScope(List<FunctionalIdentifier> scope, String tsuid, String funcId) {
         FunctionalIdentifier fid = new FunctionalIdentifier(tsuid, funcId);
-        expected.add(fid);
+        scope.add(fid);
     }
 
     /**
@@ -159,7 +163,6 @@ public class MataDataManagerTest {
             ArrayList<MetadataCriterion> critList = new ArrayList<MetadataCriterion>();
             addCrit(critList, "Identifier", "in table", "TestTable");
 
-
             // Compute
             try {
                 ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>)
@@ -170,13 +173,12 @@ public class MataDataManagerTest {
             } catch (Exception e) {
                 fail();
             }
-
         } catch (Exception e) {
             e.printStackTrace();
             fail("Unexpected error");
         } finally {
-            // Cleanup
             try {
+                // Cleanup
                 facade.removeMetaDataForTS("TS1");
                 facade.removeMetaDataForTS("TS2");
                 facade.removeMetaDataForTS("TS3");
@@ -269,14 +271,13 @@ public class MataDataManagerTest {
             // Check results
             assertTrue(obtained.equals(expected));
 
-
         } catch (Exception e) {
             e.printStackTrace();
             fail("Unexpected error");
         } finally {
 
-            // Cleanup
             try {
+                // Cleanup
                 facade.removeMetaDataForTS("TS1");
                 facade.removeMetaDataForTS("TS2");
                 facade.removeMetaDataForTS("TS3");
@@ -370,14 +371,13 @@ public class MataDataManagerTest {
             // Check results
             assertTrue(obtained.equals(expected));
 
-
         } catch (Exception e) {
             e.printStackTrace();
             fail("Unexpected error");
         } finally {
 
-            // Cleanup
             try {
+                // Cleanup
                 facade.removeMetaDataForTS("TS1");
                 facade.removeMetaDataForTS("TS2");
                 facade.removeMetaDataForTS("TS3");
@@ -463,8 +463,8 @@ public class MataDataManagerTest {
         } catch (Exception e) {
             fail("Unexpected error");
         } finally {
-            // Cleanup
             try {
+                // Cleanup
                 facade.removeMetaDataForTS("TS1");
                 facade.removeMetaDataForTS("TS2");
                 facade.removeMetaDataForTS("TS3");
@@ -479,7 +479,6 @@ public class MataDataManagerTest {
                 e.printStackTrace();
             }
         }
-
     }
 
     /**
@@ -514,8 +513,6 @@ public class MataDataManagerTest {
             } catch (Exception e) {
                 fail();
             }
-
-
         } catch (Exception e) {
             fail("Unexpected error");
         } finally {
