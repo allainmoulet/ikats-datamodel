@@ -1,34 +1,50 @@
 package fr.cs.ikats.temporaldata.resource;
 
-import java.io.*;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.stream.Collectors;
+
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import fr.cs.ikats.metadata.MetaDataFacade;
-import fr.cs.ikats.metadata.model.MetaData;
-import fr.cs.ikats.temporaldata.business.TableInfo;
-import fr.cs.ikats.temporaldata.business.TableManager;
-import fr.cs.ikats.temporaldata.business.TableManager.Table;
-import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
-import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.common.expr.SingleValueComparator;
+import fr.cs.ikats.metadata.MetaDataFacade;
+import fr.cs.ikats.metadata.model.FunctionalIdentifier;
+import fr.cs.ikats.metadata.model.MetaData;
+import fr.cs.ikats.metadata.model.MetadataCriterion;
+import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
+import fr.cs.ikats.temporaldata.business.TableInfo;
+import fr.cs.ikats.temporaldata.business.TableManager;
+import fr.cs.ikats.temporaldata.business.TableManager.Table;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
+import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
+import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.temporaldata.utils.Chronometer;
 
@@ -39,8 +55,15 @@ import fr.cs.ikats.temporaldata.utils.Chronometer;
 @Path("table")
 public class TableResource extends AbstractResource {
 
+    /**
+     * 
+     */
+   
     private static Logger logger = Logger.getLogger(TableResource.class);
 
+    private static final String MSG_DAO_KO_JOIN_BY_METRICS = "Failed to apply joinByMetrics(): DAO error occured with dataset name={0} on metrics={1} on table={2}";
+    private static final String MSG_INVALID_METRICS_FOR_JOIN_BY_METRICS = "Invalid metrics (value={0}) for joinByMetrics on dataset name={1} and table name={2}";
+   
     /**
      * TableManager
      */
@@ -221,6 +244,8 @@ public class TableResource extends AbstractResource {
      * has its metadata join criterion (defined by joinMetaName argument) equal to the column join criterion 
      * (defined by joinColName argument).
      * 
+     * Note: 
+     * 
      * @param tableName
      * @param metrics selected metrics separated by ";". Spaces are ignored.
      * @param dataset the dataset name.
@@ -233,8 +258,9 @@ public class TableResource extends AbstractResource {
      * @param targetColName name of the target column. Optional: default is undefined (""). When target name is defined, the joined columns are inserted before the target column; 
      * when undefined, the joined columns are appended at the end.
      * @return
+     * @throws IkatsDaoException 
      */
-    @PUT
+    @POST
     @SuppressWarnings("unchecked")
     @Path("/{tableName}/join/metrics")
     public Response joinByMetrics(@PathParam("tableName") String tableName, 
@@ -242,11 +268,46 @@ public class TableResource extends AbstractResource {
                                   @QueryParam("dataset") String dataset, 
                                   @QueryParam("joinColName") @DefaultValue("") String joinColName,
                                   @QueryParam("joinMetaName") @DefaultValue("") String joinMetaName,
-                                  @QueryParam("targetColName") @DefaultValue("") String targetColName)
+                                  @QueryParam("targetColName") @DefaultValue("") String targetColName) throws IkatsDaoException, InvalidValueException
     {
-        // 1: evaluates the  
-        
-        return null;
+        try {
+            // 1: restrict Timeseries to those having the metadata named "metric" in the metrics list
+            //
+            // The metadata filtering is ignoring spaces around ';' but 
+            // we also remove the spaces starting/ending the metrics:
+            String preparedMetrics= metrics.trim();
+            
+            if ( preparedMetrics.length() == 0) throw new InvalidValueException(MessageFormat.format(
+                    MSG_INVALID_METRICS_FOR_JOIN_BY_METRICS,
+                    metrics, dataset, tableName));
+            
+            List<MetadataCriterion> selectByMetrics = new ArrayList<>();
+            selectByMetrics.add( new MetadataCriterion("metric", SingleValueComparator.IN.getText(), preparedMetrics ) );
+            FilterOnTsWithMetadata datasetSelection= new FilterOnTsWithMetadata();
+            datasetSelection.setDatasetName(dataset);
+            datasetSelection.setCriteria(selectByMetrics);
+            
+            List<FunctionalIdentifier> selectedFuncIds = metadataManager.searchFunctionalIdentifiers(datasetSelection);
+            
+            // 2: read, and stores in hashmap each metadata on retained timeseries: 
+            // - named "metric"
+            // - or named <join metadata>
+            //  
+            // Main map is: 
+            //           KEY: <Join meta> 
+            //           VALUE: Map: <Metric name>  => <FunctionalIdentider> 
+            // 
+            //
+            
+            // 3: complete and save
+            
+            return null;
+        }
+        catch (IkatsDaoException daoError) {
+            String msg = MessageFormat.format( MSG_DAO_KO_JOIN_BY_METRICS, dataset, metrics, tableName );
+            throw new IkatsDaoException( msg, daoError);
+        }
+       
     }
 
     /**
