@@ -398,27 +398,20 @@ public class MetaDataManager {
      *                     FunctionalIdentifier
      * @return
      */
-    public List<FunctionalIdentifier> searchFunctionalIdentifiers(FilterOnTsWithMetadata filterByMeta) throws IkatsDaoException {
-
-        List<FunctionalIdentifier> lFuncIdentifiers = new ArrayList<FunctionalIdentifier>();
-
+    public List<FunctionalIdentifier> searchFunctionalIdentifiers(FilterOnTsWithMetadata filterByMeta)
+            throws IkatsDaoException {
         try {
             String datasetName = filterByMeta.getDatasetName();
             if (!datasetName.isEmpty()) {
-
                 return filterByMetaWithDatasetName(filterByMeta.getDatasetName(), filterByMeta.getCriteria());
-
-
             } else {
                 return filterByMetaWithTsuidList(filterByMeta.getTsList(), filterByMeta.getCriteria());
             }
-
         } catch (IkatsDaoException daoError) {
             throw daoError;
         } catch (Throwable e) {
             throw new IkatsDaoException("MetadataManager::searchFunctionalIdentifiers ended with unhandled error ", e);
         }
-
     }
 
 
@@ -496,8 +489,8 @@ public class MetaDataManager {
      * @throws IkatsException            if the database can't be reach
      * @throws ResourceNotFoundException if table or column from table is not found
      */
-    private List<FunctionalIdentifier> filterByMetaWithDatasetName(String datasetName,
-                                                                   List<MetadataCriterion> criteria)
+    List<FunctionalIdentifier> filterByMetaWithDatasetName(String datasetName,
+                                                           List<MetadataCriterion> criteria)
             throws IkatsDaoException, IkatsException, SQLException, ResourceNotFoundException {
 
         List<MetadataCriterion> convertedCriteria = criteriaConverter(criteria);
