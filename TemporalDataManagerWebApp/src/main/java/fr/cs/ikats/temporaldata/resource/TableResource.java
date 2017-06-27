@@ -184,7 +184,7 @@ public class TableResource extends AbstractResource {
                 chrono.stop(logger);
                 return Response.status(Response.Status.CONFLICT).entity(context).build();
             } else {
-                TableInfo outputTable = tableManager.initEmptyTable().getTable();
+                TableInfo outputTable = tableManager.initEmptyTable().getTableInfo();
 
                 // fill table description
                 outputTable.table_desc.name = tableName;
@@ -219,7 +219,7 @@ public class TableResource extends AbstractResource {
      * <p>
      * Input table first column must be time series functional identifiers
      *
-     * @param tableName       name of the table to convert
+     * @param tableJson       the table to convert (json)
      * @param metaName        name of metadata to concat with agregates ref
      * @param populationId    id of population (which is in fact a metadata name) = key of output table
      * @param outputTableName name of the table generated
@@ -234,7 +234,7 @@ public class TableResource extends AbstractResource {
     @Path("/ts2feature")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @SuppressWarnings("unchecked")
-    public Response ts2Feature(@FormDataParam("tableName") String tableName,
+    public Response ts2Feature(@FormDataParam("tableJson") String tableJson,
                                @FormDataParam("metaName") String metaName,
                                @FormDataParam("populationId") String populationId,
                                @FormDataParam("outputTableName") String outputTableName,
@@ -243,8 +243,9 @@ public class TableResource extends AbstractResource {
 
 
         if (outputTableName == null) {
-            // initialize not mandatory parameter if null
-            outputTableName = tableName + "_ts2Feature_" + populationId;
+            // check outputTableName is not null
+            String context = "outputTableName shall not be null";
+            return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
         }
 
         if (tableManager.existsInDatabase(outputTableName)) {
@@ -260,14 +261,15 @@ public class TableResource extends AbstractResource {
         }
 
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
-        logger.info("Working on table (" + tableName + ") " +
+
+        // convert tableJson to table
+        TableInfo tableInfo= tableManager.loadFromJson(tableJson);
+        Table table = tableManager.initTable(tableInfo, false);
+
+        logger.info("Working on table (" + table.getDescription() + ") " +
                 "with metaName (" + metaName + ") " +
                 "and with populationId (" + populationId + ")");
         logger.info("Output table name is (" + outputTableName + ")");
-
-        // retrieve input table from process data
-        TableInfo tableInfo = tableManager.readFromDatabase(tableName);
-        Table table = tableManager.initTable(tableInfo, false);
 
         // retrieve headers
         List<Object> colHeaders = table.getColumnsHeader().getData();
@@ -334,7 +336,7 @@ public class TableResource extends AbstractResource {
             outputTable.appendRow(cellsLine);
         }
         // store table in db
-        String rid = tableManager.createInDatabase(outputTableName, outputTable.getTable());
+        String rid = tableManager.createInDatabase(outputTableName, outputTable.getTableInfo());
 
         chrono.stop(logger);
 

@@ -30,8 +30,8 @@ public class TableRequestTest extends AbstractRequestTest {
      * case : nominal (http code 200 returned)
      */
     @Test
-    public void testChangeKeyNominal() {
-        String testCaseName = "testChangeKeyNominal";
+    public void testTs2FeatureNominal() {
+        String testCaseName = "testTs2FeatureNominal";
         boolean isNominal = true;
         try {
             start(testCaseName, isNominal);
@@ -56,18 +56,21 @@ public class TableRequestTest extends AbstractRequestTest {
             launchMetaDataImport("tsuidTest3", "metric", "M2");
             launchMetaDataImport("tsuidTest4", "metric", "M1");
 
-            doChangeKey("tabletest", "metric", "flightId", "outputTableTest", 200);
-
-            String jsonTable = doGetDataDownload("outputTableTest");
+            String jsonTableIn = doGetDataDownload(tableName);
             TableManager tableManager = new TableManager();
-            TableInfo table = tableManager.loadFromJson(jsonTable);
+            TableInfo tableIn = tableManager.loadFromJson(jsonTableIn);
+
+            doTs2Feature(tableManager.serializeToJson(tableIn), "metric", "flightId", "outputTableTest", 200);
+
+            String jsonTableOut = doGetDataDownload("outputTableTest");
+            TableInfo tableOut = tableManager.loadFromJson(jsonTableOut);
 
             assertEquals(Arrays.asList(null,
                     "M1_B1_OP1", "M1_B2_OP1", "M1_B1_OP2", "M1_B2_OP2",
-                    "M2_B1_OP1", "M2_B2_OP1", "M2_B1_OP2", "M2_B2_OP2"), table.headers.col.data);
-            assertEquals(Arrays.asList("flightId", "1", "2"), table.headers.row.data);
-            assertEquals(Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8"), table.content.cells.get(0));
-            assertEquals(Arrays.asList("13", "14", "15", "16", "9", "10", "11", "12"), table.content.cells.get(1));
+                    "M2_B1_OP1", "M2_B2_OP1", "M2_B1_OP2", "M2_B2_OP2"), tableOut.headers.col.data);
+            assertEquals(Arrays.asList("flightId", "1", "2"), tableOut.headers.row.data);
+            assertEquals(Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8"), tableOut.content.cells.get(0));
+            assertEquals(Arrays.asList("13", "14", "15", "16", "9", "10", "11", "12"), tableOut.content.cells.get(1));
 
             endNominal(testCaseName);
         } catch (Throwable e) {
@@ -297,17 +300,16 @@ public class TableRequestTest extends AbstractRequestTest {
         Response response = target.request().get();
         response.bufferEntity();
         ByteArrayInputStream output = (ByteArrayInputStream) response.getEntity();
-        String stringJson = convertStreamToString(output);
 
-        return stringJson;
+        return convertStreamToString(output);
     }
 
-    static String convertStreamToString(java.io.InputStream is) {
+    private String convertStreamToString(java.io.InputStream is) {
         java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
     }
 
-    protected String doChangeKey(String tableName, String metaName, String populationId, String outputTableName, int statusExpected) throws IOException {
+    private String doTs2Feature(String tableJson, String metaName, String populationId, String outputTableName, int statusExpected) throws IOException {
         Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
                 .build();
         String url = getAPIURL() + "/table/ts2feature";
@@ -318,7 +320,7 @@ public class TableRequestTest extends AbstractRequestTest {
 
         multipart.field("metaName", metaName);
         multipart.field("populationId", populationId);
-        multipart.field("tableName", tableName);
+        multipart.field("tableJson", tableJson);
         multipart.field("outputTableName", outputTableName);
 
         getLogger().info("sending url : " + url);
