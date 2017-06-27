@@ -130,7 +130,7 @@ public class MetaDataManager {
      * @param update if true, already existing metadata is updated otherwise no
      *               metadata is persisted if one of them already exists
      * @return a list of internal identifiers
-     * @throws IkatsException    any other error
+     * @throws IkatsException any other error
      * @since [#142998] Handling IkatsDaoException: keep all the troubles
      */
     public List<Integer> persistMetaData(InputStream fileis, Boolean update) throws IkatsException {
@@ -480,6 +480,8 @@ public class MetaDataManager {
                     convertedCriteria.add(criterion);
             }
         }
+
+        logger.trace("Converted Criteria: " + convertedCriteria.toString());
         return convertedCriteria;
     }
 

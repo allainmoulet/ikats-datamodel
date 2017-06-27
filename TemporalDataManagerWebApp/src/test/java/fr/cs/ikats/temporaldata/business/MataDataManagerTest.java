@@ -64,7 +64,17 @@ public class MataDataManagerTest {
             e.printStackTrace();
             fail();
         }
+    }
 
+    private void deleteTable(String tableName) {
+        try {
+            TableManager tableManager = new TableManager();
+
+            tableManager.deteteFromDatabase(tableName);
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail();
+        }
     }
 
     /**
@@ -176,7 +186,7 @@ public class MataDataManagerTest {
                 facade.removeMetaDataForTS("TS7");
                 facade.removeMetaDataForTS("TS8");
                 facade.removeMetaDataForTS("TS9");
-                //TODO remove table
+                deleteTable("TestTable");
 
             } catch (IkatsDaoException e) {
                 e.printStackTrace();
@@ -227,7 +237,7 @@ public class MataDataManagerTest {
                     + "6;B\n"
                     + "7;C\n"
                     + "8;D\n";
-            saveTable("TestTable1", tableContent);
+            saveTable("TestTable", tableContent);
 
             // Create the initial scope
             List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
@@ -243,12 +253,12 @@ public class MataDataManagerTest {
 
             // Criteria
             ArrayList<MetadataCriterion> critList = new ArrayList<MetadataCriterion>();
-            addCrit(critList, "Identifier", "in table", "TestTable1.MainId");
+            addCrit(critList, "Identifier", "in table", "TestTable.MainId");
 
             // Preparing results
             ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
             addToScope(expected, "TS1", "FID1");
-            addToScope(expected, "TS3", "FID3");
+            addToScope(expected, "TS2", "FID2");
             addToScope(expected, "TS4", "FID4");
             addToScope(expected, "TS9", "FID9");
 
@@ -276,7 +286,7 @@ public class MataDataManagerTest {
                 facade.removeMetaDataForTS("TS7");
                 facade.removeMetaDataForTS("TS8");
                 facade.removeMetaDataForTS("TS9");
-                //TODO remove table
+                deleteTable("TestTable");
 
             } catch (IkatsDaoException e) {
                 e.printStackTrace();
@@ -328,7 +338,7 @@ public class MataDataManagerTest {
                     + "6;B\n"
                     + "7;C\n"
                     + "8;D\n";
-            saveTable("TestTable2", tableContent);
+            saveTable("TestTable", tableContent);
 
             // Create the initial scope
             List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
@@ -344,12 +354,12 @@ public class MataDataManagerTest {
 
             // Criteria
             ArrayList<MetadataCriterion> critList = new ArrayList<MetadataCriterion>();
-            addCrit(critList, "Identifier", "in table", "TestTable2");
+            addCrit(critList, "Identifier", "in table", "TestTable");
 
             // Preparing results
             ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
             addToScope(expected, "TS1", "FID1");
-            addToScope(expected, "TS3", "FID3");
+            addToScope(expected, "TS2", "FID2");
             addToScope(expected, "TS4", "FID4");
             addToScope(expected, "TS9", "FID9");
 
@@ -377,7 +387,7 @@ public class MataDataManagerTest {
                 facade.removeMetaDataForTS("TS7");
                 facade.removeMetaDataForTS("TS8");
                 facade.removeMetaDataForTS("TS9");
-                //TODO remove table
+                deleteTable("TestTable");
             } catch (IkatsDaoException e) {
                 e.printStackTrace();
             }
@@ -423,7 +433,7 @@ public class MataDataManagerTest {
                     + "6;B\n"
                     + "7;C\n"
                     + "8;D\n";
-            saveTable("TestTable4", tableContent);
+            saveTable("TestTable", tableContent);
 
             // Create the initial scope
             List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
@@ -439,7 +449,7 @@ public class MataDataManagerTest {
 
             // Criteria
             ArrayList<MetadataCriterion> critList = new ArrayList<MetadataCriterion>();
-            addCrit(critList, "Identifier", "in table", "TestTable4");
+            addCrit(critList, "Identifier", "in table", "TestTable");
 
             // Compute
             try {
@@ -464,7 +474,7 @@ public class MataDataManagerTest {
                 facade.removeMetaDataForTS("TS7");
                 facade.removeMetaDataForTS("TS8");
                 facade.removeMetaDataForTS("TS9");
-                //TODO remove table
+                deleteTable("TestTable");
             } catch (IkatsDaoException e) {
                 e.printStackTrace();
             }
@@ -510,7 +520,7 @@ public class MataDataManagerTest {
             fail("Unexpected error");
         } finally {
             // Cleanup
-            //TODO remove table
+            deleteTable("TestTable");
         }
     }
 }
