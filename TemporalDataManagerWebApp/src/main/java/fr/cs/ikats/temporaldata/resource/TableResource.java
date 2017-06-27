@@ -1,8 +1,8 @@
 package fr.cs.ikats.temporaldata.resource;
 
 
-
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -31,6 +33,7 @@ import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.json.simple.JSONObject;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.expr.SingleValueComparator;
@@ -38,16 +41,20 @@ import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
+
+import fr.cs.ikats.process.data.model.ProcessData;
+import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
+import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableManager;
 import fr.cs.ikats.temporaldata.business.TableManager.Table;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
+
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.temporaldata.utils.Chronometer;
-
 
 /**
  * resource for Table
@@ -61,8 +68,8 @@ public class TableResource extends AbstractResource {
    
     private static Logger logger = Logger.getLogger(TableResource.class);
 
-    private static final String MSG_DAO_KO_JOIN_BY_METRICS = "Failed to apply joinByMetrics(): DAO error occured with dataset name={0} on metrics={1} on table={2}";
-    private static final String MSG_INVALID_METRICS_FOR_JOIN_BY_METRICS = "Invalid metrics (value={0}) for joinByMetrics on dataset name={1} and table name={2}";
+    private static final String MSG_DAO_KO_JOIN_BY_METRICS = "Failed to apply joinByMetrics(): DAO error occured with dataset name=''{0}'' on metrics=''{1}'' on table=''{2}''";
+    private static final String MSG_INVALID_METRICS_FOR_JOIN_BY_METRICS = "Invalid metrics value=''{0}'' for joinByMetrics on dataset name=''{1}'' and table name=''{2}''";
    
     /**
      * TableManager
@@ -70,7 +77,17 @@ public class TableResource extends AbstractResource {
     private TableManager tableManager;
 
     /**
-     * init the tableManager
+     * MetadataManager
+     */
+    private MetaDataManager metadataManager;
+    
+    /**
+     * DatasetManager
+     */
+    private DataSetManager datasetManager;
+    
+    /**
+     * init the processDataManager
      */
     public TableResource() {
         tableManager = new TableManager();
@@ -271,6 +288,8 @@ public class TableResource extends AbstractResource {
                                   @QueryParam("targetColName") @DefaultValue("") String targetColName) throws IkatsDaoException, InvalidValueException
     {
         try {
+            
+            
             // 1: restrict Timeseries to those having the metadata named "metric" in the metrics list
             //
             // The metadata filtering is ignoring spaces around ';' but 
@@ -284,20 +303,31 @@ public class TableResource extends AbstractResource {
             List<MetadataCriterion> selectByMetrics = new ArrayList<>();
             selectByMetrics.add( new MetadataCriterion("metric", SingleValueComparator.IN.getText(), preparedMetrics ) );
             FilterOnTsWithMetadata datasetSelection= new FilterOnTsWithMetadata();
+            
+            // TODO 158227 replace this
             datasetSelection.setDatasetName(dataset);
+            // by ...
+            //datasetSelection.setTsList( ... );
+            
             datasetSelection.setCriteria(selectByMetrics);
             
+            
+            
+            
             List<FunctionalIdentifier> selectedFuncIds = metadataManager.searchFunctionalIdentifiers(datasetSelection);
+            
+            
+            
             
             // 2: read, and stores in hashmap each metadata on retained timeseries: 
             // - named "metric"
             // - or named <join metadata>
-            //  
-            // Main map is: 
-            //           KEY: <Join meta> 
-            //           VALUE: Map: <Metric name>  => <FunctionalIdentider> 
-            // 
             //
+            
+            // intermediate: FunctionalIdentifier => [ Metric, FlightId ]
+            //
+            
+            // aimed: "Metric+FlightId" => FunctionalIdentifier 
             
             // 3: complete and save
             
