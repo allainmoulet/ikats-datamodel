@@ -16,13 +16,12 @@ import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
 import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
-import fr.cs.ikats.temporaldata.resource.TableResource;
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import org.apache.log4j.Logger;
 
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.*;
-
-import static fr.cs.ikats.common.expr.SingleValueComparator.IN;
 
 /**
  * MetaData Business Manager singleton.
@@ -30,7 +29,7 @@ import static fr.cs.ikats.common.expr.SingleValueComparator.IN;
 
 public class MetaDataManager {
 
-    private static Logger logger = Logger.getLogger(MetaDataManager.class);
+    private static final Logger logger = Logger.getLogger(MetaDataManager.class);
 
     /**
      * private method to get the MetaDataFacade from Spring context.
@@ -131,11 +130,10 @@ public class MetaDataManager {
      * @param update if true, already existing metadata is updated otherwise no
      *               metadata is persisted if one of them already exists
      * @return a list of internal identifiers
-     * @throws IkatsDaoException error raised by DAO layer
      * @throws IkatsException    any other error
      * @since [#142998] Handling IkatsDaoException: keep all the troubles
      */
-    public List<Integer> persistMetaData(InputStream fileis, Boolean update) throws IkatsDaoException, IkatsException {
+    public List<Integer> persistMetaData(InputStream fileis, Boolean update) throws IkatsException {
 
         List<Integer> results = null;
         List<MetaData> mdataListFromCSV;
@@ -243,7 +241,7 @@ public class MetaDataManager {
     }
 
     /**
-     * get a list of metadata {name:type} for the list of tsduids in param
+     * get a list of metadata {name:type} for the list of tsuids in param
      *
      * @return a json formatted string.
      * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid
@@ -429,9 +427,13 @@ public class MetaDataManager {
      *
      * @param criteria criteria list to convert
      * @return the new criteria list
+     * @throws IkatsDaoException
+     * @throws SQLException
+     * @throws IkatsException            if the database can't be reach
+     * @throws ResourceNotFoundException if table or column from table is not found
      */
     private List<MetadataCriterion> criteriaConverter(List<MetadataCriterion> criteria)
-            throws IkatsDaoInvalidValueException {
+            throws IkatsDaoException, SQLException, IkatsException, ResourceNotFoundException {
 
         ArrayList<MetadataCriterion> convertedCriteria = new ArrayList<MetadataCriterion>();
 
@@ -460,15 +462,18 @@ public class MetaDataManager {
                     }
 
                     // Extract the desired column form the table content
-                    List<String> splitValues = TableResource.getColumnfromTable(tableName, column);
+                    TableManager tableManager = new TableManager();
+                    List<String> splitValues = tableManager.getColumnFromTable(tableName, column);
 
                     // Changing comparator to IN
-                    criterion.setComparator(IN.toString());
+                    criterion.setComparator(SingleValueComparator.IN.getText());
 
                     // Setting the extracted list from the column as new value content
                     criterion.setValue(String.join(";", splitValues));
 
                     convertedCriteria.add(criterion);
+                    break;
+
                 }
                 default:
                     // No conversion, use it directly
@@ -478,30 +483,40 @@ public class MetaDataManager {
         return convertedCriteria;
     }
 
+    /**
+     * Filter a dataset based on criteria applied on its metadata
+     *
+     * @param datasetName Name of the dataset to filter
+     * @param criteria    criteria list to use
+     * @return the filtered list of functional identifiers
+     * @throws IkatsDaoException
+     * @throws SQLException
+     * @throws IkatsException            if the database can't be reach
+     * @throws ResourceNotFoundException if table or column from table is not found
+     */
     private List<FunctionalIdentifier> filterByMetaWithDatasetName(String datasetName,
                                                                    List<MetadataCriterion> criteria)
-            throws IkatsDaoException {
+            throws IkatsDaoException, IkatsException, SQLException, ResourceNotFoundException {
 
         List<MetadataCriterion> convertedCriteria = criteriaConverter(criteria);
 
-        getMetaDataFacade().searchFuncId(datasetName, convertedCriteria);
+        return getMetaDataFacade().searchFuncId(datasetName, convertedCriteria);
 
-        return null;
     }
 
     /**
      * Get the filtered list of TS from the input list with the criteria
      *
-     * @param tsuidList
-     * @param lCriteria
-     * @return
+     * @param tsuidList the list to filter
+     * @param lCriteria the criteria to use
+     * @return the filtered list of functional identifiers
      * @throws IkatsDaoInvalidValueException
      * @throws IkatsDaoException
      */
-    protected List<FunctionalIdentifier> filterByMetaWithTsuidList(
+    List<FunctionalIdentifier> filterByMetaWithTsuidList(
             List<FunctionalIdentifier> tsuidList,
             List<MetadataCriterion> lCriteria)
-            throws IkatsDaoInvalidValueException, IkatsDaoException {
+            throws IkatsDaoInvalidValueException, IkatsDaoException, IkatsException, SQLException, ResourceNotFoundException {
 
         Group<MetadataCriterion> lFormula = new Group<MetadataCriterion>();
         lFormula.connector = ConnectorExpression.AND;
