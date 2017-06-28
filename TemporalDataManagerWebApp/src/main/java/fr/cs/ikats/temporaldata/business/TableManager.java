@@ -2,6 +2,7 @@ package fr.cs.ikats.temporaldata.business;
 
 //Review#158227 Repetitive error : occured -> occurred
 //Review#158227 Repetitive error : exemple -> example
+//Review#158227 Repetitive error : criteria is plural, use "criterion"
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -357,7 +358,7 @@ public class TableManager {
          * <p>
          * Note: this getter ignores the links possibly defined in the row.
          *
-         * @param rowName name of the selected row: this criteria is in the row header.
+         * @param rowName name of the selected row: this criterion is in the row header.
          * @return the content row below selected by the rowName parameter. Note: the selected row does not contain the rows header part.
          * @throws IkatsException            row header is undefined or unexpected error.
          * @throws ResourceNotFoundException not row is selected by rowName.
@@ -377,7 +378,8 @@ public class TableManager {
         }
 
         /**
-         * Gets the selected row values from this table. Note: this getter ignores the links possibly defined in the row.
+         * Gets the selected row values from this table.
+         * Note: this getter ignores the links possibly defined in the row.
          * <br/>
          * For end-users: when possible, it is advised to use getRow(String), less confusing than getRow(int).
          *
@@ -398,21 +400,21 @@ public class TableManager {
 
                 List<T> result = new ArrayList<>();
                 List<Object> matchedData;
+                // Review#158227 Because the combo "getColumnsHeader"+"columnsHeader != null" is often used, I suggest to create "this.hasColumnsHeader()"
                 Header columnsHeader = this.getColumnsHeader();
                 if ((columnsHeader != null) && index == 0) {
                     // Read the columns header and ignore its first element
-
                     matchedData = new ArrayList<>(columnsHeader.getData());
                     matchedData.remove(0);
 
                 } else {
-                    // inside the content part: the row is indexed by
+                    // Inside the content part: the row is indexed by
                     // matchedIndex - 1
                     int contentIndex = (columnsHeader == null) ? index : index - 1;
                     matchedData = this.getContent().getRowData(contentIndex);
                 }
 
-                // iterate and cast the value to T ...
+                // Iterate and cast the value to T ...
                 for (Object dataItem : matchedData) {
                     result.add((T) dataItem);
                     posCastItem++;
@@ -422,7 +424,7 @@ public class TableManager {
                 throw new IkatsException("Failed getRow() in table: cast failed on item at index=" + posCastItem + " in row at content index="
                         + index + " in table " + this.getName(), typeError);
             } catch (IkatsException e) {
-                throw new IkatsException("Failed getColumn() in table: " + this.getName(), e);
+                throw new IkatsException("Failed getRow() in table: " + this.getName(), e);
             }
         }
 
@@ -680,7 +682,7 @@ public class TableManager {
          * <p>
          * If a row header is managed, it is sorted the same way.
          *
-         * @param columnName name of the sorting criteria.
+         * @param columnName name of the sorting criterion.
          */
         public void sortRowsByColumnValues(String columnName) {
             throw new Error("Not yet implemented");
@@ -805,18 +807,21 @@ public class TableManager {
      */
     public Table initEmptyTable() {
         TableInfo tableJson = new TableInfo();
-        // Review#158227 table never used
+        // Review#158227 table never used. delete
         Table table = new Table(tableJson);
 
         tableJson.table_desc = new TableDesc();
         tableJson.headers = new TableHeaders();
         tableJson.headers.row = new Header();
+        // Review#158227 Is the following line useful ? I think this could be init by constructor
         tableJson.headers.row.data = new ArrayList<>();
 
         tableJson.headers.col = new Header();
+        // Review#158227 Is the following line useful ? I think this could be init by constructor
         tableJson.headers.col.data = new ArrayList<>();
 
         tableJson.content = new TableContent();
+        // Review#158227 Is the following line useful ? I think this could be init by constructor
         tableJson.content.cells = new ArrayList<>();
 
         return new Table(tableJson);
@@ -926,6 +931,7 @@ public class TableManager {
             List<ProcessData> dataTables = processDataManager.getProcessData(tableName);
 
             if (dataTables == null) {
+                // Review#158227 I didn't found when this case occurs. Probably dead code
                 throw new IkatsDaoException("Unexpected Hibernate error while attempting to read table: name=" + tableName);
             } else if (dataTables.isEmpty()) {
                 throw new ResourceNotFoundException("No result found for table name=" + tableName);
@@ -948,6 +954,7 @@ public class TableManager {
             logger.trace("Table retrieved from db OK : name=" + tableName);
             return table;
         } catch (SQLException sqle) {
+            // Why the catch is not on HibernateException ?
             throw new IkatsDaoException("Failed to read Table, reading the BLOB of processData with processId=" + tableName, sqle);
         }
 
@@ -970,6 +977,7 @@ public class TableManager {
         // Validate the name consistency
         validateTableName(tableName, "Create Table in database");
 
+        // Review#158227: I don't think tableToStore is updated but the return value (not found here) contain the new instance
         // Adds the name to the table:
         // the name is not part of written JSON content presently
         // but it is good to keep it at java level, in order to implement CRUD with unique identifier.
@@ -977,11 +985,13 @@ public class TableManager {
 
         byte[] data = serializeToJson(tableToStore).getBytes();
 
+        // Review#158227:  This should be done before to prevent from initializing potential big table
         if (existsInDatabase(tableName))
             throw new IkatsDaoConflictException("Resource already exists ");
 
-        String rid = processDataManager.importProcessData(tableName, tableToStore.table_desc.desc, data, ProcessResultTypeEnum.JSON);
-        logger.trace("Table stored Ok in db : " + tableName);
+        String rid = processDataManager.importProcessData(tableName, tableToStore.table_desc.desc,
+                data, ProcessResultTypeEnum.JSON);
+        logger.trace("Table stored Ok in db: " + tableName + " with rid: "+rid);
 
         return rid;
     }

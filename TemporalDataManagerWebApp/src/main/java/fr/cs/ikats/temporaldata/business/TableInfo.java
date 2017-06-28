@@ -63,7 +63,7 @@ public class TableInfo {
         public List<List<DataLink>> links;
 
         /**
-         * The public contructor required by jackson ObjectMapper
+         * The public constructor required by jackson ObjectMapper
          */
         public TableContent() {
             super();
@@ -77,10 +77,11 @@ public class TableInfo {
          * Boolean (...), otherwise you may have side-effects concerning the
          * copy of content.cells.
          * 
-         * @param content
+         * @param content content to copy
          */
         public TableContent(TableContent content) {
 
+            // Copying cells
             if (content.cells != null) {
                 List<List<Object>> copyCells = new ArrayList<List<Object>>();
                 for (List<Object> rowOfCells : content.cells) {
@@ -91,6 +92,7 @@ public class TableInfo {
                 this.cells = copyCells;
             }
 
+            // Copying links
             if (content.links != null) {
                 List<List<DataLink>> copyLinks = new ArrayList<List<TableInfo.DataLink>>();
                 for (List<DataLink> rowOfLinks : content.links) {
@@ -106,7 +108,7 @@ public class TableInfo {
 
         /**
          * Gets from this content the row data, at index, without links 
-         * @param index
+         * @param index row index to get
          * @return the row data at index
          * @throws IkatsException when this.cells is null
          * @throws IndexOutOfBoundsException when index is out of bound of this.cells
@@ -147,7 +149,7 @@ public class TableInfo {
 
         /**
          * Gets from this content the column data, at index, without links 
-         * @param index
+         * @param index index to get
          * @return the column data at index
          * @throws IkatsException when this.cells is null
          * @throws IndexOutOfBoundsException when index is out of bound of at least one of the rows
