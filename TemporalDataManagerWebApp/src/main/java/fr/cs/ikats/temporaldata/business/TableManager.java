@@ -34,6 +34,7 @@ import java.util.regex.Pattern;
  */
 public class TableManager {
 
+    // Review#158227 logger can be private
     static Logger logger = Logger.getLogger(TableManager.class);
 
     /**
@@ -714,6 +715,7 @@ public class TableManager {
          */
         public <H, T> int appendRow(H rowHeaderData, List<T> rowData) throws IkatsException {
 
+            //Review#158227 Casting to Object seems useless. Can you explain ?
             return appendRowInternal((Object) rowHeaderData, (List<Object>) rowData);
         }
 
@@ -803,6 +805,7 @@ public class TableManager {
      */
     public Table initEmptyTable() {
         TableInfo tableJson = new TableInfo();
+        // Review#158227 table never used
         Table table = new Table(tableJson);
 
         tableJson.table_desc = new TableDesc();
@@ -942,7 +945,7 @@ public class TableManager {
             Table handler = new Table(table);
             handler.setName(tableName);
 
-            logger.info("Table retrieved from db OK : name=" + tableName);
+            logger.trace("Table retrieved from db OK : name=" + tableName);
             return table;
         } catch (SQLException sqle) {
             throw new IkatsDaoException("Failed to read Table, reading the BLOB of processData with processId=" + tableName, sqle);
@@ -978,7 +981,7 @@ public class TableManager {
             throw new IkatsDaoConflictException("Resource already exists ");
 
         String rid = processDataManager.importProcessData(tableName, tableToStore.table_desc.desc, data, ProcessResultTypeEnum.JSON);
-        logger.info("Table stored Ok in db : " + tableName);
+        logger.trace("Table stored Ok in db : " + tableName);
 
         return rid;
     }
@@ -1008,7 +1011,7 @@ public class TableManager {
     public boolean existsInDatabase(String tableName) throws IkatsDaoException {
         List<ProcessData> collectionProcessData = processDataManager.getProcessData(tableName);
 
-        // temporary solution: check that result is not null
+        // Temporary solution: check that result is not null
         if (collectionProcessData == null)
             throw new IkatsDaoException("Unexpected Hibernate error: processDataManager.getProcessData(" + tableName + ")");
 
@@ -1043,7 +1046,7 @@ public class TableManager {
 
         List<T> column = tableH.getColumn(columnName);
 
-        logger.info("Column " + columnName + " retrieved from table : " + tableName);
+        logger.trace("Column " + columnName + " retrieved from table : " + tableName);
 
         return column;
     }
