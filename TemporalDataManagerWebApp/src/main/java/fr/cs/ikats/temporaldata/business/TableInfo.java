@@ -1,24 +1,26 @@
 package fr.cs.ikats.temporaldata.business;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+// Review#158227: Repetitive error: instanciated -> instantiated
+//Review#158227 Repetitive error : exemple -> example
+// Review#158227: informations -> information
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 import fr.cs.ikats.temporaldata.exception.IkatsException;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * The TableInfo is mapping the functional IKATS type 'table', as a JSON resource.
  * TableInfo class can be used as a JSON resource in the Rest services, to be developed in TableResource.
  * <br/>
- * The TableInfo is composed of one TableDesc section, one TableHeaders section and finally one TableContent section. 
+ * The TableInfo is composed of one TableDesc section, one TableHeaders section and finally one TableContent section.
  * Each section is detailed below.
- * <br/> 
- * Note the difference with Table: the business resource Table is a wrapper of TableInfo, managed by TableManager, 
+ * <br/>
+ * Note the difference with Table: the business resource Table is a wrapper of TableInfo, managed by TableManager,
  * and providing end-user services in java world.
- * 
  */
 public class TableInfo {
 
@@ -32,7 +34,7 @@ public class TableInfo {
          * The data directly contained by this table: cells structured as a list
          * of rows. A row is a list of cell. A cell is an Object, whose
          * effective type is not fixed.
-         *
+         * <p>
          * Optional: may be missing if links are defined.
          */
         public List<List<Object>> cells;
@@ -45,7 +47,7 @@ public class TableInfo {
          * <li>default_links.type = 'ts_list'</li>
          * <li>and default_links.context = 'ts'</li>
          * </ul>
-         * 
+         * <p>
          * <br/>
          * Optional: if there is no links, or no mutual information shared by
          * DataLink objects. <br/>
@@ -56,7 +58,7 @@ public class TableInfo {
         /**
          * The data linked by this table: links structured as a list of rows. A
          * row is a list of links. A link is an DataLink.
-         *
+         * <p>
          * Optional: may be missing, when there is no deeper content to be
          * explored by link.
          */
@@ -71,12 +73,12 @@ public class TableInfo {
 
         /**
          * Copy constructor: copies all objects defined by content.
-         * 
+         * <p>
          * Restriction: it is assumed that the defined objects under
          * content.cells are immutable: String, Number, BigDecimal, BigInteger,
          * Boolean (...), otherwise you may have side-effects concerning the
          * copy of content.cells.
-         * 
+         *
          * @param content content to copy
          */
         public TableContent(TableContent content) {
@@ -107,10 +109,11 @@ public class TableInfo {
         }
 
         /**
-         * Gets from this content the row data, at index, without links 
+         * Gets from this content the row data, at index, without links
+         *
          * @param index row index to get
          * @return the row data at index
-         * @throws IkatsException when this.cells is null
+         * @throws IkatsException            when this.cells is null
          * @throws IndexOutOfBoundsException when index is out of bound of this.cells
          */
         @JsonIgnore
@@ -123,9 +126,10 @@ public class TableInfo {
         /**
          * Gets from this content the row as list of TableElement, at index, wit optional links.
          * Use this method if TableContent is managing links, otherwise it will throw exception.
-         * @param index
+         *
+         * @param index row index to get
          * @return the row
-         * @throws IkatsException when this.cells is null or this.links is null or when cells.size() != links.size()
+         * @throws IkatsException            when this.cells is null or this.links is null or when cells.size() != links.size()
          * @throws IndexOutOfBoundsException when index is out of bound of this.cells
          */
         @JsonIgnore
@@ -148,10 +152,11 @@ public class TableInfo {
         }
 
         /**
-         * Gets from this content the column data, at index, without links 
+         * Gets from this content the column data, at index, without links
+         *
          * @param index index to get
          * @return the column data at index
-         * @throws IkatsException when this.cells is null
+         * @throws IkatsException            when this.cells is null
          * @throws IndexOutOfBoundsException when index is out of bound of at least one of the rows
          */
         @JsonIgnore
@@ -174,14 +179,15 @@ public class TableInfo {
             }
             return simpleColumn;
         }
- 
+
         /**
          * Gets from this content the column as list of TableElement, at index, wit optional links.
          * Use this method if TableContent is managing links, otherwise it will throw exception.
-         * @param index 
+         *
+         * @param index
          * @param requiresLinksOrdie true activates the check requiring the links.
          * @return the selected column at index
-         * @throws IkatsException inconsistency error. For instance undefined cells, unexpected undefined links.
+         * @throws IkatsException            inconsistency error. For instance undefined cells, unexpected undefined links.
          * @throws IndexOutOfBoundsException when index is out of bound of at least one of the rows
          */
         @JsonIgnore
@@ -212,8 +218,7 @@ public class TableInfo {
                     posRow++;
                 }
                 return resultColumn;
-            }
-            catch (IndexOutOfBoundsException iob) {
+            } catch (IndexOutOfBoundsException iob) {
 
                 throw new IkatsException("Failed: getColumn at row=" + posRow + " : list size < (index + 1) with index=" + index, iob);
             }
@@ -221,6 +226,7 @@ public class TableInfo {
 
         /**
          * Internal method to be generalized with links management.
+         *
          * @param requiresLinksOrdie
          * @param message
          * @throws IkatsException
@@ -238,19 +244,20 @@ public class TableInfo {
 
         /**
          * Activates the links management on TableContent
+         *
          * @param defaultProperties configuration of the links is providing default values in order to reduce the volume of JSON.
          */
-        public void enableLinks(DataLink defaultProperties )
-        {
-            if ( links == null )
-            {
+        public void enableLinks(DataLink defaultProperties) {
+            if (links == null) {
                 links = new ArrayList<List<DataLink>>();
                 default_links = defaultProperties;
             }
         }
-        
+
+        // Review#158227: javadoc missing
         /**
          * Adds a row using TableElement list: wrapping data values and optional links
+         *
          * @param elements
          * @return
          * @throws IkatsException
@@ -266,8 +273,7 @@ public class TableInfo {
                 rowData.add(elem.data);
                 if (manageLinks) {
                     rowLinks.add(elem.link);
-                }
-                else if (elem.link != null) {
+                } else if (elem.link != null) {
                     throw new IkatsException("Failed to add new row at " + posRow + " column=" + posCol + ": links not managed but got " + elem.link);
                 }
                 posCol++;
@@ -281,30 +287,34 @@ public class TableInfo {
 
         /**
          * Not yet implemented
+         *
          * @return
          */
-        public TableContent insertRow(int beforeIndex, List<TableElement> elements) throws IkatsException { 
+        public TableContent insertRow(int beforeIndex, List<TableElement> elements) throws IkatsException {
             throw new Error("Not yet implemented");
         }
-        
+
         /**
          * Not yet implemented
+         *
          * @return
          */
-        public TableContent replaceRow(int index, List<TableElement> elements) throws IkatsException { 
+        public TableContent replaceRow(int index, List<TableElement> elements) throws IkatsException {
             throw new Error("Not yet implemented");
         }
-        
+
         /**
          * Not yet implemented
+         *
          * @return
          */
-        public TableContent deleteRow(int index) throws IkatsException { 
+        public TableContent deleteRow(int index) throws IkatsException {
             throw new Error("Not yet implemented");
         }
-        
+
         /**
          * Not yet implemented
+         *
          * @return
          */
         public TableContent addColumn(List<TableElement> elements) throws IkatsException {
@@ -313,25 +323,28 @@ public class TableInfo {
 
         /**
          * Not yet implemented
+         *
          * @return
          */
         public TableContent insertColumn(int beforeIndex, List<TableElement> elements) throws IkatsException {
             throw new Error("Not yet implemented");
         }
-        
+
         /**
          * Not yet implemented
+         *
          * @return
          */
-        public TableContent replaceColumn(int index, List<TableElement> elements) throws IkatsException { 
+        public TableContent replaceColumn(int index, List<TableElement> elements) throws IkatsException {
             throw new Error("Not yet implemented");
         }
-        
+
         /**
          * Not yet implemented
+         *
          * @return
          */
-        public TableContent deleteColumn(int index) throws IkatsException { 
+        public TableContent deleteColumn(int index) throws IkatsException {
             throw new Error("Not yet implemented");
         }
 
@@ -347,15 +360,15 @@ public class TableInfo {
          * Functional type of the linked data.
          */
         public String type;
-        
+
         /**
          * The parameter value defining the link to the data. For example: the
-         * ID value of linked data (processdata, TS, ...). Note: this can be a complexe Object.
+         * ID value of linked data (processdata, TS, ...). Note: this can be a complex Object.
          */
         public Object val;
         /**
          * The context defines how to retrieve the linked data. Non exhaustive
-         * exemples:
+         * examples:
          * <ul>
          * <li>'processdata': when the linked content data is in the processdata
          * database</li>
@@ -368,7 +381,7 @@ public class TableInfo {
         public String context;
 
         /**
-         * The public contructor required by jackson ObjectMapper
+         * The public constructor required by jackson ObjectMapper
          */
         public DataLink() {
             super();
@@ -394,9 +407,9 @@ public class TableInfo {
     }
 
     /**
-     * The Header class is instanciated for the column header, or the row
+     * The Header class is instantiated for the column header, or the row
      * header. Header cells are separated for table content cells.
-     * 
+     * <p>
      * One Header groups one vector of header cells.
      */
     @JsonIgnoreProperties(ignoreUnknown = true)
@@ -420,7 +433,7 @@ public class TableInfo {
         public List<DataLink> links;
 
         /**
-         * The public contructor required by jackson ObjectMapper
+         * The public constructor required by jackson ObjectMapper
          */
         public Header() {
             super();
@@ -428,14 +441,14 @@ public class TableInfo {
 
         /**
          * Copy constructor: copies all objects defined by theHeader
-         * 
+         * <p>
          * Restriction: it is assumed that the defined objects under
          * theHeader.data are immutable: OK with String, Number, BigDecimal,
          * BigInteger, Boolean (...), otherwise you may have side-effects
          * concerning the copy of theHeader.data.
-         * 
+         *
          * @param theHeader
-         */ 
+         */
         public Header(Header theHeader) {
 
             if (theHeader.data != null) {
@@ -451,44 +464,44 @@ public class TableInfo {
 
         /**
          * Adds new Header data in the table
+         *
          * @param data: header data can be TableElement -including optional link-, or immutable object.
          * @return
          * @throws IkatsException
          */
         public Header addItem(Object data) throws IkatsException {
-            if ( data == null ) return addItem( null, null);
-            if ( data instanceof TableElement) return addItem( ((TableElement) data).data, ((TableElement) data).link);
+            if (data == null) return addItem(null, null);
+            if (data instanceof TableElement) return addItem(((TableElement) data).data, ((TableElement) data).link);
             return addItem(data, null);
         }
+
         /**
-         * 
-         * @param data
-         *            the information added as data: immutable object or null.
-         * @param link
-         *            the link associated to data: DataLink or null
+         * @param data the information added as data: immutable object or null.
+         * @param link the link associated to data: DataLink or null
          * @return this: convenient for chained calls.
          * @throws IkatsException
          */
         public Header addItem(Object data, DataLink link) throws IkatsException {
             if (link != null && this.links == null)
                 throw new IkatsException("Inconsistency: add item with link, on a header not managing the links");
-            
+
             this.data.add(data);
             // links are managed <=> this.links is not null
             // And if links are managed: it is yet possible and required to add null link.
-            if ( this.links != null ) this.links.add(link);
-            
+            if (this.links != null) this.links.add(link);
+
             return this;
         }
-        
+
         /**
          * Gets the data
+         *
          * @return
          */
-        public List<Object> getData()
-        {
+        public List<Object> getData() {
             return this.data;
         }
+
         /**
          * @return
          */
@@ -496,11 +509,9 @@ public class TableInfo {
         public List<TableElement> getDataWithLink() throws IkatsException {
             return TableElement.encodeElements(this.data, this.links);
         }
-        
-        public void enableLinks(DataLink defaultProperties )
-        {
-            if ( links == null )
-            {
+
+        public void enableLinks(DataLink defaultProperties) {
+            if (links == null) {
                 links = new ArrayList<DataLink>();
                 default_links = defaultProperties;
             }
@@ -519,14 +530,14 @@ public class TableInfo {
          * The Columns header
          */
         public Header col;
-        
+
         /**
          * The Rows header
          */
         public Header row;
 
         /**
-         * The public contructor required by jackson ObjectMapper
+         * The public constructor required by jackson ObjectMapper
          */
         public TableHeaders() {
             super();
@@ -534,7 +545,7 @@ public class TableInfo {
 
         /**
          * Copy constructor: copies all objects defined by headers
-         * 
+         *
          * @param headers
          */
         public TableHeaders(TableHeaders headers) {
@@ -547,7 +558,7 @@ public class TableInfo {
 
     /**
      * The description section of the table. Contains different meta
-     * informations.
+     * information.
      */
     @JsonIgnoreProperties(ignoreUnknown = true)
     static public class TableDesc {
@@ -563,14 +574,14 @@ public class TableInfo {
 
         /**
          * The name of the table, used as unique identifier.
-         * 
-         *  Specifically used in database storage. Not written in JSON.
+         * <p>
+         * Specifically used in database storage. Not written in JSON.
          */
         @JsonIgnore
         public String name;
-        
+
         /**
-         * The public contructor required by jackson ObjectMapper.
+         * The public constructor required by jackson ObjectMapper.
          */
         public TableDesc() {
             super();
@@ -578,8 +589,8 @@ public class TableInfo {
 
         /**
          * Copy constructor: copies all objects defined by source
-         * 
-         * @param table_desc
+         *
+         * @param source
          */
         public TableDesc(TableDesc source) {
             this.title = source.title;
@@ -606,7 +617,7 @@ public class TableInfo {
     public TableContent content;
 
     /**
-     * The public contructor required by jackson ObjectMapper
+     * The public constructor required by jackson ObjectMapper
      */
     public TableInfo() {
         super();
@@ -626,7 +637,7 @@ public class TableInfo {
 
     /**
      * Copy constructor: copies all objects defined by source Table.
-     * 
+     *
      * @param source
      */
     public TableInfo(TableInfo source) {
