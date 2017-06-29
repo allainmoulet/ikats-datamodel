@@ -332,7 +332,6 @@ public class TableInfo {
 
         /**
          * Not yet implemented
-         * 
          *
          * @return
          * @deprecated Unsupported operation.
