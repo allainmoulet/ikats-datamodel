@@ -392,25 +392,19 @@ public class MetaDataManager {
     }
 
     /**
-     * Review#156358 update the javadoc with throws
-     * 
-     * Search FunctionalIdentifiers matched by the filter
-     * FilterOnTsWithMetadata
+     * Search FunctionalIdentifiers matched by the filter FilterOnTsWithMetadata
      *
-     * @param filterByMeta
-     *            is the filter defining metadata criterion and a subset of
-     *            FunctionalIdentifier
-     * @return
+     * @param filterByMeta is the filter defining metadata criterion and a subset of
+     *                     FunctionalIdentifier
+     * @return the filtered list of functional identifiers
+     * @throws IkatsDaoException when error occurred in DAO
+     * @throws IkatsDaoException when dataset is used as input (not fully implemented)
      */
     public List<FunctionalIdentifier> searchFunctionalIdentifiers(FilterOnTsWithMetadata filterByMeta)
             throws IkatsDaoException {
         try {
             String datasetName = filterByMeta.getDatasetName();
             if (!datasetName.isEmpty()) {
-                // Review#156358 begin minor: you can keep your code ...
-                //    it would be the better place to throw the "Not implemented" exception instead of the TimeSeriesResource ?
-                // Review#156358 end
-
                 return filterByMetaWithDatasetName(filterByMeta.getDatasetName(), filterByMeta.getCriteria());
             } else {
                 return filterByMetaWithTsuidList(filterByMeta.getTsList(), filterByMeta.getCriteria());
@@ -464,16 +458,7 @@ public class MetaDataManager {
 
                     // Extract the desired column form the table content
                     TableManager tableManager = new TableManager();
-                    
-                    // Review#156358 begin
-                    //   OK at the moment if the managed tables have String values.
-                    //   KO for any other type: error detected in API table (158227 V1),
-                    //                         corrected in API table (158227 V2)
-                    // Note: your code will not be impacted. 
-                    // And API table (V2) will be OK for other internal types.
-                    // Review#156358 end
 
-                    
                     List<String> splitValues = tableManager.getColumnFromTable(tableName, column);
 
                     // Changing comparator to IN

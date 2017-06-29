@@ -566,10 +566,6 @@ public class TimeSerieResource extends AbstractResource {
             if ((subSetList != null) && (subSetList.size() > 0)) {
                 return metadataManager.searchFunctionalIdentifiers(filterByMeta);
             } else {
-                // Review#156358 begin minor: you can keep your code ...
-                //    I would have kept original code below, moving the "Not yet implemented" error in the MetadataManager::searchFunctionalIdentifiers(FilterOnTsWithMetadata)
-                // Review#156358 end
-
                 throw new IkatsDaoInvalidValueException("Not implemented: filtering dataset not handled.");
             }
         } else {

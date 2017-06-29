@@ -17,19 +17,12 @@ import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
-
-// Review#156358 begin globally correct the javadoc:
-//               correct the lists if you want readable javadoc: use <ul> <li> <br/>. 
-//               see review exemple in test_filterByMetaWithTsuidList_inTable_RedundantIdentifiers() 
-// Review#156358 end 
 /**
- * Review#156358 rename the file/class to  MetaDataManagerTest.class/MetaDataManagerTest
- * 
- * Test for MataDataManager
+ * Test for MetaDataManager
  */
-public class MataDataManagerTest {
+public class MetaDataManagerTest {
 
-    private static final Logger logger = Logger.getLogger(MataDataManagerTest.class);
+    private static final Logger logger = Logger.getLogger(MetaDataManagerTest.class);
 
     /**
      * Saves the content of a CSV as a Table
@@ -114,13 +107,18 @@ public class MataDataManagerTest {
 
     /**
      * Test the metadata filtering based on "in table" operator with no match:
-     * - Table well formatted (The filter will be done on column "FlightId")
-     * * all necessary columns are present
-     * * Id are not contiguous
-     * - No column defined in criterion and metadata name doesn't match the column name
+     * <ul>
+     *     <li>Table well formatted (The filter will be done on column "FlightId")</li>
+     *     <ul>
+     *         <li>all necessary columns are present</li>
+     *         <li>Id are not contiguous</li>
+     *     </ul>
+     *     <li>No column defined in criterion and metadata name doesn't match the column name</li>
+     * </ul>
      * <p>
      * Test method for
      * {@link MetaDataManager#filterByMetaWithTsuidList(java.util.List, java.util.List)}
+     * <p>
      */
     @Test
     public void test_filterByMetaWithTsuidList_inTable_NoColumnNoMatch() {
@@ -204,41 +202,22 @@ public class MataDataManagerTest {
 
     /**
      * Test the metadata filtering based on "in table" operator with redundant identifier:
-     * - Table well formatted (The filter will be done on column "FlightId")
-     * * Id contains a duplications
-     * - TS match metadata name / value pair
-     * - TS doesn't match the following cases:
-     * * metadata name with value not in expected values
-     * * different metadata name matching the value
-     * * No metadata name for a TS
-     * <p>
-     * Test method for
-     * {@link MetaDataManager#filterByMetaWithTsuidList(java.util.List, java.util.List)}
-     */
-    /**
-     * Review#156358 begin example of corrected javadoc, using lists, break-lines.
-     * <ul><li>This example using tags ul li br p ...</li>
-     * <li>I do not understand differences between your '*' and '-' ...</li></ul> 
-     * 
-     * <p>
-     * 
-     * <br/>
-     * Test the metadata filtering based on "in table" operator with redundant identifier:
-     * <ul><li>Table well formatted (The filter will be done on column "FlightId")</li>
-     * <li>Id contains duplications</li>
-     * <li>TS match metadata name / value pair</li>
-     * <li>TS doesn't match the following cases:<ul>
-     * <li>metadata name with value not in expected values</li>
-     * <li>different metadata name matching the value</li>
-     * <li>No metadata name for a TS</li>
-     * </ul></li>
+     * <ul>
+     *     <li>Table well formatted (The filter will be done on column "FlightId")</li>
+     *     <ul>
+     *        <li>Id contains duplications</li>
+     *        <li>TS match metadata name / value pair</li>
+     *     </ul>
+     *     <li>TS doesn't match the following cases:
+     *     <ul>
+     *        <li>metadata name with value not in expected values</li>
+     *        <li>different metadata name matching the value</li>
+     *        <li>No metadata name for a TS</li>
+     *     </ul>
      * </ul>
-     * 
      * <p>
      * Test method for
      * {@link MetaDataManager#filterByMetaWithTsuidList(java.util.List, java.util.List)}
-     * <p>
-     * Review#156358 end
      */
     @Test
     public void test_filterByMetaWithTsuidList_inTable_RedundantIdentifiers() {
@@ -328,15 +307,21 @@ public class MataDataManagerTest {
 
     /**
      * Test the metadata filtering based on "in table" operator with nominal behavior:
-     * - Table well formatted (The filter will be done on column "FlightId")
-     * * all necessary columns are present
-     * * Id are not contiguous
-     * - No column defined in criterion but metadata name match the column name
-     * - TS match metadata name / value pair
-     * - TS doesn't match the following cases:
-     * * metadata name with value not in expected values
-     * * different metadata name matching the value
-     * * No metadata name for a TS
+     * <ul>
+     *     <li>Table well formatted (The filter will be done on column "FlightId")</li>
+     *     <ul>
+     *         <li>all necessary columns are present</li>
+     *         <li>Id are not contiguous</li>
+     *     </ul>
+     *     <li>No column defined in criterion but metadata name match the column name</li>
+     *     <li>TS match metadata name / value pair</li>
+     *     <li>TS doesn't match the following cases</li>
+     *     <ul>
+     *         <li>metadata name with value not in expected values</li>
+     *         <li>different metadata name matching the value</li>
+     *         <li>No metadata name for a TS</li>
+     *     </ul>
+     * </ul>
      * <p>
      * Test method for
      * {@link MetaDataManager#filterByMetaWithTsuidList(java.util.List, java.util.List)}
@@ -427,10 +412,14 @@ public class MataDataManagerTest {
 
     /**
      * Test the metadata filtering based on "in table" operator with no match (different case):
-     * - Table well formatted (The filter will be done on column "FlightId")
-     * * all necessary columns are present
-     * * Id are not contiguous
-     * - No column defined in criterion and metadata name doesn't match the column name (they have different case)
+     * <ul>
+     *    <li> Table well formatted (The filter will be done on column "FlightId")</li>
+     *    <ul>
+     *       <li> all necessary columns are present</li>
+     *       <li> Id are not contiguous</li>
+     *    </ul>
+     *    <li> No column defined in criterion and metadata name doesn't match the column name (they have different case)</li>
+     * </ul>
      * <p>
      * Test method for
      * {@link MetaDataManager#filterByMetaWithTsuidList(java.util.List, java.util.List)}
