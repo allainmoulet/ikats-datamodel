@@ -396,7 +396,9 @@ public class MetaDataManager {
      *
      * @param filterByMeta is the filter defining metadata criterion and a subset of
      *                     FunctionalIdentifier
-     * @return
+     * @return the filtered list of functional identifiers
+     * @throws IkatsDaoException when error occurred in DAO
+     * @throws IkatsDaoException when dataset is used as input (not fully implemented)
      */
     public List<FunctionalIdentifier> searchFunctionalIdentifiers(FilterOnTsWithMetadata filterByMeta)
             throws IkatsDaoException {
@@ -456,6 +458,7 @@ public class MetaDataManager {
 
                     // Extract the desired column form the table content
                     TableManager tableManager = new TableManager();
+
                     List<String> splitValues = tableManager.getColumnFromTable(tableName, column);
 
                     // Changing comparator to IN
