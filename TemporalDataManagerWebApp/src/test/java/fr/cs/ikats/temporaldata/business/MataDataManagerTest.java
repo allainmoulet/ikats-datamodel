@@ -18,7 +18,13 @@ import java.util.List;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+// Review#156358 begin globally correct the javadoc:
+//               correct the lists if you want readable javadoc: use <ul> <li> <br/>. 
+//               see review exemple in test_filterByMetaWithTsuidList_inTable_RedundantIdentifiers() 
+// Review#156358 end 
 /**
+ * Review#156358 rename the file/class to  MetaDataManagerTest.class/MetaDataManagerTest
+ * 
  * Test for MataDataManager
  */
 public class MataDataManagerTest {
@@ -199,7 +205,7 @@ public class MataDataManagerTest {
     /**
      * Test the metadata filtering based on "in table" operator with redundant identifier:
      * - Table well formatted (The filter will be done on column "FlightId")
-     * * Id contains a doubloon
+     * * Id contains a duplications
      * - TS match metadata name / value pair
      * - TS doesn't match the following cases:
      * * metadata name with value not in expected values
@@ -208,6 +214,31 @@ public class MataDataManagerTest {
      * <p>
      * Test method for
      * {@link MetaDataManager#filterByMetaWithTsuidList(java.util.List, java.util.List)}
+     */
+    /**
+     * Review#156358 begin example of corrected javadoc, using lists, break-lines.
+     * <ul><li>This example using tags ul li br p ...</li>
+     * <li>I do not understand differences between your '*' and '-' ...</li></ul> 
+     * 
+     * <p>
+     * 
+     * <br/>
+     * Test the metadata filtering based on "in table" operator with redundant identifier:
+     * <ul><li>Table well formatted (The filter will be done on column "FlightId")</li>
+     * <li>Id contains duplications</li>
+     * <li>TS match metadata name / value pair</li>
+     * <li>TS doesn't match the following cases:<ul>
+     * <li>metadata name with value not in expected values</li>
+     * <li>different metadata name matching the value</li>
+     * <li>No metadata name for a TS</li>
+     * </ul></li>
+     * </ul>
+     * 
+     * <p>
+     * Test method for
+     * {@link MetaDataManager#filterByMetaWithTsuidList(java.util.List, java.util.List)}
+     * <p>
+     * Review#156358 end
      */
     @Test
     public void test_filterByMetaWithTsuidList_inTable_RedundantIdentifiers() {
