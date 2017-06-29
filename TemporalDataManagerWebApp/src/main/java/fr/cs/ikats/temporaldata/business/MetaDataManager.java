@@ -8,6 +8,7 @@ import fr.cs.ikats.common.expr.Atom;
 import fr.cs.ikats.common.expr.Expression;
 import fr.cs.ikats.common.expr.Expression.ConnectorExpression;
 import fr.cs.ikats.common.expr.Group;
+import fr.cs.ikats.common.expr.SingleValueComparator;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
@@ -15,10 +16,11 @@ import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
 import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
-import fr.cs.ikats.ts.dataset.DataSetFacade;
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import org.apache.log4j.Logger;
 
 import java.io.InputStream;
+import java.sql.SQLException;
 import java.util.*;
 
 /**
@@ -27,7 +29,7 @@ import java.util.*;
 
 public class MetaDataManager {
 
-    private static Logger logger = Logger.getLogger(MetaDataManager.class);
+    private static final Logger logger = Logger.getLogger(MetaDataManager.class);
 
     /**
      * private method to get the MetaDataFacade from Spring context.
@@ -128,11 +130,10 @@ public class MetaDataManager {
      * @param update if true, already existing metadata is updated otherwise no
      *               metadata is persisted if one of them already exists
      * @return a list of internal identifiers
-     * @throws IkatsDaoException error raised by DAO layer
-     * @throws IkatsException    any other error
+     * @throws IkatsException any other error
      * @since [#142998] Handling IkatsDaoException: keep all the troubles
      */
-    public List<Integer> persistMetaData(InputStream fileis, Boolean update) throws IkatsDaoException, IkatsException {
+    public List<Integer> persistMetaData(InputStream fileis, Boolean update) throws IkatsException {
 
         List<Integer> results = null;
         List<MetaData> mdataListFromCSV;
@@ -240,7 +241,7 @@ public class MetaDataManager {
     }
 
     /**
-     * get a list of metadata {name:type} for the list of tsduids in param
+     * get a list of metadata {name:type} for the list of tsuids in param
      *
      * @return a json formatted string.
      * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid
@@ -395,76 +396,170 @@ public class MetaDataManager {
      *
      * @param filterByMeta is the filter defining metadata criterion and a subset of
      *                     FunctionalIdentifier
-     * @return
+     * @return the filtered list of functional identifiers
+     * @throws IkatsDaoException when error occurred in DAO
+     * @throws IkatsDaoException when dataset is used as input (not fully implemented)
      */
-    public List<FunctionalIdentifier> searchFunctionalIdentifiers(FilterOnTsWithMetadata filterByMeta) throws IkatsDaoException {
-
-        List<FunctionalIdentifier> lFuncIdentifiers = new ArrayList<FunctionalIdentifier>();
-
+    public List<FunctionalIdentifier> searchFunctionalIdentifiers(FilterOnTsWithMetadata filterByMeta)
+            throws IkatsDaoException {
         try {
             String datasetName = filterByMeta.getDatasetName();
             if (!datasetName.isEmpty()) {
-                // Get the TS list matching the Dataset name
-                DataSetFacade facade = new DataSetFacade();
-                MetaDataFacade facadeFuncId = new MetaDataFacade();
-                List<String> tsuids = facade.getDataSet(datasetName).getTsuidsAsString();
-                lFuncIdentifiers = facadeFuncId.getFunctionalIdentifierByTsuidList(tsuids);
-
+                return filterByMetaWithDatasetName(filterByMeta.getDatasetName(), filterByMeta.getCriteria());
             } else {
-                // Use the TS list
-                lFuncIdentifiers = filterByMeta.getTsList();
+                return filterByMetaWithTsuidList(filterByMeta.getTsList(), filterByMeta.getCriteria());
             }
-            List<MetadataCriterion> lCriteria = filterByMeta.getCriteria();
-
-            Group<MetadataCriterion> lFormula = new Group<MetadataCriterion>();
-            lFormula.connector = ConnectorExpression.AND;
-            lFormula.terms = new ArrayList<Expression<MetadataCriterion>>();
-
-            // expression is always a group with depth = 1 and connector AND
-            for (MetadataCriterion metadataCriterion : lCriteria) {
-                metadataCriterion.computeServerValue(); // '*' to '%' for operator like
-                Atom<MetadataCriterion> atomCriterion = new Atom<MetadataCriterion>();
-                atomCriterion.atomicTerm = metadataCriterion;
-                lFormula.terms.add(atomCriterion);
-            }
-
-            // plug the restriction of size below
-            // instead of:
-            // return getMetaDataFacade().searchFuncId(lFuncIdentifiers,
-            // lFormula);
-
-            List<List<FunctionalIdentifier>> lWellDimensionedTsIdLists = new ArrayList<List<FunctionalIdentifier>>();
-            int currentSize = 0;
-            int maxsize = 100;
-            List<FunctionalIdentifier> lCurrentListIdentifiers = null;
-
-            // case of no scope is provided => retrieve all funcId from db
-            if (lFuncIdentifiers.isEmpty() || lFuncIdentifiers == null) {
-                lFuncIdentifiers = getMetaDataFacade().getFunctionalIdentifiersList();
-            }
-            // creating samples of 100 funcId
-            for (FunctionalIdentifier functionalIdentifier : lFuncIdentifiers) {
-                if ((currentSize == maxsize) || (currentSize == 0)) {
-                    lCurrentListIdentifiers = new ArrayList<FunctionalIdentifier>();
-                    lWellDimensionedTsIdLists.add(lCurrentListIdentifiers);
-                    currentSize = 0;
-                }
-                lCurrentListIdentifiers.add(functionalIdentifier);
-                currentSize++;
-            }
-
-            List<FunctionalIdentifier> lResult = new ArrayList<FunctionalIdentifier>();
-            for (List<FunctionalIdentifier> currentWellDimensionedList : lWellDimensionedTsIdLists) {
-                lResult.addAll(getMetaDataFacade().searchFuncId(currentWellDimensionedList, lFormula));
-            }
-            return lResult;
-
         } catch (IkatsDaoException daoError) {
             throw daoError;
         } catch (Throwable e) {
             throw new IkatsDaoException("MetadataManager::searchFunctionalIdentifiers ended with unhandled error ", e);
         }
+    }
 
+
+    /**
+     * Simplify a criteria list by converting some comparators
+     *
+     * @param criteria criteria list to convert
+     * @return the new criteria list
+     * @throws IkatsDaoException
+     * @throws SQLException
+     * @throws IkatsException            if the database can't be reach
+     * @throws ResourceNotFoundException if table or column from table is not found
+     */
+    private List<MetadataCriterion> criteriaConverter(List<MetadataCriterion> criteria)
+            throws IkatsDaoException, SQLException, IkatsException, ResourceNotFoundException {
+
+        ArrayList<MetadataCriterion> convertedCriteria = new ArrayList<MetadataCriterion>();
+
+        // Parsing every criterion to detect which one must be converted
+        for (MetadataCriterion criterion : criteria) {
+
+            String metadataName = criterion.getMetadataName();
+            String criterionValue = criterion.getValue();
+            SingleValueComparator criterionOperator = criterion.getTypedComparator();
+            String sqlOperator = criterionOperator.getText();
+            SingleValueComparator comparator = SingleValueComparator.parseComparator(sqlOperator);
+
+            switch (comparator) {
+                case IN_TABLE: {
+
+                    // Get the table information
+                    // Allowed pattern is 'tableName.column'
+                    List<String> tableInformation = Arrays.asList(criterionValue.split("\\."));
+                    String tableName = tableInformation.get(0);
+
+                    // Use the same name as Metadata Name by default for column selection
+                    String column = metadataName;
+                    if (tableInformation.size() == 2) {
+                        // But if a column is specified, use this name.
+                        column = tableInformation.get(1);
+                    }
+
+                    // Extract the desired column form the table content
+                    TableManager tableManager = new TableManager();
+
+                    List<String> splitValues = tableManager.getColumnFromTable(tableName, column);
+
+                    // Changing comparator to IN
+                    criterion.setComparator(SingleValueComparator.IN.getText());
+
+                    // Setting the extracted list from the column as new value content
+                    criterion.setValue(String.join(";", splitValues));
+
+                    convertedCriteria.add(criterion);
+                    break;
+
+                }
+                default:
+                    // No conversion, use it directly
+                    convertedCriteria.add(criterion);
+            }
+        }
+
+        logger.trace("Converted Criteria: " + convertedCriteria.toString());
+        return convertedCriteria;
+    }
+
+    /**
+     * Filter a dataset based on criteria applied on its metadata
+     *
+     * @param datasetName Name of the dataset to filter
+     * @param criteria    criteria list to use
+     * @return the filtered list of functional identifiers
+     * @throws IkatsDaoException
+     * @throws SQLException
+     * @throws IkatsException            if the database can't be reach
+     * @throws ResourceNotFoundException if table or column from table is not found
+     */
+    List<FunctionalIdentifier> filterByMetaWithDatasetName(String datasetName,
+                                                           List<MetadataCriterion> criteria)
+            throws IkatsDaoException, IkatsException, SQLException, ResourceNotFoundException {
+
+        List<MetadataCriterion> convertedCriteria = criteriaConverter(criteria);
+
+        return getMetaDataFacade().searchFuncId(datasetName, convertedCriteria);
+
+    }
+
+    /**
+     * Get the filtered list of TS from the input list with the criteria
+     *
+     * @param tsuidList the list to filter
+     * @param lCriteria the criteria to use
+     * @return the filtered list of functional identifiers
+     * @throws IkatsDaoInvalidValueException
+     * @throws IkatsDaoException
+     */
+    List<FunctionalIdentifier> filterByMetaWithTsuidList(
+            List<FunctionalIdentifier> tsuidList,
+            List<MetadataCriterion> lCriteria)
+            throws IkatsDaoInvalidValueException, IkatsDaoException, IkatsException, SQLException, ResourceNotFoundException {
+
+        Group<MetadataCriterion> lFormula = new Group<MetadataCriterion>();
+        lFormula.connector = ConnectorExpression.AND;
+        lFormula.terms = new ArrayList<Expression<MetadataCriterion>>();
+
+        List<MetadataCriterion> convertedCriteria = criteriaConverter(lCriteria);
+
+        // expression is always a group with depth = 1 and connector AND
+        for (MetadataCriterion metadataCriterion : convertedCriteria) {
+            metadataCriterion.computeServerValue(); // '*' to '%' for operator like
+            Atom<MetadataCriterion> atomCriterion = new Atom<MetadataCriterion>();
+            atomCriterion.atomicTerm = metadataCriterion;
+            lFormula.terms.add(atomCriterion);
+        }
+
+        // plug the restriction of size below
+        // instead of:
+        // return getMetaDataFacade().searchFuncId(lFuncIdentifiers,
+        // lFormula);
+
+        List<List<FunctionalIdentifier>> lWellDimensionedTsIdLists = new ArrayList<List<FunctionalIdentifier>>();
+        int currentSize = 0;
+        int maxsize = 100;
+        List<FunctionalIdentifier> lCurrentListIdentifiers = null;
+
+        // case of no scope is provided => retrieve all funcId from db
+        if (tsuidList.isEmpty()) {
+            tsuidList = getMetaDataFacade().getFunctionalIdentifiersList();
+        }
+        // creating samples of 100 funcId
+        for (FunctionalIdentifier functionalIdentifier : tsuidList) {
+            if ((currentSize == maxsize) || (currentSize == 0)) {
+                lCurrentListIdentifiers = new ArrayList<FunctionalIdentifier>();
+                lWellDimensionedTsIdLists.add(lCurrentListIdentifiers);
+                currentSize = 0;
+            }
+            lCurrentListIdentifiers.add(functionalIdentifier);
+            currentSize++;
+        }
+
+        List<FunctionalIdentifier> lResult = new ArrayList<FunctionalIdentifier>();
+        for (List<FunctionalIdentifier> currentWellDimensionedList : lWellDimensionedTsIdLists) {
+            lResult.addAll(getMetaDataFacade().searchFuncId(currentWellDimensionedList, lFormula));
+        }
+        return lResult;
     }
 
 }

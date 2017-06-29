@@ -75,13 +75,10 @@ public class TimeSerieResource extends AbstractResource {
     }
 
     /**
-     * @param metrique
-     *            metric of TS
-     * @param uriInfo
-     *            the URI params where to find the tags
+     * @param metrique metric of TS
+     * @param uriInfo  the URI params where to find the tags
      * @return the JSON reponse.
-     * @throws ResourceNotFoundException
-     *             if no TS matches the metric and the tags
+     * @throws ResourceNotFoundException if no TS matches the metric and the tags
      */
     @GET
     @Path("/lookup/{metrique}")
@@ -103,7 +100,7 @@ public class TimeSerieResource extends AbstractResource {
     /**
      * get the TSinformation for a tsuid :<br>
      * Response returns a JSON like this
-     *
+     * <p>
      * <pre>
      * {"tsuid":"0000110000030003F20000040003F1",
      *  "funcId":"A320001_1_WS1",
@@ -113,13 +110,10 @@ public class TimeSerieResource extends AbstractResource {
      * }
      * </pre>
      *
-     * @param tsuid
-     *            the tsuid
+     * @param tsuid the tsuid
      * @return a TSInfo
-     * @throws ResourceNotFoundException
-     *             if getTS sends an error
-     * @throws IkatsException
-     *             if result cannot be parsed
+     * @throws ResourceNotFoundException if getTS sends an error
+     * @throws IkatsException            if result cannot be parsed
      */
     @GET
     @Path("/tsuid/{tsuid}")
@@ -163,10 +157,8 @@ public class TimeSerieResource extends AbstractResource {
      * get all the TSinformation
      *
      * @return a list of TSInfo
-     * @throws ResourceNotFoundException
-     *             if getTS sends an error
-     * @throws IkatsException
-     *             if result cannot be parsed
+     * @throws ResourceNotFoundException if getTS sends an error
+     * @throws IkatsException            if result cannot be parsed
      */
     @GET
     @Path("tsuid")
@@ -207,24 +199,15 @@ public class TimeSerieResource extends AbstractResource {
     }
 
     /**
-     * @param metrique
-     *            metric name
-     * @param startDate
-     *            start date
-     * @param endDate
-     *            end date
-     * @param urlOptions
-     *            other url options
-     * @param tags
-     *            the tags of the TS
-     * @param aggregationMethod
-     *            the aggregation method
-     * @param downSampler
-     *            the downsampling method
-     * @param downSamplerPeriod
-     *            the period
-     * @param downSamplingAdditionalInformation
-     *            if min/max/sd must be add to the response.
+     * @param metrique                          metric name
+     * @param startDate                         start date
+     * @param endDate                           end date
+     * @param urlOptions                        other url options
+     * @param tags                              the tags of the TS
+     * @param aggregationMethod                 the aggregation method
+     * @param downSampler                       the downsampling method
+     * @param downSamplerPeriod                 the period
+     * @param downSamplingAdditionalInformation if min/max/sd must be add to the response.
      * @return JSON representation of the TS data
      */
     @GET
@@ -250,24 +233,15 @@ public class TimeSerieResource extends AbstractResource {
     }
 
     /**
-     *
-     * @param tsuid
-     *            the tsuid
-     * @param startDate
-     *            the start date
-     * @param endDate
-     *            the end date
-     * @param urlOptions
-     *            other URL options
-     * @param aggregationMethod
-     *            the aggregation method
-     * @param downSampler
-     *            the downsampling method
-     * @param downSamplerPeriod
-     *            the period
+     * @param tsuid             the tsuid
+     * @param startDate         the start date
+     * @param endDate           the end date
+     * @param urlOptions        other URL options
+     * @param aggregationMethod the aggregation method
+     * @param downSampler       the downsampling method
+     * @param downSamplerPeriod the period
      * @return the JSON representation of TS data
-     * @throws Exception
-     *             if error occurs
+     * @throws Exception if error occurs
      */
     @GET
     @Path("extract/tsuid")
@@ -298,15 +272,11 @@ public class TimeSerieResource extends AbstractResource {
      * be added as query parameters. They will be set as it into the JSON ( or
      * line) representation of the data sent to the db API.
      *
-     * @param metric
-     *            value of dataset
-     * @param filePath
-     *            path of the file in the local file system on the server.
-     * @param uriInfo
-     *            the URI requested, used to get the tags as query parameters
-     * @throws Exception
-     *             when error occurs
+     * @param metric     value of dataset
+     * @param tsFilepath path of the file in the local file system on the server.
+     * @param uriInfo    the URI requested, used to get the tags as query parameters
      * @return import is OK
+     * @throws Exception when error occurs
      */
     @PUT
     @Path("{metric}")
@@ -395,20 +365,13 @@ public class TimeSerieResource extends AbstractResource {
     /**
      * override of the import without parameter dataset
      *
-     * @param metric
-     *            value of metric
-     * @param fileis
-     *            file InputStream read from multipart body
-     * @param fileDisposition
-     *            file information
-     * @param uriInfo
-     *            the URI requested, used to get the tags as query parameters
-     * @param formData
-     *            the form information
+     * @param metric          value of metric
+     * @param fileis          file InputStream read from multipart body
+     * @param fileDisposition file information
+     * @param uriInfo         the URI requested, used to get the tags as query parameters
+     * @param formData        the form information
      * @return an ImportResult
-     * @throws ImportException
-     *             if error occurs
-     *
+     * @throws ImportException if error occurs
      */
     @POST
     @Path("/put/{metric}")
@@ -439,19 +402,12 @@ public class TimeSerieResource extends AbstractResource {
      * constraint to one Import in openTSDB if funID provided Import startdate,
      * enddate and tags in pgsql
      *
-     * @param metric
-     *            value of metric
-     * @param fileis
-     *            file InputStream read from multipart body
-     * @param filename
-     *            filename
-     * @param uriInfo
-     *            the URI requested, used to get the tags as query parameters
-     * @param formData
-     *            the form information
+     * @param filename   filename
+     * @param metric     value of metric
+     * @param funcId     the functional identifier to use for import
+     * @param formParams the form information
      * @return ImportResult
-     * @throws ImportException
-     *             if problems occurs
+     * @throws ImportException if problems occurs
      */
     private ApiResponse doImport(
             String filename,
@@ -610,12 +566,7 @@ public class TimeSerieResource extends AbstractResource {
             if ((subSetList != null) && (subSetList.size() > 0)) {
                 return metadataManager.searchFunctionalIdentifiers(filterByMeta);
             } else {
-                if (datasetName.isEmpty()) {
-                    // Subset undefined
-                    throw new IkatsDaoInvalidValueException("Not yet implemented: filter on metadata with undefined subset AND defined criteria list.");
-                }
-                return metadataManager.searchFunctionalIdentifiers(filterByMeta);
-
+                throw new IkatsDaoInvalidValueException("Not implemented: filtering dataset not handled.");
             }
         } else {
             // no criteria defined !

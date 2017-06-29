@@ -49,6 +49,17 @@ public class MetaDataTest {
     };
 
     /**
+     * Saves the content of a CSV as a Table
+     *
+     * @param name    name identifying the Table
+     * @param content text corresponding to the CSV format
+     */
+    private static void saveTable(String name, String content) {
+        //TODO Save the table
+
+    }
+
+    /**
      * Initializing the class
      */
     @BeforeClass
@@ -98,7 +109,7 @@ public class MetaDataTest {
 
     /**
      * Test method for
-     * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.util.List)}
+     * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.lang.String)}
      * .
      */
     @Test
@@ -118,8 +129,8 @@ public class MetaDataTest {
     public void testMetaDataTypes() {
         MetaDataFacade facade = new MetaDataFacade();
         try {
-            facade.persistMetaData("tsuidA01", "thatsastring", "blabla", "string");
-            facade.persistMetaData("tsuidA02", "thatsanumber", "12", "number");
+            facade.persistMetaData("tsuidB01", "thatsastring", "blabla", "string");
+            facade.persistMetaData("tsuidB02", "thatsanumber", "12", "number");
             Map metaTypesTable = facade.getMetaDataTypes();
             assertNotNull(metaTypesTable);
             assertEquals("number", metaTypesTable.get("thatsanumber"));
@@ -131,7 +142,7 @@ public class MetaDataTest {
 
     /**
      * Test method for
-     * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.util.List)}
+     * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.lang.String)}
      * .
      */
     @Test
@@ -221,7 +232,7 @@ public class MetaDataTest {
 
     /**
      * Test method for
-     * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.util.List)}
+     * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.lang.String)}
      * .
      */
     @Test
@@ -350,10 +361,10 @@ public class MetaDataTest {
      *
      * @param expected list containing the expected values
      * @param tsuid    tsuid matching the expected value
-     * @param funcid   Functional Identifier matching the expected value
+     * @param funcId   Functional Identifier matching the expected value
      */
-    private void addToScope(List<FunctionalIdentifier> expected, String tsuid, String funcid) {
-        FunctionalIdentifier fid = new FunctionalIdentifier(tsuid, funcid);
+    private void addToScope(List<FunctionalIdentifier> expected, String tsuid, String funcId) {
+        FunctionalIdentifier fid = new FunctionalIdentifier(tsuid, funcId);
         expected.add(fid);
     }
 
@@ -381,6 +392,7 @@ public class MetaDataTest {
             facade.persistMetaData("TS7", "MD2", "B");
             facade.persistMetaData("TS8", "MD1", "A");
             facade.persistMetaData("TS8", "MD2", "C");
+            facade.persistMetaData("TS9", "MD2", "A");
 
             // Create the initial scope
             List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
@@ -408,7 +420,8 @@ public class MetaDataTest {
             addToScope(expected, "TS8", "FID8");
 
             // Compute
-            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
+            ArrayList<FunctionalIdentifier> obtained =
+                    (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
 
             // Check results
             assertTrue(obtained.equals(expected));
@@ -422,6 +435,76 @@ public class MetaDataTest {
             facade.removeMetaDataForTS("TS6");
             facade.removeMetaDataForTS("TS7");
             facade.removeMetaDataForTS("TS8");
+            facade.removeMetaDataForTS("TS9");
+
+
+        } catch (Exception e) {
+            fail("Unexpected error");
+        }
+    }
+
+    /**
+     * Test the metadata filtering based on "in" operator with not right operand for "in"
+     */
+    @Test
+    public void testSearchFuncId_in_noOperand() {
+
+        try {
+            MetaDataFacade facade = new MetaDataFacade();
+
+            // Create the test set
+            facade.persistMetaData("TS1", "MD1", "A");
+            facade.persistMetaData("TS2", "MD2", "A");
+            facade.persistMetaData("TS3", "MD1", "A");
+            facade.persistMetaData("TS3", "MD2", "A");
+            facade.persistMetaData("TS4", "MD1", "B");
+            facade.persistMetaData("TS4", "MD2", "A");
+            facade.persistMetaData("TS5", "MD1", "A");
+            facade.persistMetaData("TS5", "MD2", "B");
+            facade.persistMetaData("TS6", "MD1", "B");
+            facade.persistMetaData("TS6", "MD2", "B");
+            facade.persistMetaData("TS7", "MD1", "C");
+            facade.persistMetaData("TS7", "MD2", "B");
+            facade.persistMetaData("TS8", "MD1", "A");
+            facade.persistMetaData("TS8", "MD2", "C");
+            facade.persistMetaData("TS9", "MD2", "A");
+
+            // Create the initial scope
+            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+            addToScope(scope, "TS1", "FID1");
+            addToScope(scope, "TS2", "FID2");
+            addToScope(scope, "TS3", "FID3");
+            addToScope(scope, "TS4", "FID4");
+            addToScope(scope, "TS5", "FID5");
+            addToScope(scope, "TS6", "FID6");
+            addToScope(scope, "TS7", "FID7");
+            addToScope(scope, "TS8", "FID8");
+
+            // Formula
+            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+            formula.connector = Expression.ConnectorExpression.AND;
+            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+
+            // Preparing results
+            addCrit(formula, "MD1", "in", "");
+
+            // Compute
+            ArrayList<FunctionalIdentifier> obtained =
+                    (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
+
+            // Check results
+            assertEquals(0, obtained.size());
+
+            // Cleanup
+            facade.removeMetaDataForTS("TS1");
+            facade.removeMetaDataForTS("TS2");
+            facade.removeMetaDataForTS("TS3");
+            facade.removeMetaDataForTS("TS4");
+            facade.removeMetaDataForTS("TS5");
+            facade.removeMetaDataForTS("TS6");
+            facade.removeMetaDataForTS("TS7");
+            facade.removeMetaDataForTS("TS8");
+            facade.removeMetaDataForTS("TS9");
 
 
         } catch (Exception e) {
@@ -709,4 +792,6 @@ public class MetaDataTest {
             fail("Unexpected error");
         }
     }
+
+
 }
