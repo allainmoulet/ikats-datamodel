@@ -62,14 +62,15 @@ public class TableResource extends AbstractResource {
      * @throws ResourceNotFoundException if table not found
      * @throws IkatsDaoException         if hibernate exception raised while storing table in db
      * @throws IkatsException            others unexpected exceptions
+     * REVIEW#157740 add IkatsJsonException? (see next review comment)
      */
     @GET
     @Path("/{tableName}")
-    public Response downloadTable(@PathParam("tableName") String tableName) throws IkatsException, ResourceNotFoundException, SQLException, IkatsDaoException {
+    public Response downloadTable(@PathParam("tableName") String tableName) throws IkatsException, ResourceNotFoundException, SQLException, IkatsDaoException { // Review#157740 : nothing may result into throwing SQLException.
         // get id of table in processData db
         // assuming there is only one table by tableName
 
-        TableInfo table = tableManager.readFromDatabase(tableName);
+        TableInfo table = tableManager.readFromDatabase(tableName); // REVIEW#157740 : line may throw "IkatsJsonException" which is not handled.
 
         try {
 
@@ -78,7 +79,7 @@ public class TableResource extends AbstractResource {
             return Response.ok(jsonString, MediaType.APPLICATION_JSON_TYPE).build();
 
         } catch (Exception e) {
-            throw new IkatsException("Failed: service downloadTable() " +
+            throw new IkatsException("Failed: service downloadTable() " + // REVIEW#157740 : bad service name?
                     tableName + " : caught unexpected Exception:", e);
         }
 
@@ -97,6 +98,7 @@ public class TableResource extends AbstractResource {
      * @throws IOException       error when parsing input csv file
      * @throws IkatsDaoException error while accessing database to check if table already
      *                           exists
+     * REVIEW#157740 : missing ikatsjsonexception
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -199,7 +201,7 @@ public class TableResource extends AbstractResource {
                 outputTable.content.cells = convertToListOfListOfObject(cells);
 
                 // store Table
-                String rid = tableManager.createInDatabase(tableName, outputTable);
+                String rid = tableManager.createInDatabase(tableName, outputTable);//REVIEW#157740 : not fully protected vs "IkatsDaoConflictException", handle it or throw it
                 chrono.stop(logger);
 
                 // result id is returned in the body
@@ -229,6 +231,7 @@ public class TableResource extends AbstractResource {
      * @throws IOException               error when parsing input csv file
      * @throws IkatsDaoException         error while accessing database to check if table already exists
      * @throws ResourceNotFoundException if table not found
+     * //REVIEW#157740 : missing 3 throws clauses : InvalidValueException, SQLException, IkatsException
      */
     @POST
     @Path("/ts2feature")
@@ -263,7 +266,7 @@ public class TableResource extends AbstractResource {
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
 
         // convert tableJson to table
-        TableInfo tableInfo= tableManager.loadFromJson(tableJson);
+        TableInfo tableInfo= tableManager.loadFromJson(tableJson); // REVIEW#157740 : may throw ikatsjsonexception, handle or throw it
         Table table = tableManager.initTable(tableInfo, false);
 
         logger.info("Working on table (" + table.getDescription() + ") " +
@@ -281,7 +284,7 @@ public class TableResource extends AbstractResource {
         for (int i = 1; i < rowHeaders.size(); i++) {
 
             // retrieving tsuids of input
-            String tsuid = metaFacade.getFunctionalIdentifierByFuncId(rowHeaders.get(i).toString()).getTsuid();
+            String tsuid = metaFacade.getFunctionalIdentifierByFuncId(rowHeaders.get(i).toString()).getTsuid(); // REVIEW#157740 : may throw IkatsDaoMissingRessource & IkatsDaoConflictException, handle it or throw it
             MetaData metaTs = metaFacade.getMetaData(tsuid, metaName);
             MetaData metaPopId = metaFacade.getMetaData(tsuid, populationId);
 
@@ -292,12 +295,12 @@ public class TableResource extends AbstractResource {
             colMetaTs.add(metaTs.getValue());
         }
 
-        // processing an ordered list of populationId values without doubloons
+        // processing an ordered list of populationId values without duplicates
         Set<String> setPopId = new HashSet<>(colPopId);
         List<String> listPopId = new ArrayList<>(setPopId);
         Collections.sort(listPopId);
 
-        // processing an ordered list of metaName values by ts without doubloons
+        // processing an ordered list of metaName values by ts without duplicates
         Set<String> setMetaTs = new HashSet<>(colMetaTs);
         List<String> listMetaTs = new ArrayList<>(setMetaTs);
         Collections.sort(listMetaTs);
@@ -312,7 +315,7 @@ public class TableResource extends AbstractResource {
                 outputTable.getColumnsHeader().addItem(metaTs + "_" + colHeaders.get(i));
             }
         }
-        Integer tableContentWidth = outputTable.getColumnsHeader().getData().size() - 1;
+        Integer tableContentWidth = outputTable.getColumnsHeader().getData().size() - 1; // REVIEW#157740 should instanciate primitive type int instead of integer
 
         // filling rows headers and content by popId
         outputTable.getRowsHeader().addItem(populationId);
@@ -330,7 +333,7 @@ public class TableResource extends AbstractResource {
             }
             // check line size is consistent
             if (cellsLine.size() != tableContentWidth) {
-                String context = "Output table ";
+                String context = "Output table "; //REVIEW#157740 : unclear message, plz precise.
                 return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
             }
             outputTable.appendRow(cellsLine);

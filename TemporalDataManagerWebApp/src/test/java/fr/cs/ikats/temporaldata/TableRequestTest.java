@@ -83,7 +83,7 @@ public class TableRequestTest extends AbstractRequestTest {
      * case : nominal (http code 200 returned)
      */
     @Test
-    public void testTableDownload() {
+    public void testTableDownload() { //REVIEW#157740 : this test does not belong to this user-story?
         String testCaseName = "testTableDownload";
         boolean isNominal = true;
         try {
