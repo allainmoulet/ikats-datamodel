@@ -1,28 +1,34 @@
 package fr.cs.ikats.temporaldata.business;
 
-//Review#158227 Repetitive error : occured -> occurred
-//Review#158227 Repetitive error : exemple -> example
-//Review#158227 Repetitive error : criteria is plural, use "criterion"
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.business.ProcessDataManager.ProcessResultTypeEnum;
-import fr.cs.ikats.temporaldata.business.TableInfo.*;
+// Review#158227 Resp. MBD begin
+//    I just reapplied the "organize import" of Eclipse: in order to avoid the import clauses with *:
+//    it is usually conbsidered as better practise.
+// Review#158227 Resp. MBD end
+import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
+import fr.cs.ikats.temporaldata.business.TableInfo.Header;
+import fr.cs.ikats.temporaldata.business.TableInfo.TableContent;
+import fr.cs.ikats.temporaldata.business.TableInfo.TableDesc;
+import fr.cs.ikats.temporaldata.business.TableInfo.TableHeaders;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
-import org.apache.log4j.Logger;
-
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Pattern;
 
 /**
  * The manager is grouping services on the Table objects
@@ -36,7 +42,10 @@ import java.util.regex.Pattern;
 public class TableManager {
 
     // Review#158227 logger can be private
-    static Logger logger = Logger.getLogger(TableManager.class);
+    // Review#158227 Resp. MBD begin
+    //    ... and final
+    // Review#158227 Resp. MBD end
+    static private final Logger LOGGER = Logger.getLogger(TableManager.class);
 
     /**
      * Pattern used in the consistency check of Table name.
@@ -65,6 +74,7 @@ public class TableManager {
         Table(TableInfo handledTable) {
             super();
             this.tableInfo = handledTable;
+            LOGGER.info("");
         }
 
         /**
@@ -215,8 +225,6 @@ public class TableManager {
             return this.getHeaderIndex(this.getRowsHeader(), value);
         }
 
-        // Review#158227: You should apply the following to all "not implemented" methods (@deprecated+UnsupportedOperationException)
-
         /**
          * Not yet implemented
          *
@@ -231,9 +239,10 @@ public class TableManager {
          * Not yet implemented
          *
          * @return
+         * @deprecated Unsupported operation.
          */
         public <T> List<T> getRowsHeaderItems() {
-            throw new Error("Not yet implemented");
+            throw new UnsupportedOperationException("Not yet implemented");
         }
 
         /**
@@ -951,7 +960,7 @@ public class TableManager {
             Table handler = new Table(table);
             handler.setName(tableName);
 
-            logger.trace("Table retrieved from db OK : name=" + tableName);
+            LOGGER.trace("Table retrieved from db OK : name=" + tableName);
             return table;
         } catch (SQLException sqle) {
             // Why the catch is not on HibernateException ?
@@ -991,7 +1000,7 @@ public class TableManager {
 
         String rid = processDataManager.importProcessData(tableName, tableToStore.table_desc.desc,
                 data, ProcessResultTypeEnum.JSON);
-        logger.trace("Table stored Ok in db: " + tableName + " with rid: "+rid);
+        LOGGER.trace("Table stored Ok in db: " + tableName + " with rid: "+rid);
 
         return rid;
     }
@@ -1056,7 +1065,7 @@ public class TableManager {
 
         List<T> column = tableH.getColumn(columnName);
 
-        logger.trace("Column " + columnName + " retrieved from table : " + tableName);
+        LOGGER.trace("Column " + columnName + " retrieved from table : " + tableName);
 
         return column;
     }
@@ -1074,7 +1083,7 @@ public class TableManager {
         String nameStr = name == null ? "null" : name;
         if ((name == null) || !TableManager.TABLE_NAME_PATTERN.matcher(name).matches()) {
             String msg = context + ": invalid name of table resource: " + nameStr;
-            logger.error(msg);
+            LOGGER.error(msg);
             throw new InvalidValueException("Table", "name", TableManager.TABLE_NAME_PATTERN.pattern(), nameStr, null);
         }
     }

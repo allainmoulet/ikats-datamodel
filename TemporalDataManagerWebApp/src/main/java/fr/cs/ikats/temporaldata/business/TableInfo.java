@@ -1,9 +1,5 @@
 package fr.cs.ikats.temporaldata.business;
 
-// Review#158227: Repetitive error: instanciated -> instantiated
-//Review#158227 Repetitive error : exemple -> example
-// Review#158227: informations -> information
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
@@ -254,13 +250,12 @@ public class TableInfo {
             }
         }
 
-        // Review#158227: javadoc missing
         /**
          * Adds a row using TableElement list: wrapping data values and optional links
          *
-         * @param elements
-         * @return
-         * @throws IkatsException
+         * @param elements list of elements: wrappers of data and link
+         * @return this TableContent: this convenient to chain the modifiers: this.addRow(...).addRow(...)
+         * @throws IkatsException inconsistency error. Example: trying to add a link in TableContent which is not managing links.
          */
         public TableContent addRow(List<TableElement> elements) throws IkatsException {
             int posCol = 0;
@@ -289,63 +284,71 @@ public class TableInfo {
          * Not yet implemented
          *
          * @return
+         * @deprecated Unsupported operation.
          */
         public TableContent insertRow(int beforeIndex, List<TableElement> elements) throws IkatsException {
-            throw new Error("Not yet implemented");
+            throw new UnsupportedOperationException("Not yet implemented");
         }
 
         /**
          * Not yet implemented
          *
          * @return
+         * @deprecated Unsupported operation.
          */
         public TableContent replaceRow(int index, List<TableElement> elements) throws IkatsException {
-            throw new Error("Not yet implemented");
+            throw new UnsupportedOperationException("Not yet implemented");
         }
 
         /**
          * Not yet implemented
          *
          * @return
+         * @deprecated Unsupported operation.
          */
         public TableContent deleteRow(int index) throws IkatsException {
-            throw new Error("Not yet implemented");
+            throw new UnsupportedOperationException("Not yet implemented");
         }
 
         /**
          * Not yet implemented
          *
          * @return
+         * @deprecated Unsupported operation.
          */
         public TableContent addColumn(List<TableElement> elements) throws IkatsException {
-            throw new Error("Not yet implemented");
+            throw new UnsupportedOperationException("Not yet implemented");
         }
 
         /**
          * Not yet implemented
          *
          * @return
+         * @deprecated Unsupported operation.
          */
         public TableContent insertColumn(int beforeIndex, List<TableElement> elements) throws IkatsException {
-            throw new Error("Not yet implemented");
+            throw new UnsupportedOperationException("Not yet implemented");
         }
 
         /**
          * Not yet implemented
+         * 
          *
          * @return
+         * @deprecated Unsupported operation.
          */
         public TableContent replaceColumn(int index, List<TableElement> elements) throws IkatsException {
-            throw new Error("Not yet implemented");
+            throw new UnsupportedOperationException("Not yet implemented");
         }
 
         /**
          * Not yet implemented
          *
          * @return
+         * @deprecated Unsupported operation.
          */
         public TableContent deleteColumn(int index) throws IkatsException {
-            throw new Error("Not yet implemented");
+            throw new UnsupportedOperationException("Not yet implemented");
         }
 
     }
