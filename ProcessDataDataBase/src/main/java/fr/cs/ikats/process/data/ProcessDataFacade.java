@@ -1,5 +1,6 @@
 package fr.cs.ikats.process.data;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.process.data.dao.ProcessDataDAO;
 import fr.cs.ikats.process.data.model.ProcessData;
 import org.apache.log4j.Logger;
@@ -19,15 +20,13 @@ import java.util.List;
 @Scope("singleton")
 public class ProcessDataFacade {
 
-
     /**
      * the logger instance for this class
      */
     private static final Logger LOGGER = Logger.getLogger(ProcessDataFacade.class);
 
     /**
-     * DataSetFacade
-     * the DAO for access to MetaData storage
+     * DataSetFacade the DAO for access to MetaData storage
      */
     private ProcessDataDAO dao;
 
@@ -50,9 +49,12 @@ public class ProcessDataFacade {
     }
 
     /**
-     * @param data   processData
-     * @param is     input stream
-     * @param length size of data, could be -1 to read until the end of the stream.
+     * @param data
+     *            processData
+     * @param is
+     *            input stream
+     * @param length
+     *            size of data, could be -1 to read until the end of the stream.
      * @return the internal identifier
      * @throws IOException
      */
@@ -68,7 +70,8 @@ public class ProcessDataFacade {
             int read = is.read();
             if (read != -1) {
                 buffer.write(read);
-            } else {
+            }
+            else {
                 canRead = false;
             }
         }
@@ -80,8 +83,10 @@ public class ProcessDataFacade {
     /**
      * Import a data to database
      *
-     * @param processData processData to use
-     * @param data        data to save
+     * @param processData
+     *            processData to use
+     * @param data
+     *            data to save
      * @return the internal identifier
      */
     public String importProcessData(ProcessData processData, byte[] data) {
@@ -91,17 +96,36 @@ public class ProcessDataFacade {
     /**
      * get all processData for processId
      *
-     * @param processId the producer
-     * @return null if nothing is found.
+     * @param processId
+     *            the producer
+     * @return empty collection if nothing is found. null
+     *         if hibernate error occured
      */
     public List<ProcessData> getProcessData(String processId) {
         return dao.getProcessData(processId);
     }
 
+    public boolean alreadyExistsInProcessData(String processId) throws IkatsDaoException {
+        return countProcessDataWithProcessId(processId) > 0;
+    }
+
+    /**
+     * @param processId
+     * @return
+     */
+    public int countProcessDataWithProcessId(String processId) throws IkatsDaoException {
+        List<ProcessData> collectionProcessData = dao.getProcessData(processId);
+        if (collectionProcessData == null)
+            throw new IkatsDaoException("Unexpected Hibernate error: processDataManager.getProcessData(" + processId + ")");
+
+        return collectionProcessData.size();
+    }
+
     /**
      * get the processData for internal id id
      *
-     * @param id the internal identifier.
+     * @param id
+     *            the internal identifier.
      * @return null if not found.
      */
     public ProcessData getProcessPieceOfData(int id) {
@@ -111,7 +135,8 @@ public class ProcessDataFacade {
     /**
      * remove all processResults for processId
      *
-     * @param processId the producer
+     * @param processId
+     *            the producer
      */
     public void removeProcessData(String processId) {
         dao.removeAllProcessData(processId);

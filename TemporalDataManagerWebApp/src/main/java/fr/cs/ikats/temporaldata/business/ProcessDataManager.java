@@ -40,7 +40,7 @@ public class ProcessDataManager {
     }
 
     /**
-     * Import a string/opaque byte array to database
+     * Import a string/opaque byte array to database, with default type "ANY"
      *
      * @param processId the data producer identifier
      * @param name      name of data
@@ -52,6 +52,21 @@ public class ProcessDataManager {
         return getProcessDataFacade().importProcessData(processData, data);
     }
 
+    /**
+     * Import a string/opaque byte array to database, with specified datatype: 
+     * this is required for the JSON or CSV results !
+     *
+     * @param processId the data producer identifier
+     * @param name      name of data
+     * @param data      the data
+     * @param type among possible enum values.
+     * @return the internal identifier of the result.
+     */
+    public String importProcessData(String processId, String name, byte[] data, ProcessResultTypeEnum type) {
+        ProcessData processData = new ProcessData(processId, type.toString(), name);
+        return getProcessDataFacade().importProcessData(processData, data);
+    }
+    
     /**
      * ResultType ENUM
      */
