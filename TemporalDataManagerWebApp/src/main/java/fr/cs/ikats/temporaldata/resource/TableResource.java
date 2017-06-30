@@ -62,10 +62,11 @@ public class TableResource extends AbstractResource {
      * @throws ResourceNotFoundException if table not found
      * @throws IkatsDaoException         if hibernate exception raised while storing table in db
      * @throws IkatsException            others unexpected exceptions
+     * @throws IkatsJsonException        error when mapping downloaded table to business object Table
      */
     @GET
     @Path("/{tableName}")
-    public Response downloadTable(@PathParam("tableName") String tableName) throws IkatsException, ResourceNotFoundException, SQLException, IkatsDaoException {
+    public Response downloadTable(@PathParam("tableName") String tableName) throws ResourceNotFoundException, IkatsException, IkatsDaoException, IkatsJsonException {
         // get id of table in processData db
         // assuming there is only one table by tableName
 
@@ -94,9 +95,11 @@ public class TableResource extends AbstractResource {
      * @param formData        the form data
      * @param uriInfo         all info on URI
      * @return the internal id
-     * @throws IOException       error when parsing input csv file
-     * @throws IkatsDaoException error while accessing database to check if table already
-     *                           exists
+     * @throws IOException           error when parsing input csv file
+     * @throws IkatsDaoException     error while accessing database to check if table already
+     *                               exists
+     * @throws IkatsJsonException    error when mapping imported table to business object Table
+     * @throws InvalidValueException if table name does not match expected pattern
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -105,7 +108,14 @@ public class TableResource extends AbstractResource {
                                        @FormDataParam("file") InputStream fileis,
                                        @FormDataParam("file") FormDataContentDisposition fileDisposition,
                                        @FormDataParam("rowName") String rowName, FormDataMultiPart formData,
-                                       @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, IkatsJsonException {
+                                       @Context UriInfo uriInfo) throws IkatsException, IOException, IkatsDaoException, InvalidValueException {
+
+        // check that tableName does not already exist
+        if (tableManager.existsInDatabase(tableName)) {
+            String context = "Table name already exists : " + tableName;
+            logger.error(context);
+            return Response.status(Response.Status.CONFLICT).entity(context).build();
+        }
 
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         String fileName = fileDisposition.getFileName();
@@ -140,6 +150,9 @@ public class TableResource extends AbstractResource {
             // first element of row header is column header : set to null
             rowHeaders.add(null);
 
+            // init output table
+            Table outputTable = tableManager.initEmptyTable();
+
             // parse csv content to :
             // 1. retrieve data to build json table structure to store
             // 2. fix duplicates : if occurs, we stop at first duplicate and
@@ -152,6 +165,7 @@ public class TableResource extends AbstractResource {
                 }
 
                 String[] items = line.split(separator, -1);
+                // check table content consistency
                 if (items.length != columnHeaders.size()) {
                     String context = "Line length does not fit headers size in csv file : " + fileName;
                     logger.error(context);
@@ -160,11 +174,12 @@ public class TableResource extends AbstractResource {
 
                 // retrieving table data
                 rowHeaders.add(items[0]);
-                List<String> cells_content = new ArrayList<>();
+                List<String> newRow = new ArrayList<>();
                 for (int i = 1; i < items.length; i++) {
-                    cells_content.add(items[i]);
+                    newRow.add(items[i]);
                 }
-                cells.add(cells_content);
+                // add row to output table
+                outputTable.appendRow(newRow);
 
                 // seeking for duplicates
                 String idRef = items[rowIndexId];
@@ -177,34 +192,22 @@ public class TableResource extends AbstractResource {
                 }
             }
 
-            // check that tableName does not already exist
-            if (tableManager.existsInDatabase(tableName)) {
-                String context = "Table name already exists : " + tableName;
-                logger.error(context);
-                chrono.stop(logger);
-                return Response.status(Response.Status.CONFLICT).entity(context).build();
-            } else {
-                TableInfo outputTable = tableManager.initEmptyTable().getTableInfo();
+            // fill table description
+            outputTable.setName(tableName);
+            outputTable.setTitle(tableName);
+            outputTable.setDescription(fileName);
 
-                // fill table description
-                outputTable.table_desc.name = tableName;
-                outputTable.table_desc.title = tableName;
-                outputTable.table_desc.desc = fileName;
+            // fill headers
+            outputTable.getColumnsHeader().getData().addAll(columnHeaders);
+            outputTable.getRowsHeader().getData().addAll(rowHeaders);
 
-                // fill headers
-                outputTable.headers.col.data = convertToListOfObject(columnHeaders);
-                outputTable.headers.row.data = convertToListOfObject(rowHeaders);
+            // store Table
+            String rid = tableManager.createInDatabase(tableName, outputTable.getTableInfo());
+            chrono.stop(logger);
 
-                // fill content
-                outputTable.content.cells = convertToListOfListOfObject(cells);
+            // result id is returned in the body
+            return Response.status(Response.Status.OK).entity(rid).build();
 
-                // store Table
-                String rid = tableManager.createInDatabase(tableName, outputTable);
-                chrono.stop(logger);
-
-                // result id is returned in the body
-                return Response.status(Response.Status.OK).entity(rid).build();
-            }
         } catch (IOException e) {
             String contextError = "Unexpected interruption while parsing CSV file : " + fileName;
             throw new IOException(contextError, e);
@@ -229,6 +232,8 @@ public class TableResource extends AbstractResource {
      * @throws IOException               error when parsing input csv file
      * @throws IkatsDaoException         error while accessing database to check if table already exists
      * @throws ResourceNotFoundException if table not found
+     * @throws InvalidValueException     if table name does not match expected pattern
+     * @throws IkatsException            others unexpected exceptions
      */
     @POST
     @Path("/ts2feature")
@@ -239,7 +244,7 @@ public class TableResource extends AbstractResource {
                                @FormDataParam("populationId") String populationId,
                                @FormDataParam("outputTableName") String outputTableName,
                                FormDataMultiPart formData,
-                               @Context UriInfo uriInfo) throws IOException, IkatsDaoException, InvalidValueException, SQLException, IkatsException, ResourceNotFoundException {
+                               @Context UriInfo uriInfo) throws IOException, IkatsDaoException, IkatsException, ResourceNotFoundException, InvalidValueException {
 
 
         if (outputTableName == null) {
@@ -263,7 +268,7 @@ public class TableResource extends AbstractResource {
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
 
         // convert tableJson to table
-        TableInfo tableInfo= tableManager.loadFromJson(tableJson);
+        TableInfo tableInfo = tableManager.loadFromJson(tableJson);
         Table table = tableManager.initTable(tableInfo, false);
 
         logger.info("Working on table (" + table.getDescription() + ") " +
@@ -292,12 +297,12 @@ public class TableResource extends AbstractResource {
             colMetaTs.add(metaTs.getValue());
         }
 
-        // processing an ordered list of populationId values without doubloons
+        // processing an ordered list of populationId values without duplicates
         Set<String> setPopId = new HashSet<>(colPopId);
         List<String> listPopId = new ArrayList<>(setPopId);
         Collections.sort(listPopId);
 
-        // processing an ordered list of metaName values by ts without doubloons
+        // processing an ordered list of metaName values by ts without duplicates
         Set<String> setMetaTs = new HashSet<>(colMetaTs);
         List<String> listMetaTs = new ArrayList<>(setMetaTs);
         Collections.sort(listMetaTs);
@@ -312,7 +317,7 @@ public class TableResource extends AbstractResource {
                 outputTable.getColumnsHeader().addItem(metaTs + "_" + colHeaders.get(i));
             }
         }
-        Integer tableContentWidth = outputTable.getColumnsHeader().getData().size() - 1;
+        int tableContentWidth = outputTable.getColumnsHeader().getData().size() - 1;
 
         // filling rows headers and content by popId
         outputTable.getRowsHeader().addItem(populationId);
@@ -330,7 +335,7 @@ public class TableResource extends AbstractResource {
             }
             // check line size is consistent
             if (cellsLine.size() != tableContentWidth) {
-                String context = "Output table ";
+                String context = "Output table : line length inconsistency";
                 return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
             }
             outputTable.appendRow(cellsLine);
@@ -342,35 +347,6 @@ public class TableResource extends AbstractResource {
 
         // result id is returned in the body
         return Response.status(Response.Status.OK).entity(rid).build();
-    }
-
-    /**
-     * Convert list of Object to list of String
-     */
-    private List<String> convertToListOfString(List<Object> listObject) {
-        return listObject.stream()
-                .map(object -> Objects.toString(object, null))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Convert list of String to list of Object
-     */
-    private List<Object> convertToListOfObject(List<String> listString) {
-        return listString.stream()
-                .map(object -> Objects.toString(object, null))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Convert list of list of String to list of list of Object
-     */
-    private List<List<Object>> convertToListOfListOfObject(List<List<String>> listString) {
-        List<List<Object>> output = new ArrayList<>();
-        for (List<String> list : listString) {
-            output.add(new ArrayList<>(list));
-        }
-        return output;
     }
 
     /**
