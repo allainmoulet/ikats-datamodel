@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
@@ -23,6 +24,8 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+
+import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
@@ -46,6 +49,8 @@ import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
+
+import fr.cs.ikats.temporaldata.business.ProcessDataManager;
 import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableManager;
 import fr.cs.ikats.temporaldata.business.TableManager.Table;
@@ -55,6 +60,7 @@ import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.temporaldata.utils.Chronometer;
+import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 
 /**
  * resource for Table
@@ -70,7 +76,10 @@ public class TableResource extends AbstractResource {
 
     private static final String MSG_DAO_KO_JOIN_BY_METRICS = "Failed to apply joinByMetrics(): DAO error occured with dataset name=''{0}'' on metrics=''{1}'' on table=''{2}''";
     private static final String MSG_INVALID_METRICS_FOR_JOIN_BY_METRICS = "Invalid metrics value=''{0}'' for joinByMetrics on dataset name=''{1}'' and table name=''{2}''";
-   
+    private static final String MSG_INVALID_TABLE_FOR_JOIN_BY_METRICS = "Invalid table ''{0}'' for joinByMetrics on dataset name=''{1}'' and metrics=''{2}''";
+
+    
+    
     /**
      * TableManager
      */
@@ -79,7 +88,7 @@ public class TableResource extends AbstractResource {
     /**
      * MetadataManager
      */
-    private MetaDataManager metadataManager;
+    private MetaDataManager metaManager;
     
     /**
      * DatasetManager
@@ -90,7 +99,10 @@ public class TableResource extends AbstractResource {
      * init the processDataManager
      */
     public TableResource() {
-        tableManager = new TableManager();
+
+        datasetManager = new DataSetManager();
+        metadataManager = new MetaDataManager();
+
     }
 
 
@@ -256,39 +268,59 @@ public class TableResource extends AbstractResource {
     }
     
     /**
-     * Extends the defined table with columns joined from the selected metrics from selected dataset:
-     * for each selected metric, adds one new column of timeseries references. In inserted column, each joined timseries 
-     * has its metadata join criterion (defined by joinMetaName argument) equal to the column join criterion 
-     * (defined by joinColName argument).
+     * Extends the table defined by the tableJson parameter, 
+     * by adding one column per selected metric:
+     * <ul>
+     *   <li>Insert column header having the metric name,</li>
+     *   <li>Insert cells of timeseries references, from selected dataset,  selected by the join column, present in original table.</li>
+     * </ul> 
+     * <p>
+     * Join principle: for the inserted column J for metric XXX, each joined timeseries at table[i,J] 
+     * has the specified metric metadata value=XXX and has the metadata
+     * <ul>
+     *   <li>with name defined by the parameter joinMetaName</li>,
+     *   <li>whose value is equal to the value table[i,K] from join column K, defined by the parameter joinColName.</li>
+     * </ul>
+     * <p>
+     * Created columns are inserted according to the parameter targetColName.
      * 
-     * Note: 
-     * 
-     * @param tableName
+     * @param tableJson the raw String representing the JSON plain content
      * @param metrics selected metrics separated by ";". Spaces are ignored.
      * @param dataset the dataset name.
      * @param joinColName the name of the table column used by the join. Optional: if undefined (""), 
      * the first column will be used by the join. 
      * @param joinMetaName defines the name of metadata used by the join, useful when the column and metadata names are different.
-     * Optional: if joinMetaName is undefined (""), then the metadata has the name of the table column used by the join (see joinColName), 
+     * Optional default is undefined (""): if joinMetaName is undefined, then the metadata has the name of the table column used by the join (see joinColName), 
      * and if both criteria (joinColName + joinMetaName) are undefined: it is assumed that the first column header provides
      * the expected metadata name.
      * @param targetColName name of the target column. Optional: default is undefined (""). When target name is defined, the joined columns are inserted before the target column; 
      * when undefined, the joined columns are appended at the end.
      * @return
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException database access error occured during the service.
+     * @throws InvalidValueException error raised if one of the inputs is invalid.
      */
     @POST
     @SuppressWarnings("unchecked")
-    @Path("/{tableName}/join/metrics")
-    public Response joinByMetrics(@PathParam("tableName") String tableName, 
-                                  @PathParam("metrics") String metrics, 
-                                  @QueryParam("dataset") String dataset, 
-                                  @QueryParam("joinColName") @DefaultValue("") String joinColName,
-                                  @QueryParam("joinMetaName") @DefaultValue("") String joinMetaName,
-                                  @QueryParam("targetColName") @DefaultValue("") String targetColName) throws IkatsDaoException, InvalidValueException
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Path("/join/metrics")
+    public Response joinByMetrics(@FormDataParam("tableJson") String tableJson, 
+                                  @FormDataParam("metrics") String metrics, 
+                                  @FormDataParam("dataset") String dataset, 
+                                  @FormDataParam("joinColName") @DefaultValue("") String joinColName,
+                                  @FormDataParam("joinMetaName") @DefaultValue("") String joinMetaName,
+                                  @FormDataParam("targetColName") @DefaultValue("") String targetColName) throws IkatsDaoException, InvalidValueException
     {
+        // the tableExprLogged is the logged expression about input table:
+        // - temporary solution before passing explicite RID or table name to the service
+        String tableExprLogged = "null";
         try {
             
+            // 0: parse JSON resource
+            TableManager tableManager= new TableManager(); 
+            Table table = tableManager.initTable( tableJson );
+            
+            // toString() service provides a summary about the table
+            tableExprLogged = table.toString();
             
             // 1: restrict Timeseries to those having the metadata named "metric" in the metrics list
             //
@@ -298,23 +330,21 @@ public class TableResource extends AbstractResource {
             
             if ( preparedMetrics.length() == 0) throw new InvalidValueException(MessageFormat.format(
                     MSG_INVALID_METRICS_FOR_JOIN_BY_METRICS,
-                    metrics, dataset, tableName));
+                    metrics, dataset, tableExprLogged));
             
             List<MetadataCriterion> selectByMetrics = new ArrayList<>();
             selectByMetrics.add( new MetadataCriterion("metric", SingleValueComparator.IN.getText(), preparedMetrics ) );
-            FilterOnTsWithMetadata datasetSelection= new FilterOnTsWithMetadata();
+            FilterOnTsWithMetadata filterDataseByMetrics= new FilterOnTsWithMetadata();
             
-            // TODO 158227 replace this
-            datasetSelection.setDatasetName(dataset);
-            // by ...
-            //datasetSelection.setTsList( ... );
+            // Determine the list of dataset links from the datasetManager
+            // => converts list of LinkDatasetTimeSeries into list of FunctionalIdentifier
+            List<FunctionalIdentifier> allDatasetFuncIds = datasetManager.getDataSetContent(dataset)
+                    .stream().map(LinkDatasetTimeSeries::getFuncIdentifier).collect(Collectors.toList());
             
-            datasetSelection.setCriteria(selectByMetrics);
+            filterDataseByMetrics.setTsList(allDatasetFuncIds);
+            filterDataseByMetrics.setCriteria(selectByMetrics);
             
-            
-            
-            
-            List<FunctionalIdentifier> selectedFuncIds = metadataManager.searchFunctionalIdentifiers(datasetSelection);
+            List<FunctionalIdentifier> filteredFuncIds = metadataManager.searchFunctionalIdentifiers(filterDataseByMetrics);
             
             
             
@@ -330,11 +360,19 @@ public class TableResource extends AbstractResource {
             // aimed: "Metric+FlightId" => FunctionalIdentifier 
             
             // 3: complete and save
-            
-            return null;
+            // store table in db
+            String rid = tableManager.createInDatabase(null, null);
+
+            // result id is returned in the body
+            return Response.status(Response.Status.OK).entity(rid).build();
+        }
+        catch( IkatsJsonException jsonError)
+        {
+            String msg = MessageFormat.format( MSG_INVALID_TABLE_FOR_JOIN_BY_METRICS, tableExprLogged, dataset, metrics);
+            throw new InvalidValueException( msg, jsonError );
         }
         catch (IkatsDaoException daoError) {
-            String msg = MessageFormat.format( MSG_DAO_KO_JOIN_BY_METRICS, dataset, metrics, tableName );
+            String msg = MessageFormat.format( MSG_DAO_KO_JOIN_BY_METRICS, dataset, metrics, tableExprLogged );
             throw new IkatsDaoException( msg, daoError);
         }
        

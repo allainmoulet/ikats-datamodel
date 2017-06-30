@@ -21,6 +21,7 @@ import fr.cs.ikats.temporaldata.business.TableInfo.Header;
 import fr.cs.ikats.temporaldata.business.TableInfo.TableContent;
 import fr.cs.ikats.temporaldata.business.TableInfo.TableDesc;
 import fr.cs.ikats.temporaldata.business.TableInfo.TableHeaders;
+import fr.cs.ikats.temporaldata.business.TableManager.Table;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
@@ -1145,11 +1146,25 @@ public class TableManager {
         return emptyTable;
     }
 
+    /**
+     * Creates a Table from the JSON content
+     * @param tableJson the plain text encoding the JSON
+     * @return the Table associated to tableJson
+     * @throws IkatsJsonException 
+     */
+    public Table initTable(String tableJson) throws IkatsJsonException {
+        TableInfo tableInfo = loadFromJson(tableJson);
+        return initTable( tableInfo, false);
+    }
+    
+    
     // Review#158227 This method just allow to gain 1 bool setup. Seems not
     // useful. To be deleted
     // Review#158227 Resp. MBD begin
     //    ok why not ... todo V2
     // Review#158227 Resp. MBD end
+
+   
 
     /**
      * Initializes a table with defined columnHeaders, without row header,
