@@ -295,6 +295,7 @@ public class TableResource extends AbstractResource {
      * the expected metadata name.
      * @param targetColName name of the target column. Optional: default is undefined (""). When target name is defined, the joined columns are inserted before the target column; 
      * when undefined, the joined columns are appended at the end.
+     * @param outputTableName name of the table joined by metric, and created in the database. The name ought to be conformed to the pattern: {@link TableManager#TABLE_NAME_PATTERN}
      * @return
      * @throws IkatsDaoException database access error occured during the service.
      * @throws InvalidValueException error raised if one of the inputs is invalid.
@@ -308,7 +309,8 @@ public class TableResource extends AbstractResource {
                                   @FormDataParam("dataset") String dataset, 
                                   @FormDataParam("joinColName") @DefaultValue("") String joinColName,
                                   @FormDataParam("joinMetaName") @DefaultValue("") String joinMetaName,
-                                  @FormDataParam("targetColName") @DefaultValue("") String targetColName) throws IkatsDaoException, InvalidValueException
+                                  @FormDataParam("targetColName") @DefaultValue("") String targetColName,
+                                  @FormDataParam("outputTableName") String outputTableName) throws IkatsDaoException, InvalidValueException
     {
         // the tableExprLogged is the logged expression about input table:
         // - temporary solution before passing explicite RID or table name to the service

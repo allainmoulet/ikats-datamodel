@@ -41,9 +41,9 @@ public class TableManager {
     static private final Logger LOGGER = Logger.getLogger(TableManager.class);
 
     /**
-     * Pattern used in the consistency check of Table name.
+     * Pattern used in the consistency check of Table name: [a-zA-Z0-9_-]+
      */
-    private static final Pattern TABLE_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
+    public static final Pattern TABLE_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
 
     /**
      * The Table class is the business resource for the 'table' IKATS functional
