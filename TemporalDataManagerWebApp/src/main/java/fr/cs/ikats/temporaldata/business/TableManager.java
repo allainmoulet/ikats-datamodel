@@ -2,6 +2,8 @@ package fr.cs.ikats.temporaldata.business;
 
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
@@ -127,7 +129,7 @@ public class TableManager {
      * </ul>
      * This Table is initialized without links managed: see how to configure
      * links management with enablesLinks() method.
-     * 
+     *
      * @return created Table, ready to be completed.
      */
     public Table initEmptyTable(boolean withColumnsHeader, boolean withRowsHeader) {
@@ -154,7 +156,7 @@ public class TableManager {
 
     /**
      * Creates a Table from the JSON content
-     * 
+     *
      * @param tableJson
      *            the plain text encoding the JSON
      * @return the Table associated to tableJson
@@ -215,7 +217,7 @@ public class TableManager {
 
     /**
      * Gets the JSON resource TableInfo from process data database.
-     * 
+     *
      * @param tableName
      *            the name of the table is its unique identifier
      * @return read resource TableInfo.
@@ -266,7 +268,7 @@ public class TableManager {
 
     /**
      * Creates a new Table in process data database.
-     * 
+     *
      * @param tableName
      *            the unique identifier of the Table is its name
      * @param tableToStore
@@ -355,7 +357,7 @@ public class TableManager {
      * from the same table, this will clearly be inefficient! Instead, in that
      * case, use readFromDatabase(), then initTable(TableInfo) and finally use
      * services on Table business resource.
-     * 
+     *
      * @param tableName
      *            the name of the Table resource is also its unique identifier.
      * @param columnName
@@ -403,11 +405,109 @@ public class TableManager {
     }
 
     /**
+     * Randomly split table in 2 tables according to repartition rate
+     * ex : repartitionRate = 0.6
+     * => table1 = 60% of input table
+     * => table2 = 40% of input table
+     * output = [table1 ; table2]
+     *
+     * @param table
+     * @param repartitionRate
+     * @throws
+     */
+    public List<Table> randomSplitTable(Table table, Float repartitionRate) throws ResourceNotFoundException, IkatsException {
+        List<List<Object>> tableContent = table.getContentData();
+        if (tableContent == null) {
+            throw new IkatsException("Table content is null (" + table.toString() + ")");
+        }
+        Collections.shuffle(tableContent);
+
+        Table table1 = initEmptyTable();
+        Table table2 = initEmptyTable();
+        List<Table> result = new ArrayList<>();
+        result.add(table1);
+        result.add(table2);
+
+        int nbLines = tableContent.size();
+        int indexSplit = Math.round(nbLines * repartitionRate);
+
+        Table tableToAppend;
+        for (int i = 0; i < nbLines; i++) {
+            if (i < indexSplit) {
+                tableToAppend = table1;
+            } else {
+                tableToAppend = table2;
+            }
+            tableToAppend.appendRow(table.getRow(i));
+        }
+
+        return result;
+
+    }
+
+    /**
+     * Original input table is randomly splitted into 2 tables according to repartition rate
+     * Here values from targetColumnName are equally distributed in each new table
+     * <p>
+     * ex :
+     * 2 classes A, B
+     * table : 10 elts => 3 elts A 7 elts B
+     * repartitionRate = 0.6
+     * => table1 = 60% of input table (6 elts => 4 elts A, 2 elts B)
+     * => table2 = 40% of input table (4 elts => 2 elts A, 2 elts B)
+     * output = [table1 ; table2]
+     *
+     * @param table
+     * @param targetColumnName
+     * @throws
+     */
+    public List<Table> trainTestSplitTable(Table table, String targetColumnName, Float repartitionRate) throws ResourceNotFoundException, IkatsException {
+
+        // sort table by column 'target'
+        table.sortRowsByColumnValues(targetColumnName);
+
+        // extract classes column
+        List<Object> classColumnContent = table.getColumn(targetColumnName);
+
+        // building list of indexes where classes change
+        List<Integer> indexList = new ArrayList<>();
+        Object lastClassValue = classColumnContent.get(0);
+        for (int i = 1; i < classColumnContent.size(); i++) {
+            if (classColumnContent.get(i) != lastClassValue) {
+                indexList.add(i);
+                lastClassValue = classColumnContent.get(i);
+            }
+        }
+
+        // creating tables by class
+        int nbLines = classColumnContent.size();
+        List<Table> tablesByClass = new ArrayList<>();
+        Iterator<Integer> currentIndexClass = indexList.iterator();
+
+        Table tableToAppend = initEmptyTable();
+        int nextIndex = currentIndexClass.next();
+        for (int i = 0; i < nbLines; i++) {
+            if (i >= nextIndex) {
+                tablesByClass.add(randomSplitTable(tableToAppend, repartitionRate);
+                tableToAppend = initEmptyTable();
+                nextIndex = currentIndexClass.next();
+            }
+            tableToAppend.appendRow(table.getRow(i));
+        }
+
+        for (Table tab : tablesByClass) {
+
+        }
+
+        return tablesByClass;
+    }
+
+    /**
      * Internal use: convert a collection of Object data into a collection of
      * type T. For each item from originalList: if type T is String, item is
      * replaced by item.toString() in the new collection else: objects are
      * casted to the expected type T, using castingClass.
-     * 
+     *
      * @param originalList
      *            the original list of objects
      * @param castingClass
@@ -446,7 +546,7 @@ public class TableManager {
     /**
      * Internal use only: definition of Integer comparator driven by sorting
      * value, typed T.
-     * 
+     *
      * @param mapIndexToSortingValue
      *            the map associating each indexe to its sorting value.
      * @return this comparator

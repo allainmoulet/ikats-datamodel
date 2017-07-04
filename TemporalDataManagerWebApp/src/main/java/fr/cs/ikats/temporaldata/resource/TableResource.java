@@ -1,5 +1,9 @@
 package fr.cs.ikats.temporaldata.resource;
 
+import java.io.*;
+import java.sql.Array;
+import java.sql.SQLException;
+import java.util.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -17,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import javax.ws.rs.*;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
@@ -61,7 +66,7 @@ import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 public class TableResource extends AbstractResource {
 
     /**
-     * 
+     *
      */
 
     private static Logger logger = Logger.getLogger(TableResource.class);
@@ -73,7 +78,7 @@ public class TableResource extends AbstractResource {
     private static final String MSG_UNEXPECTED_ERROR_JOIN_BY_METRICS = "Unexpected error occured in joinByMetrics with dataset name=''{0}'' on metrics=''{1}'' and table=''{2}''";
     private static final String MSG_INVALID_INPUT_ERROR_JOIN_BY_METRICS = "Invalid input name=''{0}'' value=''{1}'' in joinByMetrics with dataset name=''{2}'' on metrics=''{3}'' and table=''{4}''";
 
-    
+
     /**
      * TableManager
      */
@@ -287,7 +292,7 @@ public class TableResource extends AbstractResource {
      * </ul>
      * <p>
      * Created columns are inserted according to the parameter targetColName.
-     * 
+     *
      * @param tableJson
      *            the raw String representing the JSON plain content
      * @param metrics
@@ -343,7 +348,7 @@ public class TableResource extends AbstractResource {
         try {
 
             // step 0: check + prepare data
-            // 
+            //
             // parse JSON resource
             TableManager tableManager = new TableManager();
             Table table = tableManager.initTable(tableJson);
@@ -366,8 +371,8 @@ public class TableResource extends AbstractResource {
                                                   "outputTableName", "", dataset, metrics, tableExprLogged );
                 throw new InvalidValueException(msg);
             }
-            
-            
+
+
             // 1: restrict Timeseries to those having the metadata named
             // "metric" in the metrics list
             //
@@ -606,7 +611,7 @@ public class TableResource extends AbstractResource {
         // filling outputTable
         // filling col headers
         // first element is null
-        
+
         // init empty table managing rows/columns headers
         Table outputTable = tableManager.initEmptyTable(true, true);
         outputTable.getColumnsHeader().addItem(null);
@@ -659,5 +664,67 @@ public class TableResource extends AbstractResource {
         }
         return result;
     }
+
+    /**
+     * Table process to :
+     * - change table key from metadata (populationId)
+     * - add metadata (metaName) value to original column headers  : metaName_colHeader
+     * <p>
+     * Input table first column must be time series functional identifiers
+     *
+     * @param tableJson the table to convert (json)
+     * @param formData  the form data
+     * @param uriInfo   all info on URI
+     * @return the internal id
+     * @throws IOException               error when parsing input csv file
+     * @throws IkatsDaoException         error while accessing database to check if table already exists
+     * @throws ResourceNotFoundException if table not found
+     * @throws InvalidValueException     if table name does not match expected pattern
+     * @throws IkatsException            others unexpected exceptions
+     */
+    @POST
+    @Path("/traintestsplit")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response trainTestSplit(@FormDataParam("tableJson") String tableJson,
+                                   @FormDataParam("targetColumnName") @DefaultValue("") String targetColumnName,
+                                   @FormDataParam("repartitionRate") @DefaultValue("0.7") Float repartitionRate,
+                                   FormDataMultiPart formData,
+                                   @Context UriInfo uriInfo) throws IOException, IkatsDaoException, IkatsException, ResourceNotFoundException, InvalidValueException {
+
+
+        Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
+
+        // convert tableJson to table
+        TableInfo tableInfo = tableManager.loadFromJson(tableJson);
+        Table table = tableManager.initTable(tableInfo, false);
+
+        List<Table> tabListResult;
+        if (targetColumnName == "") {
+            tabListResult = tableManager.randomSplitTable(table, repartitionRate);
+        } else {
+            tabListResult = tableManager.trainTestSplitTable(table, targetColumnName, repartitionRate);
+        }
+
+        List<String> ridList = new ArrayList<>();
+        for (Table tab : tabListResult) {
+            // store table in db
+            ridList.add(tableManager.createInDatabase(outputTableName, tab.getTableInfo()));
+        }
+
+        chrono.stop(logger);
+
+        // result id is returned in the body
+        return Response.status(Response.Status.OK).entity(ridList).build();
+    }
+
+    /**
+     * Convert list of Object to list of String
+     */
+    private List<String> convertToListOfString(List<Object> listObject) {
+        return listObject.stream()
+                .map(object -> Objects.toString(object, null))
+                .collect(Collectors.toList());
+    }
+
 
 }
