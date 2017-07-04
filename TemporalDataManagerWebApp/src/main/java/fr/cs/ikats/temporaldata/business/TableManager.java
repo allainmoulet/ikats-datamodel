@@ -229,6 +229,7 @@ public class TableManager {
          * @deprecated Unsupported operation.
          */
         public <T> List<T> getColumnsHeaderItems() {
+            // todo V2
             throw new UnsupportedOperationException("Not yet implemented");
         }
 
@@ -239,6 +240,7 @@ public class TableManager {
          * @deprecated Unsupported operation.
          */
         public <T> List<T> getRowsHeaderItems() {
+            // todo V2
             throw new UnsupportedOperationException("Not yet implemented");
         }
 
@@ -728,7 +730,7 @@ public class TableManager {
         /**
          * Initializes the links configuration, when some links are required.
          *
-         * @param enabledOnColHeader       enables the links on the column header
+         * @param enabledOnColHeader       True enables the links on the column header
          * @param defaultPropertyColHeader the DataLink providing default values for column links
          * @param enabledOnRowHeader       enables the links on the row header
          * @param defaultPropertyRowHeader the DataLink providing default values for row links
@@ -737,6 +739,7 @@ public class TableManager {
          */
         public void enableLinks(boolean enabledOnColHeader, DataLink defaultPropertyColHeader, boolean enabledOnRowHeader,
                                 DataLink defaultPropertyRowHeader, boolean enabledOnContent, DataLink defaultPropertyContent) {
+              
             Header columnsHeader = getColumnsHeader();
             if (columnsHeader != null && enabledOnColHeader)
                 columnsHeader.enableLinks(defaultPropertyColHeader);
@@ -959,6 +962,7 @@ public class TableManager {
          * @param columnName name of the sorting criterion.
          */
         public void sortRowsByColumnValues(String columnName) {
+            // Todo V2
             throw new Error("Not yet implemented");
         }
 
@@ -1023,6 +1027,17 @@ public class TableManager {
                 this.getContent().addRow(TableElement.encodeElements(rowData));
 
             return this.getContent().cells.size();
+        }
+        
+        public <H, T> int insertColumn(H beforeColHeader, H colHeaderData, List<T> columnData) throws IkatsException {
+            // todo V2
+            return insertColumn((Object) beforeColHeader, (Object) colHeaderData, (List<Object>) columnData);
+        }
+        
+        private int insertColumnInternal(Object beforeColHeader, Object colHeaderData, List<Object> columnData) throws IkatsException {
+            // todo V2
+            // handle specific case: beforeColHeader is null => the column is appended as the last column
+            throw new UnsupportedOperationException("Not yet implemented"); 
         }
     }
 

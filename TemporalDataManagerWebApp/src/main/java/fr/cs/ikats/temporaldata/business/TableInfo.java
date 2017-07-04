@@ -239,13 +239,37 @@ public class TableInfo {
         }
 
         /**
-         * Activates the links management on TableContent
+         * Activates the links management on TableContent.
+         * 
+         * Note: if this.cells is not null, also allocates undefined links to null in order to have same dimensions 
+         * on this.cells and this.links.
          *
          * @param defaultProperties configuration of the links is providing default values in order to reduce the volume of JSON.
          */
         public void enableLinks(DataLink defaultProperties) {
             if (links == null) {
                 links = new ArrayList<List<DataLink>>();
+                if ( cells != null && cells.size() > 0 )
+                {
+                    int nbColumns = 0;
+                    int nbRows = cells.size();
+                    
+                    // assumed: all the rows must have the same size
+                    // assumed: this.cells is defined => rows size >=1
+                    List<Object> rowOne=cells.get(0);
+                    if ( rowOne != null && rowOne.size() > 0)
+                    {
+                        nbColumns = rowOne.size();
+                        
+                        for (int indexRow = 0; indexRow < nbRows; indexRow++) {
+                            List<DataLink> rowLinks = new ArrayList<>();
+                            for (int indexCol = 0; indexCol < nbColumns; indexCol++) {
+                                rowLinks.add(null);
+                            }
+                            links.add( rowLinks);
+                        }
+                    }
+                }
                 default_links = defaultProperties;
             }
         }
@@ -405,7 +429,24 @@ public class TableInfo {
         public String toString() {
             return "DataLink [type=" + type + ", val=" + val + ", context=" + context + "]";
         }
-
+        
+        /**
+         * Build a new POJO DataLink
+         * @param type type of DataLink
+         * @param val value of DataLink
+         * @param context context of DataLink
+         * @return created DataLink
+         */
+        final static public DataLink buildLink( String type, Object val, String context )
+        {
+            DataLink link = new DataLink();
+            link.type = type;
+            link.val = val;
+            link.context = context;
+            
+            return link;
+            
+        }
     }
 
     /**
@@ -501,6 +542,9 @@ public class TableInfo {
          * @return
          */
         public List<Object> getData() {
+            // TODO V2 voir si on peut pas simplifier
+            // - eviter service redondant avec Table
+            // - simplifier: un seul type possible: String ? au moins sur Table actuellement
             return this.data;
         }
 
@@ -509,12 +553,22 @@ public class TableInfo {
          */
         @JsonIgnore
         public List<TableElement> getDataWithLink() throws IkatsException {
+            // TODO V2 voir si on peut pas simplifier
+            // - eviter service redondant avec Table
+            // - simplifier: un seul type possible: this.data -> String ? au moins sur Table actuellement
             return TableElement.encodeElements(this.data, this.links);
         }
 
         public void enableLinks(DataLink defaultProperties) {
             if (links == null) {
+                
                 links = new ArrayList<DataLink>();
+                if ( data != null && data.size() > 0 )
+                {
+                    for (int i = 0; i < data.size(); i++) {
+                        links.add(null);
+                    }
+                }
                 default_links = defaultProperties;
             }
             // else: ignored !
