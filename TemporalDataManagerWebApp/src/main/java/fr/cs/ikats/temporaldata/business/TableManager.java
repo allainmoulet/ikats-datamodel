@@ -30,6 +30,7 @@ import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 
+
 /**
  * The manager is grouping services on the Table objects
  * <ul>
@@ -405,43 +406,91 @@ public class TableManager {
     }
 
     /**
+     * Randomly split table list indexes in 2 indexes lists according to repartition rate
+     * ex : repartitionRate = 0.6
+     * => list1 = 60% of input list (
+     * => list2 = 40% of input list
+     * output = [table1 ; table2]
+     * <p>
+     * NB: number of items in output lists are rounded to the nearest value
+     *
+     * @param indexList
+     * @param repartitionRate
+     * @throws
+     */
+    private List<List<Integer>> randomSplitTableIndexes(List<Integer> indexList, double repartitionRate) {
+
+        // randomize list content
+        Collections.shuffle(indexList);
+        int nbItems = indexList.size();
+
+        //compute index of list where to split
+        int indexSplit = (int) Math.round(nbItems * repartitionRate);
+
+        List<List<Integer>> result = new ArrayList<>();
+
+        // splitting
+        result.add(new ArrayList<>(indexList.subList(0, indexSplit)));
+        result.add(new ArrayList<>(indexList.subList(indexSplit, indexList.size())));
+
+        return result;
+
+    }
+
+    /**
      * Randomly split table in 2 tables according to repartition rate
      * ex : repartitionRate = 0.6
      * => table1 = 60% of input table
      * => table2 = 40% of input table
      * output = [table1 ; table2]
      *
-     * @param table
-     * @param repartitionRate
-     * @throws
+     * @param table original table to process
+     * @param repartitionRate repartition rate between two output tables
+     * @throws IkatsException            row from original table is undefined
+     * @throws ResourceNotFoundException row from original table is not found
      */
-    public List<Table> randomSplitTable(Table table, Float repartitionRate) throws ResourceNotFoundException, IkatsException {
-        List<List<Object>> tableContent = table.getContentData();
-        if (tableContent == null) {
-            throw new IkatsException("Table content is null (" + table.toString() + ")");
-        }
-        Collections.shuffle(tableContent);
+    public List<Table> randomSplitTable(Table table, double repartitionRate) throws ResourceNotFoundException, IkatsException {
 
-        Table table1 = initEmptyTable();
-        Table table2 = initEmptyTable();
+        List<Integer> indexListInput = new ArrayList<>();
+        List<List<Integer>> indexListOutput;
+
+        // generate list of row indexes of input table
+        for (int i = 0; i < table.getRowCount(false); i++) {
+            indexListInput.add(i);
+        }
+
+        // randomly split indexes list
+        indexListOutput = randomSplitTableIndexes(indexListInput, repartitionRate);
+
+        // extract rows at splitted indexes to generate output
+        Table table1 = extractIndexes(indexListOutput.get(0), table);
+        Table table2 = extractIndexes(indexListOutput.get(1), table);
         List<Table> result = new ArrayList<>();
         result.add(table1);
         result.add(table2);
 
-        int nbLines = tableContent.size();
-        int indexSplit = Math.round(nbLines * repartitionRate);
+        return result;
 
-        Table tableToAppend;
-        for (int i = 0; i < nbLines; i++) {
-            if (i < indexSplit) {
-                tableToAppend = table1;
-            } else {
-                tableToAppend = table2;
-            }
-            tableToAppend.appendRow(table.getRow(i));
+    }
+
+    /**
+     * @param indexList list of rows indexes to extract
+     * @param table table used to extract rows
+     * @throws IkatsException            row from original table is undefined
+     * @throws ResourceNotFoundException row from original table is not found
+     */
+    private Table extractIndexes(List<Integer> indexList, Table table) throws ResourceNotFoundException, IkatsException {
+
+        // result initialization
+        Table tableOut = initEmptyTable();
+
+        // retrieving rows from original table according to list of indexes previously generated
+        // and filling output tables
+        for (Integer index : indexList) {
+            tableOut.appendRow(table.getRow(index));
         }
 
-        return result;
+        return tableOut;
 
     }
 
@@ -456,12 +505,17 @@ public class TableManager {
      * => table1 = 60% of input table (6 elts => 4 elts A, 2 elts B)
      * => table2 = 40% of input table (4 elts => 2 elts A, 2 elts B)
      * output = [table1 ; table2]
+     * <p>
+     * NB: number of items in output tables are rounded to the nearest value
      *
-     * @param table
-     * @param targetColumnName
-     * @throws
+     * @param table            the table to split
+     * @param targetColumnName name of the target column in input table
+     * @param repartitionRate  repartition rate between learning and test sets in output
+     * @throws ResourceNotFoundException if target column name not found in table
+     * @throws IkatsException            if targetColumnName is null
      */
-    public List<Table> trainTestSplitTable(Table table, String targetColumnName, Float repartitionRate) throws ResourceNotFoundException, IkatsException {
+    public List<Table> trainTestSplitTable(Table table, String targetColumnName, double repartitionRate) throws
+            ResourceNotFoundException, IkatsException {
 
         // sort table by column 'target'
         table.sortRowsByColumnValues(targetColumnName);
@@ -473,33 +527,52 @@ public class TableManager {
         List<Integer> indexList = new ArrayList<>();
         Object lastClassValue = classColumnContent.get(0);
         for (int i = 1; i < classColumnContent.size(); i++) {
-            if (classColumnContent.get(i) != lastClassValue) {
-                indexList.add(i);
+            if (!classColumnContent.get(i).equals(lastClassValue)) {
+                indexList.add(i - 1);
                 lastClassValue = classColumnContent.get(i);
             }
         }
 
-        // creating tables by class
+        // creating indexes list by class
         int nbLines = classColumnContent.size();
-        List<Table> tablesByClass = new ArrayList<>();
-        Iterator<Integer> currentIndexClass = indexList.iterator();
+        List<List<List<Integer>>> indexesListByClass = new ArrayList<>();
+        Iterator<Integer> iteratorIndexList = indexList.iterator();
+        List<Integer> listIndexToAppend = new ArrayList<>();
 
-        Table tableToAppend = initEmptyTable();
-        int nextIndex = currentIndexClass.next();
+        int nextIndex = iteratorIndexList.next();
         for (int i = 0; i < nbLines; i++) {
+            listIndexToAppend.add(i + 1);
             if (i >= nextIndex) {
-                tablesByClass.add(randomSplitTable(tableToAppend, repartitionRate);
-                tableToAppend = initEmptyTable();
-                nextIndex = currentIndexClass.next();
+                indexesListByClass.add(randomSplitTableIndexes(listIndexToAppend, repartitionRate));
+                listIndexToAppend.clear();
+                if (iteratorIndexList.hasNext()) {
+                    nextIndex = iteratorIndexList.next();
+                } else {
+                    nextIndex = nbLines - 1;
+                }
             }
-            tableToAppend.appendRow(table.getRow(i));
         }
 
-        for (Table tab : tablesByClass) {
+        // result initialization
+        Table table1 = initEmptyTable();
+        Table table2 = initEmptyTable();
+        List<Table> result = new ArrayList<>();
+        result.add(table1);
+        result.add(table2);
 
+        // retrieving rows from original table according to list of indexes previously generated
+        // and filling output tables
+        for (List<List<Integer>> indexesList : indexesListByClass) {
+            List<Integer> tableRated1 = indexesList.get(0);
+            List<Integer> tableRated2 = indexesList.get(1);
+            for (int i = 0; i < tableRated1.size(); i++) {
+                table1.appendRow(table.getRow(tableRated1.get(i)));
+            }
+            for (int i = 0; i < tableRated2.size(); i++) {
+                table2.appendRow(table.getRow(tableRated2.get(i)));
+            }
         }
-
-        return tablesByClass;
+        return result;
     }
 
     /**

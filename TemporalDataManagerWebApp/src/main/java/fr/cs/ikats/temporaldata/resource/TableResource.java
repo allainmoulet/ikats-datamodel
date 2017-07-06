@@ -687,7 +687,7 @@ public class TableResource extends AbstractResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response trainTestSplit(@FormDataParam("tableJson") String tableJson,
                                    @FormDataParam("targetColumnName") @DefaultValue("") String targetColumnName,
-                                   @FormDataParam("repartitionRate") @DefaultValue("0.7") Float repartitionRate,
+                                   @FormDataParam("repartitionRate") @DefaultValue("0.5") double repartitionRate,
                                    FormDataMultiPart formData,
                                    @Context UriInfo uriInfo) throws IOException, IkatsDaoException, IkatsException, ResourceNotFoundException, InvalidValueException {
 
@@ -708,7 +708,7 @@ public class TableResource extends AbstractResource {
         List<String> ridList = new ArrayList<>();
         for (Table tab : tabListResult) {
             // store table in db
-            ridList.add(tableManager.createInDatabase(outputTableName, tab.getTableInfo()));
+            ridList.add(tableManager.createInDatabase("name", tab.getTableInfo()));
         }
 
         chrono.stop(logger);
