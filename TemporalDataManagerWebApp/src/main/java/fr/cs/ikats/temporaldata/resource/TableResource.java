@@ -94,6 +94,7 @@ public class TableResource extends AbstractResource {
      */
     public TableResource() {
 
+        tableManager = new TableManager();
         datasetManager = new DataSetManager();
         metadataManager = new MetaDataManager();
 
@@ -202,8 +203,8 @@ public class TableResource extends AbstractResource {
             // first element of row header is column header : set to null
             rowHeaders.add(null);
 
-            // init output table
-            Table outputTable = tableManager.initEmptyTable();
+            // init output table with both columns/rows header
+            Table outputTable = tableManager.initEmptyTable(true, true);
 
             // parse csv content to :
             // 1. retrieve data to build json table structure to store
@@ -250,8 +251,8 @@ public class TableResource extends AbstractResource {
             outputTable.setDescription(fileName);
 
             // fill headers
-            outputTable.getColumnsHeader().getData().addAll(columnHeaders);
-            outputTable.getRowsHeader().getData().addAll(rowHeaders);
+            outputTable.getColumnsHeader().addItems(columnHeaders.toArray());
+            outputTable.getRowsHeader().addItems(rowHeaders.toArray());
 
             // store Table
             String rid = tableManager.createInDatabase(tableName, outputTable.getTableInfo());
@@ -572,8 +573,8 @@ public class TableResource extends AbstractResource {
         logger.info("Output table name is (" + outputTableName + ")");
 
         // retrieve headers
-        List<Object> colHeaders = table.getColumnsHeader().getData();
-        List<Object> rowHeaders = table.getRowsHeader().getData();
+        List<Object> colHeaders = table.getColumnsHeader().getItems(Object.class);
+        List<Object> rowHeaders = table.getRowsHeader().getItems(Object.class);
 
         MetaDataFacade metaFacade = new MetaDataFacade();
         List<String> colPopId = new ArrayList<>();
@@ -605,14 +606,16 @@ public class TableResource extends AbstractResource {
         // filling outputTable
         // filling col headers
         // first element is null
-        Table outputTable = tableManager.initEmptyTable();
+        
+        // init empty table managing rows/columns headers
+        Table outputTable = tableManager.initEmptyTable(true, true);
         outputTable.getColumnsHeader().addItem(null);
         for (String metaTs : listMetaTs) {
             for (int i = 1; i < colHeaders.size(); i++) {
                 outputTable.getColumnsHeader().addItem(metaTs + "_" + colHeaders.get(i));
             }
         }
-        int tableContentWidth = outputTable.getColumnsHeader().getData().size() - 1;
+        int tableContentWidth = outputTable.getColumnsHeader().getItems().size() - 1;
 
         // filling rows headers and content by popId
         outputTable.getRowsHeader().addItem(populationId);
@@ -624,7 +627,7 @@ public class TableResource extends AbstractResource {
             for (String metaTS : listMetaTs) {
                 for (Integer index : listIndexPopId) {
                     if (metaTS.equals(colMetaTs.get(index))) {
-                        cellsLine.addAll(table.getRow(index + 1));
+                        cellsLine.addAll(table.getRow(index + 1, Object.class));
                     }
                 }
             }

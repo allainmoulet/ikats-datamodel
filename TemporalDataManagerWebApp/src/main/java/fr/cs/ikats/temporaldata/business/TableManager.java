@@ -913,9 +913,6 @@ public class TableManager {
          */
         private int appendRowInternal(Object rowHeaderData, List<Object> rowData) throws IkatsException {
 
-            if (rowHeaderData == null && isHandlingRowsHeader()) {
-                throw new IkatsException("Required row header: this is handling rows header");
-            }
             if (rowHeaderData != null) {
                 if (!isHandlingRowsHeader()) {
                     throw new IkatsException("Cannot add row header: " + rowHeaderData.toString() + "not managing rows header");

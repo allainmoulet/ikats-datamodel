@@ -632,8 +632,7 @@ public class TableInfo {
          */
         @JsonIgnore
         public List<String> getItems() throws IkatsException {
-            // TODO Auto-generated method stub
-            return  getItems(String.class); // TODO V2
+            return  getItems(String.class);
         }
         
         /**
@@ -644,8 +643,7 @@ public class TableInfo {
          */
         @JsonIgnore
         public <T> List<T> getItems(Class<T> castingClass) throws IkatsException {
-            // TODO Auto-generated method stub
-            return TableManager.convertList(this.data, castingClass); // TODO V2
+            return TableManager.convertList(this.data, castingClass);
         }
 
         /**
@@ -653,9 +651,6 @@ public class TableInfo {
          */
         @JsonIgnore
         public List<TableElement> getDataWithLink() throws IkatsException {
-            // TODO V2 voir si on peut pas simplifier
-            // - eviter service redondant avec Table
-            // - simplifier: un seul type possible: this.data -> String ? au moins sur Table actuellement
             return TableElement.encodeElements(this.data, this.links);
         }
 
