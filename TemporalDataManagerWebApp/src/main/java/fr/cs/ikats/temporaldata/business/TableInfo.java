@@ -2,6 +2,10 @@ package fr.cs.ikats.temporaldata.business;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
+import fr.cs.ikats.temporaldata.business.TableInfo.Header;
+import fr.cs.ikats.temporaldata.business.TableInfo.TableContent;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 
 import java.util.ArrayList;
@@ -338,10 +342,35 @@ public class TableInfo {
          * Not yet implemented
          *
          * @return
-         * @deprecated Unsupported operation.
          */
         public TableContent addColumn(List<TableElement> elements) throws IkatsException {
-            throw new UnsupportedOperationException("Not yet implemented");
+            
+            if ( elements.size() != cells.size())
+                throw new IkatsException( "Inconsistency error number of rows=" + cells.size() 
+                                          + " is different from the size of added column="  + elements.size() );
+            boolean manageLinks = links != null;
+            if ( manageLinks && (elements.size() != links.size()))
+                throw new IkatsException( "Inconsistency error number of row links=" + links.size() 
+                                          + " is different from the size of added column links="  + elements.size() );
+            
+            int posRow=0;
+            int posCol=elements.size();
+            Iterator<List<Object>> iterateOnRows= cells.iterator();
+            Iterator<List<DataLink>> iterateOnRowLinks=  manageLinks ? links.iterator() : null;
+            for (TableElement tableElement: elements) {
+                List<Object> row = iterateOnRows.next();
+                row.add(tableElement.data);
+                if ( manageLinks ) {
+                    List<DataLink> rowLinks = iterateOnRowLinks.next();
+                    rowLinks.add(tableElement.link);
+                } else if (tableElement.link != null) {
+                    throw new IkatsException("Failed to add new row at " + posRow + " column=" 
+                                             + posCol + ": links not managed but got " + tableElement.link);
+                }
+                posRow++;
+            }
+            
+            return this;
         }
 
         /**
@@ -373,6 +402,29 @@ public class TableInfo {
         public TableContent deleteColumn(int index) throws IkatsException {
             throw new UnsupportedOperationException("Not yet implemented");
         }
+        
+        /**
+         * Internal use only: creates a new TableContent.
+         * 
+         * @param cellData the defined data item.
+         * @param links the defined links items.
+         * @param defaultLink when not null: the DataLink defining the default properties applicable to content links.
+         * @return the created TableContent
+         * @throws IkatsException inconsistency error during initialization.
+         */
+        static TableContent initContent(List<List<Object>> cellData, List<List<DataLink>> links, DataLink defaultLink) throws IkatsException {
+
+            TableContent content = new TableContent();
+            if (links == null && defaultLink != null)
+                throw new IkatsException("Inconsistency: content cannot have defined default link if links are not managed");
+
+            content.cells = cellData;
+            content.links = links;
+            content.default_links = defaultLink;
+            return content;
+
+        }
+
 
     }
 
@@ -513,9 +565,36 @@ public class TableInfo {
          * @throws IkatsException
          */
         public Header addItem(Object data) throws IkatsException {
-            if (data == null) return addItem(null, null);
-            if (data instanceof TableElement) return addItem(((TableElement) data).data, ((TableElement) data).link);
-            return addItem(data, null);
+            if (data == null) 
+                {
+                return addItem(null, null);
+                }
+            else if (data instanceof TableElement) 
+                {
+                return addItem(((TableElement) data).data, ((TableElement) data).link);
+                }
+            else if ( data instanceof DataLink)
+            {
+                return addItem(null, (DataLink) data);
+            }
+            else
+            {
+                return addItem(data, null);
+            }
+        }
+        
+        /**
+         * Adds a list of items.
+         * For each data item, calls this.addItem(item)
+         * @param data
+         * @return
+         * @throws IkatsException 
+         */
+        public <T> Header addItems(T... data) throws IkatsException {
+            for (int i = 0; i < data.length; i++) {
+                this.addItem(data[i]);
+            }
+            return this;
         }
 
         /**
@@ -537,15 +616,36 @@ public class TableInfo {
         }
 
         /**
-         * Gets the data
+         * Gets the this.data: this service is internal to TableManager / Table implementation.
+         * You can use getItems(), for external use. 
          *
          * @return
          */
-        public List<Object> getData() {
-            // TODO V2 voir si on peut pas simplifier
-            // - eviter service redondant avec Table
-            // - simplifier: un seul type possible: String ? au moins sur Table actuellement
+        List<Object> getData() {
             return this.data;
+        }
+
+        /**
+         * Gets the header data as String: each data item is converted to String
+         * @return the computed collection from this.data
+         * @throws IkatsException converting error
+         */
+        @JsonIgnore
+        public List<String> getItems() throws IkatsException {
+            // TODO Auto-generated method stub
+            return  getItems(String.class); // TODO V2
+        }
+        
+        /**
+         * Gets the header data: each data item is converted to T, using toString when T is String or a cast otherwise.
+         * @param castingClass
+         * @return the computed collection from this.data
+         * @throws IkatsException converting error
+         */
+        @JsonIgnore
+        public <T> List<T> getItems(Class<T> castingClass) throws IkatsException {
+            // TODO Auto-generated method stub
+            return TableManager.convertList(this.data, castingClass); // TODO V2
         }
 
         /**
@@ -572,6 +672,33 @@ public class TableInfo {
                 default_links = defaultProperties;
             }
             // else: ignored !
+        }
+        
+        /**
+         * Internally used by TableManager: initializes the specified Header. 
+         * @param headerData the data part of the header
+         * @param headerLinks the links part of the header
+         * @param defaultLink this link specifies the default link properties, when they are missing in headerLinks items.
+         * @param startWithTopLeftCorner true when provided values are defined from the top-left corner.
+         * @return created Header.
+         */
+        static Header createHeader(List<Object> headerData, List<DataLink> headerLinks, DataLink defaultLink, boolean startWithTopLeftCorner) {
+
+            Header initHeader = new Header();
+            if (headerData != null) {
+                initHeader.data = headerData;
+                if (!startWithTopLeftCorner)
+                    initHeader.data.add(0, null);
+            }
+            if (headerLinks != null) {
+                initHeader.links = headerLinks;
+                if (!startWithTopLeftCorner)
+                    initHeader.links.add(0, null);
+            }
+
+            initHeader.default_links = defaultLink;
+
+            return initHeader;
         }
     }
 
@@ -680,10 +807,11 @@ public class TableInfo {
     }
 
     /**
+     * Internal use: copy a collection of links
      * @param links
      * @return
      */
-    public static List<DataLink> copyListOfLinks(List<DataLink> links) {
+    static List<DataLink> copyListOfLinks(List<DataLink> links) {
         ArrayList<DataLink> copyLinks = new ArrayList<>();
         for (DataLink dataLink : links) {
             copyLinks.add(new DataLink(dataLink));

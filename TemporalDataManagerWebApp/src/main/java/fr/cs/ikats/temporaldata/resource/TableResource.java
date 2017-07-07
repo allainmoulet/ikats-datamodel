@@ -353,7 +353,7 @@ public class TableResource extends AbstractResource {
             String finalJoinByColName = joinColName == null ? "" : joinColName.trim();
             String finalJoinByMetaName = joinMetaName == null ? "" : joinMetaName.trim();
             if (finalJoinByColName.isEmpty())
-                finalJoinByColName = table.getColumnsHeader().getData().get(0).toString();
+                finalJoinByColName = table.getColumnsHeader().getItems().get(0);
             if (finalJoinByMetaName.isEmpty())
                 finalJoinByMetaName = finalJoinByColName;
 
@@ -458,7 +458,7 @@ public class TableResource extends AbstractResource {
             // store table in db
 
             // throws ResourceNotFoundException
-            table.sortRowsByColumnValues(finalJoinByColName);
+            table.sortRowsByColumnValues(finalJoinByColName, false);
             List<String> joinIdentifers = table.getColumn(finalJoinByColName);
 
             Collections.sort(listMetrics);

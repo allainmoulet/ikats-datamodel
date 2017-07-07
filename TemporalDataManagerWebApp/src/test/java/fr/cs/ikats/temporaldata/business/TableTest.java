@@ -22,7 +22,7 @@ import junit.framework.TestCase;
  */
 public class TableTest extends TestCase {
 
-    public final static String JSON_CONTENT_SAMPLE_1 = "{\"table_desc\":{\"name\":\"toto\",\"title\":\"Discretized matrix\",\"desc\":\"This is a ...\"},\"headers\":{\"col\":{\"data\":[\"funcId\",\"metric\",\"min_B1\",\"max_B1\",\"min_B2\",\"max_B2\"],\"links\":null,\"default_links\":null},\"row\":{\"data\":[null,\"Flid1_VIB2\",\"Flid1_VIB3\",\"Flid1_VIB4\",\"Flid1_VIB5\"],\"default_links\":{\"type\":\"ts_bucket\",\"context\":\"processdata\"},\"links\":[null,{\"val\":\"1\"},{\"val\":\"2\"},{\"val\":\"3\"},{\"val\":\"4\"}]}},\"content\":{\"cells\":[[\"VIB2\",-50.0,12.1,1.0,3.4],[\"VIB3\",-5.0,2.1,1.0,3.4],[\"VIB4\",0.0,2.1,12.0,3.4],[\"VIB5\",0.0,2.1,1.0,3.4]]}}";
+    public final static String JSON_CONTENT_SAMPLE_1 = "{\"table_desc\":{\"title\":\"Discretized matrix\",\"desc\":\"This is a ...\"},\"headers\":{\"col\":{\"data\":[\"funcId\",\"metric\",\"min_B1\",\"max_B1\",\"min_B2\",\"max_B2\"],\"links\":null,\"default_links\":null},\"row\":{\"data\":[null,\"Flid1_VIB2\",\"Flid1_VIB3\",\"Flid1_VIB4\",\"Flid1_VIB5\"],\"default_links\":{\"type\":\"ts_bucket\",\"context\":\"processdata\"},\"links\":[null,{\"val\":\"1\"},{\"val\":\"2\"},{\"val\":\"3\"},{\"val\":\"4\"}]}},\"content\":{\"cells\":[[\"VIB2\",-50.0,12.1,1.0,3.4],[\"VIB3\",-5.0,2.1,1.0,3.4],[\"VIB4\",0.0,2.1,12.0,3.4],[\"VIB5\",0.0,2.1,1.0,3.4]]}}";
   
     @Test
     public void testLoadJSON()
@@ -52,7 +52,6 @@ public class TableTest extends TestCase {
             // non-exhaustive test
             //
             // tests TableDesc init
-            assertEquals( testedTable.table_desc.name, "toto");
             assertEquals( testedTable.table_desc.title, "Discretized matrix");
             assertEquals( testedTable.table_desc.desc, "This is a ...");
             // tests TableHeaders : initialized columns
@@ -118,7 +117,6 @@ public class TableTest extends TestCase {
             
             TableInfo reloadedPojo = mng.loadFromJson(lJson);
             
-            assertEquals( myJsonPojo.table_desc.name, reloadedPojo.table_desc.name);
             assertEquals(myJsonPojo.table_desc.desc, reloadedPojo.table_desc.desc);
             assertEquals( myJsonPojo.table_desc.title, reloadedPojo.table_desc.title);
             // tests TableHeaders : initialized columns

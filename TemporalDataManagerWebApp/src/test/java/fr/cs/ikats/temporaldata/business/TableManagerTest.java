@@ -9,8 +9,9 @@ import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
 import fr.cs.ikats.temporaldata.business.TableInfo.Header;
 import fr.cs.ikats.temporaldata.business.TableManager.Table;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import junit.framework.TestCase;
-
+import org.apache.commons.collections.ComparatorUtils;
 /**
  * TableManagerTest tests the TableManager and its end-user services.
  */
@@ -74,7 +75,7 @@ public class TableManagerTest extends TestCase {
             // Testing typed Double access
             //
 
-            List<Double> otherDecimal = table.getColumn("min_B1");
+            List<Double> otherDecimal = table.getColumn("min_B1", Double.class);
             List<Double> refOtherDecimal = new ArrayList<>();
             for (List<Object> row : tableJson.content.cells) {
                 refOtherDecimal.add((Double) row.get(1));
@@ -87,7 +88,7 @@ public class TableManagerTest extends TestCase {
 
             // Testing untyped case: Object
             //
-            List<Object> other = table.getColumn("max_B1");
+            List<Object> other = table.getColumn("max_B1", Object.class);
             List<Object> refOther = new ArrayList<>();
             for (List<Object> row : tableJson.content.cells) {
                 refOther.add(row.get(2));
@@ -118,10 +119,10 @@ public class TableManagerTest extends TestCase {
             lTestedTable.appendRow(Arrays.asList("hello3", 100));
 
             List<String> myIds = lTestedTable.getColumn("Id");
-            List<String> myTargets = lTestedTable.getColumn("Target");
+            List<Integer> myTargets = lTestedTable.getColumn("Target", Integer.class);
             assertEquals(Arrays.asList("hello", "hello2", "hello3"), myIds);
             assertEquals(Arrays.asList(1, 10, 100), myTargets);
-
+            
             // Test second subcase: with rows header
             Table lTestedTableWithRowsH = mng.initTable(Arrays.asList("Id", "Target"), true);
             lTestedTableWithRowsH.appendRow("hello", Arrays.asList(1));
@@ -129,10 +130,12 @@ public class TableManagerTest extends TestCase {
             lTestedTableWithRowsH.appendRow("hello3", Arrays.asList(100));
 
             List<String> myIdsBIS = lTestedTableWithRowsH.getColumn("Id");
+            // testing converted String
             List<String> myTargetsBIS = lTestedTableWithRowsH.getColumn("Target");
 
             assertEquals(Arrays.asList("hello", "hello2", "hello3"), myIdsBIS);
-            assertEquals(Arrays.asList(1, 10, 100), myTargetsBIS);
+            // testing converted String
+            assertEquals(Arrays.asList("1", "10", "100"), myTargetsBIS);
 
         }
         catch (Exception e) {
@@ -151,13 +154,13 @@ public class TableManagerTest extends TestCase {
 
             // The simpler getter: row at index=... from TableContent:
             int contentIndex = 0;
-            List<Object> selectedRowValsBis = tableH.getRow(contentIndex + 1);
+            List<Object> selectedRowValsBis = tableH.getRow(contentIndex + 1, Object.class);
 
             // Another way: using the row header name
             // Reads the row header value: at position (contentIndex + 1) (after
             // top left corner)
             String secondRowName = (String) tableH.getRowsHeader().getData().get(contentIndex + 1);
-            List<Object> selectedRowVals = tableH.getRow(secondRowName);
+            List<Object> selectedRowVals = tableH.getRow(secondRowName, Object.class);
             List<Object> ref = new ArrayList<Object>(table.content.cells.get(contentIndex));
 
             System.out.println(selectedRowValsBis);
@@ -189,11 +192,11 @@ public class TableManagerTest extends TestCase {
         try {
 
             // Deprecated for end-user
-            tableH.initColumnsHeader(true, null, false).addItem("One", null).addItem("Two", null).addItem("Three", null);
+            tableH.initColumnsHeader(true, null, new ArrayList<>(), null).addItem("One", null).addItem("Two", null).addItem("Three", null);
             tableH.initContent(false, null);
 
             // Simple initializer
-            Table tableHBis = mng.initTable(Arrays.asList("One", "Two", "Three"));
+            Table tableHBis = mng.initTable(Arrays.asList("One", "Two", "Three"), false);
 
             Object[] row1 = new Object[] { "One", new Double(2.0), Boolean.FALSE };
 
@@ -235,9 +238,9 @@ public class TableManagerTest extends TestCase {
         Table tableH = mng.initTable(table, false);
         try {
 
-            tableH.initColumnsHeader(true, null, false).addItem("Above row header", null).addItem("One", null).addItem("Two", null).addItem("Three",
+            tableH.initColumnsHeader(true, null, new ArrayList<>(), null).addItem("Above row header", null).addItem("One", null).addItem("Two", null).addItem("Three",
                     null);
-            tableH.initRowsHeader(false, null, false);
+            tableH.initRowsHeader(false, null, new ArrayList<>(), null);
             tableH.initContent(false, null);
 
             // Simplified initializer used with tableHBis
@@ -263,7 +266,7 @@ public class TableManagerTest extends TestCase {
 
             assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
 
-            List<Object> columnnTwo = tableH.getColumn("Two");
+            List<Object> columnnTwo = tableH.getColumn("Two", Object.class);
             // System.out.println( columnnTwo );
 
             assertEquals(columnnTwo, Arrays.asList(new Object[] { 2.0, 2.2, false }));
@@ -271,7 +274,7 @@ public class TableManagerTest extends TestCase {
             List<Object> columnnOfRowHeaders = tableH.getColumn("Above row header");
             // System.out.println( columnnOfRowHeaders );
 
-            assertEquals(columnnOfRowHeaders, Arrays.asList(new Object[] { "A", "B", "C" }));
+            assertEquals(columnnOfRowHeaders, Arrays.asList("A", "B", "C"));
         }
         catch (Exception e) {
             e.printStackTrace(System.err);
@@ -295,9 +298,9 @@ public class TableManagerTest extends TestCase {
             DataLink defContent = new DataLink();
             defContent.context = "conf content link";
 
-            tableH.initColumnsHeader(true, null, false).addItem("Above row header", null).addItem("One", null).addItem("Two", null).addItem("Three",
+            tableH.initColumnsHeader(true, null, new ArrayList<>(), null).addItem("Above row header", null).addItem("One", null).addItem("Two", null).addItem("Three",
                     null);
-            tableH.initRowsHeader(false, null, false);
+            tableH.initRowsHeader(false, null, new ArrayList<>(), null);
             tableH.initContent(false, null);
             tableH.enableLinks(true, defColH, true, defRowH, true, defContent);
 
@@ -346,11 +349,11 @@ public class TableManagerTest extends TestCase {
             // System.out.println(mng.serializeToJson(tableHBis.getTable()));
             assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
 
-            List<Object> columnnTwo = tableH.getColumn("Two");
+            List<Object> columnnTwo = tableH.getColumn("Two", Object.class);
             // System.out.println( columnnTwo );
 
             assertEquals(columnnTwo, Arrays.asList(new Object[] { row1[1], row2AsList.get(1).data, row3.get(1).data }));
-            assertEquals(columnnTwo, tableHBis.getColumn("Two"));
+            assertEquals(columnnTwo, tableHBis.getColumn("Two", Object.class));
 
             // Tests link selection: linkTwo.type= "typ 2";
             // linkTwo.val= "val 2";
@@ -419,12 +422,12 @@ public class TableManagerTest extends TestCase {
     }
 
     /**
-     * tests cast column to List<String>
+     * tests the getColumn services
      */
-    public void testCastToString() {
+    public void testGetColumn() {
         try {
             TableManager mng = new TableManager();
-            Table myT = mng.initTable(Arrays.asList("One", "Two", "Three"));
+            Table myT = mng.initTable(Arrays.asList("One", "Two", "Three"), false);
             for (int i = 0; i < 10; i++) {
                 myT.appendRow(Arrays.asList(i < 5, "" + i, null));
             }
@@ -433,10 +436,10 @@ public class TableManagerTest extends TestCase {
             System.out.println(myT.getColumn("Two"));
             System.out.println(myT.getColumn("Three"));
 
-            List<Boolean> strOneList = myT.getColumn2("One", Boolean.class);
-            List<String> strOneListAString = myT.getColumn2("One");
+            List<Boolean> strOneList = myT.getColumn("One", Boolean.class);
+            List<String> strOneListAString = myT.getColumn("One");
             try {
-                List<BigDecimal> wrongTypeTested = myT.getColumn2("One", BigDecimal.class);
+                List<BigDecimal> wrongTypeTested = myT.getColumn("One", BigDecimal.class);
                 fail("Incorrect: class cast exception not detected !");
             }
             catch (IkatsException e) {
@@ -450,13 +453,283 @@ public class TableManagerTest extends TestCase {
             System.out.println("ok1");
             assert (strOneListAString.get(0) instanceof String);
             System.out.println("ok2");
-
-            // String.join(";", strOneList);
         }
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
         }
 
+    }
+    /**
+     * Tests the getRow services
+     */
+    public void testGetRow() {
+        try {
+            TableManager mng = new TableManager();
+            Table myT = mng.initEmptyTable(true, true);
+            myT.getColumnsHeader().addItem( "One").addItem( "Two").addItem("Three");
+            for (int i = 0; i < 10; i++) {
+                myT.appendRow("row"+i, Arrays.asList(i, i +2) );
+            }
+
+            System.out.println(myT.getRow("row1"));
+            System.out.println(myT.getRow("row2"));
+            System.out.println(myT.getRow("row9"));
+
+            List<Integer> strOneList = myT.getRow("row1", Integer.class);
+            List<String> strOneListAString = myT.getRow("row1");
+            try {
+                List<BigDecimal> wrongTypeTested = myT.getRow("row2", BigDecimal.class);
+                fail("Incorrect: class cast exception not detected !");
+            }
+            catch (IkatsException e) {
+                assertTrue(true);
+            }
+            catch (Exception e) {
+                fail("Unexpected exception");
+            }
+
+            assert (strOneList.get(0) instanceof Integer);
+            assert (strOneList.get(0).equals( 0 ) );
+            assert (strOneList.get(1).equals( 2 ) );
+            assert (strOneListAString.get(0) instanceof String);
+            assert (strOneListAString.get(0).equals("0" ));
+            assert (strOneListAString.get(1).equals("2" ));
+           
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        }
+
+    }
+    
+    /**
+     * Tests the getRow services
+     */
+    public void testGetRowsHeaderItems() {
+        try {
+            TableManager mng = new TableManager();
+            Table myT = mng.initEmptyTable(false, true);
+            
+          
+            myT.getRowsHeader().addItems("0", "1", "2", "3", "4");
+            for (int i = 0; i < 10; i++) {
+                myT.appendColumn( Arrays.asList("a"+i, "b"+i, "c"+i,  "d"+i, "e"+i));
+            }
+
+            System.out.println(myT.getRowsHeader().getItems());
+            assertEquals( "0", myT.getRowsHeader().getItems().get(0) );
+            assertEquals( "4", myT.getRowsHeader().getItems().get(4) );
+            
+            System.out.println(myT.getRow("0"));
+            assertEquals( "a0", myT.getRow("0").get(0) );
+            assertEquals( "a5", myT.getRow("0").get(5) );
+          
+            // Note: we could manage also  myT.getRowsHeader().addItems(0, 1, 2, 3, 4);
+            // ...
+            // in that case: we also retrieve the row using myT.getRow("0") instead of myT.getRow(0) 
+            // => this will work
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        }
+
+    }
+    
+    
+    /**
+     * Tests the getColumn services:
+     * 
+     */
+    public void testGetColumnsHeaderItems() {
+        try {
+            TableManager mng = new TableManager();
+            Table myT = mng.initEmptyTable(true, false);
+            
+            // unusual case: handling Integer -instead of String- in header data ... why not ...
+            myT.getColumnsHeader().addItems(0, 1, 2, 3, 8);
+            for (int i = 0; i < 10; i++) {
+                myT.appendRow( Arrays.asList("a"+i, "b"+i, "c"+i,  "d"+i, "e"+i));
+            }
+            
+            System.out.println(myT.getColumnsHeader().getItems());
+            // getting effective header data
+            assertEquals( new Integer(0), myT.getColumnsHeader().getItems(Integer.class).get(0));
+            assertEquals( new Integer(8), myT.getColumnsHeader().getItems(Integer.class).get(4));
+            // getting header data as string
+            assertEquals( "8", myT.getColumnsHeader().getItems().get(4));
+            
+            // a bit weird but the key for header 0 is toString() representation "0"
+            // => 
+            System.out.println(myT.getColumn("0"));
+            
+            
+            // usual case: handling Strings in header data
+            Table myUsualT = mng.initEmptyTable(true, false);
+            myUsualT.getColumnsHeader().addItems("10", "1", "2", "3", "8");
+            for (int i = 0; i < 10; i++) {
+                myUsualT.appendRow( Arrays.asList("a"+i, "b"+i, "c"+i,  "d"+i, "e"+i));
+            }
+            
+            System.out.println(myUsualT.getColumnsHeader().getItems());
+            assertEquals( "10", myUsualT.getColumnsHeader().getItems().get(0));
+            assertEquals( "8", myUsualT.getColumnsHeader().getItems().get(4));
+            System.out.println(myUsualT.getColumn("10"));
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        }
+    }
+    
+    /**
+     * Tests sort algo based upon column values from table content, - not from the row header -
+     * Ascending order is tested here.
+     */
+    public void testSortRowswithoutHeaders()
+    {
+        try {
+            TableManager mng = new TableManager();
+            Table myTWithoutRowHeader = mng.initEmptyTable(false, false);
+            
+            myTWithoutRowHeader.appendRow(Arrays.asList("bla3", "BLAH3", 3.5));
+            myTWithoutRowHeader.appendRow(Arrays.asList("bla2", "BLAH2", 2.0));
+            myTWithoutRowHeader.appendRow(Arrays.asList("bla4", "BLAH4", 3.7));
+            myTWithoutRowHeader.appendRow(Arrays.asList("bla6", "BLAH6", 6.0));
+            myTWithoutRowHeader.appendRow(Arrays.asList("-bla6", "-BLAH6", -6.0));
+
+            boolean display = true;
+            
+            displayTestedTable(display, myTWithoutRowHeader);
+
+            myTWithoutRowHeader.sortRowsByColumnValues(2, false);
+            
+            displayTestedTable(display, myTWithoutRowHeader);
+            
+            assertEquals(Arrays.asList( -6.0, 2.0, 3.5, 3.7, 6.0), myTWithoutRowHeader.getColumn(2, Double.class));
+            
+            assertEquals(Arrays.asList("-bla6", "-BLAH6", -6.0), myTWithoutRowHeader.getRow(0, Object.class) );
+            assertEquals(Arrays.asList("bla2", "BLAH2", 2.0), myTWithoutRowHeader.getRow(1, Object.class) );
+            assertEquals(Arrays.asList("bla3", "BLAH3", 3.5), myTWithoutRowHeader.getRow(2, Object.class) );
+            assertEquals(Arrays.asList("bla4", "BLAH4", 3.7), myTWithoutRowHeader.getRow(3, Object.class) );
+            assertEquals(Arrays.asList("bla6", "BLAH6", 6.0), myTWithoutRowHeader.getRow(4, Object.class) );
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        } 
+    }
+    
+    /**
+     * Tests sort algo based upon column values from table content, - not from the row header -
+     * Ascending order is tested here.
+     */
+    public void testSortRowsWithColHeader()
+    {
+        try {
+            TableManager mng = new TableManager();
+            Table myTWithoutRowHeader = mng.initEmptyTable(true, false);
+            
+            // unusual case: handling Integer -instead of String- in header data ... why not ...
+            myTWithoutRowHeader.getColumnsHeader().addItems("First", "Blabla", "Order");
+          
+            myTWithoutRowHeader.appendRow(Arrays.asList("bla3", "BLAH3", 3));
+            myTWithoutRowHeader.appendRow(Arrays.asList("bla2", "BLAH2", 2));
+            myTWithoutRowHeader.appendRow(Arrays.asList("bla4", "BLAH4", 4));
+            myTWithoutRowHeader.appendRow(Arrays.asList("bla6", "BLAH6", 6));
+            myTWithoutRowHeader.appendRow(Arrays.asList("-bla6", "-BLAH6", -6));
+
+            boolean display = true;
+            
+            displayTestedTable(display, myTWithoutRowHeader);
+
+            myTWithoutRowHeader.sortRowsByColumnValues("Order", false);
+            
+            displayTestedTable(display, myTWithoutRowHeader);
+            
+            assertEquals(Arrays.asList( -6, 2, 3, 4, 6), myTWithoutRowHeader.getColumn("Order", Integer.class));
+            
+            assertEquals(Arrays.asList("-bla6", "-BLAH6", -6), myTWithoutRowHeader.getRow(1, Object.class) );
+            assertEquals(Arrays.asList("bla2", "BLAH2", 2), myTWithoutRowHeader.getRow(2, Object.class) );
+            assertEquals(Arrays.asList("bla3", "BLAH3", 3), myTWithoutRowHeader.getRow(3, Object.class) );
+            assertEquals(Arrays.asList("bla4", "BLAH4", 4), myTWithoutRowHeader.getRow(4, Object.class) );
+            assertEquals(Arrays.asList("bla6", "BLAH6", 6), myTWithoutRowHeader.getRow(5, Object.class) );
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        } 
+    }
+    
+    /**
+     * Tests sort algo based upon column values from table content, - not from the row header -
+     * Ascending order is tested here.
+     */
+    public void testSortRowsWitAllHeaders()
+    {
+        try {
+            TableManager mng = new TableManager();
+            Table myTWithoutRowHeader = mng.initEmptyTable(true, true);
+            
+            // unusual case: handling Integer -instead of String- in header data ... why not ...
+            myTWithoutRowHeader.getColumnsHeader().addItems("TopLeft", "First", "Blabla", "Order");
+            // needs to define the top left corner as undefined !
+            myTWithoutRowHeader.getRowsHeader().addItem(null);
+            
+            myTWithoutRowHeader.appendRow("B1.1", Arrays.asList("bla3", "BLAH3", 3));
+            myTWithoutRowHeader.appendRow("B1", Arrays.asList("bla2", "BLAH2", 2));
+            myTWithoutRowHeader.appendRow("A100", Arrays.asList("bla4", "BLAH4", 4));
+            myTWithoutRowHeader.appendRow("A10", Arrays.asList("bla6", "BLAH6", 6));
+            myTWithoutRowHeader.appendRow("A2", Arrays.asList("-bla6", "-BLAH6", -6));
+
+            boolean display = true;
+            
+            displayTestedTable(display, myTWithoutRowHeader);
+
+            myTWithoutRowHeader.sortRowsByColumnValues("Order", false);
+            
+            displayTestedTable(display, myTWithoutRowHeader);
+            
+            assertEquals(Arrays.asList( -6, 2, 3, 4, 6), myTWithoutRowHeader.getColumn("Order", Integer.class));
+            
+            assertEquals(Arrays.asList("-bla6", "-BLAH6", -6), myTWithoutRowHeader.getRow(1, Object.class) );
+            assertEquals(Arrays.asList("bla2", "BLAH2", 2), myTWithoutRowHeader.getRow(2, Object.class) );
+            assertEquals(Arrays.asList("bla3", "BLAH3", 3), myTWithoutRowHeader.getRow(3, Object.class) );
+            assertEquals(Arrays.asList("bla4", "BLAH4", 4), myTWithoutRowHeader.getRow(4, Object.class) );
+            assertEquals(Arrays.asList("bla6", "BLAH6", 6), myTWithoutRowHeader.getRow(5, Object.class) );
+            
+            myTWithoutRowHeader.sortRowsByColumnValues("TopLeft", false);
+            
+            displayTestedTable(display, myTWithoutRowHeader);
+            
+            assertEquals(Arrays.asList( "A2", "A10", "A100", "B1", "B1.1"), myTWithoutRowHeader.getColumn("TopLeft", String.class));
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        } 
+    }
+
+    private void displayTestedTable(boolean enableDisplay, Table table) throws IkatsException, ResourceNotFoundException {
+        if ( enableDisplay ) 
+        {
+            if ( table.isHandlingColumnsHeader() )
+                System.out.println( table.getColumnsHeader().getItems());
+            List<Object> rowsHeaderItems = table.isHandlingRowsHeader() ? table.getRowsHeader().getItems(Object.class): null; 
+            for (int i = 0; i < table.getRowCount(true); i++) {
+                  String start = "";
+                  if ( rowsHeaderItems != null)
+                      {
+                          start = "" + rowsHeaderItems.get(i ) + ": ";
+                      }
+                System.out.println(start +  table.getRow(i, Object.class));
+            }
+            System.out.println( " ");
+        }
     }
 }
