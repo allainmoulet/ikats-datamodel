@@ -414,8 +414,8 @@ public class TableManager {
      * <p>
      * NB: number of items in output lists are rounded to the nearest value
      *
-     * @param indexList
-     * @param repartitionRate
+     * @param indexList       list of table indexes
+     * @param repartitionRate repartition rate between two output indexes lists
      * @throws
      */
     private List<List<Integer>> randomSplitTableIndexes(List<Integer> indexList, double repartitionRate) {
@@ -431,7 +431,7 @@ public class TableManager {
 
         // splitting
         result.add(new ArrayList<>(indexList.subList(0, indexSplit)));
-        result.add(new ArrayList<>(indexList.subList(indexSplit, indexList.size())));
+        result.add(new ArrayList<>(indexList.subList(indexSplit, nbItems)));
 
         return result;
 
@@ -444,7 +444,7 @@ public class TableManager {
      * => table2 = 40% of input table
      * output = [table1 ; table2]
      *
-     * @param table original table to process
+     * @param table           original table to process
      * @param repartitionRate repartition rate between two output tables
      * @throws IkatsException            row from original table is undefined
      * @throws ResourceNotFoundException row from original table is not found
@@ -453,6 +453,8 @@ public class TableManager {
 
         List<Integer> indexListInput = new ArrayList<>();
         List<List<Integer>> indexListOutput;
+        boolean withColHeaders = table.isHandlingColHeaders();
+        boolean withRowHeaders = table.isHandlingRowHeaders();
 
         // generate list of row indexes of input table
         for (int i = 0; i < table.getRowCount(false); i++) {
@@ -463,8 +465,12 @@ public class TableManager {
         indexListOutput = randomSplitTableIndexes(indexListInput, repartitionRate);
 
         // extract rows at splitted indexes to generate output
-        Table table1 = extractIndexes(indexListOutput.get(0), table);
-        Table table2 = extractIndexes(indexListOutput.get(1), table);
+        Table table1 = extractIndexes(indexListOutput.get(0), table, withRowHeaders);
+        Table table2 = extractIndexes(indexListOutput.get(1), table, withRowHeaders);
+        if (withColHeaders) {
+            table1.getRowsHeader().getData().addAll(table.getRowsHeader().getData());
+            table2.getRowsHeader().getData().addAll(table.getRowsHeader().getData());
+        }
         List<Table> result = new ArrayList<>();
         result.add(table1);
         result.add(table2);
@@ -475,11 +481,11 @@ public class TableManager {
 
     /**
      * @param indexList list of rows indexes to extract
-     * @param table table used to extract rows
+     * @param table     table used to extract rows
      * @throws IkatsException            row from original table is undefined
      * @throws ResourceNotFoundException row from original table is not found
      */
-    private Table extractIndexes(List<Integer> indexList, Table table) throws ResourceNotFoundException, IkatsException {
+    private Table extractIndexes(List<Integer> indexList, Table table, boolean withRowHeaders) throws ResourceNotFoundException, IkatsException {
 
         // result initialization
         Table tableOut = initEmptyTable();
@@ -487,9 +493,11 @@ public class TableManager {
         // retrieving rows from original table according to list of indexes previously generated
         // and filling output tables
         for (Integer index : indexList) {
+            if (withRowHeaders) {
+                tableOut.getRowsHeader (table.getRow(index));
+            }
             tableOut.appendRow(table.getRow(index));
         }
-
         return tableOut;
 
     }

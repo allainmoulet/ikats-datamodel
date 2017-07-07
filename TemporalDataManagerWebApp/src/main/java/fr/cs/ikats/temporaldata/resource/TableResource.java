@@ -678,9 +678,9 @@ public class TableResource extends AbstractResource {
      * @return the internal id
      * @throws IOException               error when parsing input csv file
      * @throws IkatsDaoException         error while accessing database to check if table already exists
-     * @throws ResourceNotFoundException if table not found
      * @throws InvalidValueException     if table name does not match expected pattern
-     * @throws IkatsException            others unexpected exceptions
+     * @throws IkatsException            row from input table is undefined
+     * @throws ResourceNotFoundException row from input table is not found
      */
     @POST
     @Path("/traintestsplit")
@@ -688,8 +688,9 @@ public class TableResource extends AbstractResource {
     public Response trainTestSplit(@FormDataParam("tableJson") String tableJson,
                                    @FormDataParam("targetColumnName") @DefaultValue("") String targetColumnName,
                                    @FormDataParam("repartitionRate") @DefaultValue("0.5") double repartitionRate,
+                                   @FormDataParam("outputTableName") String outputTableName,
                                    FormDataMultiPart formData,
-                                   @Context UriInfo uriInfo) throws IOException, IkatsDaoException, IkatsException, ResourceNotFoundException, InvalidValueException {
+                                   @Context UriInfo uriInfo) throws IOException, IkatsDaoException, IkatsException, InvalidValueException, ResourceNotFoundException {
 
 
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
@@ -706,10 +707,9 @@ public class TableResource extends AbstractResource {
         }
 
         List<String> ridList = new ArrayList<>();
-        for (Table tab : tabListResult) {
-            // store table in db
-            ridList.add(tableManager.createInDatabase("name", tab.getTableInfo()));
-        }
+        // store tables in db
+        ridList.add(tableManager.createInDatabase(outputTableName + "_Train", tabListResult.get(0).getTableInfo()));
+        ridList.add(tableManager.createInDatabase(outputTableName + "_Test", tabListResult.get(1).getTableInfo()));
 
         chrono.stop(logger);
 

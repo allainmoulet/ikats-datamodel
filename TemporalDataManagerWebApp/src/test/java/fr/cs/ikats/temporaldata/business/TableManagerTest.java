@@ -31,8 +31,8 @@ public class TableManagerTest extends TestCase {
     /**
      * test TrainTestSplitTable
      * cases:
-     *  - a  class with only one element
-     *  - duplicates ids
+     * - a  class with only one element
+     * - duplicates ids
      */
     @Test
     public void testTrainTestSplitTableNominal() {
@@ -51,7 +51,7 @@ public class TableManagerTest extends TestCase {
                     + "7;D\n"
                     + "8;D\n";
 
-            Table tableIn = tableFromCSV("tableTestIn", tableContent);
+            Table tableIn = tableFromCSV("tableTestIn", tableContent, true);
 
             List<Table> result;
             double repartitionRate = 0.56;
@@ -64,19 +64,58 @@ public class TableManagerTest extends TestCase {
                 classList1.add(result.get(0).getContentData().get(i).get(1));
             }
             // checking repartition rate of each class in result
-            assertEquals(2,Collections.frequency(classList1,"A"));
-            assertEquals(1,Collections.frequency(classList1,"B"));
-            assertEquals(1,Collections.frequency(classList1,"C"));
-            assertEquals(2,Collections.frequency(classList1,"D"));
+            assertEquals(2, Collections.frequency(classList1, "A"));
+            assertEquals(1, Collections.frequency(classList1, "B"));
+            assertEquals(1, Collections.frequency(classList1, "C"));
+            assertEquals(2, Collections.frequency(classList1, "D"));
 
             for (int i = 0; i < result.get(1).getContentData().size(); i++) {
                 classList2.add(result.get(1).getContentData().get(i).get(1));
             }
             // checking repartition rate of each class in result
-            assertEquals(2,Collections.frequency(classList2,"A"));
-            assertEquals(1,Collections.frequency(classList2,"B"));
-            assertEquals(0,Collections.frequency(classList2,"C"));
-            assertEquals(1,Collections.frequency(classList2,"D"));
+            assertEquals(2, Collections.frequency(classList2, "A"));
+            assertEquals(1, Collections.frequency(classList2, "B"));
+            assertEquals(0, Collections.frequency(classList2, "C"));
+            assertEquals(1, Collections.frequency(classList2, "D"));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        }
+    }
+
+
+    /**
+     * test randomSplitTable nominal
+     */
+    @Test
+    public void testRandomSplitTable() {
+        try {
+
+            TableManager tableManager = new TableManager();
+            String tableContent = "MainId;Target\n"
+                    + "125;A\n"
+                    + "1;A\n"
+                    + "2;A\n"
+                    + "2;A\n"
+                    + "3;B\n"
+                    + "4;B\n"
+                    + "42;C\n"
+                    + "6;D\n"
+                    + "7;D\n"
+                    + "8;D\n";
+            double tableContentSize = 10;
+
+            Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
+
+            List<Table> result;
+            double repartitionRate = 0.56;
+            result = tableManager.randomSplitTable(tableIn, repartitionRate);
+
+            // checking repartition rate in result
+            assertEquals(Math.round(tableContentSize * repartitionRate), result.get(0).getRowCount(false));
+            assertEquals(Math.round((tableContentSize * (1 - repartitionRate))), result.get(1).getRowCount(false));
+
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -1019,7 +1058,7 @@ public class TableManagerTest extends TestCase {
      * @param name    name identifying the Table
      * @param content text corresponding to the CSV format
      */
-    private Table tableFromCSV(String name, String content) throws IOException, IkatsException, IkatsDaoException, InvalidValueException {
+    private Table tableFromCSV(String name, String content, boolean rowHeader) throws IOException, IkatsException, IkatsDaoException, InvalidValueException {
 
         TableManager tableMNG = new TableManager();
 
@@ -1029,14 +1068,21 @@ public class TableManagerTest extends TestCase {
         // Assuming first line contains headers
         String line = bufReader.readLine();
         List<String> headersTitle = Arrays.asList(line.split(";"));
-        Table table = tableMNG.initTable(headersTitle, false);
+        Table table = tableMNG.initTable(headersTitle, rowHeader);
+
+        if (rowHeader) {
+            table.getRowsHeader().getData().add(null);
+        }
 
         // Other lines contain data
         while ((line = bufReader.readLine()) != null) {
-            List<String> items = Arrays.asList(line.split(";"));
+            List<String> items = new ArrayList<>(Arrays.asList(line.split(";")));
+            if (rowHeader) {
+                table.getRowsHeader().getData().add(items.get(0));
+                items.remove(0);
+            }
             table.appendRow(items);
         }
-
         return table;
     }
 
