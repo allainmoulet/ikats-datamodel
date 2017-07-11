@@ -86,17 +86,14 @@ public class TableManager {
      * Loads a Table object from the json plain text, using configuration from
      * this.jsonObjectMapper.
      *
-     * @param jsonContent:
-     *            json plain text value.
+     * @param jsonContent: json plain text value.
      * @return the loaded Table
-     * @throws IkatsJsonException
-     *             in case of parsing error.
+     * @throws IkatsJsonException in case of parsing error.
      */
     public TableInfo loadFromJson(String jsonContent) throws IkatsJsonException {
         try {
             return jsonObjectMapper.readValue(jsonContent, TableInfo.class);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new IkatsJsonException("Failed to load Table business resource from the json content", e);
         }
     }
@@ -105,17 +102,14 @@ public class TableManager {
      * Serializes the TableInfo into equivalent JSON String, using internal
      * configuration of this.jsonObjectMapper.
      *
-     * @param tableInfo
-     *            the object serialized
+     * @param tableInfo the object serialized
      * @return the JSON content written by serialization of tableInfo.
-     * @throws IkatsJsonException
-     *             JSON serialization failed.
+     * @throws IkatsJsonException JSON serialization failed.
      */
     public String serializeToJson(TableInfo tableInfo) throws IkatsJsonException {
         try {
             return jsonObjectMapper.writeValueAsString(tableInfo);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new IkatsJsonException("Failed to serialize Table business resource to the json content", e);
         }
     }
@@ -158,8 +152,7 @@ public class TableManager {
     /**
      * Creates a Table from the JSON content
      *
-     * @param tableJson
-     *            the plain text encoding the JSON
+     * @param tableJson the plain text encoding the JSON
      * @return the Table associated to tableJson
      * @throws IkatsJsonException
      */
@@ -172,14 +165,11 @@ public class TableManager {
      * Initializes a table, with defined columnHeaders, without links, with rows
      * header enabled by parameter withRowHeader.
      *
-     * @param columnHeaders
-     *            list of columns header values provided as String
-     * @param withRowHeader:
-     *            true activates the row header management. But the rows header
-     *            content is set later.
+     * @param columnHeaders  list of columns header values provided as String
+     * @param withRowHeader: true activates the row header management. But the rows header
+     *                       content is set later.
      * @return initialized Table: ready to use appendRow() for example.
-     * @throws IkatsException
-     *             initialization error
+     * @throws IkatsException initialization error
      */
     public Table initTable(List<String> columnHeaders, boolean withRowHeader) throws IkatsException {
         Table csvLikeTableH = initTable(new TableInfo(), false);
@@ -201,17 +191,14 @@ public class TableManager {
      * Initializes the Table business resource from the TableInfo JSON-mapping
      * resource.
      *
-     * @param tableInfo
-     *            the JSON-mapping resource.
-     * @param copyTableInfo
-     *            true demands that returned Table manages a copy of tableInfo.
+     * @param tableInfo     the JSON-mapping resource.
+     * @param copyTableInfo true demands that returned Table manages a copy of tableInfo.
      * @return initialized Table, wrapping the (copy of) tableInfo
      */
     public Table initTable(TableInfo tableInfo, boolean copyTableInfo) {
         if (copyTableInfo) {
             return new Table(new TableInfo(tableInfo));
-        }
-        else {
+        } else {
             return new Table(tableInfo);
         }
     }
@@ -219,16 +206,12 @@ public class TableManager {
     /**
      * Gets the JSON resource TableInfo from process data database.
      *
-     * @param tableName
-     *            the name of the table is its unique identifier
+     * @param tableName the name of the table is its unique identifier
      * @return read resource TableInfo.
-     * @throws IkatsJsonException
-     *             failed to read consistent JSON format into TableInfo
-     *             structure.
-     * @throws IkatsDaoException
-     *             unexpected DAO error, from Hibernate, reading the database
-     * @throws ResourceNotFoundException
-     *             the table name tableName is not matched in the database.
+     * @throws IkatsJsonException        failed to read consistent JSON format into TableInfo
+     *                                   structure.
+     * @throws IkatsDaoException         unexpected DAO error, from Hibernate, reading the database
+     * @throws ResourceNotFoundException the table name tableName is not matched in the database.
      */
     public TableInfo readFromDatabase(String tableName) throws IkatsJsonException, IkatsDaoException, ResourceNotFoundException {
 
@@ -237,8 +220,7 @@ public class TableManager {
 
             if (dataTables == null) {
                 throw new IkatsDaoException("Unexpected Hibernate error while attempting to read table: name=" + tableName);
-            }
-            else if (dataTables.isEmpty()) {
+            } else if (dataTables.isEmpty()) {
                 throw new ResourceNotFoundException("No result found for table name=" + tableName);
             }
 
@@ -259,8 +241,7 @@ public class TableManager {
 
             LOGGER.trace("Table retrieved from db OK : name=" + tableName);
             return table;
-        }
-        catch (SQLException sqle) {
+        } catch (SQLException sqle) {
             // Why the catch is not on HibernateException ?
             throw new IkatsDaoException("Failed to read Table, reading the BLOB of processData with processId=" + tableName, sqle);
         }
@@ -270,21 +251,15 @@ public class TableManager {
     /**
      * Creates a new Table in process data database.
      *
-     * @param tableName
-     *            the unique identifier of the Table is its name
-     * @param tableToStore
-     *            the TableInfo is required to write the content into the
-     *            database. From Table object, use getTableInfo().
+     * @param tableName    the unique identifier of the Table is its name
+     * @param tableToStore the TableInfo is required to write the content into the
+     *                     database. From Table object, use getTableInfo().
      * @return ID of created processData storing the table.
-     * @throws IkatsJsonException
-     *             error encoding the JSON content
-     * @throws IkatsDaoException
-     *             error checking if resource already exists
-     * @throws IkatsDaoConflictException
-     *             error when a resource with processId=tableName exists
-     * @throws InvalidValueException
-     *             consistency error found in the name of the table: see
-     *             TABLE_NAME_PATTERN
+     * @throws IkatsJsonException        error encoding the JSON content
+     * @throws IkatsDaoException         error checking if resource already exists
+     * @throws IkatsDaoConflictException error when a resource with processId=tableName exists
+     * @throws InvalidValueException     consistency error found in the name of the table: see
+     *                                   TABLE_NAME_PATTERN
      */
     public String createInDatabase(String tableName, TableInfo tableToStore)
             throws IkatsJsonException, IkatsDaoException, IkatsDaoConflictException, InvalidValueException {
@@ -313,8 +288,7 @@ public class TableManager {
     /**
      * Deletes the table from the database.
      *
-     * @param tableName
-     *            the unique identifier of the Table is its name
+     * @param tableName the unique identifier of the Table is its name
      */
     public void deleteFromDatabase(String tableName) {
         // The name of the table is in the processId column of table processData
@@ -330,11 +304,9 @@ public class TableManager {
      * Note: presently the name of the table is saved in Postgres table
      * process_data in column processId.
      *
-     * @param tableName
-     *            the name is the identifier of the Table.
+     * @param tableName the name is the identifier of the Table.
      * @return true if table name already exists in database.
-     * @throws IkatsDaoException
-     *             unexpected Hibernate error.
+     * @throws IkatsDaoException unexpected Hibernate error.
      */
     public boolean existsInDatabase(String tableName) throws IkatsDaoException {
         List<ProcessData> collectionProcessData = processDataManager.getProcessData(tableName);
@@ -359,20 +331,15 @@ public class TableManager {
      * case, use readFromDatabase(), then initTable(TableInfo) and finally use
      * services on Table business resource.
      *
-     * @param tableName
-     *            the name of the Table resource is also its unique identifier.
-     * @param columnName
-     *            column header value identifying the selection.
+     * @param tableName  the name of the Table resource is also its unique identifier.
+     * @param columnName column header value identifying the selection.
      * @return the column as list of values, excluding the header value.
-     * @throws IkatsException
-     *             unexpected error occured. Exemple: internal
-     *             ClassCastException when List<T> does not fit the actual data.
-     * @throws IkatsDaoException
-     *             unexpected hibernate exception reading the table from
-     *             database.
-     * @throws ResourceNotFoundException
-     *             either the resource Table named tableName is not found in the
-     *             database, or the column is not found in the table.
+     * @throws IkatsException            unexpected error occured. Exemple: internal
+     *                                   ClassCastException when List<T> does not fit the actual data.
+     * @throws IkatsDaoException         unexpected hibernate exception reading the table from
+     *                                   database.
+     * @throws ResourceNotFoundException either the resource Table named tableName is not found in the
+     *                                   database, or the column is not found in the table.
      */
     public <T> List<T> getColumnFromTable(String tableName, String columnName) throws IkatsException, IkatsDaoException, ResourceNotFoundException {
 
@@ -390,10 +357,8 @@ public class TableManager {
     /**
      * Validate that the table name is well encoded.
      *
-     * @param name
-     *            name of the table, also its unique identifier
-     * @param context
-     *            information to provide in order to improve error log.
+     * @param name    name of the table, also its unique identifier
+     * @param context information to provide in order to improve error log.
      * @throws InvalidValueException
      */
     public final void validateTableName(String name, String context) throws InvalidValueException {
@@ -453,8 +418,8 @@ public class TableManager {
 
         List<Integer> indexListInput = new ArrayList<>();
         List<List<Integer>> indexListOutput;
-        boolean withColHeaders = table.isHandlingColHeaders();
-        boolean withRowHeaders = table.isHandlingRowHeaders();
+        boolean withColHeaders = table.isHandlingColumnsHeader();
+        boolean withRowHeaders = table.isHandlingRowsHeader();
 
         // generate list of row indexes of input table
         for (int i = 0; i < table.getRowCount(false); i++) {
@@ -468,8 +433,8 @@ public class TableManager {
         Table table1 = extractIndexes(indexListOutput.get(0), table, withRowHeaders);
         Table table2 = extractIndexes(indexListOutput.get(1), table, withRowHeaders);
         if (withColHeaders) {
-            table1.getRowsHeader().getData().addAll(table.getRowsHeader().getData());
-            table2.getRowsHeader().getData().addAll(table.getRowsHeader().getData());
+            table1.getColumnsHeader().addItems(table.getColumnsHeader().getItems().toArray());
+            table2.getColumnsHeader().addItems(table.getColumnsHeader().getItems().toArray());
         }
         List<Table> result = new ArrayList<>();
         result.add(table1);
@@ -488,15 +453,15 @@ public class TableManager {
     private Table extractIndexes(List<Integer> indexList, Table table, boolean withRowHeaders) throws ResourceNotFoundException, IkatsException {
 
         // result initialization
-        Table tableOut = initEmptyTable();
+        Table tableOut = initEmptyTable(true, withRowHeaders);
 
         // retrieving rows from original table according to list of indexes previously generated
-        // and filling output tables
+        // and filling output tables (row headers included, if managed)
         for (Integer index : indexList) {
             if (withRowHeaders) {
-                tableOut.getRowsHeader (table.getRow(index));
+                tableOut.getRowsHeader().addItem(table.getRowsHeader().getItems().get(index));
             }
-            tableOut.appendRow(table.getRow(index));
+            tableOut.appendRow(table.getRow(index, Object.class));
         }
         return tableOut;
 
@@ -525,8 +490,11 @@ public class TableManager {
     public List<Table> trainTestSplitTable(Table table, String targetColumnName, double repartitionRate) throws
             ResourceNotFoundException, IkatsException {
 
+        boolean withColHeaders = table.isHandlingColumnsHeader();
+        boolean withRowHeaders = table.isHandlingRowsHeader();
+
         // sort table by column 'target'
-        table.sortRowsByColumnValues(targetColumnName);
+        table.sortRowsByColumnValues(targetColumnName, false);
 
         // extract classes column
         List<Object> classColumnContent = table.getColumn(targetColumnName);
@@ -562,11 +530,22 @@ public class TableManager {
         }
 
         // result initialization
-        Table table1 = initEmptyTable();
-        Table table2 = initEmptyTable();
+        Table table1 = initEmptyTable(withColHeaders, withRowHeaders);
+        Table table2 = initEmptyTable(withColHeaders, withRowHeaders);
         List<Table> result = new ArrayList<>();
         result.add(table1);
         result.add(table2);
+
+        // filling column headers
+        if (withColHeaders) {
+            table1.getColumnsHeader().addItems(table.getColumnsHeader().getItems().toArray());
+            table2.getColumnsHeader().addItems(table.getColumnsHeader().getItems().toArray());
+        }
+        // initialization of row headers (first item must be null)
+        if (withRowHeaders) {
+            table1.getRowsHeader().addItem(null);
+            table2.getRowsHeader().addItem(null);
+        }
 
         // retrieving rows from original table according to list of indexes previously generated
         // and filling output tables
@@ -574,12 +553,23 @@ public class TableManager {
             List<Integer> tableRated1 = indexesList.get(0);
             List<Integer> tableRated2 = indexesList.get(1);
             for (int i = 0; i < tableRated1.size(); i++) {
-                table1.appendRow(table.getRow(tableRated1.get(i)));
+                table1.appendRow(table.getRow(tableRated1.get(i), Object.class));
+                if (withRowHeaders) {
+                    table1.getRowsHeader().addItem(table.getRowsHeader().getItems().get(tableRated1.get(i)));
+                }
             }
             for (int i = 0; i < tableRated2.size(); i++) {
-                table2.appendRow(table.getRow(tableRated2.get(i)));
+                table2.appendRow(table.getRow(tableRated2.get(i), Object.class));
+                if (withRowHeaders) {
+                    table2.getRowsHeader().addItem(table.getRowsHeader().getItems().get(tableRated2.get(i)));
+                }
             }
         }
+
+        // assuming first column is id, sorting output tables
+        table1.sortRowsByColumnValues(0, false);
+        table2.sortRowsByColumnValues(0, false);
+
         return result;
     }
 
@@ -589,14 +579,11 @@ public class TableManager {
      * replaced by item.toString() in the new collection else: objects are
      * casted to the expected type T, using castingClass.
      *
-     * @param originalList
-     *            the original list of objects
-     * @param castingClass
-     *            the class specifying the type of T. Technically required, to
-     *            call the cast operation.
+     * @param originalList the original list of objects
+     * @param castingClass the class specifying the type of T. Technically required, to
+     *                     call the cast operation.
      * @return the new converted list from the originalList
-     * @throws IkatsException
-     *             error wrapping the ClassCastException
+     * @throws IkatsException error wrapping the ClassCastException
      */
     static <T> List<T> convertList(List<Object> originalList, Class<T> castingClass) throws IkatsException {
         int posCastItem = 0;
@@ -609,16 +596,14 @@ public class TableManager {
                 if (isConvertingToString) {
                     String strConverted = dataItem == null ? null : dataItem.toString();
                     result.add(castingClass.cast(strConverted));
-                }
-                else {
+                } else {
                     result.add(castingClass.cast(dataItem));
                 }
 
                 posCastItem++;
             }
             return result;
-        }
-        catch (ClassCastException e) {
+        } catch (ClassCastException e) {
             throw new IkatsException("TableManager::convertList() failed: on item at position=" + posCastItem, e);
         }
 

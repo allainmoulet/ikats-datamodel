@@ -51,7 +51,7 @@ public class TableManagerTest extends TestCase {
                     + "7;D\n"
                     + "8;D\n";
 
-            Table tableIn = tableFromCSV("tableTestIn", tableContent, true);
+            Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
 
             List<Table> result;
             double repartitionRate = 0.56;
@@ -84,7 +84,53 @@ public class TableManagerTest extends TestCase {
         }
     }
 
+    @Test
+    public void testTrainTestSplitTableWithColumnHeader() {
+        try {
 
+            TableManager tableManager = new TableManager();
+            String tableJson="{\"table_desc\":" +
+                    "{\"title\":\"max_test_traintestsplit\"," +
+                    "\"desc\":\"population.csv\"}," +
+                    "\"headers\":" +
+                      "{\"col\":" +
+                        "{\"data\":" +
+                          "[\"flight_id\",\"target\"]}," +
+                      "\"row\":" +
+                        "{\"data\":" +
+                          "[null,\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\"]}}," +
+                    "\"content\":" +
+                      "{\"cells\":[[\"1\"],[\"1\"],[\"1\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"]]}}";
+
+            TableInfo tableInfo = tableManager.loadFromJson(tableJson);
+            Table table = tableManager.initTable(tableInfo, false);
+
+            List<Table> result;
+            double repartitionRate = 0.56;
+            result = tableManager.trainTestSplitTable(table, "target", repartitionRate);
+
+            // collect all classes of each table result to check repartition rate
+            List<Object> classList1 = new ArrayList<>();
+            List<Object> classList2 = new ArrayList<>();
+            for (int i = 0; i < result.get(0).getContentData().size(); i++) {
+                classList1.add(result.get(0).getContentData().get(i).get(0));
+            }
+            for (int i = 0; i < result.get(1).getContentData().size(); i++) {
+                classList2.add(result.get(1).getContentData().get(i).get(0));
+            }
+            // checking repartition rate of each class in result
+            assertEquals(4, Collections.frequency(classList1, "0"));
+            assertEquals(2, Collections.frequency(classList1, "1"));
+
+            // checking repartition rate of each class in result
+            assertEquals(3, Collections.frequency(classList2, "0"));
+            assertEquals(1, Collections.frequency(classList2, "1"));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        }
+    }
     /**
      * test randomSplitTable nominal
      */
