@@ -4,7 +4,6 @@ import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableManager;
 
-import fr.cs.ikats.temporaldata.resource.TableResource;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -27,51 +26,6 @@ import static org.junit.Assert.assertEquals;
  */
 public class TableRequestTest extends AbstractRequestTest {
 
-
-    /**
-     *
-     * case : nominal (http code 200 returned)
-     */
-    @Test
-    public void testTrainTsSplitNominal() {
-        String testCaseName = "testTrainTestSplitNominal";
-        boolean isNominal = true;
-        try {
-            start(testCaseName, isNominal);
-
-            String jsonTableIn="{}";
-            String tableContent = "MainId;Target\n"
-                    + "1;A\n"
-                    + "1;A\n"
-                    + "2;B\n"
-                    + "3;C\n"
-                    + "4;D\n"
-                    + "42;A\n"
-                    + "6;B\n"
-                    + "7;C\n"
-                    + "8;D\n";
-
-            TableManager tableManager = new TableManager();
-            TableInfo tableIn = tableManager.loadFromJson(jsonTableIn);
-
-            TableResource tableResource= new TableResource();
-            tableResource.trainTestSplit(tableManager.serializeToJson(tableIn), "target");
-
-            String jsonTableOut = doGetDataDownload("outputTableTest");
-            TableInfo tableOut = tableManager.loadFromJson(jsonTableOut);
-
-            assertEquals(Arrays.asList(null,
-                    "M1_B1_OP1", "M1_B2_OP1", "M1_B1_OP2", "M1_B2_OP2",
-                    "M2_B1_OP1", "M2_B2_OP1", "M2_B1_OP2", "M2_B2_OP2"), tableOut.headers.col.data);
-            assertEquals(Arrays.asList("flightId", "1", "2"), tableOut.headers.row.data);
-            assertEquals(Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8"), tableOut.content.cells.get(0));
-            assertEquals(Arrays.asList("13", "14", "15", "16", "9", "10", "11", "12"), tableOut.content.cells.get(1));
-
-            endNominal(testCaseName);
-        } catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
-    }
 
     /**
      * test of table ts2feature use case
