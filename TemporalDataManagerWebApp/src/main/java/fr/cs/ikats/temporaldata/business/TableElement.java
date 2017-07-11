@@ -101,7 +101,7 @@ public class TableElement {
 
     /**
      * Method used to encode the List<TableElement> for the API
-     * @param value can be immutable object, or TableElement or null
+     * @param value can be immutable object, or TableElement or DataLink or null
      * @return TableElement deduced from the value.
      */
     public static TableElement encodeElement(Object value) {

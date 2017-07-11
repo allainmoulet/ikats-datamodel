@@ -32,6 +32,9 @@ public class TableManagerTest extends TestCase {
             TableInfo table = mng.loadFromJson(TableManagerTest.JSON_CONTENT_SAMPLE_1);
 
             Table tableH = mng.initTable(table, false);
+            
+            tableH.checkConsistency();
+            
             String firstColName = (String) tableH.getColumnsHeader().getData().get(0);
             List<String> funcIds = tableH.getColumn("funcId");
             List<Object> refFuncIds = new ArrayList<Object>(table.headers.row.data);
@@ -40,6 +43,8 @@ public class TableManagerTest extends TestCase {
             // System.out.println( funcIds );
             // System.out.println( refFuncIds );
             assertEquals(refFuncIds, funcIds);
+            
+            
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -116,6 +121,8 @@ public class TableManagerTest extends TestCase {
             lTestedTable.appendRow(Arrays.asList("hello2", 10));
             lTestedTable.appendRow(Arrays.asList("hello3", 100));
 
+            lTestedTable.checkConsistency();
+            
             List<String> myIds = lTestedTable.getColumn("Id");
             List<Integer> myTargets = lTestedTable.getColumn("Target", Integer.class);
             assertEquals(Arrays.asList("hello", "hello2", "hello3"), myIds);
@@ -127,6 +134,8 @@ public class TableManagerTest extends TestCase {
             lTestedTableWithRowsH.appendRow("hello2", Arrays.asList(10));
             lTestedTableWithRowsH.appendRow("hello3", Arrays.asList(100));
 
+            lTestedTableWithRowsH.checkConsistency();
+            
             List<String> myIdsBIS = lTestedTableWithRowsH.getColumn("Id");
             // testing converted String
             List<String> myTargetsBIS = lTestedTableWithRowsH.getColumn("Target");
@@ -209,13 +218,15 @@ public class TableManagerTest extends TestCase {
             tableHBis.appendRow(Arrays.asList(row2));
             tableHBis.appendRow(Arrays.asList(row3));
 
+            tableH.checkConsistency();
+            tableHBis.checkConsistency();
+            
             System.out.println(mng.serializeToJson(table));
             System.out.println(mng.serializeToJson(tableHBis.getTableInfo()));
 
             assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
 
             List<Object> columnn = tableH.getColumn("One");
-            // System.out.println( colOne );
 
         }
         catch (Exception e) {
@@ -259,6 +270,9 @@ public class TableManagerTest extends TestCase {
             tableHBis.appendRow("B", Arrays.asList(row2));
             tableHBis.appendRow("C", Arrays.asList(row3));
 
+            tableH.checkConsistency();
+            tableHBis.checkConsistency();
+            
             // System.out.println(mng.serializeToJson(table));
             // System.out.println(mng.serializeToJson(tableHBis.getTable()));
 
@@ -343,6 +357,9 @@ public class TableManagerTest extends TestCase {
 
             tableHBis.appendRow("C", row3);
 
+            tableH.checkConsistency();
+            tableHBis.checkConsistency();
+            
             // System.out.println(mng.serializeToJson(table));
             // System.out.println(mng.serializeToJson(tableHBis.getTable()));
             assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
@@ -406,6 +423,8 @@ public class TableManagerTest extends TestCase {
             int finalRowCount = tableH.getRowCount(true);
             int finalColumnCount = tableH.getColumnCount(true);
 
+            tableH.checkConsistency();
+            
             assertTrue(initialColumnCount == finalColumnCount);
             assertTrue(initialRowCount + 1 == finalRowCount);
 
@@ -615,6 +634,8 @@ public class TableManagerTest extends TestCase {
             assertEquals(Arrays.asList("bla4", "BLAH4", 3.7), myTWithoutRowHeader.getRow(3, Object.class) );
             assertEquals(Arrays.asList("bla6", "BLAH6", 6.0), myTWithoutRowHeader.getRow(4, Object.class) );
             
+            myTWithoutRowHeader.checkConsistency();
+            
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -657,6 +678,7 @@ public class TableManagerTest extends TestCase {
             assertEquals(Arrays.asList("bla4", "BLAH4", 4), myTWithoutRowHeader.getRow(4, Object.class) );
             assertEquals(Arrays.asList("bla6", "BLAH6", 6), myTWithoutRowHeader.getRow(5, Object.class) );
             
+            myTWithoutRowHeader.checkConsistency();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -706,6 +728,8 @@ public class TableManagerTest extends TestCase {
             displayTestedTable(display, myTWithoutRowHeader);
             
             assertEquals(Arrays.asList( "A2", "A10", "A100", "B1", "B1.1"), myTWithoutRowHeader.getColumn("TopLeft", String.class));
+            
+            myTWithoutRowHeader.checkConsistency();
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -713,6 +737,202 @@ public class TableManagerTest extends TestCase {
         } 
     }
 
+    /**
+     * Test insertColumn with all headers activated
+     */
+    public void testInsertColumnWithAllHeaders()
+    {
+        try {
+            TableManager mng = new TableManager();
+            
+            // both headers are managed
+            Table myTable = mng.initEmptyTable(true, true);
+            
+            // unusual case: handling Integer -instead of String- in header data ... why not ...
+            myTable.getColumnsHeader().addItems("TopLeft", "First", "Blabla", "Order");
+            // needs to define the top left corner as undefined !
+            myTable.getRowsHeader().addItem(null);
+            
+            myTable.appendRow("B1.1", Arrays.asList("bla3", "BLAH3", 3));
+            myTable.appendRow("B1", Arrays.asList("bla2", "BLAH2", 2));
+            myTable.appendRow("A100", Arrays.asList("bla4", "BLAH4", 4));
+            myTable.appendRow("A10", Arrays.asList("bla6", "BLAH6", 6));
+            myTable.appendRow("A2", Arrays.asList("-bla6", "-BLAH6", -6));
+
+            boolean display = true;
+            
+            displayTestedTable(display, myTable);
+
+            myTable.insertColumn( "Blabla", "Bazar", Arrays.asList( Boolean.TRUE, Boolean.FALSE, "text", null, 3.14) );
+            
+            displayTestedTable(display, myTable);
+            
+            myTable.checkConsistency();
+        
+            assertEquals(Arrays.asList( "TopLeft", "First", "Bazar", "Blabla", "Order"), myTable.getColumnsHeader().getItems());
+            assertEquals(Arrays.asList( true, false, "text", null, 3.14 ), myTable.getColumn("Bazar", Object.class) );
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        } 
+    }
+    
+    /**
+     * Test insertColumn() with only the column header
+     */
+    public void testInsertColumnWithColHeader()
+    {
+        try {
+            TableManager mng = new TableManager();
+            Table myTWithColHeader = mng.initEmptyTable(true, false);
+            
+            // unusual case: handling Integer -instead of String- in header data ... why not ...
+            myTWithColHeader.getColumnsHeader().addItems("First", "Blabla", "Order");
+            
+            myTWithColHeader.appendRow(Arrays.asList("bla3", "BLAH3", 3));
+            myTWithColHeader.appendRow(Arrays.asList("bla2", "BLAH2", 2));
+            myTWithColHeader.appendRow(Arrays.asList("bla4", "BLAH4", 4));
+            myTWithColHeader.appendRow(Arrays.asList("bla6", "BLAH6", 6));
+            myTWithColHeader.appendRow(Arrays.asList("-bla6", "-BLAH6", -6));
+
+            boolean display = true;
+            
+            displayTestedTable(display, myTWithColHeader);
+
+            myTWithColHeader.insertColumn( "Blabla", "Bazar", Arrays.asList( Boolean.TRUE, Boolean.FALSE, "text", null, 3.14) );
+            
+            displayTestedTable(display, myTWithColHeader);
+            
+            myTWithColHeader.checkConsistency();
+        
+            assertEquals(Arrays.asList( "First", "Bazar", "Blabla", "Order"), myTWithColHeader.getColumnsHeader().getItems());
+            assertEquals(Arrays.asList( true, false, "text", null, 3.14 ), myTWithColHeader.getColumn("Bazar", Object.class) );
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        } 
+    }
+    
+    /**
+     * Tests insertColumn() with index, and no headers at all
+     */
+    public void testInsertColumnWithoutHeader()
+    {
+        try {
+            TableManager mng = new TableManager();
+            
+            // no headers
+            Table myTable = mng.initEmptyTable(false, false);
+            
+            myTable.appendRow(Arrays.asList("bla3", "BLAH3", 3));
+            myTable.appendRow(Arrays.asList("bla2", "BLAH2", 2));
+            myTable.appendRow(Arrays.asList("bla4", "BLAH4", 4));
+            myTable.appendRow(Arrays.asList("bla6", "BLAH6", 6));
+            myTable.appendRow(Arrays.asList("-bla6", "-BLAH6", -6));
+
+            boolean display = true;
+            
+            displayTestedTable(display, myTable);
+
+            myTable.insertColumn( 1, Arrays.asList( Boolean.TRUE, Boolean.FALSE, "text", null, 3.14) );
+            
+            displayTestedTable(display, myTable);
+            
+            myTable.checkConsistency();
+        
+            assertEquals(Arrays.asList( true, false, "text", null, 3.14 ), myTable.getColumn(1, Object.class) );
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        }
+    }
+    
+    /**
+     * Tests the insertRow() without header
+     */
+    public void testInsertRowWithoutHeader()
+    {
+        try {
+            TableManager mng = new TableManager();
+            
+            // no headers
+            Table myTable = mng.initEmptyTable(false, false);
+            
+            myTable.appendRow(Arrays.asList("bla3", "BLAH3", 3));
+            myTable.appendRow(Arrays.asList("bla2", "BLAH2", 2));
+            myTable.appendRow(Arrays.asList("bla4", "BLAH4", 4));
+            myTable.appendRow(Arrays.asList("bla6", "BLAH6", 6));
+            myTable.appendRow(Arrays.asList("-bla6", "-BLAH6", -6));
+
+            boolean display = true;
+            
+            displayTestedTable(display, myTable);
+
+            myTable.insertRow( 1, Arrays.asList( "avantBla2", Boolean.FALSE, "text") );
+            
+            displayTestedTable(display, myTable);
+            
+            myTable.checkConsistency();
+        
+            assertEquals(Arrays.asList("avantBla2", Boolean.FALSE, "text" ), myTable.getRow(1, Object.class) );
+            assertEquals(Arrays.asList("bla2", "BLAH2", 2 ), myTable.getRow(2, Object.class) );
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        }
+    }
+    
+    /**
+     * Test insertRow with all headers activated
+     */
+    public void testInsertRowWithAllHeaders()
+    {
+        try {
+            TableManager mng = new TableManager();
+            Table myTable = mng.initEmptyTable(true, true);
+            
+            // unusual case: handling Integer -instead of String- in header data ... why not ...
+            myTable.getColumnsHeader().addItems("TopLeft", "First", "Blabla", "Order");
+            // needs to define the top left corner as undefined !
+            myTable.getRowsHeader().addItem(null);
+            
+            myTable.appendRow("B1.1", Arrays.asList("bla3", "BLAH3", 3));
+            myTable.appendRow("B1", Arrays.asList("bla2", "BLAH2", 2));
+            myTable.appendRow("A100", Arrays.asList("bla4", "BLAH4", 4));
+            myTable.appendRow("A10", Arrays.asList("bla6", "BLAH6", 6));
+            myTable.appendRow("A2", Arrays.asList("-bla6", "-BLAH6", -6));
+
+            boolean display = true;
+            
+            displayTestedTable(display, myTable);
+
+            myTable.insertRow( "A100", "Bazar", Arrays.asList( Boolean.TRUE, Boolean.FALSE, 3.14) );
+            
+            displayTestedTable(display, myTable);
+            
+            myTable.checkConsistency();
+        
+            assertEquals(Arrays.asList( null, "B1.1", "B1", "Bazar", "A100", "A10", "A2"), 
+                         myTable.getRowsHeader().getItems());
+            assertEquals(Arrays.asList( true, false, 3.14), myTable.getRow("Bazar", Object.class) );
+            assertEquals(Arrays.asList( true, false, 3.14), myTable.getRow(3, Object.class) );
+            
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            fail("Test got unexptected error");
+        } 
+    }
+    
+    
     private void displayTestedTable(boolean enableDisplay, Table table) throws IkatsException, ResourceNotFoundException {
         if ( enableDisplay ) 
         {

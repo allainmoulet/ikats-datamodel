@@ -11,16 +11,17 @@ import fr.cs.ikats.temporaldata.exception.IkatsException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 /**
- * The TableInfo is mapping the functional IKATS type 'table', as a JSON resource.
- * TableInfo class can be used as a JSON resource in the Rest services, to be developed in TableResource.
- * <br/>
- * The TableInfo is composed of one TableDesc section, one TableHeaders section and finally one TableContent section.
- * Each section is detailed below.
- * <br/>
- * Note the difference with Table: the business resource Table is a wrapper of TableInfo, managed by TableManager,
- * and providing end-user services in java world.
+ * The TableInfo is mapping the functional IKATS type 'table', as a JSON
+ * resource. TableInfo class can be used as a JSON resource in the Rest
+ * services, to be developed in TableResource. <br/>
+ * The TableInfo is composed of one TableDesc section, one TableHeaders section
+ * and finally one TableContent section. Each section is detailed below. <br/>
+ * Note the difference with Table: the business resource Table is a wrapper of
+ * TableInfo, managed by TableManager, and providing end-user services in java
+ * world.
  */
 public class TableInfo {
 
@@ -79,7 +80,8 @@ public class TableInfo {
          * Boolean (...), otherwise you may have side-effects concerning the
          * copy of content.cells.
          *
-         * @param content content to copy
+         * @param content
+         *            content to copy
          */
         public TableContent(TableContent content) {
 
@@ -111,10 +113,13 @@ public class TableInfo {
         /**
          * Gets from this content the row data, at index, without links
          *
-         * @param index row index to get
+         * @param index
+         *            row index to get
          * @return the row data at index
-         * @throws IkatsException            when this.cells is null
-         * @throws IndexOutOfBoundsException when index is out of bound of this.cells
+         * @throws IkatsException
+         *             when this.cells is null
+         * @throws IndexOutOfBoundsException
+         *             when index is out of bound of this.cells
          */
         @JsonIgnore
         public List<Object> getRowData(int index) throws IkatsException, IndexOutOfBoundsException {
@@ -124,13 +129,18 @@ public class TableInfo {
         }
 
         /**
-         * Gets from this content the row as list of TableElement, at index, wit optional links.
-         * Use this method if TableContent is managing links, otherwise it will throw exception.
+         * Gets from this content the row as list of TableElement, at index, wit
+         * optional links. Use this method if TableContent is managing links,
+         * otherwise it will throw exception.
          *
-         * @param index row index to get
+         * @param index
+         *            row index to get
          * @return the row
-         * @throws IkatsException            when this.cells is null or this.links is null or when cells.size() != links.size()
-         * @throws IndexOutOfBoundsException when index is out of bound of this.cells
+         * @throws IkatsException
+         *             when this.cells is null or this.links is null or when
+         *             cells.size() != links.size()
+         * @throws IndexOutOfBoundsException
+         *             when index is out of bound of this.cells
          */
         @JsonIgnore
         public List<TableElement> getRowDataWithLink(int index) throws IkatsException, IndexOutOfBoundsException {
@@ -154,10 +164,13 @@ public class TableInfo {
         /**
          * Gets from this content the column data, at index, without links
          *
-         * @param index index to get
+         * @param index
+         *            index to get
          * @return the column data at index
-         * @throws IkatsException            when this.cells is null
-         * @throws IndexOutOfBoundsException when index is out of bound of at least one of the rows
+         * @throws IkatsException
+         *             when this.cells is null
+         * @throws IndexOutOfBoundsException
+         *             when index is out of bound of at least one of the rows
          */
         @JsonIgnore
         public List<Object> getColumnData(int index) throws IkatsException, IndexOutOfBoundsException {
@@ -171,7 +184,8 @@ public class TableInfo {
                     throw new IndexOutOfBoundsException("Failed: getSimpleDataColumn at row=" + posRow + " : row is null");
 
                 if (index + 1 > row.size())
-                    throw new IndexOutOfBoundsException("Failed: getSimpleDataColumn at row=" + posRow + " : row size < (index + 1) with index=" + index);
+                    throw new IndexOutOfBoundsException(
+                            "Failed: getSimpleDataColumn at row=" + posRow + " : row size < (index + 1) with index=" + index);
 
                 simpleColumn.add(row.get(index));
 
@@ -181,14 +195,19 @@ public class TableInfo {
         }
 
         /**
-         * Gets from this content the column as list of TableElement, at index, wit optional links.
-         * Use this method if TableContent is managing links, otherwise it will throw exception.
+         * Gets from this content the column as list of TableElement, at index,
+         * wit optional links. Use this method if TableContent is managing
+         * links, otherwise it will throw exception.
          *
          * @param index
-         * @param requiresLinksOrdie true activates the check requiring the links.
+         * @param requiresLinksOrdie
+         *            true activates the check requiring the links.
          * @return the selected column at index
-         * @throws IkatsException            inconsistency error. For instance undefined cells, unexpected undefined links.
-         * @throws IndexOutOfBoundsException when index is out of bound of at least one of the rows
+         * @throws IkatsException
+         *             inconsistency error. For instance undefined cells,
+         *             unexpected undefined links.
+         * @throws IndexOutOfBoundsException
+         *             when index is out of bound of at least one of the rows
          */
         @JsonIgnore
         public List<TableElement> getColumnDataWithLink(int index, boolean requiresLinksOrdie) throws IkatsException, IndexOutOfBoundsException {
@@ -218,7 +237,8 @@ public class TableInfo {
                     posRow++;
                 }
                 return resultColumn;
-            } catch (IndexOutOfBoundsException iob) {
+            }
+            catch (IndexOutOfBoundsException iob) {
 
                 throw new IkatsException("Failed: getColumn at row=" + posRow + " : list size < (index + 1) with index=" + index, iob);
             }
@@ -245,32 +265,32 @@ public class TableInfo {
         /**
          * Activates the links management on TableContent.
          * 
-         * Note: if this.cells is not null, also allocates undefined links to null in order to have same dimensions 
-         * on this.cells and this.links.
+         * Note: if this.cells is not null, also allocates undefined links to
+         * null in order to have same dimensions on this.cells and this.links.
          *
-         * @param defaultProperties configuration of the links is providing default values in order to reduce the volume of JSON.
+         * @param defaultProperties
+         *            configuration of the links is providing default values in
+         *            order to reduce the volume of JSON.
          */
         public void enableLinks(DataLink defaultProperties) {
             if (links == null) {
                 links = new ArrayList<List<DataLink>>();
-                if ( cells != null && cells.size() > 0 )
-                {
+                if (cells != null && cells.size() > 0) {
                     int nbColumns = 0;
                     int nbRows = cells.size();
-                    
+
                     // assumed: all the rows must have the same size
                     // assumed: this.cells is defined => rows size >=1
-                    List<Object> rowOne=cells.get(0);
-                    if ( rowOne != null && rowOne.size() > 0)
-                    {
+                    List<Object> rowOne = cells.get(0);
+                    if (rowOne != null && rowOne.size() > 0) {
                         nbColumns = rowOne.size();
-                        
+
                         for (int indexRow = 0; indexRow < nbRows; indexRow++) {
                             List<DataLink> rowLinks = new ArrayList<>();
                             for (int indexCol = 0; indexCol < nbColumns; indexCol++) {
                                 rowLinks.add(null);
                             }
-                            links.add( rowLinks);
+                            links.add(rowLinks);
                         }
                     }
                 }
@@ -279,11 +299,16 @@ public class TableInfo {
         }
 
         /**
-         * Adds a row using TableElement list: wrapping data values and optional links
+         * Adds a row using TableElement list: wrapping data values and optional
+         * links
          *
-         * @param elements list of elements: wrappers of data and link
-         * @return this TableContent: this convenient to chain the modifiers: this.addRow(...).addRow(...)
-         * @throws IkatsException inconsistency error. Example: trying to add a link in TableContent which is not managing links.
+         * @param elements
+         *            list of elements: wrappers of data and link
+         * @return this TableContent: this convenient to chain the modifiers:
+         *         this.addRow(...).addRow(...)
+         * @throws IkatsException
+         *             inconsistency error. Example: trying to add a link in
+         *             TableContent which is not managing links.
          */
         public TableContent addRow(List<TableElement> elements) throws IkatsException {
             int posCol = 0;
@@ -296,7 +321,8 @@ public class TableInfo {
                 rowData.add(elem.data);
                 if (manageLinks) {
                     rowLinks.add(elem.link);
-                } else if (elem.link != null) {
+                }
+                else if (elem.link != null) {
                     throw new IkatsException("Failed to add new row at " + posRow + " column=" + posCol + ": links not managed but got " + elem.link);
                 }
                 posCol++;
@@ -309,23 +335,33 @@ public class TableInfo {
         }
 
         /**
-         * Not yet implemented
+         * Insert the row at index specified by beforeIndex.
          *
-         * @return
-         * @deprecated Unsupported operation.
+         * @param beforeIndex
+         * @param elements
+         * @return this
+         * @throws IkatsException faied to insert the row
          */
         public TableContent insertRow(int beforeIndex, List<TableElement> elements) throws IkatsException {
-            throw new UnsupportedOperationException("Not yet implemented");
-        }
-
-        /**
-         * Not yet implemented
-         *
-         * @return
-         * @deprecated Unsupported operation.
-         */
-        public TableContent replaceRow(int index, List<TableElement> elements) throws IkatsException {
-            throw new UnsupportedOperationException("Not yet implemented");
+            int posRow = 0;
+            try {
+                List<Object> rowData = new ArrayList<>();
+                List<DataLink> rowLinks = links != null ? new ArrayList<>() : null;
+                for (TableElement tableElement : elements) {
+                    rowData.add( tableElement.data);
+                         
+                    if (rowLinks != null) rowLinks.add( tableElement.link );
+                    posRow++;
+                }
+               
+                cells.add(beforeIndex, rowData );
+                if ( rowLinks != null ) links.add( beforeIndex, rowLinks);
+                
+                return this;
+            }
+            catch (NullPointerException | IndexOutOfBoundsException | NoSuchElementException e) {
+                throw new IkatsException("Failed to insert row at index=" + beforeIndex + " near index=" + posRow, e);
+            }
         }
 
         /**
@@ -344,53 +380,74 @@ public class TableInfo {
          * @return
          */
         public TableContent addColumn(List<TableElement> elements) throws IkatsException {
-            
-            if ( elements.size() != cells.size())
-                throw new IkatsException( "Inconsistency error number of rows=" + cells.size() 
-                                          + " is different from the size of added column="  + elements.size() );
+
+            if (elements.size() != cells.size())
+                throw new IkatsException(
+                        "Inconsistency error number of rows=" + cells.size() + " is different from the size of added column=" + elements.size());
             boolean manageLinks = links != null;
-            if ( manageLinks && (elements.size() != links.size()))
-                throw new IkatsException( "Inconsistency error number of row links=" + links.size() 
-                                          + " is different from the size of added column links="  + elements.size() );
-            
-            int posRow=0;
-            int posCol=elements.size();
-            Iterator<List<Object>> iterateOnRows= cells.iterator();
-            Iterator<List<DataLink>> iterateOnRowLinks=  manageLinks ? links.iterator() : null;
-            for (TableElement tableElement: elements) {
+            if (manageLinks && (elements.size() != links.size()))
+                throw new IkatsException("Inconsistency error number of row links=" + links.size()
+                        + " is different from the size of added column links=" + elements.size());
+
+            int posRow = 0;
+            int posCol = elements.size();
+            Iterator<List<Object>> iterateOnRows = cells.iterator();
+            Iterator<List<DataLink>> iterateOnRowLinks = manageLinks ? links.iterator() : null;
+            for (TableElement tableElement : elements) {
                 List<Object> row = iterateOnRows.next();
                 row.add(tableElement.data);
-                if ( manageLinks ) {
+                if (manageLinks) {
                     List<DataLink> rowLinks = iterateOnRowLinks.next();
                     rowLinks.add(tableElement.link);
-                } else if (tableElement.link != null) {
-                    throw new IkatsException("Failed to add new row at " + posRow + " column=" 
-                                             + posCol + ": links not managed but got " + tableElement.link);
+                }
+                else if (tableElement.link != null) {
+                    throw new IkatsException(
+                            "Failed to add new row at " + posRow + " column=" + posCol + ": links not managed but got " + tableElement.link);
                 }
                 posRow++;
             }
-            
+
             return this;
         }
 
         /**
-         * Not yet implemented
-         *
-         * @return
-         * @deprecated Unsupported operation.
+         * Inserts the specified column at the specified position in this list
+         * (optional operation). Shifts the columns currently at that position
+         * (if any) and any subsequent columns to the right (adds one to their
+         * indices).
+         * <p>
+         * This operation updates as well this.cells and -if not null-
+         * this.links
+         * 
+         * @param beforeIndex
+         *            the index defining the location inserted column.
+         * @param elements
+         *            the list of TableElement defining the inserted column
+         * @return this TabkeContent
+         * @throws IkatsException
          */
         public TableContent insertColumn(int beforeIndex, List<TableElement> elements) throws IkatsException {
-            throw new UnsupportedOperationException("Not yet implemented");
-        }
+            int posRow = 0;
+            try {
+                Iterator<List<Object>> iterData = cells.iterator();
+                Iterator<List<DataLink>> iterLinks = links != null ? links.iterator() : null;
 
-        /**
-         * Not yet implemented
-         *
-         * @return
-         * @deprecated Unsupported operation.
-         */
-        public TableContent replaceColumn(int index, List<TableElement> elements) throws IkatsException {
-            throw new UnsupportedOperationException("Not yet implemented");
+                for (TableElement tableElement : elements) {
+                    List<Object> currentRow = iterData.next();
+                    currentRow.add(beforeIndex, tableElement.data);
+
+                    if (iterLinks != null) {
+                        List<DataLink> currentRowLinks = iterLinks.next();
+                        currentRowLinks.add(beforeIndex, tableElement.link);
+                    }
+                    posRow++;
+                }
+                return this;
+            }
+            catch (NullPointerException | IndexOutOfBoundsException | NoSuchElementException e) {
+                throw new IkatsException("Failed to insert column at index=" + beforeIndex + " near row index=" + posRow, e);
+            }
+
         }
 
         /**
@@ -402,15 +459,20 @@ public class TableInfo {
         public TableContent deleteColumn(int index) throws IkatsException {
             throw new UnsupportedOperationException("Not yet implemented");
         }
-        
+
         /**
          * Internal use only: creates a new TableContent.
          * 
-         * @param cellData the defined data item.
-         * @param links the defined links items.
-         * @param defaultLink when not null: the DataLink defining the default properties applicable to content links.
+         * @param cellData
+         *            the defined data item.
+         * @param links
+         *            the defined links items.
+         * @param defaultLink
+         *            when not null: the DataLink defining the default
+         *            properties applicable to content links.
          * @return the created TableContent
-         * @throws IkatsException inconsistency error during initialization.
+         * @throws IkatsException
+         *             inconsistency error during initialization.
          */
         static TableContent initContent(List<List<Object>> cellData, List<List<DataLink>> links, DataLink defaultLink) throws IkatsException {
 
@@ -424,7 +486,6 @@ public class TableInfo {
             return content;
 
         }
-
 
     }
 
@@ -441,7 +502,8 @@ public class TableInfo {
 
         /**
          * The parameter value defining the link to the data. For example: the
-         * ID value of linked data (processdata, TS, ...). Note: this can be a complex Object.
+         * ID value of linked data (processdata, TS, ...). Note: this can be a
+         * complex Object.
          */
         public Object val;
         /**
@@ -481,23 +543,26 @@ public class TableInfo {
         public String toString() {
             return "DataLink [type=" + type + ", val=" + val + ", context=" + context + "]";
         }
-        
+
         /**
          * Build a new POJO DataLink
-         * @param type type of DataLink
-         * @param val value of DataLink
-         * @param context context of DataLink
+         * 
+         * @param type
+         *            type of DataLink
+         * @param val
+         *            value of DataLink
+         * @param context
+         *            context of DataLink
          * @return created DataLink
          */
-        final static public DataLink buildLink( String type, Object val, String context )
-        {
+        final static public DataLink buildLink(String type, Object val, String context) {
             DataLink link = new DataLink();
             link.type = type;
             link.val = val;
             link.context = context;
-            
+
             return link;
-            
+
         }
     }
 
@@ -560,35 +625,33 @@ public class TableInfo {
         /**
          * Adds new Header data in the table
          *
-         * @param data: header data can be TableElement -including optional link-, or immutable object.
+         * @param data:
+         *            header data can be TableElement -including optional link-,
+         *            or immutable object.
          * @return
          * @throws IkatsException
          */
         public Header addItem(Object data) throws IkatsException {
-            if (data == null) 
-                {
+            if (data == null) {
                 return addItem(null, null);
-                }
-            else if (data instanceof TableElement) 
-                {
+            }
+            else if (data instanceof TableElement) {
                 return addItem(((TableElement) data).data, ((TableElement) data).link);
-                }
-            else if ( data instanceof DataLink)
-            {
+            }
+            else if (data instanceof DataLink) {
                 return addItem(null, (DataLink) data);
             }
-            else
-            {
+            else {
                 return addItem(data, null);
             }
         }
-        
+
         /**
-         * Adds a list of items.
-         * For each data item, calls this.addItem(item)
+         * Adds a list of items. For each data item, calls this.addItem(item)
+         * 
          * @param data
          * @return
-         * @throws IkatsException 
+         * @throws IkatsException
          */
         public <T> Header addItems(T... data) throws IkatsException {
             for (int i = 0; i < data.length; i++) {
@@ -598,8 +661,10 @@ public class TableInfo {
         }
 
         /**
-         * @param data the information added as data: immutable object or null.
-         * @param link the link associated to data: DataLink or null
+         * @param data
+         *            the information added as data: immutable object or null.
+         * @param link
+         *            the link associated to data: DataLink or null
          * @return this: convenient for chained calls.
          * @throws IkatsException
          */
@@ -609,15 +674,17 @@ public class TableInfo {
 
             this.data.add(data);
             // links are managed <=> this.links is not null
-            // And if links are managed: it is yet possible and required to add null link.
-            if (this.links != null) this.links.add(link);
+            // And if links are managed: it is yet possible and required to add
+            // null link.
+            if (this.links != null)
+                this.links.add(link);
 
             return this;
         }
 
         /**
-         * Gets the this.data: this service is internal to TableManager / Table implementation.
-         * You can use getItems(), for external use. 
+         * Gets the this.data: this service is internal to TableManager / Table
+         * implementation. You can use getItems(), for external use.
          *
          * @return
          */
@@ -627,19 +694,24 @@ public class TableInfo {
 
         /**
          * Gets the header data as String: each data item is converted to String
+         * 
          * @return the computed collection from this.data
-         * @throws IkatsException converting error
+         * @throws IkatsException
+         *             converting error
          */
         @JsonIgnore
         public List<String> getItems() throws IkatsException {
-            return  getItems(String.class);
+            return getItems(String.class);
         }
-        
+
         /**
-         * Gets the header data: each data item is converted to T, using toString when T is String or a cast otherwise.
+         * Gets the header data: each data item is converted to T, using
+         * toString when T is String or a cast otherwise.
+         * 
          * @param castingClass
          * @return the computed collection from this.data
-         * @throws IkatsException converting error
+         * @throws IkatsException
+         *             converting error
          */
         @JsonIgnore
         public <T> List<T> getItems(Class<T> castingClass) throws IkatsException {
@@ -654,12 +726,16 @@ public class TableInfo {
             return TableElement.encodeElements(this.data, this.links);
         }
 
+        /**
+         * Activates the links management on this header
+         * 
+         * @param defaultProperties
+         */
         public void enableLinks(DataLink defaultProperties) {
             if (links == null) {
-                
+
                 links = new ArrayList<DataLink>();
-                if ( data != null && data.size() > 0 )
-                {
+                if (data != null && data.size() > 0) {
                     for (int i = 0; i < data.size(); i++) {
                         links.add(null);
                     }
@@ -668,13 +744,20 @@ public class TableInfo {
             }
             // else: ignored !
         }
-        
+
         /**
-         * Internally used by TableManager: initializes the specified Header. 
-         * @param headerData the data part of the header
-         * @param headerLinks the links part of the header
-         * @param defaultLink this link specifies the default link properties, when they are missing in headerLinks items.
-         * @param startWithTopLeftCorner true when provided values are defined from the top-left corner.
+         * Internally used by TableManager: initializes the specified Header.
+         * 
+         * @param headerData
+         *            the data part of the header
+         * @param headerLinks
+         *            the links part of the header
+         * @param defaultLink
+         *            this link specifies the default link properties, when they
+         *            are missing in headerLinks items.
+         * @param startWithTopLeftCorner
+         *            true when provided values are defined from the top-left
+         *            corner.
          * @return created Header.
          */
         static Header createHeader(List<Object> headerData, List<DataLink> headerLinks, DataLink defaultLink, boolean startWithTopLeftCorner) {
@@ -694,6 +777,33 @@ public class TableInfo {
             initHeader.default_links = defaultLink;
 
             return initHeader;
+        }
+
+        /**
+         * Insert new element in Header: data + optional link
+         * 
+         * @param insertedIndexColHeader
+         *            the position of insertion
+         * @param elemH
+         *            the table element (data+link) inserted int this Header.
+         * @throws IkatsException
+         *             inconsistency error detected. Ex. when elemH
+         *             defines a link while this.links == null. Ex. when index is
+         *             out of bound.
+         */
+        public void insertItem(int insertedIndexColHeader, TableElement elemH) throws IkatsException {
+            try {
+                if (elemH.link != null && this.links == null)
+                    throw new IkatsException("Inconsistency: insert header item with link, on a header not managing the links");
+
+                data.add(insertedIndexColHeader, elemH.data);
+                if (links != null)
+                    links.add(insertedIndexColHeader, elemH.link);
+            }
+            catch (IkatsException | NullPointerException | IndexOutOfBoundsException e) {
+                throw new IkatsException("Failed to insert " + elemH.toString() + " at header position=" + insertedIndexColHeader, e);
+            }
+
         }
     }
 
@@ -803,6 +913,7 @@ public class TableInfo {
 
     /**
      * Internal use: copy a collection of links
+     * 
      * @param links
      * @return
      */

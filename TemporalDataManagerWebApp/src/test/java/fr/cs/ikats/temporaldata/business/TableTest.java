@@ -79,6 +79,7 @@ public class TableTest extends TestCase {
             assertEquals( testedTable.content.cells.get(1).get(1), -5.0 ); 
             assertEquals( testedTable.content.links, null);
             assertEquals( testedTable.content.default_links, null);
+
         }
         catch (Exception e) {
             fail("Failed test");
