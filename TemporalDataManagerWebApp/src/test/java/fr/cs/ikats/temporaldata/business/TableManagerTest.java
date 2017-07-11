@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
-import fr.cs.ikats.temporaldata.business.TableManager.Table;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import junit.framework.TestCase;

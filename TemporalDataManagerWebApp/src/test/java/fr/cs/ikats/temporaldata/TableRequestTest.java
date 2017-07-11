@@ -1,8 +1,9 @@
 package fr.cs.ikats.temporaldata;
 
+import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableManager;
-import fr.cs.ikats.temporaldata.business.TableManager.Table;
+
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;

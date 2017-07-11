@@ -4,7 +4,6 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
-import fr.cs.ikats.temporaldata.business.TableManager.Table;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import org.apache.log4j.Logger;
 import org.junit.Test;
