@@ -668,7 +668,7 @@ public class TableResource extends AbstractResource {
         Table table = tableManager.initTable(tableInfo, false);
 
         List<Table> tabListResult;
-        if (targetColumnName == "") {
+        if (targetColumnName.equals("")) {
             tabListResult = tableManager.randomSplitTable(table, repartitionRate);
         } else {
             tabListResult = tableManager.trainTestSplitTable(table, targetColumnName, repartitionRate);

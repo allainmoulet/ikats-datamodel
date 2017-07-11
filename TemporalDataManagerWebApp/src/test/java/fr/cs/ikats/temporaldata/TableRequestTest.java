@@ -332,7 +332,8 @@ public class TableRequestTest extends AbstractRequestTest {
         try {
             start(testCaseName, isNominal);
 
-            File file = getFileMatchingResource(testCaseName, "/data/test_import_table_incorrect_line_length.csv");
+            File file = getFileMatchingResource(testCaseName,
+                    "/data/test_import_table_incorrect_line_length.csv");
 
             getLogger().info("CSV table file : " + file.getAbsolutePath());
             String tableName = "TableTestIncorrectCSVFile";
@@ -345,7 +346,8 @@ public class TableRequestTest extends AbstractRequestTest {
         }
     }
 
-    protected String doImport(String url, File file, String dataType, int statusExpected, String rowName, String tableName) {
+    protected String doImport(String url, File file, String dataType, int statusExpected, String rowName,
+                              String tableName) {
         Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
                 .build();
         WebTarget target = client.target(url);
@@ -388,7 +390,8 @@ public class TableRequestTest extends AbstractRequestTest {
         return s.hasNext() ? s.next() : "";
     }
 
-    private String doTs2Feature(String tableJson, String metaName, String populationId, String outputTableName, int statusExpected) throws IOException {
+    private String doTs2Feature(String tableJson, String metaName, String populationId, String outputTableName,
+                                int statusExpected) throws IOException {
         Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
                 .build();
         String url = getAPIURL() + "/table/ts2feature";
@@ -415,7 +418,8 @@ public class TableRequestTest extends AbstractRequestTest {
 
     }
 
-    private String doTrainTestSplit(String tableJson, String targetColumnName, double repartitionRate, String outputTableName, int statusExpected) throws IOException {
+    private String doTrainTestSplit(String tableJson, String targetColumnName, double repartitionRate,
+                                    String outputTableName, int statusExpected) throws IOException {
         Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
                 .build();
         String url = getAPIURL() + "/table/traintestsplit";

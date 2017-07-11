@@ -429,39 +429,55 @@ public class TableManager {
         // randomly split indexes list
         indexListOutput = randomSplitTableIndexes(indexListInput, repartitionRate);
 
+        // result initialization
+        Table table1 = initEmptyTable(withColHeaders, withRowHeaders);
+        Table table2 = initEmptyTable(withColHeaders, withRowHeaders);
+        List<Table> result = new ArrayList<>();
+        result.add(table1);
+        result.add(table2);
+
         // extract rows at splitted indexes to generate output
-        Table table1 = extractIndexes(indexListOutput.get(0), table, withRowHeaders);
-        Table table2 = extractIndexes(indexListOutput.get(1), table, withRowHeaders);
+        table1 = extractIndexes(table, table1, indexListOutput.get(0));
+        table2 = extractIndexes(table, table2, indexListOutput.get(1));
         if (withColHeaders) {
             table1.getColumnsHeader().addItems(table.getColumnsHeader().getItems().toArray());
             table2.getColumnsHeader().addItems(table.getColumnsHeader().getItems().toArray());
         }
-        List<Table> result = new ArrayList<>();
-        result.add(table1);
-        result.add(table2);
+
+        // assuming first column is id, sorting output tables
+        table1.sortRowsByColumnValues(0, false);
+        table2.sortRowsByColumnValues(0, false);
 
         return result;
 
     }
 
     /**
-     * @param indexList list of rows indexes to extract
-     * @param table     table used to extract rows
+     * Extract rows from tableIn matching list of indexes (indexList) to tableOut.
+     *
+     * @param tableIn   table in from which rows are extracted
+     * @param tableOut  table out contains only rows from tableIn matching indexList indexex
+     * @param indexList list of rows indexes to extract from tableIn
      * @throws IkatsException            row from original table is undefined
      * @throws ResourceNotFoundException row from original table is not found
      */
-    private Table extractIndexes(List<Integer> indexList, Table table, boolean withRowHeaders) throws ResourceNotFoundException, IkatsException {
+    private Table extractIndexes(Table tableIn, Table tableOut, List<Integer> indexList) throws ResourceNotFoundException, IkatsException {
 
-        // result initialization
-        Table tableOut = initEmptyTable(true, withRowHeaders);
+        // shifting indexes in case of row headers
+        int shift = (tableIn.isHandlingColumnsHeader()) ? 1 : 0;
+
+        // init row headers (first item is null)
+        if (tableIn.isHandlingRowsHeader()) {
+            tableOut.getRowsHeader().addItem(null);
+        }
 
         // retrieving rows from original table according to list of indexes previously generated
         // and filling output tables (row headers included, if managed)
         for (Integer index : indexList) {
-            if (withRowHeaders) {
-                tableOut.getRowsHeader().addItem(table.getRowsHeader().getItems().get(index));
+            if (tableOut.isHandlingRowsHeader()) {
+                tableOut.getRowsHeader().addItem(tableIn.getRowsHeader().getItems().get(index + 1));
             }
-            tableOut.appendRow(table.getRow(index, Object.class));
+            tableOut.appendRow(tableIn.getRow(index + shift, Object.class));
         }
         return tableOut;
 
@@ -502,7 +518,7 @@ public class TableManager {
         // building list of indexes where classes change
         List<Integer> indexList = new ArrayList<>();
         Object lastClassValue = classColumnContent.get(0);
-        for (int i = 1; i < classColumnContent.size(); i++) {
+        for (int i = 0; i < classColumnContent.size(); i++) {
             if (!classColumnContent.get(i).equals(lastClassValue)) {
                 indexList.add(i - 1);
                 lastClassValue = classColumnContent.get(i);
@@ -517,7 +533,7 @@ public class TableManager {
 
         int nextIndex = iteratorIndexList.next();
         for (int i = 0; i < nbLines; i++) {
-            listIndexToAppend.add(i + 1);
+            listIndexToAppend.add(i);
             if (i >= nextIndex) {
                 indexesListByClass.add(randomSplitTableIndexes(listIndexToAppend, repartitionRate));
                 listIndexToAppend.clear();
