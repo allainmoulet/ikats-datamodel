@@ -565,19 +565,21 @@ public class TableManager {
 
         // retrieving rows from original table according to list of indexes previously generated
         // and filling output tables
+        // shifting indexes in case of row headers
+        int shift = (table.isHandlingColumnsHeader()) ? 1 : 0;
         for (List<List<Integer>> indexesList : indexesListByClass) {
             List<Integer> tableRated1 = indexesList.get(0);
             List<Integer> tableRated2 = indexesList.get(1);
             for (int i = 0; i < tableRated1.size(); i++) {
-                table1.appendRow(table.getRow(tableRated1.get(i), Object.class));
+                table1.appendRow(table.getRow(tableRated1.get(i) + shift, Object.class));
                 if (withRowHeaders) {
-                    table1.getRowsHeader().addItem(table.getRowsHeader().getItems().get(tableRated1.get(i)));
+                    table1.getRowsHeader().addItem(table.getRowsHeader().getItems().get(tableRated1.get(i) + 1));
                 }
             }
             for (int i = 0; i < tableRated2.size(); i++) {
-                table2.appendRow(table.getRow(tableRated2.get(i), Object.class));
+                table2.appendRow(table.getRow(tableRated2.get(i) + shift, Object.class));
                 if (withRowHeaders) {
-                    table2.getRowsHeader().addItem(table.getRowsHeader().getItems().get(tableRated2.get(i)));
+                    table2.getRowsHeader().addItem(table.getRowsHeader().getItems().get(tableRated2.get(i) + 1));
                 }
             }
         }
