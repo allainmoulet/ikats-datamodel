@@ -1,27 +1,4 @@
-/**
- * $Id$
- *
- * HISTORIQUE
- *
- * VERSION : 1.0 : <US> : <NumUS> : 10 nov. 2015 : Creation 
- *
- * FIN-HISTORIQUE
- */
 package fr.cs.ikats.ts.dataset;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.apache.log4j.Logger;
-
-import org.junit.Test;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
@@ -31,6 +8,14 @@ import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.ts.dataset.model.DataSet;
 import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  * Test class for DataSet Facade
@@ -54,16 +39,16 @@ public class DataSetTest extends CommonTest {
         try {
 
             start(testCaseName, isNominal);
+            DataSetFacade facade = getDatasetFacade();
             String datasetNameTested = "dataSet1_" + testCaseName;
 
-            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[] { "tsuid1", "MAM", "toto", "test" }, testCaseName);
+            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid1", "MAM", "toto", "test"}, testCaseName);
 
             List<String> tsuids = new ArrayList<String>(mapTsuidToFuncId.keySet());
 
             // pre-condition : tsuids exist with functional ids
             ArrayList<FunctionalIdentifier> fidEntities = saveFuncIds(mapTsuidToFuncId, tsuids);
 
-            DataSetFacade facade = getDatasetFacade();
             String results = facade.persistDataSetFromEntity(datasetNameTested, "Description courte du dataset cree depuis les entites", fidEntities);
 
             // String results = facade.persistDataSet( "dataSet1", "Description
@@ -94,20 +79,20 @@ public class DataSetTest extends CommonTest {
         try {
 
             start(testCaseName, isNominal);
+            DataSetFacade facade = getDatasetFacade();
             String datasetNameTested = "dataSet1_" + testCaseName;
 
-            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[] { "tsuid1", "MAM", "toto", "test" }, testCaseName);
+            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid1", "MAM", "toto", "test"}, testCaseName);
 
             List<String> tsuids = new ArrayList<String>(mapTsuidToFuncId.keySet());
 
             // pre-condition : tsuids exist with functional ids
             // => not saved here !!!
             ArrayList<FunctionalIdentifier> fidEntities = new ArrayList<FunctionalIdentifier>(); // saveFuncIds(mapTsuidToFuncId,
-                                                                                                 // tsuids);
+            // tsuids);
             for (String tsuid : mapTsuidToFuncId.keySet()) {
                 fidEntities.add(new FunctionalIdentifier(tsuid, mapTsuidToFuncId.get(tsuid)));
             }
-            DataSetFacade facade = getDatasetFacade();
             String results = facade.persistDataSetFromEntity(datasetNameTested, "Description courte du dataset cree depuis les entites", fidEntities);
             throw new Exception("Failed: expected error is not raised: unreferenced tsuid in tsfunctionalidentifier");
         }
@@ -132,16 +117,16 @@ public class DataSetTest extends CommonTest {
 
         try {
             start(testCaseName, isNominal);
+            DataSetFacade facade = getDatasetFacade();
             String datasetNameTested = "dataSet1_" + testCaseName;
 
-            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[] { "tsuid1", "MAM", "toto", "test" }, testCaseName);
+            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid1", "MAM", "toto", "test"}, testCaseName);
 
             List<String> tsuids = new ArrayList<String>(mapTsuidToFuncId.keySet());
 
             // pre-condition : tsuids exist with functional ids
             ArrayList<FunctionalIdentifier> fidEntities = saveFuncIds(mapTsuidToFuncId, tsuids);
 
-            DataSetFacade facade = getDatasetFacade();
 
             String results = facade.persistDataSet(datasetNameTested, "Description courte du dataset cree depuis des string tsuid", tsuids);
 
@@ -171,9 +156,10 @@ public class DataSetTest extends CommonTest {
 
         try {
             start(testCaseName, isNominal);
+            DataSetFacade facade = getDatasetFacade();
             String datasetNameTested = "dataSet1_" + testCaseName;
 
-            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[] { "tsuid1", "MAM", "toto", "test" }, testCaseName);
+            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid1", "MAM", "toto", "test"}, testCaseName);
 
             List<String> tsuids = new ArrayList<String>(mapTsuidToFuncId.keySet());
 
@@ -181,7 +167,6 @@ public class DataSetTest extends CommonTest {
             // ArrayList<FunctionalIdentifier> fidEntities =
             // saveFuncIds(mapTsuidToFuncId, tsuids);
 
-            DataSetFacade facade = getDatasetFacade();
 
             String results = facade.persistDataSet(datasetNameTested, "Description courte du dataset cree depuis des string tsuid", tsuids);
 
@@ -207,9 +192,9 @@ public class DataSetTest extends CommonTest {
 
             DataSetFacade facade = getDatasetFacade();
 
-            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[] { "tsuid1", "MAM", "toto" }, testCaseName);
+            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid1", "MAM", "toto"}, testCaseName);
 
-            HashMap<String, String> map2TsuidToFuncId = getTestedTsuidFidMap(new String[] { "tsuid2", "hello", "toto", "titi", "bye" }, testCaseName);
+            HashMap<String, String> map2TsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid2", "hello", "toto", "titi", "bye"}, testCaseName);
 
             List<String> tsuids = new ArrayList<String>(mapTsuidToFuncId.keySet());
             List<String> tsuids2 = new ArrayList<String>(map2TsuidToFuncId.keySet());
@@ -245,7 +230,7 @@ public class DataSetTest extends CommonTest {
      * Test method for
      * {@link fr.cs.ikats.ts.dataset.DataSetFacade#updateDataSet(java.lang.String, java.lang.String, java.util.List)}
      * .
-     * 
+     *
      * @throws IkatsDaoException
      */
     @Test
@@ -259,7 +244,7 @@ public class DataSetTest extends CommonTest {
 
             DataSetFacade facade = getDatasetFacade();
 
-            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[] { "tsuid1", "MAM", "toto" }, testCaseName);
+            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid1", "MAM", "toto"}, testCaseName);
 
             List<String> tsuids = new ArrayList<String>(mapTsuidToFuncId.keySet());
 
@@ -330,11 +315,11 @@ public class DataSetTest extends CommonTest {
 
             DataSetFacade facade = getDatasetFacade();
 
-            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[] { "tsuid1", "MAM", "toto" }, testCaseName);
+            HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid1", "MAM", "toto"}, testCaseName);
 
-            HashMap<String, String> map2TsuidToFuncId = getTestedTsuidFidMap(new String[] { "tsuid2", "hello", "toto", "titi", "bye" }, testCaseName);
+            HashMap<String, String> map2TsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid2", "hello", "toto", "titi", "bye"}, testCaseName);
 
-            HashMap<String, String> map3TsuidToFuncId = getTestedTsuidFidMap(new String[] { "tsuid3", "hello2", "toto", "titi" }, testCaseName);
+            HashMap<String, String> map3TsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid3", "hello2", "toto", "titi"}, testCaseName);
 
             List<String> tsuids = new ArrayList<String>(mapTsuidToFuncId.keySet());
             List<String> tsuids2 = new ArrayList<String>(map2TsuidToFuncId.keySet());
@@ -395,9 +380,9 @@ public class DataSetTest extends CommonTest {
 
             DataSetFacade facade = getDatasetFacade();
 
-            HashMap<String, String> map2TsuidToFuncId = getTestedTsuidFidMap(new String[] { "tsuid2", "hello", "toto", "titi", "bye" }, testCaseName);
+            HashMap<String, String> map2TsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid2", "hello", "toto", "titi", "bye"}, testCaseName);
 
-            HashMap<String, String> map3TsuidToFuncId = getTestedTsuidFidMap(new String[] { "tsuid3", "hello2", "toto", "titi" }, testCaseName);
+            HashMap<String, String> map3TsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid3", "hello2", "toto", "titi"}, testCaseName);
 
             List<String> tsuids2 = new ArrayList<String>(map2TsuidToFuncId.keySet());
             List<String> tsuids3 = new ArrayList<String>(map3TsuidToFuncId.keySet());
@@ -446,7 +431,7 @@ public class DataSetTest extends CommonTest {
      * Test method for
      * {@link fr.cs.ikats.ts.dataset.DataSetFacade#removeDataSet(java.lang.String)}
      * .
-     * 
+     *
      * @throws IkatsDaoException
      */
     @Test
@@ -460,7 +445,7 @@ public class DataSetTest extends CommonTest {
 
             DataSetFacade facade = getDatasetFacade();
 
-            HashMap<String, String> testTsuidFuncId = getTestedTsuidFidMap(new String[] { "tsuid1", "tsuid2" }, testCaseName);
+            HashMap<String, String> testTsuidFuncId = getTestedTsuidFidMap(new String[]{"tsuid1", "tsuid2"}, testCaseName);
 
             List<String> tsuids = new ArrayList<String>(testTsuidFuncId.keySet());
 
@@ -514,7 +499,7 @@ public class DataSetTest extends CommonTest {
      * Test method for
      * {@link fr.cs.ikats.ts.dataset.DataSetFacade#getDataSet(java.lang.String)}
      * .
-     * 
+     *
      * @throws IkatsDaoException
      */
     @Test
@@ -528,7 +513,7 @@ public class DataSetTest extends CommonTest {
 
             DataSetFacade facade = getDatasetFacade();
 
-            HashMap<String, String> testTsuidFuncId = getTestedTsuidFidMap(new String[] { "tsuid1", "tsuid2" }, testCaseName);
+            HashMap<String, String> testTsuidFuncId = getTestedTsuidFidMap(new String[]{"tsuid1", "tsuid2"}, testCaseName);
 
             List<String> tsuids = new ArrayList<String>(testTsuidFuncId.keySet());
 
@@ -552,9 +537,9 @@ public class DataSetTest extends CommonTest {
 
             assertEquals("Check content of get dataset: tsuid as string", true, result.getTsuidsAsString().contains(encodedTsuid2));
 
-            assertEquals("Check content of get dataset: TimeSerie", true, result.getLinksToTimeSeries().contains(new LinkDatasetTimeSeries(encodedTsuid1, dsname)));
-            assertEquals("Check content of get dataset: TimeSerie", true, result.getLinksToTimeSeries().contains(new LinkDatasetTimeSeries(encodedTsuid2, dsname)));
-            assertEquals("Check content of get dataset: TimeSerie", false, result.getLinksToTimeSeries().contains(new LinkDatasetTimeSeries("outsideTs", dsname)));
+            assertEquals("Check content of get dataset: TimeSeries", true, result.getLinksToTimeSeries().contains(new LinkDatasetTimeSeries(encodedTsuid1, dsname)));
+            assertEquals("Check content of get dataset: TimeSeries", true, result.getLinksToTimeSeries().contains(new LinkDatasetTimeSeries(encodedTsuid2, dsname)));
+            assertEquals("Check content of get dataset: TimeSeries", false, result.getLinksToTimeSeries().contains(new LinkDatasetTimeSeries("outsideTs", dsname)));
             facade.removeDataSet(dsname);
 
             endNominal(testCaseName);
@@ -569,7 +554,7 @@ public class DataSetTest extends CommonTest {
     /**
      * Test method for
      * {@link fr.cs.ikats.ts.dataset.DataSetFacade#getAllDataSetSummary()}.
-     * 
+     *
      * @throws IkatsDaoException
      */
     @Test
@@ -580,11 +565,11 @@ public class DataSetTest extends CommonTest {
 
         try {
             start(testCaseName, isNominal);
+            DataSetFacade facade = getDatasetFacade();
 
             // ---------- prepare data ... -----------------------------------------
-            PreparedTsReferences preparedData = new PreparedTsReferences(new String[] { "tsuid1", "tsuid2" }, testCaseName, true);
+            PreparedTsReferences preparedData = new PreparedTsReferences(new String[]{"tsuid1", "tsuid2"}, testCaseName, true);
 
-            DataSetFacade facade = getDatasetFacade();
             List<DataSet> result;
             try {
                 result = facade.getAllDataSetSummary();
@@ -593,20 +578,20 @@ public class DataSetTest extends CommonTest {
                 }
             }
             catch (IkatsDaoMissingRessource e) {
-               // Ok: no dataset found by facade.getAllDataSetSummary(): BD is cleaned
+                // Ok: no dataset found by facade.getAllDataSetSummary(): BD is cleaned
             }
-            
+
             facade.persistDataSet(encodeDatasetName("dataSet6", testCaseName), "desc courte 6", preparedData.tsuids);
             facade.persistDataSet(encodeDatasetName("dataSet7", testCaseName), "desc courte 7", preparedData.tsuids);
             facade.persistDataSet(encodeDatasetName("dataSet8", testCaseName), "desc courte 8", preparedData.tsuids);
             facade.persistDataSet(encodeDatasetName("dataSet9", testCaseName), "desc courte 9", preparedData.tsuids);
 
             // ---------- ... prepare data ----------------------------------------
-            
+
             result = facade.getAllDataSetSummary();
 
             for (DataSet dataSet : result) {
-                getLogger().info( dataSet );
+                getLogger().info(dataSet);
             }
             assertEquals(4, result.size());
             assertEquals(encodeDatasetName("dataSet6", testCaseName), result.get(0).getName());
@@ -618,13 +603,15 @@ public class DataSetTest extends CommonTest {
             assertEquals(encodeDatasetName("dataSet9", testCaseName), result.get(3).getName());
             assertEquals("desc courte 9", result.get(3).getDescription());
 
-            List<String> testedListTsuid = 
-                    result.get(0).getLinksToTimeSeries().
-                    stream().map(LinkDatasetTimeSeries::getTsuid).
-                    collect(Collectors.toList());
-            
-            assert( testedListTsuid.containsAll( preparedData.tsuids ) 
-                    && preparedData.tsuids.containsAll( testedListTsuid ) );
+            DataSet dsToCheck = facade.getDataSet(result.get(0).getName());
+
+            List<String> testedListTsuid =
+                    dsToCheck.getLinksToTimeSeries().
+                            stream().map(LinkDatasetTimeSeries::getTsuid).
+                            collect(Collectors.toList());
+
+            assert (testedListTsuid.containsAll(preparedData.tsuids)
+                    && preparedData.tsuids.containsAll(testedListTsuid));
 
             facade.removeDataSet(encodeDatasetName("dataSet6", testCaseName));
             facade.removeDataSet(encodeDatasetName("dataSet7", testCaseName));
@@ -644,7 +631,7 @@ public class DataSetTest extends CommonTest {
      * Test method for
      * {@link fr.cs.ikats.ts.dataset.DataSetFacade#getDataSetNamesForTsuid(java.lang.String)}
      * .
-     * 
+     *
      * @throws IkatsDaoException
      */
     @Test
@@ -656,22 +643,21 @@ public class DataSetTest extends CommonTest {
         try {
             start(testCaseName, isNominal);
 
-            PreparedTsReferences preparedDataRefs_1_2=  new PreparedTsReferences(new String[]{ "tsuid1", "tsuid2"}, 
-                                                                              testCaseName, true);
-            
-            PreparedTsReferences preparedDataRefs_3_4=  new PreparedTsReferences(new String[]{ "tsuid3", "tsuid4"}, 
-                    testCaseName, true);
-            
-            
-            
-            DataSetFacade facade = getDatasetFacade( );
-            List<String> tsuids = new ArrayList<String>( preparedDataRefs_1_2.tsuids  ); 
+            PreparedTsReferences preparedDataRefs_1_2 = new PreparedTsReferences(new String[]{"tsuid1", "tsuid2"},
+                                                                                 testCaseName, true);
+
+            PreparedTsReferences preparedDataRefs_3_4 = new PreparedTsReferences(new String[]{"tsuid3", "tsuid4"},
+                                                                                 testCaseName, true);
+
+
+            DataSetFacade facade = getDatasetFacade();
+            List<String> tsuids = new ArrayList<String>(preparedDataRefs_1_2.tsuids);
             facade.persistDataSet(encodeDatasetName("dataSet_1", testCaseName), "desc courte 6", tsuids);
             facade.persistDataSet(encodeDatasetName("dataSet_2", testCaseName), "desc courte 7", tsuids);
             facade.persistDataSet(encodeDatasetName("dataSet_3", testCaseName), "desc courte 8", tsuids);
             facade.persistDataSet(encodeDatasetName("dataSet_4", testCaseName), "desc courte 9", tsuids);
-            
-            tsuids.addAll( preparedDataRefs_3_4.tsuids );
+
+            tsuids.addAll(preparedDataRefs_3_4.tsuids);
 
             facade.persistDataSet(encodeDatasetName("dataSet_5", testCaseName), "desc courte 9", tsuids);
 
@@ -692,7 +678,7 @@ public class DataSetTest extends CommonTest {
             assertEquals(encodeDatasetName("dataSet_5", testCaseName), result4.get(0));
 
             List<String> result5 = facade.getDataSetNamesForTsuid(encodeTsuid("toto", testCaseName));
-            assertEquals("Test unmatched testGetDataSetNamesForTsuid", true , (result5 == null) || (result5.size() == 0) );
+            assertEquals("Test unmatched testGetDataSetNamesForTsuid", true, (result5 == null) || (result5.size() == 0));
 
             facade.removeDataSet(encodeDatasetName("dataSet_1", testCaseName));
             facade.removeDataSet(encodeDatasetName("dataSet_2", testCaseName));
@@ -742,32 +728,32 @@ public class DataSetTest extends CommonTest {
         String funcid = "funcId_" + tsuid;
         MetaDataFacade facadeFuncId = getMetadataFacade();
         facadeFuncId.persistFunctionalIdentifier(tsuid, funcid); // Would be
-                                                                 // better to
-                                                                 // have simple
-                                                                 // DAO service
+        // better to
+        // have simple
+        // DAO service
 
         return facadeFuncId.getFunctionalIdentifierByTsuid(tsuid);
     }
 
     /**
-     * class for TU with dataset: useful to prepare and retrieve TS references: 
-     * use the consctructor and the the public attributes
+     * class for TU with dataset: useful to prepare and retrieve TS references:
+     * use the constructor and the the public attributes
      */
     final public class PreparedTsReferences {
-        
+
         private String testCaseName;
         public HashMap<String, String> mapByTsuidTheFuncId;
         public List<String> tsuids;
 
         public PreparedTsReferences(String[] tsuidPrefixes, String testCaseName, boolean saveFunctionalIdentifiers) {
-            
-            this.testCaseName = testCaseName; 
+
+            this.testCaseName = testCaseName;
             mapByTsuidTheFuncId = getTestedTsuidFidMap(tsuidPrefixes, testCaseName);
             tsuids = new ArrayList<String>(mapByTsuidTheFuncId.keySet());
 
             if (saveFunctionalIdentifiers) {
                 saveFuncIds(mapByTsuidTheFuncId, tsuids);
             }
-        } 
+        }
     }
 }

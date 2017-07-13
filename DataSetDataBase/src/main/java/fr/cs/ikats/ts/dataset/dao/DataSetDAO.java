@@ -1,32 +1,24 @@
-/**
- * $Id$
- */
 package fr.cs.ikats.ts.dataset.dao;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-import org.hibernate.HibernateException;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
 
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.ts.dataset.model.DataSet;
 import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
+import org.apache.log4j.Logger;
+import org.hibernate.*;
+import org.hibernate.transform.Transformers;
+
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * DAO class for dataSet model. use underlying database with hibernate
  * configuration.
- *
  */
 public class DataSetDAO extends DataBaseDAO {
 
-    private static Logger LOGGER = Logger.getLogger(DataSetDAO.class);
+    private static final Logger LOGGER = Logger.getLogger(DataSetDAO.class);
 
     /**
      * public constructor
@@ -37,9 +29,9 @@ public class DataSetDAO extends DataBaseDAO {
 
     /**
      * persist the dataset
-     * 
-     * @param ds
-     *            the dataset
+     *
+     * @param ds the dataset
+     *
      * @return the internal identifier if dataset has been correctly persisted,
      */
     public String persist(DataSet ds) throws IkatsDaoException {
@@ -78,13 +70,11 @@ public class DataSetDAO extends DataBaseDAO {
 
     /**
      * update the dataset,
-     * 
-     * @param name
-     *            the name of the dataset to update
-     * @param description
-     *            the new description
-     * @param tsList
-     *            a list of ts to add to dataset, must not be null
+     *
+     * @param name        the name of the dataset to update
+     * @param description the new description
+     * @param tsList      a list of ts to add to dataset, must not be null
+     *
      * @return the number of TS added while updating
      */
     public int update(String name, String description, List<LinkDatasetTimeSeries> tsList) throws IkatsDaoException {
@@ -97,11 +87,6 @@ public class DataSetDAO extends DataBaseDAO {
             LOGGER.info("Updating TS list size=" + tsList.size() + " for dataset with name=" + name);
 
             tx = session.beginTransaction();
-
-            // Query q =
-            // session.createQuery(TimeSerie.DELETE_ALL_TS_LINKS_FROM_DATASET);
-            // q.setParameter("dataset", name );
-            // q.executeUpdate();
 
             DataSet mergedDs = (DataSet) session.get(DataSet.class, name);
             if (mergedDs != null) {
@@ -132,12 +117,12 @@ public class DataSetDAO extends DataBaseDAO {
         }
         catch (HibernateException e) {
             IkatsDaoException error = new IkatsDaoException(
-                    "HibernateException occured => failed to update dataset using mode replace, with name=" + name, e);
+                    "HibernateException occurred => failed to update dataset using mode replace, with name=" + name, e);
             rollbackAndThrowException(tx, error);
         }
         catch (Throwable te) {
             IkatsDaoException error = new IkatsDaoException(
-                    te.getClass().getSimpleName() + "unexpectedly occured => Failed to update dataset using mode replace, with name=" + name, te);
+                    te.getClass().getSimpleName() + "unexpectedly occurred => Failed to update dataset using mode replace, with name=" + name, te);
             rollbackAndThrowException(tx, error);
         }
         finally {
@@ -147,14 +132,12 @@ public class DataSetDAO extends DataBaseDAO {
     }
 
     /**
-     * update the dataset : add only one time serie
-     * 
-     * @param tsuid	the identifier of the time serie to add
-     * @param datasetName	the name of the dataset to update
-     * 
-     * @return 		the number of TS added while updating
+     * update the dataset : add only one timeseries
+     *
+     * @param tsuid       the identifier of the timeseries to add
+     * @param datasetName the name of the dataset to update
      */
-    public void updateAddOneTimeserie(String tsuid, String datasetName) throws IkatsDaoException {
+    public void updateAddOneTimeseries(String tsuid, String datasetName) throws IkatsDaoException {
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -165,7 +148,7 @@ public class DataSetDAO extends DataBaseDAO {
         }
         catch (HibernateException e) {
             IkatsDaoException error = new IkatsDaoException(
-                    "Failed to add the timeserie " + tsuid + " to dataset " + datasetName, e);
+                    "Failed to add the timeseries " + tsuid + " to dataset " + datasetName, e);
             rollbackAndThrowException(tx, error);
         }
         catch (Throwable te) {
@@ -181,13 +164,11 @@ public class DataSetDAO extends DataBaseDAO {
     /**
      * update the dataset, in mode "append": add the time series to the dataset,
      * if not already in the content of the dataset
-     * 
-     * @param name
-     *            the name of the dataset to update
-     * @param description
-     *            the new description
-     * @param tsList
-     *            a list of ts to add to dataset, must not be null
+     *
+     * @param name        the name of the dataset to update
+     * @param description the new description
+     * @param tsList      a list of ts to add to dataset, must not be null
+     *
      * @return the number of TS added while updating
      */
     public int updateAddingTimeseries(String name, String description, List<LinkDatasetTimeSeries> tsList) throws IkatsDaoException {
@@ -226,28 +207,22 @@ public class DataSetDAO extends DataBaseDAO {
     }
 
     /**
-     * return a DataSet instance from database, null if no dataset is found.
-     * 
-     * @param name
-     *            the name of the dataset
+     * Return a DataSet instance from database, null if no dataset is found.
+     *
+     * @param name the name of the dataset
+     *
      * @return a DataSet or null if no dataset is found.
      */
     public DataSet getDataSet(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
-        DataSet result = null;
+        DataSet result;
         Session session = getSession();
-        // Transaction tx = null;
         try {
-            // tx = session.beginTransaction();
             result = (DataSet) session.get(DataSet.class, name);
-            // tx.commit();
             if (result == null) {
-                // Review#147170 le FIXME toujours OK ? retour null invasif dans le code appelant antipattern ?, 
-                // Review#147170 il faudra traiter ce cas a chaque couche appelante
-                // FIXME FTO : should return null. See whether the exception is handled a container handler to remove the associated code.   
-                
-                // IkatsDaoMissingRessource is used by a IkatsDaoExceptionHandler in TemporalDataManager
                 throw new IkatsDaoMissingRessource("DataSet with name=" + name);
             }
+            Hibernate.initialize(result.getLinksToTimeSeries());
+            result.getLinksToTimeSeries();
         }
         catch (IkatsDaoMissingRessource me) {
             throw me;
@@ -255,12 +230,10 @@ public class DataSetDAO extends DataBaseDAO {
         catch (HibernateException e) {
             IkatsDaoMissingRessource error = new IkatsDaoMissingRessource("DataSet with name=" + name, e);
             throw error;
-            // rollbackAndThrowException(tx, error); // throws error !!!
         }
         catch (Throwable te) {
             IkatsDaoException error = new IkatsDaoException("Unexpected error: Get DataSet with name=" + name, te);
             throw error;
-            // rollbackAndThrowException(tx, error); // throws error !!!
         }
         finally {
             session.close();
@@ -269,18 +242,17 @@ public class DataSetDAO extends DataBaseDAO {
     }
 
     /**
-     * remove the dataset from database.
-     * 
-     * @param name
-     * @throws IkatsDaoMissingRessource
-     *             error when the dataset is not found
-     * @throws IkatsDaoException
-     *             another error
+     * Remove the dataset from database.
+     *
+     * @param name the dataset name to remove
+     *
+     * @throws IkatsDaoMissingRessource error when the dataset is not found
+     * @throws IkatsDaoException        another error
      */
     public void removeDataSet(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
         Session session = getSession();
         Transaction tx = null;
-        DataSet ds = null;
+        DataSet ds;
         try {
             tx = session.beginTransaction();
             ds = (DataSet) session.get(DataSet.class, name);
@@ -319,24 +291,26 @@ public class DataSetDAO extends DataBaseDAO {
     }
 
     /**
-     * return all the dataset found in database.
-     * 
+     * Return all the dataset found in database.
+     *
      * @return all corresponding datasets
      */
     public List<DataSet> getAllDataSets() throws IkatsDaoMissingRessource, IkatsDaoException {
-        List<DataSet> result = new ArrayList<DataSet>();
+        List<DataSet> result;
         Session session = getSession();
         try {
-            Query q = session.createQuery(DataSet.LIST_ALL_DATASETS);
-            result = q.list();
+            Query q = session.createSQLQuery(DataSet.LIST_ALL_DATASETS)
+                    .addScalar("name", Hibernate.STRING)
+                    .addScalar("description", Hibernate.STRING)
+                    .addScalar("nb_ts", Hibernate.LONG)
+                    .setResultTransformer(Transformers.aliasToBean(DataSet.class));
+            result = (List<DataSet>) q.list();
         }
         catch (HibernateException e) {
-            IkatsDaoException error = new IkatsDaoMissingRessource("Hibernate error: Get all DataSets", e);
-            throw error;
+            throw new IkatsDaoMissingRessource("Hibernate error: Get all DataSets ", e);
         }
         catch (Throwable te) {
-            IkatsDaoException error = new IkatsDaoException("Unexpected error: Get all DataSets", te);
-            throw error;
+            throw new IkatsDaoException("Unexpected error: Get all DataSets", te);
         }
         finally {
             session.close();
@@ -346,17 +320,16 @@ public class DataSetDAO extends DataBaseDAO {
     }
 
     /**
-     * 
-     * @param tsuid
-     *            the requested tsuid
+     * @param tsuid the requested tsuid
+     *
      * @return the found list or null if empty
      */
     public List<String> getDataSetNamesForTsuid(String tsuid) throws IkatsDaoException {
         Session session = getSession();
-        List<String> result = null;
+        List<String> result;
         try {
             Query q = session.createQuery(LinkDatasetTimeSeries.LIST_DATASET_NAMES_FOR_TSUID);
-            q.setString("tsuid", tsuid); 
+            q.setString("tsuid", tsuid);
             result = q.list();
 
             // Note: TODO TBC should we handle IkatsDaoMissingRessource here ?
@@ -387,11 +360,9 @@ public class DataSetDAO extends DataBaseDAO {
 
     /**
      * delete the link between tsuid and datasetName
-     * 
-     * @param tsuid
-     *            the tsuid to detach from dataset
-     * @param datasetName
-     *            the dataset
+     *
+     * @param tsuid       the tsuid to detach from dataset
+     * @param datasetName the dataset
      */
     public void removeTSFromDataSet(String tsuid, String datasetName) throws IkatsDaoException {
         Session session = getSession();
@@ -457,7 +428,7 @@ public class DataSetDAO extends DataBaseDAO {
         }
         catch (Throwable te) {
             IkatsDaoException error = new IkatsDaoException(te.getClass().getSimpleName()
-                    + "unexpectedly occured => Failed to remove TS links from dataset dataset using mode replace, with name=" + name, te);
+                                                                    + "unexpectedly occured => Failed to remove TS links from dataset dataset using mode replace, with name=" + name, te);
             rollbackAndThrowException(tx, error);
         }
         finally {

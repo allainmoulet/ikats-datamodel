@@ -1,21 +1,15 @@
 package fr.cs.ikats.ts.dataset.model;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
+import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * DataSet model class, link a named dataset with a list of tsuids.
- * 
  */
 @Entity
 @Table(name = "TSDataSet")
@@ -24,7 +18,7 @@ public class DataSet {
     /**
      * all dataset name and description request
      */
-    public final static String LIST_ALL_DATASETS = "select ds from DataSet ds";
+    public final static String LIST_ALL_DATASETS = "SELECT tsdataset.name as name, tsdataset.description as description, COUNT(timeseries_dataset.tsuid) AS nb_ts FROM tsdataset, timeseries_dataset WHERE tsdataset.name = timeseries_dataset.dataset_name GROUP BY tsdataset.name, tsdataset.description";
 
     /**
      * name of the dataset
@@ -40,30 +34,36 @@ public class DataSet {
     private String description;
 
     /**
+     * the number of TS composing the dataset
+     */
+    private Long nb_ts;
+
+    /**
      * list of links between this dataset and its timeseries
      */
-    @OneToMany(cascade = { CascadeType.ALL }, mappedBy = "dataset")
-    @LazyCollection(LazyCollectionOption.FALSE)
+    @OneToMany(cascade = {CascadeType.ALL}, mappedBy = "dataset")
+    @LazyCollection(LazyCollectionOption.TRUE)
     private List<LinkDatasetTimeSeries> linksToTimeSeries;
 
     /**
      * public constructor
-     * 
-     * @param name
-     *            name of the dataset
-     * @param description
-     *            a short description of the dataset
-     * @param theLinksToTimeSeries
-     *            list of the links to the timeseries belonging to this dataset
+     *
+     * @param name                 name of the dataset
+     * @param description          a short description of the dataset
+     * @param theLinksToTimeSeries list of the links to the timeseries belonging to this dataset
      */
     public DataSet(String name, String description, List<LinkDatasetTimeSeries> theLinksToTimeSeries) {
         this.name = name;
         this.linksToTimeSeries = theLinksToTimeSeries;
         this.description = description;
+        this.nb_ts = 0L;
+        if (theLinksToTimeSeries != null) {
+            this.nb_ts = (long) theLinksToTimeSeries.size();
+        }
     }
 
     /**
-     * default contructor, for hibernate instanciation.
+     * default constructor, for hibernate instantiation.
      */
     public DataSet() {
         super();
@@ -71,7 +71,7 @@ public class DataSet {
 
     /**
      * Getter
-     * 
+     *
      * @return the name
      */
     public String getName() {
@@ -79,16 +79,18 @@ public class DataSet {
     }
 
     /**
-     * @param datasetname
+     * Setter
+     *
+     * @param datasetName the name to set
      */
-    public void setName(String datasetname) {
-        name = datasetname;
+    public void setName(String datasetName) {
+        name = datasetName;
 
     }
 
     /**
      * Getter
-     * 
+     *
      * @return the description
      */
     public String getDescription() {
@@ -97,16 +99,17 @@ public class DataSet {
 
     /**
      * Getter
-     * 
+     *
      * @return the links between this dataset container and its timeseries elements
      */
+    @JsonIgnore
     public List<LinkDatasetTimeSeries> getLinksToTimeSeries() {
         return linksToTimeSeries;
     }
 
     /**
      * return a List of string with tsuids
-     * 
+     *
      * @return a list
      */
     public List<String> getTsuidsAsString() {
@@ -121,9 +124,8 @@ public class DataSet {
 
     /**
      * setter for description
-     * 
-     * @param description
-     *            the description ot the dataset
+     *
+     * @param description the description ot the dataset
      */
     public void setDescription(String description) {
         this.description = description;
@@ -138,7 +140,6 @@ public class DataSet {
     }
 
     /**
-     * 
      * @return String representation: detailed version with tsuids listed
      */
     public String toDetailedString(boolean lazy) {
@@ -149,16 +150,16 @@ public class DataSet {
             getLinksToTimeSeries();
         }
         if (linksToTimeSeries != null) {
-            for (LinkDatasetTimeSeries timeSerie : linksToTimeSeries) {
+            for (LinkDatasetTimeSeries timeSeries : linksToTimeSeries) {
                 if (!lStart) {
                     lBuff.append(", ");
                 }
                 else {
                     lStart = false;
                 }
-                timeSerie.getFuncIdentifier();
-                timeSerie.getDataset();
-                lBuff.append(timeSerie.getTsuid());
+                timeSeries.getFuncIdentifier();
+                timeSeries.getDataset();
+                lBuff.append(timeSeries.getTsuid());
             }
         }
 
@@ -169,7 +170,7 @@ public class DataSet {
     /**
      * equals operator is required using the Collection API.
      * <br/>
-     * Beware that in our context: equals(...) is True when the operands are targetting the same dataset,
+     * Beware that in our context: equals(...) is True when the operands are targeting the same dataset,
      * but they may require changes.
      * {@inheritDoc}
      */
@@ -187,9 +188,16 @@ public class DataSet {
             // }
 
         }
-        else
-        {
+        else {
             return false;
-        } 
+        }
+    }
+
+    public Long getNb_ts() {
+        return nb_ts;
+    }
+
+    public void setNb_ts(Long nb_ts) {
+        this.nb_ts = nb_ts;
     }
 }
