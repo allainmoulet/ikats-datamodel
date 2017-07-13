@@ -61,37 +61,9 @@ public class DataSetResource extends AbstractResource {
      */
     @GET
     @Produces({ MediaType.APPLICATION_JSON })
-    public List<JSONObject> getAllDataSetNamesWithNb(@QueryParam("size") @DefaultValue("false") boolean getSize)
+    public List<DataSet> getAllDataSetNamesWithNb(@QueryParam("size") @DefaultValue("false") boolean getSize)
             throws IkatsDaoMissingRessource, IkatsDaoException {
-        List<JSONObject> result = new ArrayList<JSONObject>();
-        for (DataSet dataSetSummary : dataSetManager.getAllDataSetSummary()) {
-            String dsName = dataSetSummary.getName();
-            JSONObject dataset = new JSONObject();
-            dataset.put("name", dsName);
-            dataset.put("description", dataSetSummary.getDescription());
-            if (getSize) {
-                DataSet dataSetDetailed = dataSetManager.getDataSet(dsName);
-                Integer nb_ts = dataSetDetailed.getLinksToTimeSeries().size();
-                dataset.put("nb_ts", nb_ts);
-            }
-            result.add(dataset);
-        }
-        return result;
-    }
-
-    // TODO !!! plug this method instead of getAllDataSetNamesWithNb !!!
-    // => option size will disappear ...
-    // => use explicite type DataSetInfo
-    public List<DataSetInfo> getAllDataSets() throws IkatsDaoMissingRessource, IkatsDaoException {
-        List<DataSetInfo> result = new ArrayList<DataSetInfo>();
-        for (DataSet ds : dataSetManager.getAllDataSetSummary()) {
-            String dsName = ds.getName();
-            DataSet currentDataset = dataSetManager.getDataSet(dsName);
-            DataSetInfo jsonDataSetWrapper = new DataSetInfo(currentDataset);
-
-            result.add(jsonDataSetWrapper);
-        }
-        return result;
+        return dataSetManager.getAllDataSetSummary();
     }
 
     /**
