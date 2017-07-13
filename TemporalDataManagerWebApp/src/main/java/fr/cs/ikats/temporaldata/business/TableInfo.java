@@ -129,12 +129,16 @@ public class TableInfo {
         }
 
         /**
-         * Gets from this content the row as list of TableElement, at index, wit
-         * optional links. Use this method if TableContent is managing links,
-         * otherwise it will throw exception.
+         * Gets from this content the row as list of TableElement, at index,
+         * with optional links. Use this method if TableContent is managing
+         * links, otherwise it will throw exception.
          *
          * @param index
          *            row index to get
+         * @param requiresLinksOrDie
+         *            true will activate additional checks on links consistency:
+         *            this.links must be defined, and have same size than
+         *            this.cells
          * @return the row
          * @throws IkatsException
          *             when this.cells is null or this.links is null or when
@@ -143,19 +147,27 @@ public class TableInfo {
          *             when index is out of bound of this.cells
          */
         @JsonIgnore
-        public List<TableElement> getRowDataWithLink(int index) throws IkatsException, IndexOutOfBoundsException {
-            if (cells == null)
-                throw new IkatsException("Failed: getRow at index=" + index + " undefined cells");
-            if (links == null)
-                throw new IkatsException("Failed: getRowWithLinks at index=" + index + " undefined links");
-            if (cells.size() != links.size())
-                throw new IkatsException("Failed: getRowWithLinks at index=" + index + " size() different from cells size");
+        public List<TableElement> getRowDataWithLink(int index, boolean requiresLinksOrDie) throws IkatsException, IndexOutOfBoundsException {
+
+            String message = "Failed: getRowDataWithLink index=" + index;
+            checkLinks(requiresLinksOrDie, message);
 
             List<TableElement> result = new ArrayList<>();
-            Iterator<DataLink> iterLinks = links.get(index).iterator();
-            for (Object data : cells.get(index)) {
-                DataLink link = iterLinks.next();
-                TableElement item = new TableElement(data, link);
+
+            List<DataLink> rowDefinedLinks = null;
+            int sizeRowDefinedLinks = 0;
+            if (links != null && links.size() > index) {
+                rowDefinedLinks = links.get(index);
+                if (rowDefinedLinks != null)
+                    sizeRowDefinedLinks = rowDefinedLinks.size();
+            }
+
+            List<Object> rowData = cells.get(index);
+            for (int cellPos = 0; cellPos < rowData.size(); cellPos++) {
+                DataLink currentLink = null;
+                if ((rowDefinedLinks != null) && (cellPos < sizeRowDefinedLinks))
+                    currentLink = rowDefinedLinks.get(cellPos);
+                TableElement item = new TableElement(rowData.get(cellPos), currentLink);
                 result.add(item);
             }
             return result;
@@ -340,7 +352,8 @@ public class TableInfo {
          * @param beforeIndex
          * @param elements
          * @return this
-         * @throws IkatsException faied to insert the row
+         * @throws IkatsException
+         *             faied to insert the row
          */
         public TableContent insertRow(int beforeIndex, List<TableElement> elements) throws IkatsException {
             int posRow = 0;
@@ -348,15 +361,17 @@ public class TableInfo {
                 List<Object> rowData = new ArrayList<>();
                 List<DataLink> rowLinks = links != null ? new ArrayList<>() : null;
                 for (TableElement tableElement : elements) {
-                    rowData.add( tableElement.data);
-                         
-                    if (rowLinks != null) rowLinks.add( tableElement.link );
+                    rowData.add(tableElement.data);
+
+                    if (rowLinks != null)
+                        rowLinks.add(tableElement.link);
                     posRow++;
                 }
-               
-                cells.add(beforeIndex, rowData );
-                if ( rowLinks != null ) links.add( beforeIndex, rowLinks);
-                
+
+                cells.add(beforeIndex, rowData);
+                if (rowLinks != null)
+                    links.add(beforeIndex, rowLinks);
+
                 return this;
             }
             catch (NullPointerException | IndexOutOfBoundsException | NoSuchElementException e) {
@@ -787,9 +802,9 @@ public class TableInfo {
          * @param elemH
          *            the table element (data+link) inserted int this Header.
          * @throws IkatsException
-         *             inconsistency error detected. Ex. when elemH
-         *             defines a link while this.links == null. Ex. when index is
-         *             out of bound.
+         *             inconsistency error detected. Ex. when elemH defines a
+         *             link while this.links == null. Ex. when index is out of
+         *             bound.
          */
         public void insertItem(int insertedIndexColHeader, TableElement elemH) throws IkatsException {
             try {

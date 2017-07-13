@@ -265,7 +265,7 @@ public class TableManager {
     }
 
     /**
-     * Creates a new Table in process data database.
+     * Creates a new TableInfo in process data database.
      * 
      * @param tableName
      *            the unique identifier of the Table is its name
@@ -282,6 +282,9 @@ public class TableManager {
      * @throws InvalidValueException
      *             consistency error found in the name of the table: see
      *             TABLE_NAME_PATTERN
+     * @deprecated instead of this method createInDatabase(String, TableInfo),
+     *             use createInDatabase(String, Table) which adds one
+     *             consistency check
      */
     public String createInDatabase(String tableName, TableInfo tableToStore)
             throws IkatsJsonException, IkatsDaoException, IkatsDaoConflictException, InvalidValueException {
@@ -302,6 +305,59 @@ public class TableManager {
         byte[] data = serializeToJson(tableToStore).getBytes();
 
         String rid = processDataManager.importProcessData(tableName, tableToStore.table_desc.desc, data, ProcessResultTypeEnum.JSON);
+        LOGGER.trace("Table stored Ok in db: " + tableName + " with rid: " + rid);
+
+        return rid;
+    }
+
+    /**
+     * Creates a new Table in database:
+     * <ul>
+     * <li>checks the table+name consistency</li>
+     * <li>saves the table json content in database with its key identifier
+     * tableName, and tableToStore.getTableInfo()</li>
+     * </ul>
+     * 
+     * @param tableName
+     *            the unique identifier of the Table is its name
+     * @param tableToStore
+     *            the Table wrapping the TableInfo required to write the content
+     *            into the database.
+     * @return ID of created processData storing the table.
+     * @throws IkatsException
+     *             inconsistency error detected in the tableToStore
+     * @throws IkatsJsonException
+     *             error encoding the JSON content
+     * @throws IkatsDaoException
+     *             error checking if resource already exists
+     * @throws IkatsDaoConflictException
+     *             error when a resource with processId=tableName exists
+     * @throws InvalidValueException
+     *             consistency error found in the name of the table: see
+     *             TABLE_NAME_PATTERN
+     */
+    public String createInDatabase(String tableName, Table tableToStore)
+            throws IkatsException, IkatsJsonException, IkatsDaoException, IkatsDaoConflictException, InvalidValueException {
+
+        tableToStore.checkConsistency();
+
+        // Initializing potential big table
+        if (existsInDatabase(tableName))
+            throw new IkatsDaoConflictException("Resource already exists ");
+
+        // Validate the name consistency
+        validateTableName(tableName, "Create Table in database");
+
+        // Adds the name to the table:
+        // the name is not part of written JSON content presently
+        // but it is good to keep it at java level, in order to implement CRUD
+        // with unique identifier.
+        tableToStore.setName(tableName);
+
+        TableInfo tableInfo = tableToStore.getTableInfo();
+        byte[] data = serializeToJson(tableInfo).getBytes();
+
+        String rid = processDataManager.importProcessData(tableName, tableInfo.table_desc.desc, data, ProcessResultTypeEnum.JSON);
         LOGGER.trace("Table stored Ok in db: " + tableName + " with rid: " + rid);
 
         return rid;
@@ -412,7 +468,10 @@ public class TableManager {
      *            the original list of objects
      * @param castingClass
      *            the class specifying the type of T. Technically required, to
-     *            call the cast operation.
+     *            call the cast operation. Examples: Object.class will configure
+     *            permissive cast, contrary to Integer.class, which requires
+     *            that every item is an Integer or null. See method description above
+     *            for possible option String.class.
      * @return the new converted list from the originalList
      * @throws IkatsException
      *             error wrapping the ClassCastException
@@ -444,11 +503,11 @@ public class TableManager {
     }
 
     /**
-     * Internal use only: definition of Integer comparator driven by sorting
-     * value, typed T.
+     * Internal use only: definition of Integer comparator driven by sorting String 
+     * values.
      * 
      * @param mapIndexToSortingValue
-     *            the map associating each indexe to its sorting value.
+     *            the map associating each index to its sorting value.
      * @return this comparator
      */
     static Comparator<Integer> getIndexComparator(Map<Integer, String> mapIndexToSortingValue, boolean reverse) {

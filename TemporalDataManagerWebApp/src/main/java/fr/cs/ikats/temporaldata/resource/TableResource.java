@@ -39,6 +39,7 @@ import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
+import fr.cs.ikats.operators.JoinTableWithTs;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
@@ -65,15 +66,7 @@ public class TableResource extends AbstractResource {
      */
 
     private static Logger logger = Logger.getLogger(TableResource.class);
-
-    private static final String MSG_DAO_KO_JOIN_BY_METRICS = "Failed to apply joinByMetrics(): DAO error occured with dataset name=''{0}'' on metrics=''{1}'' on table=''{2}''";
-    private static final String MSG_INVALID_METRICS_FOR_JOIN_BY_METRICS = "Invalid metrics value=''{0}'' for joinByMetrics with dataset name=''{1}'' and table name=''{2}''";
-    private static final String MSG_INVALID_TABLE_FOR_JOIN_BY_METRICS = "Invalid table ''{0}'' for joinByMetrics on dataset name=''{1}'' and metrics=''{2}''";
-    private static final String MSG_RESOURCE_NOT_FOUND_JOIN_BY_METRICS = "Resource not found error occured for joinByMetrics with dataset name=''{0}'' metrics=''{1}'' and table=''{2}''";
-    private static final String MSG_UNEXPECTED_ERROR_JOIN_BY_METRICS = "Unexpected error occured in joinByMetrics with dataset name=''{0}'' on metrics=''{1}'' and table=''{2}''";
-    private static final String MSG_INVALID_INPUT_ERROR_JOIN_BY_METRICS = "Invalid input name=''{0}'' value=''{1}'' in joinByMetrics with dataset name=''{2}'' on metrics=''{3}'' and table=''{4}''";
-
-    
+ 
     /**
      * TableManager
      */
@@ -334,180 +327,13 @@ public class TableResource extends AbstractResource {
             @FormDataParam("joinMetaName") @DefaultValue("") String joinMetaName,
             @FormDataParam("targetColName") @DefaultValue("") String targetColName, @FormDataParam("outputTableName") String outputTableName)
             throws IkatsDaoException, InvalidValueException, ResourceNotFoundException, IkatsException {
-        // the tableExprLogged is the logged expression about input table:
-        // - temporary solution before passing explicite RID or table name to
-        // the service
-        String tableExprLogged = "null";
-        // will be recomputed at step 0
-
-        try {
-
-            // step 0: check + prepare data
-            // 
-            // parse JSON resource
-            TableManager tableManager = new TableManager();
-            Table table = tableManager.initTable(tableJson);
-
-            // toString() service provides a summary about the table
-            tableExprLogged = table.toString();
-
-            String finalJoinByColName = joinColName == null ? "" : joinColName.trim();
-            String finalJoinByMetaName = joinMetaName == null ? "" : joinMetaName.trim();
-            if (finalJoinByColName.isEmpty())
-                finalJoinByColName = table.getColumnsHeader().getItems().get(0);
-            if (finalJoinByMetaName.isEmpty())
-                finalJoinByMetaName = finalJoinByColName;
-
-            String finalTargetName = targetColName.equals("") ? null : targetColName.trim();
-
-            if ( outputTableName == null || outputTableName.equals(""))
-            {
-                String msg = MessageFormat.format(TableResource.MSG_INVALID_INPUT_ERROR_JOIN_BY_METRICS,
-                                                  "outputTableName", "", dataset, metrics, tableExprLogged );
-                throw new InvalidValueException(msg);
-            }
-            
-            
-            // 1: restrict Timeseries to those having the metadata named
-            // "metric" in the metrics list
-            //
-            // The metadata filtering is ignoring spaces around ';' but
-            // we also remove the spaces starting/ending the metrics:
-            String preparedMetrics = metrics.trim();
-
-            if (preparedMetrics.length() == 0)
-                throw new InvalidValueException(MessageFormat.format(MSG_INVALID_METRICS_FOR_JOIN_BY_METRICS, metrics, dataset, tableExprLogged));
-
-            List<MetadataCriterion> selectByMetrics = new ArrayList<>();
-            selectByMetrics.add(new MetadataCriterion("metric", SingleValueComparator.IN.getText(), preparedMetrics));
-            FilterOnTsWithMetadata filterDataseByMetrics = new FilterOnTsWithMetadata();
-
-            // Determine the list of dataset links from the datasetManager
-            // => converts list of LinkDatasetTimeSeries into list of
-            // FunctionalIdentifier
-            List<FunctionalIdentifier> allDatasetFuncIds = datasetManager.getDataSetContent(dataset).stream()
-                    .map(LinkDatasetTimeSeries::getFuncIdentifier).collect(Collectors.toList());
-
-            filterDataseByMetrics.setTsList(allDatasetFuncIds);
-            filterDataseByMetrics.setCriteria(selectByMetrics);
-
-            List<FunctionalIdentifier> filteredFuncIds = metadataManager.searchFunctionalIdentifiers(filterDataseByMetrics);
-
-            // 2: read, organize and store each used metadata on retained
-            // timeseries in a specific join Map: ( <join identifier> => (
-            // <metric> => ( funcId + tsuid )))
-            // - key: <join identifier> (example: FlihtId= "899" )
-            // - value: the map ( <metric> => ( funcId + tsuid )):
-            // - key: <metric>
-            // - value: FunctionalIdentifier
-            //
-            // 2.1 prepare the String list of tsuids: useful to create a map
-            // associating tsuids to FunctionalIdentifier
-            //
-            Map<String, FunctionalIdentifier> originalRefs = new HashMap<>();
-            for (FunctionalIdentifier functionalIdentifier : filteredFuncIds)
-                originalRefs.put(functionalIdentifier.getTsuid(), functionalIdentifier);
-
-            // 2.2 get the metadata map: TSUID => list of Metadata
-            //
-            Set<String> filteredTsuids = originalRefs.keySet();
-            Map<String, List<MetaData>> metaGroupedByTsuid = metadataManager.getMapGroupingByTsuid(filteredTsuids);
-
-            // 2.3 finalize the map: joinMap
-            //
-            // <join name> => Metric name => TSUID
-            //
-            List<String> listMetrics = Arrays.asList(preparedMetrics.split("\\s*;\\s*"));
-            Map<String, Map<String, FunctionalIdentifier>> joinMap = new HashMap<String, Map<String, FunctionalIdentifier>>();
-
-            for (Map.Entry<String, List<MetaData>> entryMeta : metaGroupedByTsuid.entrySet()) {
-                String tsuid = entryMeta.getKey();
-                List<MetaData> metaForTsuid = entryMeta.getValue();
-
-                // from current TS, search the metric value and the join
-                // idendifier
-                //
-                String joinIdentifier = null;
-                String metric = null;
-                Iterator<MetaData> iterMeta = metaForTsuid.iterator();
-                while (iterMeta.hasNext() && ((metric == null) || (joinIdentifier == null))) {
-                    MetaData metaData = iterMeta.next();
-                    String metaName = metaData.getName();
-
-                    if (finalJoinByMetaName.equals(metaName)) {
-                        joinIdentifier = metaData.getValue();
-                    }
-                    else if (metaName.equals("metric") && listMetrics.contains(metaData.getValue())) {
-                        metric = metaData.getValue();
-                    }
-                }
-
-                if ((metric != null) && (joinIdentifier != null)) {
-                    // ... complete the joinMap, updating the
-                    // entry ( key: joinIdentifier , value: fromMetricToFuncId )
-                    //
-                    Map<String, FunctionalIdentifier> fromMetricToFuncId = joinMap.get(joinIdentifier);
-                    if (fromMetricToFuncId == null) {
-                        fromMetricToFuncId = new HashMap<String, FunctionalIdentifier>();
-                        joinMap.put(joinIdentifier, fromMetricToFuncId);
-                    }
-                    fromMetricToFuncId.put(metric, originalRefs.get(tsuid));
-                }
-            }
-
-            // 3: complete and save the table
-            // store table in db
-
-            // throws ResourceNotFoundException
-            table.sortRowsByColumnValues(finalJoinByColName, false);
-            List<String> joinIdentifers = table.getColumn(finalJoinByColName);
-
-            Collections.sort(listMetrics);
-            DataLink defaultLink = new DataLink();
-
-            // triggers ON the links, filling undefined ones with null
-            table.enableLinks(false, null, false, null, true, DataLink.buildLink("todo link type", null, "todo link context"));
-
-            for (String insertedMetric : listMetrics) {
-
-                List<TableElement> metricColumn = new ArrayList<>();
-                for (String joinIdentifier : joinIdentifers) {
-                    FunctionalIdentifier addData = joinMap.get(joinIdentifier).get(insertedMetric);
-                    DataLink link = new DataLink();
-                    link.val = addData;
-
-                    // add TableElement:
-                    // - data: the funcId text
-                    // - link: the json generated by FunctionalIdentifier
-                    TableElement elem = new TableElement(addData.getFuncId(), link);
-                    metricColumn.add(elem);
-                }
-
-                table.insertColumn(finalTargetName, insertedMetric, metricColumn);
-            }
-
-            String rid = tableManager.createInDatabase(outputTableName, table.getTableInfo());
-
-            // result id is returned in the body
-            return Response.status(Response.Status.OK).entity(rid).build();
-        }
-        catch (IkatsJsonException jsonError) {
-            String msg = MessageFormat.format(MSG_INVALID_TABLE_FOR_JOIN_BY_METRICS, tableExprLogged, dataset, metrics);
-            throw new InvalidValueException(msg, jsonError);
-        }
-        catch (IkatsDaoException daoError) {
-            String msg = MessageFormat.format(MSG_DAO_KO_JOIN_BY_METRICS, dataset, metrics, tableExprLogged);
-            throw new IkatsDaoException(msg, daoError);
-        }
-        catch (ResourceNotFoundException rnfError) {
-            // Resource not found error occured ...
-            String msg = MessageFormat.format(MSG_RESOURCE_NOT_FOUND_JOIN_BY_METRICS, dataset, metrics, tableExprLogged);
-            throw new ResourceNotFoundException(msg, rnfError);
-        }
-        catch (Exception e) {
-            String msg = MessageFormat.format(MSG_UNEXPECTED_ERROR_JOIN_BY_METRICS, dataset, metrics, tableExprLogged);
-            throw new IkatsException(msg, e);
-        }
+        
+        // delegates the work to the operator JoinTableWithTs
+        JoinTableWithTs opeJoinTableWithTs = new JoinTableWithTs();
+        String rid = opeJoinTableWithTs.apply(tableJson, metrics, dataset, joinColName, joinMetaName, targetColName, outputTableName);
+        
+        // Nominal case: result id is returned in the body
+        return Response.status(Response.Status.OK).entity(rid).build();
 
     }
 
