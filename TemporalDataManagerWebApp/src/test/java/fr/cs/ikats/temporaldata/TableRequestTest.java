@@ -91,8 +91,8 @@ public class TableRequestTest extends AbstractRequestTest {
      * case : nominal (http code 200 returned)
      */
     @Test
-    public void testTraintTestSplitNominal() {
-        String testCaseName = "testTraintTestSplitNominal";
+    public void testTrainTestSplitNominal() {
+        String testCaseName = "testTrainTestSplitNominal";
         boolean isNominal = true;
         try {
             start(testCaseName, isNominal);
@@ -102,7 +102,7 @@ public class TableRequestTest extends AbstractRequestTest {
             String result = doTrainTestSplit(tableJson, "target", 0.85, "OutputTrainTestSplitTEST", 200);
             List<String> ridList = Arrays.asList(result.split(","));
 
-            // checking only size of result as tables can not be accessed by rid
+            // Checking only size of result as tables can not be accessed by rid
             assertEquals(2, ridList.size());
 
             endNominal(testCaseName);
@@ -379,7 +379,7 @@ public class TableRequestTest extends AbstractRequestTest {
         String url = getAPIURL() + "/table/traintestsplit";
         WebTarget target = client.target(url);
 
-        // build form param
+        // Build form param
         final FormDataMultiPart multipart = new FormDataMultiPart();
 
         multipart.field("targetColumnName", targetColumnName);
@@ -394,7 +394,7 @@ public class TableRequestTest extends AbstractRequestTest {
         int status = response.getStatus();
         String result = response.readEntity(String.class);
         getLogger().info(result);
-        // check expected status
+        // Check expected status
         assertEquals(statusExpected, status);
         return result;
 

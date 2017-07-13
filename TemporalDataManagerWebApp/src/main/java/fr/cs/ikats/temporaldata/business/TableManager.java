@@ -385,16 +385,20 @@ public class TableManager {
      */
     private List<List<Integer>> randomSplitTableIndexes(List<Integer> indexList, double repartitionRate) {
 
-        // randomize list content
+        // Randomize list content
         Collections.shuffle(indexList);
         int nbItems = indexList.size();
 
-        //compute index of list where to split
+        // Constraint the range of repartition to [0, 1] if overshoot the limits
+        repartitionRate = Math.max(repartitionRate,0);
+        repartitionRate = Math.min(repartitionRate,1);
+
+        // Compute index of list where to split
         int indexSplit = (int) Math.round(nbItems * repartitionRate);
 
         List<List<Integer>> result = new ArrayList<>();
 
-        // splitting
+        // Splitting
         result.add(new ArrayList<>(indexList.subList(0, indexSplit)));
         result.add(new ArrayList<>(indexList.subList(indexSplit, nbItems)));
 
@@ -421,22 +425,22 @@ public class TableManager {
         boolean withColHeaders = table.isHandlingColumnsHeader();
         boolean withRowHeaders = table.isHandlingRowsHeader();
 
-        // generate list of row indexes of input table
+        // Generate list of row indexes of input table
         for (int i = 0; i < table.getRowCount(false); i++) {
             indexListInput.add(i);
         }
 
-        // randomly split indexes list
+        // Randomly split indexes list
         indexListOutput = randomSplitTableIndexes(indexListInput, repartitionRate);
 
-        // result initialization
+        // Result initialization
         Table table1 = initEmptyTable(withColHeaders, withRowHeaders);
         Table table2 = initEmptyTable(withColHeaders, withRowHeaders);
         List<Table> result = new ArrayList<>();
         result.add(table1);
         result.add(table2);
 
-        // extract rows at splitted indexes to generate output
+        // Extract rows at split indexes to generate output
         table1 = extractIndexes(table, table1, indexListOutput.get(0));
         table2 = extractIndexes(table, table2, indexListOutput.get(1));
         if (withColHeaders) {
@@ -444,7 +448,7 @@ public class TableManager {
             table2.getColumnsHeader().addItems(table.getColumnsHeader().getItems().toArray());
         }
 
-        // assuming first column is id, sorting output tables
+        // Assuming first column is id, sorting output tables
         table1.sortRowsByColumnValues(0, false);
         table2.sortRowsByColumnValues(0, false);
 
@@ -463,15 +467,15 @@ public class TableManager {
      */
     private Table extractIndexes(Table tableIn, Table tableOut, List<Integer> indexList) throws ResourceNotFoundException, IkatsException {
 
-        // shifting indexes in case of row headers
+        // Shifting indexes in case of row headers
         int shift = (tableIn.isHandlingColumnsHeader()) ? 1 : 0;
 
-        // init row headers (first item is null)
+        // Init row headers (first item is null)
         if (tableIn.isHandlingRowsHeader()) {
             tableOut.getRowsHeader().addItem(null);
         }
 
-        // retrieving rows from original table according to list of indexes previously generated
+        // Retrieving rows from original table according to list of indexes previously generated
         // and filling output tables (row headers included, if managed)
         for (Integer index : indexList) {
             if (tableOut.isHandlingRowsHeader()) {
@@ -484,18 +488,18 @@ public class TableManager {
     }
 
     /**
-     * Original input table is randomly splitted into 2 tables according to repartition rate
+     * Original input table is randomly split into 2 tables according to repartition rate
      * Here values from targetColumnName are equally distributed in each new table
      * <p>
      * ex :
      * 2 classes A, B
-     * table : 10 elts => 3 elts A 7 elts B
+     * table : 10 items => 3 items A, 7 items B
      * repartitionRate = 0.6
-     * => table1 = 60% of input table (6 elts => 4 elts A, 2 elts B)
-     * => table2 = 40% of input table (4 elts => 2 elts A, 2 elts B)
+     * => table1 = 60% of input table (6 items => 4 items A, 2 items B)
+     * => table2 = 40% of input table (4 items => 2 items A, 2 items B)
      * output = [table1 ; table2]
      * <p>
-     * NB: number of items in output tables are rounded to the nearest value
+     * Note: number of items in output tables are rounded to the nearest value
      *
      * @param table            the table to split
      * @param targetColumnName name of the target column in input table
@@ -509,29 +513,33 @@ public class TableManager {
         boolean withColHeaders = table.isHandlingColumnsHeader();
         boolean withRowHeaders = table.isHandlingRowsHeader();
 
-        // sort table by column 'target'
+        // Sort table by column 'target'
         table.sortRowsByColumnValues(targetColumnName, false);
 
-        // extract classes column
+        // Extract classes column
         List<Object> classColumnContent = table.getColumn(targetColumnName);
 
-        // building list of indexes where classes change
+        // Building list of indexes where classes change
         List<Integer> indexList = new ArrayList<>();
         Object lastClassValue = classColumnContent.get(0);
-        for (int i = 0; i < classColumnContent.size(); i++) {
+        for (int i = 1; i < classColumnContent.size(); i++) {
             if (!classColumnContent.get(i).equals(lastClassValue)) {
                 indexList.add(i - 1);
                 lastClassValue = classColumnContent.get(i);
             }
         }
 
-        // creating indexes list by class
+        // Creating indexes list by class
         int nbLines = classColumnContent.size();
         List<List<List<Integer>>> indexesListByClass = new ArrayList<>();
         Iterator<Integer> iteratorIndexList = indexList.iterator();
         List<Integer> listIndexToAppend = new ArrayList<>();
 
-        int nextIndex = iteratorIndexList.next();
+        // Handle the case where there is only 1 class
+        int nextIndex = nbLines - 1;
+        if (iteratorIndexList.hasNext()) {
+            nextIndex = iteratorIndexList.next();
+        }
         for (int i = 0; i < nbLines; i++) {
             listIndexToAppend.add(i);
             if (i >= nextIndex) {
@@ -545,41 +553,41 @@ public class TableManager {
             }
         }
 
-        // result initialization
+        // Result initialization
         Table table1 = initEmptyTable(withColHeaders, withRowHeaders);
         Table table2 = initEmptyTable(withColHeaders, withRowHeaders);
         List<Table> result = new ArrayList<>();
         result.add(table1);
         result.add(table2);
 
-        // filling column headers
+        // Filling column headers
         if (withColHeaders) {
             table1.getColumnsHeader().addItems(table.getColumnsHeader().getItems().toArray());
             table2.getColumnsHeader().addItems(table.getColumnsHeader().getItems().toArray());
         }
-        // initialization of row headers (first item must be null)
+        // Initialization of row headers (first item must be null)
         if (withRowHeaders) {
             table1.getRowsHeader().addItem(null);
             table2.getRowsHeader().addItem(null);
         }
 
-        // retrieving rows from original table according to list of indexes previously generated
+        // Retrieving rows from original table according to list of indexes previously generated
         // and filling output tables
-        // shifting indexes in case of row headers
+        // Shifting indexes in case of row headers
         int shift = (table.isHandlingColumnsHeader()) ? 1 : 0;
         for (List<List<Integer>> indexesList : indexesListByClass) {
             List<Integer> tableRated1 = indexesList.get(0);
             List<Integer> tableRated2 = indexesList.get(1);
-            for (int i = 0; i < tableRated1.size(); i++) {
-                table1.appendRow(table.getRow(tableRated1.get(i) + shift, Object.class));
+            for (Integer aTableRated1 : tableRated1) {
+                table1.appendRow(table.getRow(aTableRated1 + shift, Object.class));
                 if (withRowHeaders) {
-                    table1.getRowsHeader().addItem(table.getRowsHeader().getItems().get(tableRated1.get(i) + 1));
+                    table1.getRowsHeader().addItem(table.getRowsHeader().getItems().get(aTableRated1 + 1));
                 }
             }
-            for (int i = 0; i < tableRated2.size(); i++) {
-                table2.appendRow(table.getRow(tableRated2.get(i) + shift, Object.class));
+            for (Integer aTableRated2 : tableRated2) {
+                table2.appendRow(table.getRow(aTableRated2 + shift, Object.class));
                 if (withRowHeaders) {
-                    table2.getRowsHeader().addItem(table.getRowsHeader().getItems().get(tableRated2.get(i) + 1));
+                    table2.getRowsHeader().addItem(table.getRowsHeader().getItems().get(aTableRated2 + 1));
                 }
             }
         }

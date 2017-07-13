@@ -1,59 +1,36 @@
 package fr.cs.ikats.temporaldata.resource;
 
-import java.util.*;
-
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriInfo;
-
-import org.apache.log4j.Logger;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.FormDataParam;
-
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.expr.SingleValueComparator;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
-import fr.cs.ikats.temporaldata.business.DataSetManager;
-import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
-import fr.cs.ikats.temporaldata.business.MetaDataManager;
-import fr.cs.ikats.temporaldata.business.Table;
-import fr.cs.ikats.temporaldata.business.TableElement;
-import fr.cs.ikats.temporaldata.business.TableInfo;
+import fr.cs.ikats.temporaldata.business.*;
 import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
-import fr.cs.ikats.temporaldata.business.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.temporaldata.utils.Chronometer;
 import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
+import org.apache.log4j.Logger;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.MessageFormat;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * resource for Table
@@ -106,7 +83,9 @@ public class TableResource extends AbstractResource {
      * get the JSON result as an attachement file in the response.
      *
      * @param tableName the name of the table to retrieve
+     *
      * @return a Response with content-type json
+     *
      * @throws ResourceNotFoundException if table not found
      * @throws IkatsDaoException         if hibernate exception raised while storing table in db
      * @throws IkatsException            others unexpected exceptions
@@ -122,7 +101,8 @@ public class TableResource extends AbstractResource {
             String jsonString = tableManager.serializeToJson(table);
 
             return Response.ok(jsonString, MediaType.APPLICATION_JSON_TYPE).build();
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             throw new IkatsException("Failed: service downloadTable() " + tableName + " : caught unexpected Throwable:", e);
         }
 
@@ -137,10 +117,11 @@ public class TableResource extends AbstractResource {
      * @param rowName         table row name for unique id
      * @param formData        the form data
      * @param uriInfo         all info on URI
+     *
      * @return the internal id
+     *
      * @throws IOException           error when parsing input csv file
-     * @throws IkatsDaoException     error while accessing database to check if table already
-     *                               exists
+     * @throws IkatsDaoException     error while accessing database to check if table already exists
      * @throws IkatsJsonException    error when mapping imported table to business object Table
      * @throws InvalidValueException if table name does not match expected pattern
      */
@@ -227,7 +208,8 @@ public class TableResource extends AbstractResource {
                 String idRef = items[rowIndexId];
                 if (!keyTableMap.containsKey(idRef)) {
                     keyTableMap.put(idRef, "NA");
-                } else {
+                }
+                else {
                     String context = "Duplicate found in csv file: " + rowName + " = " + idRef;
                     logger.error(context);
                     return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
@@ -250,7 +232,8 @@ public class TableResource extends AbstractResource {
             // result id is returned in the body
             return Response.status(Response.Status.OK).entity(rid).build();
 
-        } catch (IOException e) {
+        }
+        catch (IOException e) {
             String contextError = "Unexpected interruption while parsing CSV file : " + fileName;
             throw new IOException(contextError, e);
         }
@@ -280,27 +263,24 @@ public class TableResource extends AbstractResource {
      * @param tableJson       the raw String representing the JSON plain content
      * @param metrics         selected metrics separated by ";". Spaces are ignored.
      * @param dataset         the dataset name.
-     * @param joinColName     the name of the table column used by the join. Optional: if
-     *                        undefined (""), the first column will be used by the join.
-     * @param joinMetaName    defines the name of metadata used by the join, useful when the
-     *                        column and metadata names are different. Optional default is
-     *                        undefined (""): if joinMetaName is undefined, then the
-     *                        metadata has the name of the table column used by the join
-     *                        (see joinColName), and if both criteria (joinColName +
-     *                        joinMetaName) are undefined: it is assumed that the first
-     *                        column header provides the expected metadata name.
-     * @param targetColName   name of the target column. Optional: default is undefined
-     *                        (""). When target name is defined, the joined columns are
-     *                        inserted before the target column; when undefined, the joined
-     *                        columns are appended at the end.
-     * @param outputTableName name of the table joined by metric, and created in the
-     *                        database. The name ought to be conformed to the pattern:
-     *                        {@link TableManager#TABLE_NAME_PATTERN}
+     * @param joinColName     the name of the table column used by the join. Optional: if undefined (""), the first
+     *                        column will be used by the join.
+     * @param joinMetaName    defines the name of metadata used by the join, useful when the column and metadata names
+     *                        are different. Optional default is undefined (""): if joinMetaName is undefined, then the
+     *                        metadata has the name of the table column used by the join (see joinColName), and if both
+     *                        criteria (joinColName + joinMetaName) are undefined: it is assumed that the first column
+     *                        header provides the expected metadata name.
+     * @param targetColName   name of the target column. Optional: default is undefined (""). When target name is
+     *                        defined, the joined columns are inserted before the target column; when undefined, the
+     *                        joined columns are appended at the end.
+     * @param outputTableName name of the table joined by metric, and created in the database. The name ought to be
+     *                        conformed to the pattern: {@link TableManager#TABLE_NAME_PATTERN}
+     *
      * @return
+     *
      * @throws IkatsDaoException         a database access error occured during the service.
      * @throws InvalidValueException     error raised if one of the inputs is invalid.
-     * @throws ResourceNotFoundException error raised if one of the resource required by computing is
-     *                                   not found
+     * @throws ResourceNotFoundException error raised if one of the resource required by computing is not found
      * @throws IkatsException            unexpected error occured on the server.
      */
     @POST
@@ -340,7 +320,7 @@ public class TableResource extends AbstractResource {
 
             if (outputTableName == null || outputTableName.equals("")) {
                 String msg = MessageFormat.format(TableResource.MSG_INVALID_INPUT_ERROR_JOIN_BY_METRICS,
-                        "outputTableName", "", dataset, metrics, tableExprLogged);
+                                                  "outputTableName", "", dataset, metrics, tableExprLogged);
                 throw new InvalidValueException(msg);
             }
 
@@ -413,7 +393,8 @@ public class TableResource extends AbstractResource {
 
                     if (finalJoinByMetaName.equals(metaName)) {
                         joinIdentifier = metaData.getValue();
-                    } else if (metaName.equals("metric") && listMetrics.contains(metaData.getValue())) {
+                    }
+                    else if (metaName.equals("metric") && listMetrics.contains(metaData.getValue())) {
                         metric = metaData.getValue();
                     }
                 }
@@ -466,17 +447,21 @@ public class TableResource extends AbstractResource {
 
             // result id is returned in the body
             return Response.status(Response.Status.OK).entity(rid).build();
-        } catch (IkatsJsonException jsonError) {
+        }
+        catch (IkatsJsonException jsonError) {
             String msg = MessageFormat.format(MSG_INVALID_TABLE_FOR_JOIN_BY_METRICS, tableExprLogged, dataset, metrics);
             throw new InvalidValueException(msg, jsonError);
-        } catch (IkatsDaoException daoError) {
+        }
+        catch (IkatsDaoException daoError) {
             String msg = MessageFormat.format(MSG_DAO_KO_JOIN_BY_METRICS, dataset, metrics, tableExprLogged);
             throw new IkatsDaoException(msg, daoError);
-        } catch (ResourceNotFoundException rnfError) {
+        }
+        catch (ResourceNotFoundException rnfError) {
             // Resource not found error occured ...
             String msg = MessageFormat.format(MSG_RESOURCE_NOT_FOUND_JOIN_BY_METRICS, dataset, metrics, tableExprLogged);
             throw new ResourceNotFoundException(msg, rnfError);
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             String msg = MessageFormat.format(MSG_UNEXPECTED_ERROR_JOIN_BY_METRICS, dataset, metrics, tableExprLogged);
             throw new IkatsException(msg, e);
         }
@@ -496,7 +481,9 @@ public class TableResource extends AbstractResource {
      * @param outputTableName name of the table generated
      * @param formData        the form data
      * @param uriInfo         all info on URI
+     *
      * @return the internal id
+     *
      * @throws IOException               error when parsing input csv file
      * @throws IkatsDaoException         error while accessing database to check if table already exists
      * @throws ResourceNotFoundException if table not found
@@ -540,8 +527,8 @@ public class TableResource extends AbstractResource {
         Table table = tableManager.initTable(tableInfo, false);
 
         logger.info("Working on table (" + table.getDescription() + ") " +
-                "with metaName (" + metaName + ") " +
-                "and with populationId (" + populationId + ")");
+                            "with metaName (" + metaName + ") " +
+                            "and with populationId (" + populationId + ")");
         logger.info("Output table name is (" + outputTableName + ")");
 
         // retrieve headers
@@ -642,7 +629,9 @@ public class TableResource extends AbstractResource {
      * @param tableJson the table to convert (json)
      * @param formData  the form data
      * @param uriInfo   all info on URI
+     *
      * @return the internal id
+     *
      * @throws IOException               error when parsing input csv file
      * @throws IkatsDaoException         error while accessing database to check if table already exists
      * @throws InvalidValueException     if table name does not match expected pattern
@@ -662,36 +651,26 @@ public class TableResource extends AbstractResource {
 
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
 
-        // convert tableJson to table
+        // Convert tableJson to table
         TableInfo tableInfo = tableManager.loadFromJson(tableJson);
         Table table = tableManager.initTable(tableInfo, false);
 
         List<Table> tabListResult;
         if (targetColumnName.equals("")) {
             tabListResult = tableManager.randomSplitTable(table, repartitionRate);
-        } else {
+        }
+        else {
             tabListResult = tableManager.trainTestSplitTable(table, targetColumnName, repartitionRate);
         }
 
-        List<String> ridList = new ArrayList<>();
-        // store tables in db
+        // Store tables in database
         String rid1 = tableManager.createInDatabase(outputTableName + "_Train", tabListResult.get(0).getTableInfo());
         String rid2 = tableManager.createInDatabase(outputTableName + "_Test", tabListResult.get(1).getTableInfo());
 
         chrono.stop(logger);
 
-        // result id is returned in the body
+        // Result id is returned in the body
         return Response.status(Response.Status.OK).entity(rid1 + "," + rid2).build();
     }
-
-    /**
-     * Convert list of Object to list of String
-     */
-    private List<String> convertToListOfString(List<Object> listObject) {
-        return listObject.stream()
-                .map(object -> Objects.toString(object, null))
-                .collect(Collectors.toList());
-    }
-
 
 }
