@@ -272,12 +272,13 @@ public class TableManagerTest extends TestCase {
 
             List<Table> result;
             double repartitionRate = 0.56;
-            result = tableManager.trainTestSplitTable(tableIn, "WrongTarget", repartitionRate);
+            tableManager.trainTestSplitTable(tableIn, "WrongTarget", repartitionRate);
+
+            fail("Test should have raised an exception");
 
         }
         catch (ResourceNotFoundException e) {
             // ResourceNotFoundException Expected
-            e.printStackTrace();
         }
         catch (Exception e) {
             e.printStackTrace();
