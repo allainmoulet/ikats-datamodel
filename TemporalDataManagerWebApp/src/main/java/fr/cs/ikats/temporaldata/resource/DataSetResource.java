@@ -2,7 +2,6 @@ package fr.cs.ikats.temporaldata.resource;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -22,13 +21,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.log4j.Logger;
-import org.json.simple.JSONObject;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
-import fr.cs.ikats.temporaldata.business.DataSetInfo;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.DataSetWithFids;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
@@ -47,7 +44,7 @@ public class DataSetResource extends AbstractResource {
     protected DataSetManager dataSetManager;
 
     /**
-     * default constructor, init the DataSetmanager
+     * default constructor, init the DataSetManager
      */
     public DataSetResource() {
         dataSetManager = new DataSetManager();
@@ -75,10 +72,9 @@ public class DataSetResource extends AbstractResource {
      *            comma separated list of tsuids.
      * @param description
      *            description of the dataset
-     * @return "OK" if import is successfull. throw an exception if import
+     * @return "OK" if import is successful. throw an exception if import
      *         failed.
-     * @throws URISyntaxException
-     *             en cas d'erreur (mais ne doit jamais arriver...)
+     * @throws URISyntaxException should never happen
      */
     @POST
     @Path("/import/{datasetId}")
@@ -88,7 +84,7 @@ public class DataSetResource extends AbstractResource {
         logger.info("importing dataset " + datasetId + " with tsuids :" + tsuids);
         List<String> tsuidList = Arrays.asList(tsuids.split(","));
         String result = dataSetManager.persistDataSet(datasetId, description, tsuidList);
-        String message = "Import sucessfull : dataset stored with id " + result;
+        String message = "Import sucessful : dataset stored with id " + result;
         logger.info(message);
 
         // FIXME : URI devrait être à new URI("/dataset/" + datasetId) car c'est
@@ -124,7 +120,7 @@ public class DataSetResource extends AbstractResource {
         List<String> tsuidList = Arrays.asList(tsuids.split(","));
 
         dataSetManager.updateDataSet(datasetId, description, tsuidList, updateMode);
-        String message = "Update sucessfull";
+        String message = "Update sucessful";
         logger.info(message);
     }
 
@@ -132,9 +128,9 @@ public class DataSetResource extends AbstractResource {
      * get the data set with the given datasetId.
      * 
      * @param datasetId
-     *            the dataset idenfifier, which is the name of dataset
+     *            the dataset identifier, which is the name of dataset
      * @return the list of {@link DataSetWithFids}.
-     * @throws ResourceNotFoundException
+     * @throws IkatsDaoMissingRessource
      *             if no dataset is found
      */
     @GET
@@ -155,7 +151,7 @@ public class DataSetResource extends AbstractResource {
      * unless it belongs to another dataset.
      * 
      * @param datasetId
-     *            the dataset idenfifier
+     *            the dataset identifier
      * @param deep
      *            boolean flag, optional (default false): true activates the
      *            deletion of timeseries and their associated metadata.
@@ -176,7 +172,7 @@ public class DataSetResource extends AbstractResource {
     }
 
     /**
-     * @param datasetId
+     * @param datasetId name of the dataset to get FIDs from
      * @return
      */
     private DataSetWithFids getDataSetWithFids(String datasetId) throws IkatsDaoMissingRessource, IkatsDaoException {

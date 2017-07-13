@@ -56,11 +56,14 @@ public class DataSet {
         this.name = name;
         this.linksToTimeSeries = theLinksToTimeSeries;
         this.description = description;
-        this.nb_ts = (long) theLinksToTimeSeries.size();
+        this.nb_ts = 0L;
+        if (theLinksToTimeSeries != null) {
+            this.nb_ts = (long) theLinksToTimeSeries.size();
+        }
     }
 
     /**
-     * default contructor, for hibernate instanciation.
+     * default constructor, for hibernate instantiation.
      */
     public DataSet() {
         super();
@@ -76,10 +79,12 @@ public class DataSet {
     }
 
     /**
-     * @param datasetname
+     * Setter
+     *
+     * @param datasetName the name to set
      */
-    public void setName(String datasetname) {
-        name = datasetname;
+    public void setName(String datasetName) {
+        name = datasetName;
 
     }
 
@@ -145,16 +150,16 @@ public class DataSet {
             getLinksToTimeSeries();
         }
         if (linksToTimeSeries != null) {
-            for (LinkDatasetTimeSeries timeSerie : linksToTimeSeries) {
+            for (LinkDatasetTimeSeries timeSeries : linksToTimeSeries) {
                 if (!lStart) {
                     lBuff.append(", ");
                 }
                 else {
                     lStart = false;
                 }
-                timeSerie.getFuncIdentifier();
-                timeSerie.getDataset();
-                lBuff.append(timeSerie.getTsuid());
+                timeSeries.getFuncIdentifier();
+                timeSeries.getDataset();
+                lBuff.append(timeSeries.getTsuid());
             }
         }
 
@@ -165,7 +170,7 @@ public class DataSet {
     /**
      * equals operator is required using the Collection API.
      * <br/>
-     * Beware that in our context: equals(...) is True when the operands are targetting the same dataset,
+     * Beware that in our context: equals(...) is True when the operands are targeting the same dataset,
      * but they may require changes.
      * {@inheritDoc}
      */
