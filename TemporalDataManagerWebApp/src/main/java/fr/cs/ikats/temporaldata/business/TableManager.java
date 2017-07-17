@@ -296,17 +296,25 @@ public class TableManager {
         // Validate the name consistency
         validateTableName(tableName, "Create Table in database");
 
-        // Adds the name to the table:
-        // the name is not part of written JSON content presently
-        // but it is good to keep it at java level, in order to implement CRUD
-        // with unique identifier.
-        initTable(tableToStore, false).setName(tableName);
-
+        // Removes optional name from the table: it would be redondant with column name of the DB-table 
+        // processdata:
+        //  - the name is part of JSON content, in the software part (java/javascript...) 
+        //  - but the name is removed from the JSON in the BLOB in the DB-table
+        
+        // ... using Table::setName is safer: initializes correctly the desc section of JSON
+        Table table=   initTable(tableToStore, false);
+        table.setName(null);
+        
         byte[] data = serializeToJson(tableToStore).getBytes();
 
         String rid = processDataManager.importProcessData(tableName, tableToStore.table_desc.desc, data, ProcessResultTypeEnum.JSON);
         LOGGER.trace("Table stored Ok in db: " + tableName + " with rid: " + rid);
 
+        // and now updates the identifier name for the software part
+        //    table.setName() updates the input tableToStore !!!
+        table.setName( tableName );
+        
+        // returns RID <=> internal ID of row of DB-table processdata
         return rid;
     }
 
@@ -348,18 +356,24 @@ public class TableManager {
         // Validate the name consistency
         validateTableName(tableName, "Create Table in database");
 
-        // Adds the name to the table:
-        // the name is not part of written JSON content presently
-        // but it is good to keep it at java level, in order to implement CRUD
-        // with unique identifier.
-        tableToStore.setName(tableName);
+        // Removes optional name from the table: it would be redondant with column name of the DB-table 
+        // processdata:
+        //  - the name is part of JSON content, in the software part (java/javascript...) 
+        //  - but the name is removed from the JSON in the BLOB in the DB-table
+        
+        // ... using Table::setName is safer: initializes correctly the desc section of JSON
+        tableToStore.setName(null);
 
         TableInfo tableInfo = tableToStore.getTableInfo();
         byte[] data = serializeToJson(tableInfo).getBytes();
 
+        // create the table in DB-table, whose name is saved separately
         String rid = processDataManager.importProcessData(tableName, tableInfo.table_desc.desc, data, ProcessResultTypeEnum.JSON);
         LOGGER.trace("Table stored Ok in db: " + tableName + " with rid: " + rid);
 
+        // and now updates the identifier name for the software part
+        tableToStore.setName( tableName );
+        
         return rid;
     }
 

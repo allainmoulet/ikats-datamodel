@@ -880,7 +880,6 @@ public class TableInfo {
          * <p>
          * Specifically used in database storage. Not written in JSON.
          */
-        @JsonIgnore
         public String name;
 
         /**
