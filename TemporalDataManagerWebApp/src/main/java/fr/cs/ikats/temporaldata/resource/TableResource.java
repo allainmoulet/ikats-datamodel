@@ -23,6 +23,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -252,6 +253,7 @@ public class TableResource extends AbstractResource {
             chrono.stop(logger);
 
             // result id is returned in the body
+            // Note: with DAO Table: should be changed to return the name of Table
             return Response.status(Response.Status.OK).entity(rid).build();
 
         } catch (IOException e) {
@@ -333,6 +335,7 @@ public class TableResource extends AbstractResource {
         String rid = opeJoinTableWithTs.apply(tableJson, metrics, dataset, joinColName, joinMetaName, targetColName, outputTableName);
         
         // Nominal case: result id is returned in the body
+        // Note: with DAO Table: should be changed to return the name of Table
         return Response.status(Response.Status.OK).entity(rid).build();
 
     }
@@ -465,11 +468,12 @@ public class TableResource extends AbstractResource {
             outputTable.appendRow(cellsLine);
         }
         // store table in db
-        String rid = tableManager.createInDatabase(outputTableName, outputTable.getTableInfo());
+        String rid = tableManager.createInDatabase(outputTableName, outputTable);
 
         chrono.stop(logger);
 
         // result id is returned in the body
+        // Note: with DAO Table: should be changed to return the name of Table
         return Response.status(Response.Status.OK).entity(rid).build();
     }
 
@@ -486,4 +490,23 @@ public class TableResource extends AbstractResource {
         return result;
     }
 
+    /**
+     * Read the Table from database, using media-type
+     * (with DAO Table: merge equivalent services readTable <=> downlodTable into one compliant with final solution)
+     * 
+     * @param name unique identifier of the table
+     * @return the table read from database 
+     * @throws IkatsJsonException error parsing the json content from the database
+     * @throws IkatsDaoException database access error
+     * @throws ResourceNotFoundException resource not found in the database, for specified name
+     */
+    @GET
+    @Path("/json/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @SuppressWarnings("unchecked")
+    public TableInfo readTable(@PathParam("name") String name) throws IkatsJsonException, IkatsDaoException, ResourceNotFoundException
+    {
+    	TableManager tableMgt = new TableManager();
+    	return tableMgt.readFromDatabase( name);
+    }
 }

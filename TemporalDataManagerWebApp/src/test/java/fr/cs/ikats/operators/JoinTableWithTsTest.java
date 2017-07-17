@@ -16,6 +16,8 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import com.mchange.v1.lang.GentleThread;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -23,12 +25,17 @@ import static org.junit.Assert.fail;
 
 import fr.cs.ikats.common.junit.CommonTest;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
+import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
+import fr.cs.ikats.temporaldata.business.ProcessDataManager;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableElement;
+import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
 import fr.cs.ikats.temporaldata.business.TableManager;
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
+import fr.cs.ikats.temporaldata.resource.TableResource;
 
 /**
  * Tests the operator JoinTableWithTs
@@ -71,11 +78,14 @@ public class JoinTableWithTsTest extends CommonTest {
 	// --------------------------------------
 	// - some IDS belongs to selected dataset: 1, 50, 51
 	// - some IDS are not in selected dataset: 10, 11
-	private final static List<String> TABLE_FLIGHT_IDS = Arrays.asList("1", "10", "11", "50", "51");
+	private static final List<String> TABLE_FLIGHT_IDS = Arrays.asList("1", "10", "11", "50", "51");
 
+	private static final String OUTPUT_TABLE_NAME = "OutputName_JoinTableWithTs_Junit";
+	
 	private static MetaDataManager metaManager = null;
 	private static DataSetManager dataSetManager = null;
 	private static TableManager tableManager = null;
+	private static ProcessDataManager processDataManager = null;
 
 	// selected metrics
 	// -----------------
@@ -91,7 +101,8 @@ public class JoinTableWithTsTest extends CommonTest {
 			metaManager = new MetaDataManager();
 			dataSetManager = new DataSetManager();
 			tableManager = new TableManager();
-
+			processDataManager = new ProcessDataManager();
+			
 			datasetFuncIds = new ArrayList<>();
 			datasetMetadata = new ArrayList<>();
 			selectedFuncIds = new ArrayList<>();
@@ -125,6 +136,103 @@ public class JoinTableWithTsTest extends CommonTest {
 
 		} catch (Exception e) {
 			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * Test on apply(): when the user selects an ID not as first column (i.e. row header), and when a target name is chosen.
+	 * 
+     * This test is complementary to the test testComputeTableNominalWithTarget: 
+     *   - testApplyNominal tests that the computed table is correctly saved in database, not testing all details.
+	 *   - testComputeTableNominalWithTarget is chacking produced Table content, testing details.
+	 *   
+	 * The other tests will focus to computeTable() step of apply()
+	 */
+	@Test
+	public void testApplyNominal() {
+
+		int indexConfig = 0;
+
+		try {
+			start("testApplyNominal", true);
+
+			// Prepare a row header with unique keys, different from those from
+			// theIdColumnName
+			// (this should not perturb the result !)
+			List<String> anotherIdList = new ArrayList<>(TABLE_FLIGHT_IDS);
+			Collections.shuffle(anotherIdList); 
+			String theIdColumnName = "ID";
+			String testedInputJoinColName = "ID";
+			String testedInputJoinMetaName = "flightId";
+			String theTargetColumnName = "Target";
+            String testedMetrics = SELECTED_METRICS_ALL_MATCHING;
+            
+        	Table selectedTable = tableManager.initEmptyTable(true, true);
+
+			selectedTable.getColumnsHeader().addItems(theIdColumnName, "One", "Two", theTargetColumnName);
+			selectedTable.getRowsHeader().addItem(null).addItems(TABLE_FLIGHT_IDS.toArray());
+
+			selectedTable.appendRow(Arrays.asList(1.1, true, "A"));
+			selectedTable.appendRow(Arrays.asList(1.2, false, "A"));
+			selectedTable.appendRow(Arrays.asList(133, false, "A"));
+			selectedTable.appendRow(Arrays.asList(40, true, "B"));
+			selectedTable.appendRow(Arrays.asList(500, true, "C"));
+
+			selectedTable.checkConsistency();
+
+			String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
+
+
+			JoinTableWithTs testedOperator = new JoinTableWithTs(); 
+			String resId = testedOperator.apply(selectedJson, testedMetrics, SELECTED_DATASET_NAME, testedInputJoinColName, testedInputJoinMetaName, 
+					                theTargetColumnName, OUTPUT_TABLE_NAME);
+			 
+			// Temporary DAO for Table: 
+			// DB-table processdata
+			// - name => name of the Table
+			// - id => rid
+			// - desc => desc of table for quick searches
+			Integer intRid = -1;
+			try {
+				intRid = Integer.parseInt( resId );
+				ProcessData writtenData = processDataManager.getProcessPieceOfData(intRid);
+				
+				assertEquals( writtenData.getProcessId(), OUTPUT_TABLE_NAME );
+				
+				TableInfo tableJson = tableManager.readFromDatabase(OUTPUT_TABLE_NAME);
+				Table testedOutput = tableManager.initTable(tableJson, false);
+				
+				assertEquals(3, testedOutput.getIndexColumnHeader("WS1"));
+				assertEquals(4, testedOutput.getIndexColumnHeader("WS3"));
+				assertEquals(5, testedOutput.getIndexColumnHeader(theTargetColumnName));
+
+				// selected dataset contains IDs= 1, 2, 50, 51
+				// selected table contains IDs= 1, 10, 11, 50, 51
+				// => join IDs = 1, 50, 51
+				// 
+				assertEquals(Arrays.asList("funcId_1_WS1", null, null, "funcId_50_WS1", "funcId_51_WS1"),
+						testedOutput.getColumn("WS1", Object.class));
+				
+				// full test on the links applied in anothor use case: testComputeTableNominalWithTarget
+
+				endNominal("testApplyNominal");
+				
+			} catch (NumberFormatException e) {
+				 fail("testApplyNominal: unexpected rid: should be a parsable int: rid=" + resId );
+			} 
+			
+		} catch (Exception e) {
+			getLogger().error(e);
+			fail("testApplyNominal: unexpected error occurred");
+		}
+		finally
+		{
+			try {
+				processDataManager.removeProcessData( OUTPUT_TABLE_NAME );
+			} catch (Exception cleanFailed) {
+				// Should not happen !
+				fail( "testApplyNominal: failed to clean the table name=" + OUTPUT_TABLE_NAME );
+			}
 		}
 	}
 
@@ -222,8 +330,8 @@ public class JoinTableWithTsTest extends CommonTest {
 	}
 
 	/**
-	 * Tests the JoinTableWithTs operator when user does not specify a target, and for a table whose join ID column is NOT
-	 * the first one !
+	 * Tests the JoinTableWithTs operator when user does not specify a target, and for a table whose join ID column is
+	 * NOT the first one !
 	 */
 	@Test
 	public void testComputeTableNominalWithoutTarget() {
@@ -240,11 +348,11 @@ public class JoinTableWithTsTest extends CommonTest {
 		// ---------------------------------------------------------------------------------------------------
 		configsTest.add(Arrays.asList("ID", "ID", "flightId", ""));
 		configsTest.add(Arrays.asList("flightId", "flightId", "", ""));
-		// not tested here because the ID column is not the first one with this test: 
-		//    configsTest.add(Arrays.asList("ID", "", "flightId", ""));
-		// not tested here because the ID column is not the first one with this test: 
-		//    configsTest.add(Arrays.asList("flightId", "", "", ""));
-		
+		// not tested here because the ID column is not the first one with this test:
+		// configsTest.add(Arrays.asList("ID", "", "flightId", ""));
+		// not tested here because the ID column is not the first one with this test:
+		// configsTest.add(Arrays.asList("flightId", "", "", ""));
+
 		try {
 			start("testComputeTableNominalWithoutTarget", true);
 
@@ -320,8 +428,122 @@ public class JoinTableWithTsTest extends CommonTest {
 		} catch (Exception e) {
 			getLogger().error("Failed test for config= " + currentConfig);
 			getLogger().error(e);
-			
+
 			fail("Unexpected error occurred.");
+		}
+	}
+
+	/**
+	 * Tests the join when selected metrics are not in the selected dataset: thejoined table is created added metric
+	 * columns with null values
+	 */
+	@Test
+	public void testComputeTableNoMetrics() {
+		int indexConfig = 0;
+		List<List<String>> configsTest = new ArrayList<>();
+		// One test config defines:
+		// <column ID in prepared table> | <input joinVColName> | <input
+		// joinMetaName> | <input TargetColName>
+		// ---------------------------------------------------------------------------------------------------
+
+		try {
+			start("testComputeTableNoMetrics", true);
+
+			String theIdColumnName = "ID";
+			String theTargetColumnName = "Target";
+
+			String testedInputJoinColName = "ID";
+			String testedInputJoinMetaName = "flightId";
+
+			Table selectedTable = tableManager.initEmptyTable(true, true);
+
+			selectedTable.getColumnsHeader().addItems(theIdColumnName, "One", "Two", theTargetColumnName);
+			selectedTable.getRowsHeader().addItem(null).addItems(TABLE_FLIGHT_IDS.toArray());
+
+			selectedTable.appendRow(Arrays.asList(1.1, true, "A"));
+			selectedTable.appendRow(Arrays.asList(1.2, false, "A"));
+			selectedTable.appendRow(Arrays.asList(133, false, "A"));
+			selectedTable.appendRow(Arrays.asList(40, true, "B"));
+			selectedTable.appendRow(Arrays.asList(500, true, "C"));
+
+			selectedTable.checkConsistency();
+
+			String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
+
+			JoinTableWithTs testedOperator = new JoinTableWithTs();
+			Table computedTable = testedOperator.computeTable(selectedJson, "X;Y", SELECTED_DATASET_NAME,
+					testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName, "TestedOutput");
+
+			fail("JoinTableWithTs::computeTable() should throw a ResourceNotFoundException");
+		} catch (ResourceNotFoundException e) {
+			assertTrue(e.getCause() != null);
+			assertTrue(e.getCause() instanceof ResourceNotFoundException);
+			assertTrue(e.getCause().toString()
+					.indexOf(JoinTableWithTs.MSG_ERROR_SELECTED_DATASET_WITHOUT_SELECTED_METRICS) >= 0);
+			endOkDegraded("testComputeTableNoMetrics", e);
+
+		} catch (Exception other) {
+			endWithFailure("testComputeTableNoMetrics unexpected exception instead of ResourceNotFoundException",
+					other);
+		}
+	}
+
+	/**
+	 * Tests the join when one part of the selected metrics are not in the selected dataset: the joined table is created
+	 * with one new column for each metric in the dataset.
+	 */
+	@Test
+	public void testComputeTablePartialMetrics() {
+		int indexConfig = 0;
+		List<List<String>> configsTest = new ArrayList<>();
+		// One test config defines:
+		// <column ID in prepared table> | <input joinVColName> | <input
+		// joinMetaName> | <input TargetColName>
+		// ---------------------------------------------------------------------------------------------------
+
+		try {
+			start("testComputeTablePartialMetrics", true);
+
+			String theIdColumnName = "ID";
+			String theTargetColumnName = "Target";
+
+			String testedInputJoinColName = "ID";
+			String testedInputJoinMetaName = "flightId";
+
+			Table selectedTable = tableManager.initEmptyTable(true, true);
+
+			selectedTable.getColumnsHeader().addItems(theIdColumnName, "One", "Two", theTargetColumnName);
+			selectedTable.getRowsHeader().addItem(null).addItems(TABLE_FLIGHT_IDS.toArray());
+
+			selectedTable.appendRow(Arrays.asList(1.1, true, "A"));
+			selectedTable.appendRow(Arrays.asList(1.2, false, "A"));
+			selectedTable.appendRow(Arrays.asList(133, false, "A"));
+			selectedTable.appendRow(Arrays.asList(40, true, "B"));
+			selectedTable.appendRow(Arrays.asList(500, true, "C"));
+
+			selectedTable.checkConsistency();
+
+			String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
+
+			JoinTableWithTs testedOperator = new JoinTableWithTs();
+			Table computedTable = testedOperator.computeTable(selectedJson, "WS2;X;WS1", SELECTED_DATASET_NAME,
+					testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName, "TestedOutput");
+
+			assertEquals(-1, computedTable.getIndexColumnHeader("X"));
+			assertEquals(3, computedTable.getIndexColumnHeader("WS1"));
+			assertEquals(4, computedTable.getIndexColumnHeader("WS2"));
+			assertEquals(5, computedTable.getIndexColumnHeader(theTargetColumnName));
+
+			// selected dataset contains IDs= 1, 2, 50, 51
+			// selected table contains IDs= 1, 10, 11, 50, 51
+			// => join IDs = 1, 50, 51
+			//
+			assertEquals(Arrays.asList("funcId_1_WS1", null, null, "funcId_50_WS1", "funcId_51_WS1"),
+					computedTable.getColumn("WS1", Object.class));
+
+			endNominal("testComputeTablePartialMetrics");
+		} catch (Exception other) {
+			endWithFailure("testComputeTablePartialMetrics unexpected exception", other);
 		}
 	}
 
@@ -351,6 +573,9 @@ public class JoinTableWithTsTest extends CommonTest {
 
 	}
 
+	/**
+	 * Ends the junit class: clean test data from the database
+	 */
 	@AfterClass
 	public static void end() {
 		try {
@@ -364,11 +589,13 @@ public class JoinTableWithTsTest extends CommonTest {
 				metaManager.deleteMetaData(funcId.getTsuid());
 			}
 
+			// will be required: delete created tables !
 			dataSetManager = null;
 			metaManager = null;
+			processDataManager = null;
+			
 		} catch (Exception e) {
 			e.printStackTrace(System.err);
-			// fail("JoinTableWithTsTest::tearDown");
 		}
 
 	}
