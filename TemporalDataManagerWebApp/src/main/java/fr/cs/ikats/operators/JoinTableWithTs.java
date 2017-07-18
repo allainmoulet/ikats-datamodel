@@ -68,6 +68,11 @@ public class JoinTableWithTs {
 	static final String MSG_INVALID_INPUT_ERROR_JOIN_BY_METRICS = "Invalid input name=''{0}'' value=''{1}'' in context=''{4}'' with dataset name=''{2}'' on metrics=''{3}''";
 	static final String MSG_ERROR_SELECTED_DATASET_WITHOUT_SELECTED_METRICS = "Selected dataset does not contain any of the selected metrics";
 
+	// presently there is no specific rule about the title and desc of output: here are proposed the title+desc set on
+	// output
+	static final String MSG_NEW_TITLE = "''{0}'' = JoinTableWithTs( ''{1}'' )";
+	static final String MSG_NEW_DESC = "JoinTableWithTs with metrics=''{0}'', joinColName=''{1}'', joinMetaName=''{2}'', targetColName=''{3}'', outputTableName=''{4}'': on table with title=''{5}'' and desc=''{6}''";
+
 	/**
 	 * The processed Table for the logs
 	 */
@@ -201,6 +206,22 @@ public class JoinTableWithTs {
 				throw new InvalidValueException(msg);
 			}
 
+			// updates the new desc section from input table
+			// - new title 
+			// - new desc
+			String oldTitle = processedTable.getTitle();
+			if (oldTitle == null)
+				oldTitle = "";
+			String oldDesc = processedTable.getDescription();
+			if (oldDesc == null)
+				oldDesc = "";
+			String newTitle = MessageFormat.format(MSG_NEW_TITLE, outputTableName, oldTitle);
+			String newDesc = MessageFormat.format(MSG_NEW_DESC, metrics, joinColName, joinMetaName,
+					targetColName, outputTableName, oldTitle, oldDesc );
+
+			processedTable.setTitle(newTitle);
+			processedTable.setDescription(newDesc);
+			
 			// step 1: restrict Timeseries to those having the metadata named
 			// "metric" in the metrics list
 			processingContext = "finds the timeseries matching metrics";
@@ -286,10 +307,10 @@ public class JoinTableWithTs {
 					if (fromMetricToFuncId == null) {
 						fromMetricToFuncId = new HashMap<String, FunctionalIdentifier>();
 						joinMap.put(joinIdentifier, fromMetricToFuncId);
-						
+
 					}
 					fromMetricToFuncId.put(metric, originalRefs.get(tsuid));
-					metricsInDataset.add( metric );
+					metricsInDataset.add(metric);
 				}
 			}
 
@@ -304,16 +325,16 @@ public class JoinTableWithTs {
 			// throws ResourceNotFoundException
 			processedTable.sortRowsByColumnValues(finalJoinByColName, false);
 			List<String> joinIdentifers = processedTable.getColumn(finalJoinByColName);
-			
+
 			// triggers ON the links, filling undefined ones with null
 			processedTable.enableLinks(false, null, false, null, true, DataLink.buildLink("ts_list", null, "raw"));
-			
+
 			// Iterate only on the metrics in the dataset
-			List<String> filteredAndSortedMetrics= new ArrayList<>(listMetrics); 
-		    filteredAndSortedMetrics.retainAll( metricsInDataset );
-		    Collections.sort(filteredAndSortedMetrics, new NaturalOrderComparator() );
-		    
-			for (String insertedMetric : filteredAndSortedMetrics ) {
+			List<String> filteredAndSortedMetrics = new ArrayList<>(listMetrics);
+			filteredAndSortedMetrics.retainAll(metricsInDataset);
+			Collections.sort(filteredAndSortedMetrics, new NaturalOrderComparator());
+
+			for (String insertedMetric : filteredAndSortedMetrics) {
 
 				List<TableElement> metricColumn = new ArrayList<>();
 				for (String joinIdentifier : joinIdentifers) {

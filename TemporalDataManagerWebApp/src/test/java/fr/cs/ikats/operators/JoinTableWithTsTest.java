@@ -223,6 +223,7 @@ public class JoinTableWithTsTest extends CommonTest {
 			
 		} catch (Exception e) {
 			getLogger().error(e);
+			endWithFailure("testApplyNominal", e);
 			fail("testApplyNominal: unexpected error occurred");
 		}
 		finally
