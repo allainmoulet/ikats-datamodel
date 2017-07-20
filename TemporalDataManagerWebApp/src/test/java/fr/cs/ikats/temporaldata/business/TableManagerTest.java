@@ -186,6 +186,7 @@ public class TableManagerTest extends TestCase {
 
     }
 
+    
     /**
      * Tests initCsvLikeTable: case of the creation of a simple-csv Table: with
      * one column header and simple rows (without row header).
@@ -294,7 +295,8 @@ public class TableManagerTest extends TestCase {
     }
 
     /**
-     * 
+     * Tests the init of Table handling links and headers.
+     * Added at the en of test: the getters on TableElements by Row or by Column.
      */
     public void testInitTableWithRowsHeaderWithLinks() {
 
@@ -378,6 +380,28 @@ public class TableManagerTest extends TestCase {
             // System.out.println( columnnOfRowHeaders );
 
             assertEquals(columnnOfRowHeaders, Arrays.asList(new Object[] { "A", "B", "C" }));
+            
+            // added test for getRow getting TableElement
+            List<TableElement> elemsInB = tableHBis.getRow("B", TableElement.class);
+            assertEquals( "Prem", elemsInB.get(0).data);
+            assertEquals( linkOne, elemsInB.get(0).link);
+            
+            // added test for getRow getting TableElement from index
+            List<TableElement> elemsInBfromIndex = tableHBis.getRow(2, TableElement.class);
+            assertEquals( "Prem", elemsInBfromIndex.get(0).data);
+            assertEquals( linkOne, elemsInBfromIndex.get(0).link);
+            
+            
+            // added test for getColumn getting TableElement
+            List<TableElement> elemsInOne = tableHBis.getColumn("One", TableElement.class);
+            assertEquals( "Prem", elemsInOne.get(1).data);
+            assertEquals( linkOne, elemsInOne.get(1).link);
+            
+            // added test for getColumn getting TableElement from index
+            List<TableElement> elemsInOnefromIndex = tableHBis.getColumn(1, TableElement.class);
+            assertEquals( "Prem", elemsInOnefromIndex.get(1).data);
+            assertEquals( linkOne, elemsInOnefromIndex.get(1).link);
+            
         }
         catch (Exception e) {
             e.printStackTrace(System.err);

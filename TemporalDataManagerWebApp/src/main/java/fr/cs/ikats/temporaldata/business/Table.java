@@ -509,24 +509,32 @@ public class Table {
                         "Unmatched getRow(): in Rows header: no row at content index=" + index + " of table " + this.toString());
             }
 
-            List<Object> matchedData;
-            Header columnsHeader = this.getColumnsHeader();
-            if ((columnsHeader != null) && index == 0) {
-                // Read the columns header and ignore its first element
-
-                matchedData = new ArrayList<>(columnsHeader.getData());
-                matchedData.remove(0);
-
+            if ( castingClass == TableElement.class )
+            {
+            	// specifically converting data+links items to TableElement
+            	return (List<T>) getRowWithLinks(index);
             }
             else {
-                // inside the content part: the row is indexed by
-                // matchedIndex - 1
-                int contentIndex = (columnsHeader == null) ? index : index - 1;
-                matchedData = this.getContent().getRowData(contentIndex);
-            }
+            	 List<Object> matchedData;
+                 Header columnsHeader = this.getColumnsHeader();
+                 if ((columnsHeader != null) && index == 0) {
+                     // Read the columns header and ignore its first element
 
-            // iterate and cast the value to T ...
-            return TableManager.convertList(matchedData, castingClass);
+                     matchedData = new ArrayList<>(columnsHeader.getData());
+                     matchedData.remove(0);
+
+                 }
+                 else {
+                     // inside the content part: the row is indexed by
+                     // matchedIndex - 1
+                     int contentIndex = (columnsHeader == null) ? index : index - 1;
+                     matchedData = this.getContent().getRowData(contentIndex);
+                 }
+
+                 // iterate and convert/cast the data value to T ...
+                 return TableManager.convertList(matchedData, castingClass);
+            }
+           
         }
         catch (IkatsException typeError) {
             throw new IkatsException("Failed getRow() in row at content index=" + index + " in table " + this.toString(), typeError);
@@ -544,16 +552,17 @@ public class Table {
     private List<TableElement> getRowWithLinks(int index) throws IkatsException {
 
         List<TableElement> matchedData;
-        Header columnsHeader = this.getColumnsHeader();
-        if ((columnsHeader != null) && index == 0) {
+       
+        if (isHandlingColumnsHeader() && index == 0) {
             // Read the rows header and ignore its first element
+        	Header columnsHeader = this.getColumnsHeader();
             matchedData = new ArrayList<>(columnsHeader.getDataWithLink());
             matchedData.remove(0);
         }
         else {
             // inside the content part: the column is indexed by
             int contentIndex = isHandlingColumnsHeader() ? index - 1 : index;
-            matchedData = this.getContent().getColumnDataWithLink(contentIndex, false);
+            matchedData = this.getContent().getRowDataWithLink(contentIndex, false);
         }
 
         return matchedData;
