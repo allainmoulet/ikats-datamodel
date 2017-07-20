@@ -10,7 +10,10 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.cs.ikats.operators.TablesMerge.Request;
 import fr.cs.ikats.temporaldata.business.Table;
@@ -132,7 +135,7 @@ public class TablesMergeTest {
     }
 
     @Test
-    public final void testDoMergeWithoutJoinOn() throws IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeWithoutJoinKey() throws IOException, IkatsException, IkatsOperatorException {
 
         String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-2\n"
                 + "H;eight;08;8;1000;3,14;0;0;eight\n"
@@ -146,11 +149,11 @@ public class TablesMergeTest {
                 + "C;three;03;3;0011;9,42;0;12,57;three\n"
                 + "B;two;02;2;0010;9,42;12,57;6,28;two\n";
 
-        testTableMerge(table1, table2, null, "expected join_without_join_on", expected_merge);
+        testTableMerge(table1, table2, null, "expected join_without_join_key", expected_merge);
     }
 
     @Test
-    public final void testDoMergeWithoutColumsHeaderAndNoJoinValue() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeWithoutColumsHeaderAndNoJoinKey() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
 
         String expected_merge = "H;eight;08;8;1000;eight;3,14;0;0\n"
                 + "E;five;05;5;0101;five;15,71;3,14;0\n"
@@ -163,15 +166,49 @@ public class TablesMergeTest {
                 + "C;three;03;3;0011;three;9,42;0;12,57\n"
                 + "B;two;02;2;0010;two;9,42;12,57;6,28\n";
 
-        testTableMerge(table3, table4, null, "MergeWithoutColumsHeaderAndNoJoinValue", expected_merge);
+        testTableMerge(table3, table4, null, "MergeWithoutColumsHeaderAndNoJoinKey", expected_merge);
     }
 
     @Test
-    public final void testDoMergeWithoutNothing() {
+    @Ignore("To do when join could be realized with the numeric index of the column, when no header")
+    public final void testDoMergeWithoutColumsHeader() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
 
-        // Test where no matching colums in other tables
+        String expected_merge = "H;eight;08;8;1000;H;3,14;0;0\n"
+                + "E;five;05;5;0101;E;15,71;3,14;0\n"
+                + "D;four;04;4;0100;D;3,14;15,71;12,57\n"
+                + "I;nine;09;9;1001;I;9,42;6,28;15,71\n"
+                + "A;one;01;1;0001;A;3,14;9,42;6,28\n"
+                + "G;seven;07;7;0111;G;6,28;9,42;9,42\n"
+                + "F;six;06;6;0110;F;0;3,14;6,28\n"
+                + "J;ten;10;10;1010;J;15,71;15,71;6,28\n"
+                + "C;three;03;3;0011;C;9,42;0;12,57\n"
+                + "B;two;02;2;0010;B;9,42;12,57;6,28\n";
 
-        fail("Not yet implemented"); // TODO
+        testTableMerge(table3, table4, "2", "MergeWithoutColumsHeader", expected_merge);
+    }
+
+    @Test
+    public final void testDoMergeWithHeaderOnSecondTable() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+
+        String expected_merge = ";;;;;H1-2;H1-3;H1-4;H1-5\n"
+                + "F;six;0;3,14;6,28;six;06;6;0110\n"
+                + "H;eight;3,14;0;0;eight;08;8;1000\n"
+                + "D;four;3,14;15,71;12,57;four;04;4;0100\n"
+                + "A;one;3,14;9,42;6,28;one;01;1;0001\n"
+                + "G;seven;6,28;9,42;9,42;seven;07;7;0111\n"
+                + "I;nine;9,42;6,28;15,71;nine;09;9;1001\n"
+                + "C;three;9,42;0;12,57;three;03;3;0011\n"
+                + "B;two;9,42;12,57;6,28;two;02;2;0010\n"
+                + "E;five;15,71;3,14;0;five;05;5;0101\n"
+                + "J;ten;15,71;15,71;6,28;ten;10;10;1010\n";
+
+        testTableMerge(table4, table1, null, "MergeWithHeaderOnSecondTable", expected_merge);
+    }
+
+    @Test
+    public final void testDoMergeWithoutJoinKeyAndNoMatch() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+
+        testTableMerge(table3, table2, null, "MergeWithoutJoinKeyAndNoMatch", ";");
     }
 
     /**
@@ -196,6 +233,9 @@ public class TablesMergeTest {
             // Assuming first line contains headers
             line = bufReader.readLine();
             List<String> headersTitle = Arrays.asList(line.split(";"));
+            // remplace empty strings to null (that what do merge when adding
+            // empty headers)
+            headersTitle.replaceAll(ht -> ht.isEmpty() ? null : ht);
             table = tableManager.initTable(headersTitle, false);
         }
         else {
@@ -218,6 +258,8 @@ public class TablesMergeTest {
     }
 
     /**
+     * Test the merge
+     * 
      * @param firstTable
      * @param secondTable
      * @param joinOn
@@ -256,8 +298,30 @@ public class TablesMergeTest {
         // Test the JSON rendering -> test all the content
         String expectedTableJSON = tableManager.serializeToJson(expectedResult.getTableInfo());
         String resultTableJSON = tableManager.serializeToJson(resultTable.getTableInfo());
+        expectedTableJSON = prettify(expectedTableJSON);
+        resultTableJSON = prettify(resultTableJSON);
         assertEquals(expectedTableJSON, resultTableJSON);
 
+    }
+
+    /**
+     * Format the JSON for pretty print
+     * 
+     * @param tableInfoJSON
+     * @return the prettified JSON String, or the same string if parse error
+     *         occurs
+     */
+    private String prettify(String tableInfoJSON) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            Object readValue = mapper.readValue(tableInfoJSON, Object.class);
+            tableInfoJSON = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(readValue);
+        }
+        catch (IOException e) {
+            logger.error("JSON Parsing", e);
+        }
+
+        return tableInfoJSON;
     }
 
 }
