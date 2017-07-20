@@ -115,10 +115,9 @@ public class TablesMerge {
                 joinFound = true;
             }
             catch (IkatsException e) {
-                // Exception is synomim of nof found and the boolean is already
-                // to false -> do nothing
-                // joinFound = false;
-                ;
+                // Exception is synomim of nof found
+                // FULL INNER JOIN could not be realized
+                throw new IkatsOperatorException("Join column not found in the second table");
             }
         }
 
@@ -128,11 +127,6 @@ public class TablesMerge {
         catch (IkatsException | ResourceNotFoundException e) {
             logger.error("Can't get the column data at index " + joinIndexInSecondTable + " for table " + secondTable.getName());
             joinFound = false;
-        }
-
-        if (!joinFound) {
-            // FULL INNER JOIN could not be realized
-            throw new IkatsOperatorException("Join column not found in the second table");
         }
 
         // -- Initialize the result/merged table
@@ -153,8 +147,8 @@ public class TablesMerge {
         // -- Loop over the values in the join column of the first table to
         // found matching keys in the second
         int firstRow = firstTable.isHandlingColumnsHeader() ? 1 : 0;
-        int rowCount = firstTable.getRowCount(false);
-        for (int i = firstRow; i <= rowCount; i++) {
+        int rowCount = firstTable.getRowCount(firstTable.isHandlingColumnsHeader());
+        for (int i = firstRow; i < rowCount; i++) {
 
             // -- get the join value of the row in the first table
             List<TableElement> firstTableRowData = null;
@@ -259,7 +253,7 @@ public class TablesMerge {
                     // skip that column header
                     continue;
                 }
-                
+
                 try {
                     TableElement headerElement = colHeaderElements.get(i);
                     resultHeader.addItem(headerElement.data, headerElement.link);
@@ -278,7 +272,7 @@ public class TablesMerge {
 
             for (int i = 0; i < numberOfColumnsHeaders; i++) {
                 try {
-                    resultHeader.addItems((Object[]) null);
+                    resultHeader.addItems((Object) null);
                     // cast trick to avoid compiler warning
                 }
                 catch (IkatsException e) {
