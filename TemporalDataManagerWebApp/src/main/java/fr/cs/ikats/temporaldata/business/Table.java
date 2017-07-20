@@ -68,7 +68,7 @@ public class Table {
      */
     public boolean isHandlingColumnsHeader() {
         boolean isManaged = false;
-        if ((tableInfo.headers != null) && (tableInfo.headers.col != null))
+        if ((tableInfo.headers != null) && (tableInfo.headers.col != null)) // REVIEW#158227 : should also test that headers.col is not empty?
             isManaged = true;
         return isManaged;
     }
@@ -78,7 +78,7 @@ public class Table {
      */
     public boolean isHandlingRowsHeader() {
         boolean isManaged = false;
-        if ((tableInfo.headers != null) && (tableInfo.headers.row != null))
+        if ((tableInfo.headers != null) && (tableInfo.headers.row != null)) // REVIEW#158227 : should also test that headers.row is not empty?
             isManaged = true;
         return isManaged;
     }
@@ -147,7 +147,7 @@ public class Table {
         int nbRows = contentData != null ? contentData.size() : 0;
 
         // If required: add 1 for the column header
-        if (includeColumnHeader && getColumnsHeader() != null)
+        if (includeColumnHeader && getColumnsHeader() != null) // REVIEW#158227 : should call isHandlingColumnsHeader instead of getcolumnsheader?
             nbRows++;
         return nbRows;
     }
@@ -162,7 +162,7 @@ public class Table {
      *            otherwise
      * @return the number of column
      */
-    public int getColumnCount(boolean includeRowHeader) {
+    public int getColumnCount(boolean includeRowHeader) { // REVIEW#158227 parameter looks badly named, should be ...column...
         int countCol = 0;
         // Count columns in Content part:
         List<List<Object>> contentData = getContentData();
@@ -210,7 +210,7 @@ public class Table {
      *             when column header is null
      */
     public int getIndexColumnHeader(String value) throws IkatsException {
-        return this.getHeaderIndex(this.getColumnsHeader(), value);
+        return this.getHeaderIndex(this.getColumnsHeader(), value); // REVIEW#158227 : could use List.indexOf instead of custom method
     }
 
     /**
@@ -223,7 +223,7 @@ public class Table {
      *             when row header is null
      */
     public int getIndexRowHeader(String value) throws IkatsException {
-        return this.getHeaderIndex(this.getRowsHeader(), value);
+        return this.getHeaderIndex(this.getRowsHeader(), value); // REVIEW#158227 : could use List.indexOf instead of custom method
     }
 
     /**
@@ -260,10 +260,10 @@ public class Table {
      *             unexpected error. Examples: null value, or theHeader is null,
      *             or theHeader.data is null.
      */
-    private int getHeaderIndex(Header theHeader, String value) throws IkatsException {
+    private int getHeaderIndex(Header theHeader, String value) throws IkatsException { // REVIEW#158227 : List.indexOf could replace this function
 
         if (value == null)
-            throw new IkatsException("Unexpected column name is null ");
+            throw new IkatsException("Unexpected column name is null "); // REVIEW#158227 : wrong error message?
 
         if (theHeader == null || theHeader.data == null)
             throw new IkatsException("Undefined header: impossible to search the index matching value=" + value);
@@ -279,7 +279,7 @@ public class Table {
     }
 
     /**
-     * Gets the column values from the Table.
+     * Gets the column values (as strings) from the Table.
      * <p>
      * Note: this getter ignores the links possibly defined on the column.
      *
@@ -446,7 +446,7 @@ public class Table {
             return getRow(matchedIndex, String.class);
         }
         catch (IkatsException e) {
-            throw new IkatsException("Failed getColumn(" + rowName + ") in table: " + this.toString(), e);
+            throw new IkatsException("Failed getRow(" + rowName + ") in table: " + this.toString(), e);
         }
     }
 
@@ -587,6 +587,7 @@ public class Table {
      *             inconsistency error occurred
      */
     public <T> List<T> getContentColumn(int contentIndex, Class<T> castingClass) throws IndexOutOfBoundsException, IkatsException {
+        // REVIEW#158227 : why no special behaviour for castingClass == TableElement(just like getContentRow[see just after])
         List<Object> col = getContent().getColumnData(contentIndex);
         return TableManager.convertList(col, castingClass);
     }
@@ -596,7 +597,7 @@ public class Table {
      * <p/>
      * Note1: this getter ignores header information
      * <p/>
-     * Note2: this getter ignores the links possibly defined on the row. <br/>
+     * Note2: this getter ignores the links possibly defined on the row. <br/> // REVIEW#158227 : this looks false when using catingClass == TableElement
      * 
      * @param contentIndex
      *            index of selected row. Note: index relative to the content
@@ -607,6 +608,7 @@ public class Table {
      * @throws IkatsException
      *             inconsistency error occurred
      */
+    // REVIEW#158227 : function name badly typed ge(t)ContentRow
     public <T> List<T> geContentRow(int contentIndex, Class<T> castingClass) throws IndexOutOfBoundsException, IkatsException {
         if (castingClass == TableElement.class) {
             return (List<T>) this.getContent().getRowDataWithLink(contentIndex, false);
@@ -619,7 +621,7 @@ public class Table {
     }
 
     /**
-     * Getter pf the content part of the table. Beware: content may not be
+     * Getter of the content part of the table. Beware: content may not be
      * initialized.
      *
      * @return handled content or null
@@ -661,7 +663,7 @@ public class Table {
      */
     public void checkConsistency() throws IkatsException {
 
-        int nbColHeader = isHandlingColumnsHeader() ? 1 : 0;
+        int nbColHeader = isHandlingColumnsHeader() ? 1 : 0; // REVIEW#158227 : bad varname, replace "nb" by "has" for example.
         int nbRowHeader = isHandlingRowsHeader() ? 1 : 0;
 
         int sizeColHeaderData = -1;
@@ -820,11 +822,11 @@ public class Table {
      */
     private <T> int hasHomogeneousSizes(String checkContext, List<List<T>> checkedListOfList) throws IkatsException {
 
-        boolean isFirst = true;
+        boolean isFirst = true; // REVIEW#158227 : may use a condition on itemIndex == 0 instead?
         Integer previousDim = null;
         Integer expectedDim = null;
         for (int itemIndex = 0; itemIndex < checkedListOfList.size(); itemIndex++) {
-            previousDim = expectedDim;
+            previousDim = expectedDim; // REVIEW#158227 : you don't need to reset previousDim every time
             List<T> item = checkedListOfList.get(itemIndex);
 
             // CHECK: a row must not be null itself
@@ -905,7 +907,7 @@ public class Table {
      */
     public void enableLinks(boolean enabledOnColHeader, DataLink defaultPropertyColHeader, boolean enabledOnRowHeader,
             DataLink defaultPropertyRowHeader, boolean enabledOnContent, DataLink defaultPropertyContent) {
-
+// REVIEW#158227 : boolean parameters don't seem to be usefull
         Header columnsHeader = getColumnsHeader();
         if (columnsHeader != null && enabledOnColHeader)
             columnsHeader.enableLinks(defaultPropertyColHeader);
@@ -1012,7 +1014,7 @@ public class Table {
     Header initColumnsHeader(boolean startWithTopLeftCorner, DataLink defaultLink, List<Object> headerData, List<DataLink> headerLinks)
             throws IkatsException {
         if (defaultLink != null && headerLinks == null) {
-            throw new IkatsException("Inconsistency: default link cannot be defined if the links are not manages (headerLinks == null)");
+            throw new IkatsException("Inconsistency: default link cannot be defined if the links are not managed (headerLinks == null)");
         }
         if (this.tableInfo.headers == null)
             this.tableInfo.headers = new TableHeaders();
@@ -1161,7 +1163,7 @@ public class Table {
         // first element (data or link) of rows header is not sorted if a
         // columns header exists
         // => save this in integer firstHeaderSorted
-        int firstHeaderSorted = isHandlingColumnsHeader() ? 1 : 0;
+        int firstHeaderSorted = isHandlingColumnsHeader() ? 1 : 0; // REVIEW#158227 : why not using boolean?
 
         // inserts fixed elements of rows header (if required)
         if ((theReorderedRowsHeaderLinks != null) && (firstHeaderSorted == 1))
@@ -1169,7 +1171,7 @@ public class Table {
         if ((theReorderedRowsHeaderData != null) && (firstHeaderSorted == 1))
             theReorderedRowsHeaderData.add(theOriginalRowsHeaderData.get(0));
 
-        // ... and the rebuild each reordered collection ...
+        // ... and then rebuild each reordered collection ...
         for (Integer reorderedIndex : indexes) {
             theReorderedRows.add(theOriginalRows.get(reorderedIndex));
 
@@ -1338,7 +1340,7 @@ public class Table {
     }
 
     /**
-     * 
+     * // REVIEW#158227 : missing doc
      * @param colData
      * @return
      * @throws IkatsException
