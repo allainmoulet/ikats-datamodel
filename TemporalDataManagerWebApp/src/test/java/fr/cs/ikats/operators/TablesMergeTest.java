@@ -22,6 +22,14 @@ import fr.cs.ikats.temporaldata.business.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 
+// Review#158268 FTA : .ods file could be removed from git and added as story attachment
+
+// Review#158268 FTA : New test proposed : tables have different row count (headers not included)
+// Review#158268 FTA : New test proposed : No headers for 1st table, Headers for 2nd table. What happens ?
+// Review#158268 FTA : New test proposed : JoinKey not found in Table 1
+// Review#158268 FTA : New test proposed : JoinKey not found in Table 2
+// Review#158268 FTA : New test proposed : JoinKey present in both table but no identical values
+
 public class TablesMergeTest {
 
     private static final Logger logger       = Logger.getLogger(TablesMergeTest.class);
@@ -86,6 +94,9 @@ public class TablesMergeTest {
         table4 = buildTableFromCSVString("table4", TABLE4_CSV, false);
     }
 
+    /**
+     * Construction check with 2 tables -> OK
+     */
     @Test
     public final void testTablesMergeConstructorNominal() {
 
@@ -96,29 +107,61 @@ public class TablesMergeTest {
         tableMergeRequest.tables = new TableInfo[] { table1.getTableInfo(), table2.getTableInfo() };
 
         try {
-            // pass it to the constructor
+            // Pass it to the constructor
             new TablesMerge(tableMergeRequest);
         }
         catch (IkatsOperatorException e) {
             fail("Error initializing TablesMerge operator");
         }
+
+        // Review#158268 FTA : Internal attributes of construction could be also checked (to prove all attributes are taken in account).
     }
 
+    /**
+     * Construction check with 1 Table
+     */
     @Test(expected = IkatsOperatorException.class)
     public final void testTablesMergeConstructorException() throws IkatsOperatorException {
 
         Request tableMergeRequest = new Request();
         tableMergeRequest.joinOn = "join_key";
         tableMergeRequest.outputTableName = "output_table_name";
-        // Will raise the exception because 2 tables are expected
+        // Will raise the exception because at least 2 tables are expected
         tableMergeRequest.tables = new TableInfo[] { table1.getTableInfo() };
 
         new TablesMerge(tableMergeRequest);
     }
 
+    /**
+     * Construction check with no table
+     */
+    @Test(expected = IkatsOperatorException.class)
+    public final void testTablesMergeConstructorExceptionNoTables() throws IkatsOperatorException {
+
+        // Review#158268 FTA : Added this test because if in HMI we don't provide inputs, the method could send no values for tables field --> Protect by try catch to raise 400
+        Request tableMergeRequest = new Request();
+        tableMergeRequest.joinOn = "join_key";
+        tableMergeRequest.outputTableName = "output_table_name";
+        // Will raise the exception because at least 2 tables are expected
+        tableMergeRequest.tables = null;
+
+        new TablesMerge(tableMergeRequest);
+    }
+
+    /**
+     * First Table (T1) contains headers
+     * Second Table (T2) contains headers
+     * No defined Key to use for join
+     * There is a match: T1-col("H1-2") matches T2-col("H1-2")
+     * Note: columns index begins at index 0 in above description (or use the column name)
+     */
     @Test
     public final void testDoMergeNominal() throws IOException, IkatsException, IkatsOperatorException {
 
+        // Review#158268 FTA : begin
+        // I don't think having 2 columns named "H1-1" is what PO wants in results. 
+        // Check with her and add to the followup the description of the behaviour since we don't have any requirements document
+        // Review#158268 FTA : end
         String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
                 + "H;eight;08;8;1000;3,14;0;0;H\n"
                 + "E;five;05;5;0101;15,71;3,14;0;E\n"
@@ -134,9 +177,17 @@ public class TablesMergeTest {
         testTableMerge(table1, table2, "H1-2", "expected join", expected_merge);
     }
 
+    /**
+     * First Table (T1) contains headers
+     * Second Table (T2) contains headers
+     * No defined Key to use for join
+     * There is a match: T1-col("H1-1") matches T2-col("H1-1")
+     * Note: columns index begins at index 0 in above description (or use the column name)
+     */
     @Test
     public final void testDoMergeWithoutJoinKey() throws IOException, IkatsException, IkatsOperatorException {
 
+        // Review#158268 FTA : Same remark as above with "H1-2"
         String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-2\n"
                 + "H;eight;08;8;1000;3,14;0;0;eight\n"
                 + "E;five;05;5;0101;15,71;3,14;0;five\n"
@@ -152,8 +203,15 @@ public class TablesMergeTest {
         testTableMerge(table1, table2, null, "expected join_without_join_key", expected_merge);
     }
 
+    /**
+     * First Table (T1) doesn't contain headers
+     * Second Table (T2) doesn't contain  headers
+     * No defined Key to use for join
+     * There is a match: T1-col(0) matches T2-col(0)
+     * Note: columns index begins at index 0 in above description (or use the column name)
+     */
     @Test
-    public final void testDoMergeWithoutColumsHeaderAndNoJoinKey() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeWithoutColumnsHeaderAndNoJoinKey() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
 
         String expected_merge = "H;eight;08;8;1000;eight;3,14;0;0\n"
                 + "E;five;05;5;0101;five;15,71;3,14;0\n"
@@ -166,12 +224,14 @@ public class TablesMergeTest {
                 + "C;three;03;3;0011;three;9,42;0;12,57\n"
                 + "B;two;02;2;0010;two;9,42;12,57;6,28\n";
 
-        testTableMerge(table3, table4, null, "MergeWithoutColumsHeaderAndNoJoinKey", expected_merge);
+        testTableMerge(table3, table4, null, "MergeWithoutColumnsHeaderAndNoJoinKey", expected_merge);
     }
 
     @Test
     @Ignore("To do when join could be realized with the numeric index of the column, when no header")
-    public final void testDoMergeWithoutColumsHeader() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeWithoutColumnsHeader() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+
+        // Review#158268 FTA : About @Ignore, when is it planned ? Test method not reviewed until I get answer
 
         String expected_merge = "H;eight;08;8;1000;H;3,14;0;0\n"
                 + "E;five;05;5;0101;E;15,71;3,14;0\n"
@@ -184,9 +244,16 @@ public class TablesMergeTest {
                 + "C;three;03;3;0011;C;9,42;0;12,57\n"
                 + "B;two;02;2;0010;B;9,42;12,57;6,28\n";
 
-        testTableMerge(table3, table4, "2", "MergeWithoutColumsHeader", expected_merge);
+        testTableMerge(table3, table4, "2", "MergeWithoutColumnsHeader", expected_merge);
     }
 
+    /**
+     * First Table (T1) doesn't contain headers
+     * Second Table (T2) contains headers
+     * No defined Key to use for join
+     * There is a match: T1-col(0) matches T2-col("H1-1")
+     * Note: columns index begins at index 0 in above description (or use the column name)
+     */
     @Test
     public final void testDoMergeWithHeaderOnSecondTable() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
 
@@ -208,20 +275,22 @@ public class TablesMergeTest {
     @Test
     public final void testDoMergeWithoutJoinKeyAndNoMatch() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
 
+        // Review#158268 FTA : Test is KO
         testTableMerge(table3, table2, null, "MergeWithoutJoinKeyAndNoMatch", ";");
     }
 
     /**
      * Build a {@link Table} from a CSV string
      * 
-     * @param name
-     * @param content
-     * @param withColumnsHeader
-     * @return
+     * @param name Name of the Table to build
+     * @param content Data to write into table, CSV formatted
+     * @param withColumnsHeader Flag indicating if the table contains headers (true) or not (false)
+     * @return the created Table
      * @throws IOException
      * @throws IkatsException
      */
-    private static Table buildTableFromCSVString(String name, String content, boolean withColumnsHeader) throws IOException, IkatsException {
+    private static Table buildTableFromCSVString(String name, String content, boolean withColumnsHeader)
+            throws IOException, IkatsException {
 
         // Convert the CSV table to expected Table format
         BufferedReader bufReader = new BufferedReader(new StringReader(content));
@@ -233,8 +302,7 @@ public class TablesMergeTest {
             // Assuming first line contains headers
             line = bufReader.readLine();
             List<String> headersTitle = Arrays.asList(line.split(";"));
-            // remplace empty strings to null (that what do merge when adding
-            // empty headers)
+            // Replace empty strings with null (that what do merge when adding empty headers)
             headersTitle.replaceAll(ht -> ht.isEmpty() ? null : ht);
             table = tableManager.initTable(headersTitle, false);
         }
@@ -258,19 +326,21 @@ public class TablesMergeTest {
     }
 
     /**
-     * Test the merge
+     * Test the merge results against the expected CSV format
      * 
-     * @param firstTable
-     * @param secondTable
-     * @param joinOn
-     * @param outputTableName
-     * @param expected_merge
+     * @param firstTable first Table object
+     * @param secondTable second Table object
+     * @param joinOn join criteria (null for no criteria)
+     * @param outputTableName Name of the output
+     * @param expected_merge CSV corresponding to the expected result
      * @throws IOException
      * @throws IkatsException
      * @throws IkatsJsonException
      * @throws IkatsOperatorException
      */
-    private void testTableMerge(Table firstTable, Table secondTable, String joinOn, String outputTableName, String expected_merge) throws IOException, IkatsException, IkatsJsonException, IkatsOperatorException {
+    private void testTableMerge(Table firstTable, Table secondTable, String joinOn, String outputTableName,
+                                String expected_merge)
+            throws IOException, IkatsException, IkatsJsonException, IkatsOperatorException {
 
         boolean resultTableWithHeader = firstTable.getColumnsHeader() != null || secondTable.getColumnsHeader() != null;
 
@@ -286,7 +356,7 @@ public class TablesMergeTest {
         tableMergeRequest.outputTableName = outputTableName;
         tableMergeRequest.tables = new TableInfo[] { firstTable.getTableInfo(), secondTable.getTableInfo() };
 
-        // Instanciate the operator and do the job
+        // Instantiate the operator and do the job
         TablesMerge tablesMerge = new TablesMerge(tableMergeRequest);
         Table resultTable = tablesMerge.doMerge();
 
