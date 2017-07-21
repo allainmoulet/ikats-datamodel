@@ -129,7 +129,7 @@ public class TableManager {
 
 		tableJson.table_desc = new TableDesc();
 		tableJson.headers = new TableHeaders();
-		if (withColumnsHeader || withRowsHeader) {
+		if (withColumnsHeader || withRowsHeader) { // REVIEW#158227 : Useless "if"
 			if (withRowsHeader) {
 				tableJson.headers.row = new Header();
 				tableJson.headers.row.data = new ArrayList<>();
@@ -346,7 +346,7 @@ public class TableManager {
         // Validate the name consistency
         validateTableName(tableName, "Create Table in database");
 
-        // Removes optional name from the table: it would be redondant with column name of the DB-table 
+        // Removes optional name from the table: it would be redundant with column name of the DB-table
         // processdata:
         //  - the name is part of JSON content, in the software part (java/javascript...) 
         //  - but the name is removed from the JSON in the BLOB in the DB-table
@@ -438,7 +438,7 @@ public class TableManager {
 	 *            column header value identifying the selection.
 	 * @return the column as list of values, excluding the header value.
 	 * @throws IkatsException
-	 *             unexpected error occured. Exemple: internal ClassCastException when List<T> does not fit the actual
+	 *             unexpected error occurred. Example: internal ClassCastException when List<T> does not fit the actual
 	 *             data.
 	 * @throws IkatsDaoException
 	 *             unexpected hibernate exception reading the table from database.
@@ -522,6 +522,7 @@ public class TableManager {
 	 * 
 	 * @param mapIndexToSortingValue
 	 *            the map associating each index to its sorting value.
+	 *            //REVIEW#158227 : missing param description for reverse
 	 * @return this comparator
 	 */
 	static Comparator<Integer> getIndexComparator(Map<Integer, String> mapIndexToSortingValue, boolean reverse) {

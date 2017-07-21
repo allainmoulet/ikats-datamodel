@@ -64,10 +64,6 @@ public class Table {
 	 */
 	public boolean isHandlingColumnsHeader() {
 		boolean isManaged = false;
-		// REVIEW#158227 : should also test that headers.col is not empty?
-		// REVIEW#158227 Reply MBD begin
-		// not here: if collection tableInfo.headers.col is initialized -even empty- : header is handled
-		// REVIEW#158227 Reply MBD end
 		if ((tableInfo.headers != null) && (tableInfo.headers.col != null))
 			isManaged = true;
 		return isManaged;
@@ -78,10 +74,6 @@ public class Table {
 	 */
 	public boolean isHandlingRowsHeader() {
 		boolean isManaged = false;
-		// REVIEW#158227 : should also test that headers.row is not empty?
-		// REVIEW#158227 Reply MBD begin
-		// not here: if collection tableInfo.headers.row is initialized -even empty- : header is handled
-		// REVIEW#158227 Reply MBD end
 		if ((tableInfo.headers != null) && (tableInfo.headers.row != null))
 			isManaged = true;
 		return isManaged;
@@ -209,8 +201,6 @@ public class Table {
 	 *             when column header is null
 	 */
 	public int getIndexColumnHeader(String value) throws IkatsException {
-		// REVIEW#158227 : could use List.indexOf instead of custom method
-		// REVIEW#158227 Reply MBD see getHeaderIndex
 		return this.getHeaderIndex(this.getColumnsHeader(), value);
 	}
 
@@ -224,8 +214,6 @@ public class Table {
 	 *             when row header is null
 	 */
 	public int getIndexRowHeader(String value) throws IkatsException {
-		// REVIEW#158227 : could use List.indexOf instead of custom method
-		// REVIEW#158227 Reply MBD see getHeaderIndex
 		return this.getHeaderIndex(this.getRowsHeader(), value);
 	}
 
@@ -259,25 +247,6 @@ public class Table {
 	 *             unexpected error. Examples: null value, or theHeader is null, or theHeader.data is null.
 	 */
 	private int getHeaderIndex(Header theHeader, String value) throws IkatsException {
-
-		// REVIEW#158227 : List.indexOf could replace this function
-		// REVIEW#158227 Reply MBD begin good remark ...
-		// indeed: I tried the change ... implying to change value type String to Object ...
-		// => TU failed: it reveals that the API ought to be changed in order to resolve conflict selecting the column
-		// (or row)
-		// Full explanation:
-		// if we change here getHeaderIndex(Header theHeader, String value)
-		// to getHeaderIndex(Header theHeader, Object value)
-		// then we ought to change getColumn(String header) to getColumn(Object header)
-		// but: this creates conflict with current getColumn(int index) when the header.data is Integer
-		// this conflict would be even larger with equivalent services getColumn(int, Class<T>), ..., getRow(...)
-		// => the best correction would be to make different the names
-		// getColumn() services become either getColumnByIndex( ...) or getColumnByHeader( ... )
-		// getRow() services become either getRowByIndex( ...) or getRowByHeader( ... )
-		//
-		// => I think this would have an impact too important now on dependant stories. I propose to leave code as-is
-		//
-		// REVIEW#158227 Reply MBD end
 		if (value == null)
 			throw new IkatsException("Unexpected seraching header item: value is null ");
 
@@ -399,7 +368,7 @@ public class Table {
 	}
 
 	/**
-	 * Implmentation internally used in case of getColumn(..., TableElement.class): gets the Column with links
+	 * Implementation internally used in case of getColumn(..., TableElement.class): gets the Column with links
 	 * 
 	 * @param index
 	 * @return
@@ -886,11 +855,6 @@ public class Table {
 	 */
 	public void enableLinks(boolean enabledOnColHeader, DataLink defaultPropertyColHeader, boolean enabledOnRowHeader,
 			DataLink defaultPropertyRowHeader, boolean enabledOnContent, DataLink defaultPropertyContent) {
-		// REVIEW#158227 : boolean parameters don't seem to be usefull
-		// REVIEW#158227 Reply MBD begin
-		// i agree that we could only deal with DataLink ... but how to specify link management without default values ?
-		// i skip this modif which has side effects on dependant stories.
-		// REVIEW#158227 Reply MBD end
 		Header columnsHeader = getColumnsHeader();
 		if (columnsHeader != null && enabledOnColHeader)
 			columnsHeader.enableLinks(defaultPropertyColHeader);
@@ -1132,10 +1096,6 @@ public class Table {
 		// first element (data or link) of rows header is not sorted if a
 		// columns header exists
 		// => save this in integer firstHeaderSorted
-		// REVIEW#158227 : why not using boolean?
-		// REVIEW#158227 Reply MBD begin
-		//    see below: we use it as an integer ( ... reorderedIndex + firstHeaderSorted ... )
-		// REVIEW#158227 Reply MBD end
 		int firstHeaderSorted = isHandlingColumnsHeader() ? 1 : 0;
 
 		// inserts fixed elements of rows header (if required)
@@ -1303,7 +1263,7 @@ public class Table {
 	}
 
 	/**
-	 * Append a new
+	 * Append a new // REVIEW#158227 : documentation still incomplete
 	 * 
 	 * @param colData
 	 * @return

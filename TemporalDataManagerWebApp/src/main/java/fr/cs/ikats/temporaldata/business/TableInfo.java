@@ -15,7 +15,7 @@ import java.util.NoSuchElementException;
 
 /**
  * The TableInfo is mapping the functional IKATS type 'table', as a JSON
- * resource. TableInfo class can be used as a JSON resource in the Rest
+ * resource. TableInfo class can be used as a JSON resource in the REST
  * services, to be developed in TableResource. <br/>
  * The TableInfo is composed of one TableDesc section, one TableHeaders section
  * and finally one TableContent section. Each section is detailed below. <br/>
@@ -208,7 +208,7 @@ public class TableInfo {
 
         /**
          * Gets from this content the column as list of TableElement, at index,
-         * wit optional links. Use this method if TableContent is managing
+         * with optional links. Use this method if TableContent is managing
          * links, otherwise it will throw exception.
          *
          * @param index
@@ -316,7 +316,7 @@ public class TableInfo {
          *
          * @param elements
          *            list of elements: wrappers of data and link
-         * @return this TableContent: this convenient to chain the modifiers:
+         * @return this : permits to chain the modifiers:
          *         this.addRow(...).addRow(...)
          * @throws IkatsException
          *             inconsistency error. Example: trying to add a link in
@@ -349,11 +349,11 @@ public class TableInfo {
         /**
          * Insert the row at index specified by beforeIndex.
          *
-         * @param beforeIndex
-         * @param elements
-         * @return this
+         * @param beforeIndex // REVIEW#158227 : missing doc
+         * @param elements // REVIEW#158227 : missing doc
+         * @return this : permits to chain other function calls
          * @throws IkatsException
-         *             faied to insert the row
+         *             failed to insert the row
          */
         public TableContent insertRow(int beforeIndex, List<TableElement> elements) throws IkatsException {
             int posRow = 0;
@@ -390,7 +390,7 @@ public class TableInfo {
         }
 
         /**
-         * Not yet implemented
+         * Not yet implemented // REVIEW#158227 : missing doc
          *
          * @return
          */
@@ -672,6 +672,12 @@ public class TableInfo {
             for (int i = 0; i < data.length; i++) {
                 this.addItem(data[i]);
             }
+            // REVIEW#158227 : other version (I personnaly find more beautifull)
+            /*
+             * for (T item : data){
+             *     this.addItem(item);
+             * }
+             */
             return this;
         }
 
@@ -741,6 +747,7 @@ public class TableInfo {
             return TableElement.encodeElements(this.data, this.links);
         }
 
+        //REVIEW#158227 : it does not look like it activates links on "one" header, should reformulate javadoc
         /**
          * Activates the links management on this header
          * 
@@ -800,7 +807,7 @@ public class TableInfo {
          * @param insertedIndexColHeader
          *            the position of insertion
          * @param elemH
-         *            the table element (data+link) inserted int this Header.
+         *            the table element (data+link) inserted in this Header.
          * @throws IkatsException
          *             inconsistency error detected. Ex. when elemH defines a
          *             link while this.links == null. Ex. when index is out of
