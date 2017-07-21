@@ -23,13 +23,19 @@ import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 
 // Review#158268 FTA : .ods file could be removed from git and added as story attachment
-
+// Review#158268 FTL : Plus utilisable au plus proche du code (difficulté de faire suivre les évols dans la forge). Pas d'impact sur le bianire final
+// Review#158268 FTL : Pour autres relecteurs il est dans src/test/resources/fr.cs.ikats.operator.TablesMerge/tables-tests-csv.ods 
+                     
 // Review#158268 FTA : New test proposed : tables have different row count (headers not included)
+// Review#158268 FTL : OK a faire -> MBD
+
 // Review#158268 FTA : New test proposed : No headers for 1st table, Headers for 2nd table. What happens ?
+// Review#158268 FTL : déjà fait -> testDoMergeWithHeaderOnSecondTable
+
 // Review#158268 FTA : New test proposed : JoinKey not found in Table 1
 // Review#158268 FTA : New test proposed : JoinKey not found in Table 2
 // Review#158268 FTA : New test proposed : JoinKey present in both table but no identical values
-
+// Review#158268 FTL : OK a faire -> décision MBD
 public class TablesMergeTest {
 
     private static final Logger logger       = Logger.getLogger(TablesMergeTest.class);
@@ -276,6 +282,7 @@ public class TablesMergeTest {
     public final void testDoMergeWithoutJoinKeyAndNoMatch() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
 
         // Review#158268 FTA : Test is KO
+        // Review#158268 FTL : it is ok on my dev branch (see origin/
         testTableMerge(table3, table2, null, "MergeWithoutJoinKeyAndNoMatch", ";");
     }
 

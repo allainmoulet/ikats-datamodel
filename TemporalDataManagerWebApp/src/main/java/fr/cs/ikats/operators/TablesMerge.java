@@ -16,20 +16,33 @@ import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 
 // Review#158268 FTA : Javadoc below is incomplete
 /**
- * IKATS Operator Tables Merge<br>
+ * <p>IKATS Operator Tables Merge</p>
  * 
- * Provides
+ * <p>Provides the ability to join 2 tables with an inner join. The instructions are set by the {@link Request}.</p>
  * 
+ * <p>Rules:
+ * <ul>
+ * <li>The operator produce an inner join between 2 tables only</li>
+ * <li>The first table (in the order) is the reference : all columns will be in the result</li>
+ * <li>The operator will copy all the columns of the second table expect the join column</li>
+ * <li>The join key (see {@link Request#joinOn}) is case sensitive</li>
+ * <li>The join key should be found in the 2 tables</li>
+ * <li>If the join key is not provided, the first column in the first table is selected,
+ *   <ul>
+ *     <li>If the first table has a header name for that column, that name will be used as join  key to select the join column in the second table</li>
+ *     <li>If the first table has no header, the first column of the second table is used to search matches for the join</li>
+ *   </ul>
+ * <li>If the first table has no header and there is no key provided, the first columns of the two tables are used to match for the join</li>
+ * <li>As per {@link TableInfo} construction, each of the two tables could, or not, manage headers, and datalinks. The result will report all the elements.
+ * </ul>
+ * </p>
  */
 public class TablesMerge {
 
     static private final Logger logger = Logger.getLogger(TablesMerge.class);
 
     /**
-     * The JSON Request
-     * 
-     * @author ftoral
-     *
+     * Information to be provided to the {@link TablesMerge} operator 
      */
     public static class Request {
 
@@ -101,7 +114,6 @@ public class TablesMerge {
         // -- Verify that the join column is in the second, if found :
         // - store the index
         // - point the to the column values
-        boolean joinFound = false;
         int joinIndexInSecondTable = 0; // default: use the first column for the join
         List<String> columnValues = null;
 
@@ -112,7 +124,7 @@ public class TablesMerge {
             try {
                 joinIndexInSecondTable = secondTable.getIndexColumnHeader(joinKey);
                 // Review#158268 FTA : joinFound assignment is useless here (overwritten later before using it)
-                joinFound = true;
+                // Review#158268 FTL : removed and moved the joinFound declaration
             }
             catch (IkatsException e) {
                 // Exception is synonym of not found
@@ -127,7 +139,8 @@ public class TablesMerge {
         catch (IkatsException | ResourceNotFoundException e) {
             logger.error("Can't get the column data at index " + joinIndexInSecondTable + " for table " + secondTable.getName());
             // Review#158268 FTA : joinFound assignment is useless here (overwritten later before using it)
-            joinFound = false;
+            // Review#158268 FTL : see previous comment
+            // Do nothing here because joinFound is already false
         }
 
         // -- Initialize the result/merged table
@@ -163,21 +176,24 @@ public class TablesMerge {
 
             // -- Find the join value in the join column and get the row index of the second table
             int rowIndexForMerge = -1;
-            joinFound = false;
+            boolean joinFound = false;
+
             // Review#158268 FTA : columnValues may be null so .size() may produce NullPointerException. Protect
-            for (int k = 0; k < columnValues.size(); k++) {
-                if (joinValue.equals(columnValues.get(k))) {
-                    if (secondTable.isHandlingColumnsHeader()) {
-                        rowIndexForMerge = k + 1;
+            if (columnValues != null) {
+                for (int k = 0; k < columnValues.size(); k++) {
+                    if (joinValue.equals(columnValues.get(k))) {
+                        if (secondTable.isHandlingColumnsHeader()) {
+                            rowIndexForMerge = k + 1;
+                        }
+                        else {
+                            rowIndexForMerge = k;
+                        }
+                        joinFound = true;
+                        break;
                     }
-                    else {
-                        rowIndexForMerge = k;
-                    }
-                    joinFound = true;
-                    break;
                 }
             }
-
+            
             if (!joinFound) {
                 // INNER JOIN could not be realized -> no matching value for that row
                 break;
