@@ -1,5 +1,9 @@
 package fr.cs.ikats.temporaldata.business;
 
+
+// REVIEW#158227 : should remove or uncomment commented code (several occurences)
+// REVIEW#158227 : DisplayTestedTable should be activable/deactivable (since it is clearly not needed when testing non-reg)
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,7 +51,7 @@ public class TableManagerTest extends TestCase {
         }
         catch (Exception e) {
             e.printStackTrace();
-            fail("Test got unexptected error");
+            fail("Test got unexpected error");
         }
 
     }
@@ -360,7 +364,7 @@ public class TableManagerTest extends TestCase {
 
             tableH.checkConsistency();
             tableHBis.checkConsistency();
-            
+
             // System.out.println(mng.serializeToJson(table));
             // System.out.println(mng.serializeToJson(tableHBis.getTable()));
             assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
@@ -422,7 +426,7 @@ public class TableManagerTest extends TestCase {
     }
 
     /**
-     * 
+     * //REVIEW#158227 : no documentation
      */
     public void testAppendRowWithoutLinks() {
 
@@ -468,7 +472,7 @@ public class TableManagerTest extends TestCase {
         }
         catch (Exception e) {
             e.printStackTrace();
-            fail("Test got unexptected error");
+            fail("Test got unexpected error");
         }
 
     }
@@ -535,7 +539,7 @@ public class TableManagerTest extends TestCase {
                 fail("Incorrect: class cast exception not detected !");
             }
             catch (IkatsException e) {
-                assertTrue(true);
+                assertTrue(true); // REVIEW#158227 : (not important) useless assert
             }
             catch (Exception e) {
                 fail("Unexpected exception");
@@ -633,7 +637,7 @@ public class TableManagerTest extends TestCase {
         }
         catch (Exception e) {
             e.printStackTrace();
-            fail("Test got unexptected error");
+            fail("Test got unexpected error");
         }
     }
     
@@ -725,7 +729,7 @@ public class TableManagerTest extends TestCase {
      * Tests sort algo based upon column values from table content, - not from the row header -
      * Ascending order is tested here.
      */
-    public void testSortRowsWitAllHeaders()
+    public void testSortRowsWithAllHeaders()
     {
         try {
             TableManager mng = new TableManager();
@@ -848,7 +852,7 @@ public class TableManagerTest extends TestCase {
         }
         catch (Exception e) {
             e.printStackTrace();
-            fail("Test got unexptected error");
+            fail("Test got unexpected error");
         } 
     }
     
