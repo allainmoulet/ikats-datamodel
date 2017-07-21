@@ -296,7 +296,7 @@ public class TableManagerTest extends TestCase {
 
     /**
      * Tests the init of Table handling links and headers.
-     * Added at the en of test: the getters on TableElements by Row or by Column.
+     * Added at the end of test: the getters on TableElements by Row or by Column.
      */
     public void testInitTableWithRowsHeaderWithLinks() {
 
@@ -391,16 +391,28 @@ public class TableManagerTest extends TestCase {
             assertEquals( "Prem", elemsInBfromIndex.get(0).data);
             assertEquals( linkOne, elemsInBfromIndex.get(0).link);
             
+            // added test for getRow getting TableElement from index
+            List<TableElement> elemsContentRow1 = tableHBis.getContentRow(1, TableElement.class);
+            assertEquals( "Prem", elemsContentRow1.get(0).data);
+            assertEquals( linkOne, elemsContentRow1.get(0).link);
+            
             
             // added test for getColumn getting TableElement
             List<TableElement> elemsInOne = tableHBis.getColumn("One", TableElement.class);
             assertEquals( "Prem", elemsInOne.get(1).data);
             assertEquals( linkOne, elemsInOne.get(1).link);
             
+            // added test for getColumn getting TableElement
+            List<TableElement> elemsContent0 = tableHBis.getContentColumn(0, TableElement.class);
+            assertEquals( "Prem", elemsContent0.get(1).data);
+            assertEquals( linkOne, elemsContent0.get(1).link);
+            
             // added test for getColumn getting TableElement from index
             List<TableElement> elemsInOnefromIndex = tableHBis.getColumn(1, TableElement.class);
             assertEquals( "Prem", elemsInOnefromIndex.get(1).data);
             assertEquals( linkOne, elemsInOnefromIndex.get(1).link);
+            
+            
             
         }
         catch (Exception e) {
