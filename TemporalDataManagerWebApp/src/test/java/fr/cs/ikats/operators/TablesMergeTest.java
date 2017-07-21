@@ -380,6 +380,7 @@ public class TablesMergeTest {
         // Review#158268 FTA : Test is KO
         // Review#158268 FTL : it is ok on my dev branch (see origin/
     	// Review#158268 MBD : Test is KO
+        // Review#158268 FTL : j'ai déplacé le commit de la branche le la story pour mettre en conformité ce test
         testTableMerge(table3, table2, null, "MergeWithoutJoinKeyAndNoMatch", ";");
     }
 

@@ -159,12 +159,6 @@ public class TablesMerge {
         resultTable.setName(request.outputTableName);
         resultTable.enableLinks(withColHeaders, new DataLink(), withRowHeaders, new DataLink(), true, new DataLink());
 
-        // -- Set the result table columns header from the first and second table
-        if (withColHeaders) {
-            reportTableColumnsHeader(firstTable, resultTable, -1);
-            reportTableColumnsHeader(secondTable, resultTable, joinIndexInSecondTable);
-        }
-
         // -- Loop over the values in the join column of the first table to found matching keys in the second
         int firstRow = firstTable.isHandlingColumnsHeader() ? 1 : 0;
         int rowCount = firstTable.getRowCount(firstTable.isHandlingColumnsHeader());
@@ -231,6 +225,15 @@ public class TablesMerge {
 
         }
 
+        // -- Set the result table columns header from the first and second table
+        if (resultTable.getRowCount(false) > 0) {
+            // Put only the headers if we got some data in the table
+            if (withColHeaders) {
+                reportTableColumnsHeader(firstTable, resultTable, -1);
+                reportTableColumnsHeader(secondTable, resultTable, joinIndexInSecondTable);
+            }
+        }       
+        
         return resultTable;
     }
 
