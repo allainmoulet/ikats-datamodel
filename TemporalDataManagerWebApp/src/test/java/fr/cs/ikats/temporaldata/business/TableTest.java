@@ -20,7 +20,7 @@ import junit.framework.TestCase;
 /**
  * JUnit tests on TableInfo resource: this class is responsible of JSON persistence; it is mapping the functional type 'table'
  */
-public class TableTest extends TestCase {
+public class TableTest extends TestCase { // REVIEW#158227 : rename file TableInfoTest.java (and also rename test class)
 
     public final static String JSON_CONTENT_SAMPLE_1 = "{\"table_desc\":{\"title\":\"Discretized matrix\",\"desc\":\"This is a ...\"},\"headers\":{\"col\":{\"data\":[\"funcId\",\"metric\",\"min_B1\",\"max_B1\",\"min_B2\",\"max_B2\"],\"links\":null,\"default_links\":null},\"row\":{\"data\":[null,\"Flid1_VIB2\",\"Flid1_VIB3\",\"Flid1_VIB4\",\"Flid1_VIB5\"],\"default_links\":{\"type\":\"ts_bucket\",\"context\":\"processdata\"},\"links\":[null,{\"val\":\"1\"},{\"val\":\"2\"},{\"val\":\"3\"},{\"val\":\"4\"}]}},\"content\":{\"cells\":[[\"VIB2\",-50.0,12.1,1.0,3.4],[\"VIB3\",-5.0,2.1,1.0,3.4],[\"VIB4\",0.0,2.1,12.0,3.4],[\"VIB5\",0.0,2.1,1.0,3.4]]}}";
   
@@ -30,7 +30,7 @@ public class TableTest extends TestCase {
     public void testLoadJSON()
     { 
         try { 
-            // json functional type ta first version (before 15/06/17)
+            // json functional type at first version (before 15/06/17)
             String jsonContent= TableTest.JSON_CONTENT_SAMPLE_1;
             
             // Prepare expected config of ObjectMapper.
@@ -93,7 +93,7 @@ public class TableTest extends TestCase {
     public void testLoadJSONWithName()
     { 
         try { 
-            // json functional type ta first version (before 15/06/17)
+            // json functional type at first version (before 15/06/17)
             String jsonContent= TableTest.JSON_CONTENT_SAMPLE_WITH_NAME;
             
             // Prepare expected config of ObjectMapper.
@@ -205,7 +205,7 @@ public class TableTest extends TestCase {
     }
     
     @Test
-    public void testWriteJSONWithName()
+    public void testWriteJSONWithName() // REVIEW#158227 : in my opinion, this test could replace previous one (or just test name feature)
     { 
         try { 
             
