@@ -129,15 +129,14 @@ public class TableManager {
 
 		tableJson.table_desc = new TableDesc();
 		tableJson.headers = new TableHeaders();
-		if (withColumnsHeader || withRowsHeader) { // REVIEW#158227 : Useless "if"
-			if (withRowsHeader) {
-				tableJson.headers.row = new Header();
-				tableJson.headers.row.data = new ArrayList<>();
-			}
-			if (withColumnsHeader) {
-				tableJson.headers.col = new Header();
-				tableJson.headers.col.data = new ArrayList<>();
-			}
+
+		if (withRowsHeader) {
+			tableJson.headers.row = new Header();
+			tableJson.headers.row.data = new ArrayList<>();
+		}
+		if (withColumnsHeader) {
+			tableJson.headers.col = new Header();
+			tableJson.headers.col.data = new ArrayList<>();
 		}
 
 		tableJson.content = new TableContent();
@@ -309,80 +308,75 @@ public class TableManager {
 	}
 
 	/**
-     * Creates a new Table in database:
-     * <ul>
-     * <li>checks the table+name consistency</li>
-     * <li>saves the table json content in database with its key identifier
-     * tableName, and tableToStore.getTableInfo()</li>
-     * </ul>
-     * 
-     * @param tableName
-     *            the unique identifier of the Table is its name
-     * @param tableToStore
-     *            the Table wrapping the TableInfo required to write the content
-     *            into the database.
-     * @return ID of created processData storing the table.
-     * @throws IkatsException
-     *             inconsistency error detected in the tableToStore
-     * @throws IkatsJsonException
-     *             error encoding the JSON content
-     * @throws IkatsDaoException
-     *             error checking if resource already exists
-     * @throws IkatsDaoConflictException
-     *             error when a resource with processId=tableName exists
-     * @throws InvalidValueException
-     *             consistency error found in the name of the table: see
-     *             TABLE_NAME_PATTERN
-     */
-    public String createInDatabase(String tableName, Table tableToStore)
-            throws IkatsException, IkatsJsonException, IkatsDaoException, IkatsDaoConflictException, InvalidValueException {
+	 * Creates a new Table in database:
+	 * <ul>
+	 * <li>checks the table+name consistency</li>
+	 * <li>saves the table json content in database with its key identifier tableName, and tableToStore.getTableInfo()
+	 * </li>
+	 * </ul>
+	 * 
+	 * @param tableName
+	 *            the unique identifier of the Table is its name
+	 * @param tableToStore
+	 *            the Table wrapping the TableInfo required to write the content into the database.
+	 * @return ID of created processData storing the table.
+	 * @throws IkatsException
+	 *             inconsistency error detected in the tableToStore
+	 * @throws IkatsJsonException
+	 *             error encoding the JSON content
+	 * @throws IkatsDaoException
+	 *             error checking if resource already exists
+	 * @throws IkatsDaoConflictException
+	 *             error when a resource with processId=tableName exists
+	 * @throws InvalidValueException
+	 *             consistency error found in the name of the table: see TABLE_NAME_PATTERN
+	 */
+	public String createInDatabase(String tableName, Table tableToStore) throws IkatsException, IkatsJsonException,
+			IkatsDaoException, IkatsDaoConflictException, InvalidValueException {
 
-        tableToStore.checkConsistency();
+		tableToStore.checkConsistency();
 
-        // Initializing potential big table
-        if (existsInDatabase(tableName))
-            throw new IkatsDaoConflictException("Resource already exists ");
+		// Initializing potential big table
+		if (existsInDatabase(tableName))
+			throw new IkatsDaoConflictException("Resource already exists ");
 
-        // Validate the name consistency
-        validateTableName(tableName, "Create Table in database");
+		// Validate the name consistency
+		validateTableName(tableName, "Create Table in database");
 
-        // Removes optional name from the table: it would be redundant with column name of the DB-table
-        // processdata:
-        //  - the name is part of JSON content, in the software part (java/javascript...) 
-        //  - but the name is removed from the JSON in the BLOB in the DB-table
-        
-        // ... using Table::setName is safer: initializes correctly the desc section of JSON
-        tableToStore.setName(null);
+		// Removes optional name from the table: it would be redundant with column name of the DB-table
+		// processdata:
+		// - the name is part of JSON content, in the software part (java/javascript...)
+		// - but the name is removed from the JSON in the BLOB in the DB-table
 
-        TableInfo tableInfo = tableToStore.getTableInfo();
-        byte[] data = serializeToJson(tableInfo).getBytes();
+		// ... using Table::setName is safer: initializes correctly the desc section of JSON
+		tableToStore.setName(null);
 
-        // create the table in DB-table, whose name is saved separately
-        
-        // Note1: before the new DAO for Table:
-     	// the desc is limited to 100 char because it is saved in db-column NAME of db-table
-     	// PROCESSDATA and NAME is defined as 'character varying(100)' 
-        // => need to truncate the desc value passed to importProcessdata
-        //
-        // Note2: we could have chosen title instead of desc, for db-column NAME
-        String desc = tableToStore.getDescription();
-        if ( desc == null )
-        {
-        	desc = "";
-        }
-        else if ( desc.length() >= 100 )
-        {
-        	desc = desc.substring( 0, 95 ) + " ...";
-        }
-        
-        String rid = processDataManager.importProcessData(tableName, desc, data, ProcessResultTypeEnum.JSON);
-        LOGGER.trace("Table stored Ok in db: " + tableName + " with rid: " + rid);
+		TableInfo tableInfo = tableToStore.getTableInfo();
+		byte[] data = serializeToJson(tableInfo).getBytes();
 
-        // and now updates the identifier name for the software part
-        tableToStore.setName( tableName );
-        
-        return rid;
-    }
+		// create the table in DB-table, whose name is saved separately
+
+		// Note1: before the new DAO for Table:
+		// the desc is limited to 100 char because it is saved in db-column NAME of db-table
+		// PROCESSDATA and NAME is defined as 'character varying(100)'
+		// => need to truncate the desc value passed to importProcessdata
+		//
+		// Note2: we could have chosen title instead of desc, for db-column NAME
+		String desc = tableToStore.getDescription();
+		if (desc == null) {
+			desc = "";
+		} else if (desc.length() >= 100) {
+			desc = desc.substring(0, 95) + " ...";
+		}
+
+		String rid = processDataManager.importProcessData(tableName, desc, data, ProcessResultTypeEnum.JSON);
+		LOGGER.trace("Table stored Ok in db: " + tableName + " with rid: " + rid);
+
+		// and now updates the identifier name for the software part
+		tableToStore.setName(tableName);
+
+		return rid;
+	}
 
 	/**
 	 * Deletes the table from the database.
@@ -518,18 +512,22 @@ public class TableManager {
 	}
 
 	/**
-	 * Internal use only: definition of Integer comparator driven by sorting String values.
+	 * Internal use only: definition of Integer comparator driven by sorting String values. Purpose of returned
+	 * Comparator is to sort some table indexes (for instance rows indexes) according to a specific criterion, i.e.
+	 * associated values from mapIndexToSortingValue (for instance values from one specific column).
 	 * 
 	 * @param mapIndexToSortingValue
 	 *            the map associating each index to its sorting value.
-	 *            //REVIEW#158227 : missing param description for reverse
+	 * @param reverse
+	 *            true for descending order.
 	 * @return this comparator
 	 */
 	static Comparator<Integer> getIndexComparator(Map<Integer, String> mapIndexToSortingValue, boolean reverse) {
 		// magic comparator: reorder the indexes according to the order of
 		// sorting values
 		Comparator internalComparator = new NaturalOrderComparator();
-		Comparator<Integer> compareRows = new Comparator<Integer>() {
+
+		return new Comparator<Integer>() {
 
 			@Override
 			public int compare(Integer index, Integer anotherIndex) {
@@ -541,6 +539,5 @@ public class TableManager {
 				return res;
 			}
 		};
-		return compareRows;
 	}
 }

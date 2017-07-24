@@ -2,7 +2,13 @@ package fr.cs.ikats.temporaldata.business;
 
 
 // REVIEW#158227 : should remove or uncomment commented code (several occurences)
+// REVIEW#158227 Reply MBD begin
+//   ok: I used verbose variable
+// REVIEW#158227 Reply MBD end
 // REVIEW#158227 : DisplayTestedTable should be activable/deactivable (since it is clearly not needed when testing non-reg)
+// REVIEW#158227 Reply MBD begin
+//   it was already the case but I simplified: everything is driven by flag verbose
+// REVIEW#158227 Reply MBD end
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -18,6 +24,12 @@ import junit.framework.TestCase;
  */
 public class TableManagerTest extends TestCase {
 
+	/**
+	 * verbose == true enables more logs (to sysout), for instance in DEV environment, debugging the JUnit tests.
+	 * Expected for usual deployment: verbose == false for usual tests, not requiring displays.
+	 */
+	private static boolean verbose = false;
+	
     /**
      * Do not change this sample: reused by several tests: for new purposes =>
      * create another one
@@ -43,8 +55,9 @@ public class TableManagerTest extends TestCase {
             List<Object> refFuncIds = new ArrayList<Object>(table.headers.row.data);
             refFuncIds.remove(0);
 
-            // System.out.println( funcIds );
-            // System.out.println( refFuncIds );
+            if ( verbose ) System.out.println( funcIds );
+            if ( verbose ) System.out.println( refFuncIds );
+            
             assertEquals(refFuncIds, funcIds);
             
             
@@ -64,7 +77,8 @@ public class TableManagerTest extends TestCase {
             TableManager mng = new TableManager();
 
             TableInfo tableJson = mng.loadFromJson(TableManagerTest.JSON_CONTENT_SAMPLE_1);
-            System.out.println(TableManagerTest.JSON_CONTENT_SAMPLE_1);
+            
+            if ( verbose ) System.out.println(TableManagerTest.JSON_CONTENT_SAMPLE_1);
 
             Table table = mng.initTable(tableJson, false);
 
@@ -87,8 +101,9 @@ public class TableManagerTest extends TestCase {
                 refOtherDecimal.add((Double) row.get(1));
             }
 
-            // System.out.println( refOtherDecimal );
-            // System.out.println( refOtherDecimal );
+            if ( verbose ) System.out.println( refOtherDecimal );
+            if ( verbose ) System.out.println( otherDecimal );
+            
             assertEquals(refOtherDecimal, otherDecimal);
             assertEquals(-50.0, otherDecimal.get(0));
 
@@ -173,9 +188,9 @@ public class TableManagerTest extends TestCase {
             List<Object> selectedRowVals = tableH.getRow(secondRowName, Object.class);
             List<Object> ref = new ArrayList<Object>(table.content.cells.get(contentIndex));
 
-            System.out.println(selectedRowValsBis);
-            System.out.println(selectedRowVals);
-            System.out.println(ref);
+            if ( verbose ) System.out.println(selectedRowValsBis);
+            if ( verbose ) System.out.println(selectedRowVals);
+            if ( verbose ) System.out.println(ref);
 
             assertEquals(selectedRowVals, selectedRowValsBis);
             assertEquals(selectedRowVals, Arrays.asList("VIB2", -50.0, 12.1, 1.0, 3.4));
@@ -225,8 +240,8 @@ public class TableManagerTest extends TestCase {
             tableH.checkConsistency();
             tableHBis.checkConsistency();
             
-            System.out.println(mng.serializeToJson(table));
-            System.out.println(mng.serializeToJson(tableHBis.getTableInfo()));
+            if ( verbose ) System.out.println(mng.serializeToJson(table));
+            if ( verbose ) System.out.println(mng.serializeToJson(tableHBis.getTableInfo()));
 
             assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
 
@@ -277,18 +292,18 @@ public class TableManagerTest extends TestCase {
             tableH.checkConsistency();
             tableHBis.checkConsistency();
             
-            // System.out.println(mng.serializeToJson(table));
-            // System.out.println(mng.serializeToJson(tableHBis.getTable()));
+            if ( verbose )  System.out.println(mng.serializeToJson(table));
+            if ( verbose )  System.out.println(mng.serializeToJson(tableHBis.getTableInfo()));
 
             assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
 
             List<Object> columnnTwo = tableH.getColumn("Two", Object.class);
-            // System.out.println( columnnTwo );
+            if ( verbose )  System.out.println( columnnTwo );
 
             assertEquals(columnnTwo, Arrays.asList(new Object[] { 2.0, 2.2, false }));
 
             List<Object> columnnOfRowHeaders = tableH.getColumn("Above row header");
-            // System.out.println( columnnOfRowHeaders );
+            if ( verbose )  System.out.println( columnnOfRowHeaders );
 
             assertEquals(columnnOfRowHeaders, Arrays.asList("A", "B", "C"));
         }
@@ -365,12 +380,12 @@ public class TableManagerTest extends TestCase {
             tableH.checkConsistency();
             tableHBis.checkConsistency();
 
-            // System.out.println(mng.serializeToJson(table));
-            // System.out.println(mng.serializeToJson(tableHBis.getTable()));
+            if ( verbose )  System.out.println(mng.serializeToJson(table));
+            if ( verbose )  System.out.println(mng.serializeToJson(tableHBis.getTableInfo()));
             assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
 
             List<Object> columnnTwo = tableH.getColumn("Two", Object.class);
-            // System.out.println( columnnTwo );
+            if ( verbose )  System.out.println( columnnTwo );
 
             assertEquals(columnnTwo, Arrays.asList(new Object[] { row1[1], row2AsList.get(1).data, row3.get(1).data }));
             assertEquals(columnnTwo, tableHBis.getColumn("Two", Object.class));
@@ -381,7 +396,7 @@ public class TableManagerTest extends TestCase {
             // tableHBis.getColumnFromTable("Two") );
 
             List<Object> columnnOfRowHeaders = tableH.getColumn("Above row header");
-            // System.out.println( columnnOfRowHeaders );
+            if ( verbose )  System.out.println( columnnOfRowHeaders );
 
             assertEquals(columnnOfRowHeaders, Arrays.asList(new Object[] { "A", "B", "C" }));
             
@@ -426,7 +441,7 @@ public class TableManagerTest extends TestCase {
     }
 
     /**
-     * //REVIEW#158227 : no documentation
+     * tests simple case of appendRow, with only data part, without link.
      */
     public void testAppendRowWithoutLinks() {
 
@@ -441,7 +456,7 @@ public class TableManagerTest extends TestCase {
             int initialRowCount = tableH.getRowCount(true);
             int initialColumnCount = tableH.getColumnCount(true);
 
-            // System.out.println(TableManagerTest.JSON_CONTENT_SAMPLE_1);
+            if ( verbose )  System.out.println(TableManagerTest.JSON_CONTENT_SAMPLE_1);
 
             List<Object> addedList = new ArrayList<>();
             for (int i = 0; i < 4; i++)
@@ -488,9 +503,9 @@ public class TableManagerTest extends TestCase {
                 myT.appendRow(Arrays.asList(i < 5, "" + i, null));
             }
 
-            System.out.println(myT.getColumn("One"));
-            System.out.println(myT.getColumn("Two"));
-            System.out.println(myT.getColumn("Three"));
+            if ( verbose ) System.out.println(myT.getColumn("One"));
+            if ( verbose ) System.out.println(myT.getColumn("Two"));
+            if ( verbose ) System.out.println(myT.getColumn("Three"));
 
             List<Boolean> strOneList = myT.getColumn("One", Boolean.class);
             List<String> strOneListAString = myT.getColumn("One");
@@ -506,9 +521,7 @@ public class TableManagerTest extends TestCase {
             }
 
             assert (strOneList.get(0) instanceof Boolean);
-            System.out.println("ok1");
             assert (strOneListAString.get(0) instanceof String);
-            System.out.println("ok2");
         }
         catch (Exception e) {
             e.printStackTrace();
@@ -528,9 +541,9 @@ public class TableManagerTest extends TestCase {
                 myT.appendRow("row"+i, Arrays.asList(i, i +2) );
             }
 
-            System.out.println(myT.getRow("row1"));
-            System.out.println(myT.getRow("row2"));
-            System.out.println(myT.getRow("row9"));
+            if ( verbose ) System.out.println(myT.getRow("row1"));
+            if ( verbose ) System.out.println(myT.getRow("row2"));
+            if ( verbose ) System.out.println(myT.getRow("row9"));
 
             List<Integer> strOneList = myT.getRow("row1", Integer.class);
             List<String> strOneListAString = myT.getRow("row1");
@@ -539,7 +552,7 @@ public class TableManagerTest extends TestCase {
                 fail("Incorrect: class cast exception not detected !");
             }
             catch (IkatsException e) {
-                assertTrue(true); // REVIEW#158227 : (not important) useless assert
+                if ( verbose ) System.out.println( "testGetRow: Got expected exception" );
             }
             catch (Exception e) {
                 fail("Unexpected exception");
@@ -659,11 +672,11 @@ public class TableManagerTest extends TestCase {
 
             boolean display = true;
             
-            displayTestedTable(display, myTWithoutRowHeader);
+            displayTestedTable(myTWithoutRowHeader);
 
             myTWithoutRowHeader.sortRowsByColumnValues(2, false);
             
-            displayTestedTable(display, myTWithoutRowHeader);
+            displayTestedTable(myTWithoutRowHeader);
             
             assertEquals(Arrays.asList( -6.0, 2.0, 3.5, 3.7, 6.0), myTWithoutRowHeader.getColumn(2, Double.class));
             
@@ -703,11 +716,11 @@ public class TableManagerTest extends TestCase {
 
             boolean display = true;
             
-            displayTestedTable(display, myTWithoutRowHeader);
+            displayTestedTable(myTWithoutRowHeader);
 
             myTWithoutRowHeader.sortRowsByColumnValues("Order", false);
             
-            displayTestedTable(display, myTWithoutRowHeader);
+            displayTestedTable(myTWithoutRowHeader);
             
             assertEquals(Arrays.asList( -6, 2, 3, 4, 6), myTWithoutRowHeader.getColumn("Order", Integer.class));
             
@@ -748,11 +761,11 @@ public class TableManagerTest extends TestCase {
 
             boolean display = true;
             
-            displayTestedTable(display, myTWithoutRowHeader);
+            displayTestedTable( myTWithoutRowHeader);
 
             myTWithoutRowHeader.sortRowsByColumnValues("Order", false);
             
-            displayTestedTable(display, myTWithoutRowHeader);
+            displayTestedTable( myTWithoutRowHeader);
             
             assertEquals(Arrays.asList( -6, 2, 3, 4, 6), myTWithoutRowHeader.getColumn("Order", Integer.class));
             
@@ -764,7 +777,7 @@ public class TableManagerTest extends TestCase {
             
             myTWithoutRowHeader.sortRowsByColumnValues("TopLeft", false);
             
-            displayTestedTable(display, myTWithoutRowHeader);
+            displayTestedTable(myTWithoutRowHeader);
             
             assertEquals(Arrays.asList( "A2", "A10", "A100", "B1", "B1.1"), myTWithoutRowHeader.getColumn("TopLeft", String.class));
             
@@ -797,14 +810,12 @@ public class TableManagerTest extends TestCase {
             myTable.appendRow("A100", Arrays.asList("bla4", "BLAH4", 4));
             myTable.appendRow("A10", Arrays.asList("bla6", "BLAH6", 6));
             myTable.appendRow("A2", Arrays.asList("-bla6", "-BLAH6", -6));
-
-            boolean display = true;
-            
-            displayTestedTable(display, myTable);
+ 
+            displayTestedTable(myTable);
 
             myTable.insertColumn( "Blabla", "Bazar", Arrays.asList( Boolean.TRUE, Boolean.FALSE, "text", null, 3.14) );
             
-            displayTestedTable(display, myTable);
+            displayTestedTable(myTable);
             
             myTable.checkConsistency();
         
@@ -838,11 +849,11 @@ public class TableManagerTest extends TestCase {
 
             boolean display = true;
             
-            displayTestedTable(display, myTWithColHeader);
+            displayTestedTable( myTWithColHeader);
 
             myTWithColHeader.insertColumn( "Blabla", "Bazar", Arrays.asList( Boolean.TRUE, Boolean.FALSE, "text", null, 3.14) );
             
-            displayTestedTable(display, myTWithColHeader);
+            displayTestedTable( myTWithColHeader);
             
             myTWithColHeader.checkConsistency();
         
@@ -875,11 +886,11 @@ public class TableManagerTest extends TestCase {
 
             boolean display = true;
             
-            displayTestedTable(display, myTable);
+            displayTestedTable( myTable);
 
             myTable.insertColumn( 1, Arrays.asList( Boolean.TRUE, Boolean.FALSE, "text", null, 3.14) );
             
-            displayTestedTable(display, myTable);
+            displayTestedTable( myTable);
             
             myTable.checkConsistency();
         
@@ -911,11 +922,11 @@ public class TableManagerTest extends TestCase {
 
             boolean display = true;
             
-            displayTestedTable(display, myTable);
+            displayTestedTable( myTable);
 
             myTable.insertRow( 1, Arrays.asList( "avantBla2", Boolean.FALSE, "text") );
             
-            displayTestedTable(display, myTable);
+            displayTestedTable(myTable);
             
             myTable.checkConsistency();
         
@@ -951,11 +962,11 @@ public class TableManagerTest extends TestCase {
 
             boolean display = true;
             
-            displayTestedTable(display, myTable);
+            displayTestedTable( myTable);
 
             myTable.insertRow( "A100", "Bazar", Arrays.asList( Boolean.TRUE, Boolean.FALSE, 3.14) );
             
-            displayTestedTable(display, myTable);
+            displayTestedTable(myTable);
             
             myTable.checkConsistency();
         
@@ -971,9 +982,14 @@ public class TableManagerTest extends TestCase {
         } 
     }
     
-    
-    private void displayTestedTable(boolean enableDisplay, Table table) throws IkatsException, ResourceNotFoundException {
-        if ( enableDisplay ) 
+    /**
+     * Makes sysout display of Table activated, once verbose is True
+     * @param table
+     * @throws IkatsException
+     * @throws ResourceNotFoundException
+     */
+    private void displayTestedTable(Table table) throws IkatsException, ResourceNotFoundException {
+        if ( verbose ) 
         {
             if ( table.isHandlingColumnsHeader() )
                 System.out.println( table.getColumnsHeader().getItems());

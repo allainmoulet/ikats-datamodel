@@ -1261,12 +1261,13 @@ public class Table {
 		// The cast is needed in order to select the GOOD encodeElements(...)
 		this.getContent().insertRow(insertionIndex, TableElement.encodeElements((List<Object>) rowData));
 	}
-
+ 
 	/**
-	 * Append a new // REVIEW#158227 : documentation still incomplete
-	 * 
-	 * @param colData
-	 * @return
+	 * Appends a new column at the right of content part
+	 * @param colData  the appended column as a List of types T: either Object for data, TableElement for data+link, DataLink
+	 *            for link. Note: in usual simple case of Object for data: please use immutable types (String, Integer,
+	 *            Double, Boolean, ...)
+	 * @return the number of columns in table content part -ignoring the table header section -
 	 * @throws IkatsException
 	 */
 	public <T> int appendColumn(List<T> colData) throws IkatsException {
