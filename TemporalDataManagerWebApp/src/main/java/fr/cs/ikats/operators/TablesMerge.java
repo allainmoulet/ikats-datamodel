@@ -14,7 +14,6 @@ import fr.cs.ikats.temporaldata.business.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 
-// Review#158268 FTA : Javadoc below is incomplete
 /**
  * <p>IKATS Operator Tables Merge</p>
  * 
@@ -22,9 +21,9 @@ import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
  * 
  * <p>Rules:
  * <ul>
- * <li>The operator produce an inner join between 2 tables only</li>
+ * <li>The operator produces an inner join between 2 tables only</li>
  * <li>The first table (in the order) is the reference : all columns will be in the result</li>
- * <li>The operator will copy all the columns of the second table expect the join column</li>
+ * <li>The operator will copy all the columns of the second table except the join column</li>
  * <li>The join key (see {@link Request#joinOn}) is case sensitive</li>
  * <li>The join key should be found in the 2 tables</li>
  * <li>If the join key is not provided, the first column in the first table is selected,
@@ -127,8 +126,6 @@ public class TablesMerge {
             // column in the current table
             try {
                 joinIndexInSecondTable = secondTable.getIndexColumnHeader(joinKey);
-                // Review#158268 FTA : joinFound assignment is useless here (overwritten later before using it)
-                // Review#158268 FTL : removed and moved the joinFound declaration
             }
             catch (IkatsException e) {
                 // Exception is synonym of not found
@@ -146,8 +143,6 @@ public class TablesMerge {
         }
         catch (IkatsException | ResourceNotFoundException e) {
             logger.error("Can't get the column data at index " + joinIndexInSecondTable + " for table " + secondTable.getName());
-            // Review#158268 FTA : joinFound assignment is useless here (overwritten later before using it)
-            // Review#158268 FTL : see previous comment
             // Do nothing here because joinFound is already false
         }
 
@@ -180,7 +175,6 @@ public class TablesMerge {
             int rowIndexForMerge = -1;
             boolean joinFound = false;
 
-            // Review#158268 FTA : columnValues may be null so .size() may produce NullPointerException. Protect
             if (columnValues != null) {
                 for (int k = 0; k < columnValues.size(); k++) {
                     if (joinValue.equals(columnValues.get(k))) {
