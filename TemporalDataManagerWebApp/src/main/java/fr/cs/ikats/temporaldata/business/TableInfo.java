@@ -745,11 +745,6 @@ public class TableInfo {
 			return TableElement.encodeElements(this.data, this.links);
 		}
 
-		// REVIEW#158227 it does not look like it activates links on "one" header, should reformulate javadoc
-		// REVIEW#158227 Reply MBD begin
-		// in my vocabulary: there is at most one columns header for one table and one rows header for one table.
-		// => i completed the javadoc of Header (see class section). But here, no correction is needed
-		// REVIEW#158227 Reply MBD end
 		/**
 		 * Activates the links management on this header.
 		 * 

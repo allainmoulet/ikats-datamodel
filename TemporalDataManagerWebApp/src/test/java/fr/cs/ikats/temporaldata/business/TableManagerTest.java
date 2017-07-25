@@ -1,15 +1,6 @@
 package fr.cs.ikats.temporaldata.business;
 
 
-// REVIEW#158227 : should remove or uncomment commented code (several occurences)
-// REVIEW#158227 Reply MBD begin
-//   ok: I used verbose variable
-// REVIEW#158227 Reply MBD end
-// REVIEW#158227 : DisplayTestedTable should be activable/deactivable (since it is clearly not needed when testing non-reg)
-// REVIEW#158227 Reply MBD begin
-//   it was already the case but I simplified: everything is driven by flag verbose
-// REVIEW#158227 Reply MBD end
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
