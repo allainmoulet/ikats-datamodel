@@ -196,7 +196,7 @@ public class TablesMerge {
             
             if (!joinFound) {
                 // INNER JOIN could not be realized -> no matching value for that row
-                break;
+                continue;
             }
             // ELSE -> we could merge
 

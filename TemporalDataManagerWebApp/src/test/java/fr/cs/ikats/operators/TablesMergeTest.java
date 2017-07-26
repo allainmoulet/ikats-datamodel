@@ -51,11 +51,31 @@ public class TablesMergeTest {
             + "J;ten;10;10;1010\n"
             + "C;three;03;3;0011\n"
             + "B;two;02;2;0010";
+    
+    private static final String TABLE1_SMALLER_CSV   = "H1-1;H1-2;H1-3;H1-4;H1-5\n"
+            + "H;eight;08;8;1000\n"
+            + "E;five;05;5;0101\n"
+            + "I;nine;09;9;1001\n"
+            + "A;un;01;1;0001\n"
+            + "G;seven;07;7;0111\n"
+            + "J;ten;10;10;1010\n"
+            + "C;three;03;3;0011\n"
+            + "B;two;02;2;0010";
 
     private static final String TABLE2_CSV   = "H2-1;H2-2;H2-3;H1-1;H1-2\n"
             + "0;3,14;6,28;F;six\n"
             + "3,14;9,42;6,28;A;one\n"
             + "3,14;15,71;12,57;D;four\n"
+            + "3,14;0;0;H;eight\n"
+            + "6,28;9,42;9,42;G;seven\n"
+            + "9,42;12,57;6,28;B;two\n"
+            + "9,42;0;12,57;C;three\n"
+            + "9,42;6,28;15,71;I;nine\n"
+            + "15,71;15,71;6,28;J;ten\n"
+            + "15,71;3,14;0;E;five\n";
+    
+    private static final String TABLE2_SMALLER_CSV   = "H2-1;H2-2;H2-3;H1-1;H1-2\n"
+            + "3,14;9,42;6,28;A;un\n"
             + "3,14;0;0;H;eight\n"
             + "6,28;9,42;9,42;G;seven\n"
             + "9,42;12,57;6,28;B;two\n"
@@ -88,6 +108,8 @@ public class TablesMergeTest {
 
     private static Table        table1       = null;
     private static Table        table2       = null;
+    private static Table        table1Smaller       = null;
+    private static Table        table2Smaller       = null;
     private static Table        table3       = null;
     private static Table        table4       = null;
     private static TableManager tableManager = new TableManager();
@@ -96,6 +118,8 @@ public class TablesMergeTest {
     public static void setUpBeforClass() throws Exception {
         table1 = buildTableFromCSVString("table1", TABLE1_CSV, true);
         table2 = buildTableFromCSVString("table2", TABLE2_CSV, true);
+        table1Smaller = buildTableFromCSVString("table1Smaller", TABLE1_SMALLER_CSV, true);
+        table2Smaller = buildTableFromCSVString("table2Smaller", TABLE2_SMALLER_CSV, true);
         table3 = buildTableFromCSVString("table3", TABLE3_CSV, false);
         table4 = buildTableFromCSVString("table4", TABLE4_CSV, false);
     }
@@ -145,7 +169,8 @@ public class TablesMergeTest {
     public final void testTablesMergeConstructorExceptionNoTables() throws IkatsOperatorException {
 
         // Review#158268 FTA : Added this test because if in HMI we don't provide inputs, the method could send no values for tables field --> Protect by try catch to raise 400
-        Request tableMergeRequest = new Request();
+    	// Review#158268 MBD test failed : unexpected NullPointerException
+    	Request tableMergeRequest = new Request();
         tableMergeRequest.joinOn = "join_key";
         tableMergeRequest.outputTableName = "output_table_name";
         // Will raise the exception because at least 2 tables are expected
@@ -157,7 +182,7 @@ public class TablesMergeTest {
     /**
      * First Table (T1) contains headers
      * Second Table (T2) contains headers
-     * No defined Key to use for join
+     * 
      * There is a match: T1-col("H1-2") matches T2-col("H1-2")
      * Note: columns index begins at index 0 in above description (or use the column name)
      */
@@ -181,6 +206,43 @@ public class TablesMergeTest {
                 + "B;two;02;2;0010;9,42;12,57;6,28;B\n";
 
         testTableMerge(table1, table2, "H1-2", "expected join", expected_merge);
+    }
+    
+    /**
+     * Tests the merge with H1-2 criterion, on tables with different sizes and H1-2 entries:
+     * <ul><li>
+     * table1Smaller  is built from table1. Lines were deleted: those with H1-2 equal to «four» or « six ». Cell was modified:  H1-2 with « one » becomes H1-2 with « un »  
+     * </li><li>
+     * table2Smaller is built from table2. Lines were deleted: those with H1-2 equal to «four» or « six ». Cell was modified:  H1-2 with « one » becomes H1-2 with « un »  
+     * </li></ul>
+     * @throws IOException
+     * @throws IkatsException
+     * @throws IkatsOperatorException
+     */
+    @Test
+    public final void testDoMergeNominalDifferentSize() throws IOException, IkatsException, IkatsOperatorException {
+
+    	// Review#158268 FTA : begin
+    	//      MBD: review point copied from testDoMergeNominal: did not corrected the test for that point
+        // I don't think having 2 columns named "H1-1" is what PO wants in results. 
+        // Check with her and add to the followup the description of the behaviour since we don't have any requirements document
+        // Review#158268 FTA : end
+    	
+    	// The expected result is the same for merge(table1smaller, table2) and merge(table1, table2smaller)
+    	// It has no line whose H1-2 is "one" "un" "four" or "six"
+        String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
+                + "H;eight;08;8;1000;3,14;0;0;H\n"
+                + "E;five;05;5;0101;15,71;3,14;0;E\n"
+                + "I;nine;09;9;1001;9,42;6,28;15,71;I\n"
+                + "G;seven;07;7;0111;6,28;9,42;9,42;G\n"
+                + "J;ten;10;10;1010;15,71;15,71;6,28;J\n"
+                + "C;three;03;3;0011;9,42;0;12,57;C\n"
+                + "B;two;02;2;0010;9,42;12,57;6,28;B\n";
+
+        
+        testTableMerge(table1Smaller, table2, "H1-2", "DoMergeNominalDifferentSize", expected_merge);
+        
+        testTableMerge(table1, table2Smaller, "H1-2", "DoMergeNominalDifferentSize", expected_merge);
     }
 
     /**
@@ -283,6 +345,7 @@ public class TablesMergeTest {
 
         // Review#158268 FTA : Test is KO
         // Review#158268 FTL : it is ok on my dev branch (see origin/
+    	// Review#158268 MBD : Test is KO
         testTableMerge(table3, table2, null, "MergeWithoutJoinKeyAndNoMatch", ";");
     }
 
