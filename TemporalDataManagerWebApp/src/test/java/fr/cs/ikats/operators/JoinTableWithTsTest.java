@@ -2,6 +2,7 @@ package fr.cs.ikats.operators;
 
 import static org.junit.Assert.fail;
 
+//Review#158227 FTL CTRL + SHIFT + o -> réorganise les imports, en enlevant les inutiles.
 import java.awt.BufferCapabilities.FlipContents;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.stream.Collectors;
 // import static org.junit.Assert.*;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.mchange.v1.lang.GentleThread;
@@ -92,10 +94,12 @@ public class JoinTableWithTsTest extends CommonTest {
 	// -
 	private static String SELECTED_METRICS_ALL_MATCHING = "WS1;WS3";
 	// - HEADING is not matching selected dataset
+	// Review#157227 FTL Non utilisé
 	private static String SELECTED_METRICS_PARTIAL_MATCHING = "WS1;WS3;HEADING";
 
 	@BeforeClass
 	public static void init() {
+        // Review#158227 FTL ajouter du commentaire de code
 		try {
 
 			metaManager = new MetaDataManager();
@@ -127,6 +131,7 @@ public class JoinTableWithTsTest extends CommonTest {
 				}
 			}
 
+			// Review#1158227 FTL notamment ici pour les non inités :)
 			List<String> tsuids = datasetFuncIds.stream().map(FunctionalIdentifier::getTsuid)
 					.collect(Collectors.toList());
 			dataSetManager.persistDataSet(WHOLE_DATASET_NAME, "JUnit dataset", tsuids);
@@ -134,23 +139,27 @@ public class JoinTableWithTsTest extends CommonTest {
 					.collect(Collectors.toList());
 			dataSetManager.persistDataSet(SELECTED_DATASET_NAME, "JUnit dataset", selectedTsuids);
 
-		} catch (Exception e) {
+		} // Review#158227 FTL try catch Exception inutile, à supprimer
+ catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 
+	// Review#158227 FTL Ce TU est en fait un TI car la verification principale est faite par rapport à l'enregistrement.
+	// Review#158227 FTL Du coup ma seule remarque serait de mettre la mention INTERGRATION TEST dans le commentaire ci-dessous
 	/**
 	 * Test on apply(): when the user selects an ID not as first column (i.e. row header), and when a target name is chosen.
 	 * 
      * This test is complementary to the test testComputeTableNominalWithTarget: 
      *   - testApplyNominal tests that the computed table is correctly saved in database, not testing all details.
-	 *   - testComputeTableNominalWithTarget is chacking produced Table content, testing details.
+	 *   - testComputeTableNominalWithTarget is checking produced Table content and testing details.
 	 *   
 	 * The other tests will focus to computeTable() step of apply()
 	 */
 	@Test
 	public void testApplyNominal() {
 
+	    // Review#157227 FTL Non utilisé
 		int indexConfig = 0;
 
 		try {
@@ -183,7 +192,7 @@ public class JoinTableWithTsTest extends CommonTest {
 			String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
 
 
-			JoinTableWithTs testedOperator = new JoinTableWithTs(); 
+			JoinTableWithTs testedOperator = new JoinTableWithTs();
 			String resId = testedOperator.apply(selectedJson, testedMetrics, SELECTED_DATASET_NAME, testedInputJoinColName, testedInputJoinMetaName, 
 					                theTargetColumnName, OUTPUT_TABLE_NAME);
 			 
@@ -222,6 +231,7 @@ public class JoinTableWithTsTest extends CommonTest {
 			} 
 			
 		} catch (Exception e) {
+		    // Review#158227 FTL try catch exception qui n'apporte rien au test, a supprimer. 
 			getLogger().error(e);
 			endWithFailure("testApplyNominal", e);
 			fail("testApplyNominal: unexpected error occurred");
@@ -231,6 +241,7 @@ public class JoinTableWithTsTest extends CommonTest {
 			try {
 				processDataManager.removeProcessData( OUTPUT_TABLE_NAME );
 			} catch (Exception cleanFailed) {
+			    // Review#158227 FTL l'appel est testé par ailleurs, ce catch est supperflu. Les exceptions potentielles sont mettre dans le throw de la signature 
 				// Should not happen !
 				fail( "testApplyNominal: failed to clean the table name=" + OUTPUT_TABLE_NAME );
 			}
@@ -247,7 +258,8 @@ public class JoinTableWithTsTest extends CommonTest {
 		// - each list proposes different values of one parameter, in
 		// respective order of tested configurations
 		//
-		int indexConfig = 0;
+	    // Review#157227 FTL Non utilisé
+	    int indexConfig = 0;
 		List<List<String>> configsTest = new ArrayList<>();
 		// One test config defines:
 		// <column ID in prepared table> | <input joinVColName> | <input
@@ -324,6 +336,7 @@ public class JoinTableWithTsTest extends CommonTest {
 
 			endNominal("testComputeTableNominalWithTarget");
 		} catch (Exception e) {
+            // Review#158227 FTL try catch exception qui n'apporte rien au test, a supprimer. 
 			getLogger().error("Failed test for config= " + configsTest);
 			getLogger().error(e);
 			fail("Unexpected error occurred.");
@@ -341,7 +354,8 @@ public class JoinTableWithTsTest extends CommonTest {
 		// - each list proposes different values of one parameter, in
 		// respective order of tested configurations
 		//
-		int indexConfig = 0;
+	    // Review#157227 FTL Non utilisé
+	    int indexConfig = 0;
 		List<String> currentConfig = null;
 		List<List<String>> configsTest = new ArrayList<>();
 		// One test config defines:
@@ -427,6 +441,7 @@ public class JoinTableWithTsTest extends CommonTest {
 
 			endNominal("testComputeTableNominalWithoutTarget");
 		} catch (Exception e) {
+            // Review#158227 FTL try catch exception qui n'apporte rien au test, a supprimer. 
 			getLogger().error("Failed test for config= " + currentConfig);
 			getLogger().error(e);
 
@@ -440,7 +455,9 @@ public class JoinTableWithTsTest extends CommonTest {
 	 */
 	@Test
 	public void testComputeTableNoMetrics() {
+	    // Review#157227 FTL Non utilisé
 		int indexConfig = 0;
+		  // Review#157227 FTL Non utilisé
 		List<List<String>> configsTest = new ArrayList<>();
 		// One test config defines:
 		// <column ID in prepared table> | <input joinVColName> | <input
@@ -472,7 +489,8 @@ public class JoinTableWithTsTest extends CommonTest {
 			String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
 
 			JoinTableWithTs testedOperator = new JoinTableWithTs();
-			Table computedTable = testedOperator.computeTable(selectedJson, "X;Y", SELECTED_DATASET_NAME,
+			// Review#157227 FTL pour éviter le warning not used, supprimer l'affectation 
+			testedOperator.computeTable(selectedJson, "X;Y", SELECTED_DATASET_NAME,
 					testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName, "TestedOutput");
 
 			fail("JoinTableWithTs::computeTable() should throw a ResourceNotFoundException");
@@ -484,6 +502,7 @@ public class JoinTableWithTsTest extends CommonTest {
 			endOkDegraded("testComputeTableNoMetrics", e);
 
 		} catch (Exception other) {
+          // Review#158227 FTL try catch exception qui n'apporte rien au test, a supprimer. 
 			endWithFailure("testComputeTableNoMetrics unexpected exception instead of ResourceNotFoundException",
 					other);
 		}
@@ -495,8 +514,10 @@ public class JoinTableWithTsTest extends CommonTest {
 	 */
 	@Test
 	public void testComputeTablePartialMetrics() {
-		int indexConfig = 0;
-		List<List<String>> configsTest = new ArrayList<>();
+	    // Review#157227 FTL Non utilisé
+	    int indexConfig = 0;
+	    // Review#157227 FTL Non utilisé
+	    List<List<String>> configsTest = new ArrayList<>();
 		// One test config defines:
 		// <column ID in prepared table> | <input joinVColName> | <input
 		// joinMetaName> | <input TargetColName>
@@ -566,6 +587,8 @@ public class JoinTableWithTsTest extends CommonTest {
 		try {
 			val = ((List<FunctionalIdentifier>) dataLink.val).get(0);
 		} catch (Throwable e) {
+		    // Review#158227 FTL pas utile de catcher si on ne fait rien pendant les tests, ici l'exception intéressante serait ClassCastException,  
+		    // Review#158227 FTL au quel cas, le fail() serait plus judicieux que rien faire. 
 			// leaves val == null : following assert will fail
 		}
 		assertTrue(val != null);
@@ -574,12 +597,15 @@ public class JoinTableWithTsTest extends CommonTest {
 
 	}
 
+// Review#158227 FTL on a structuré nos test pour utiliser une base en mémoire, pas besoin de nettoyage, code inutile.
 	/**
 	 * Ends the junit class: clean test data from the database
 	 */
 	@AfterClass
 	public static void end() {
+        // Review#158227 FTL code de tests : inutile de surcharger la gestion d'exception pour un simple sys.out.print, par ailleurs, les catch 'all' sont une mauvaise pratique  
 		try {
+		    // Review#158227 FTL code inutile à supprimer.
 			System.out.println(metaManager);
 
 			dataSetManager.removeDataSet(WHOLE_DATASET_NAME, false);
@@ -595,7 +621,8 @@ public class JoinTableWithTsTest extends CommonTest {
 			metaManager = null;
 			processDataManager = null;
 			
-		} catch (Exception e) {
+		} // Review#158227 FTL try catch Exception inutile, à supprimer
+ catch (Exception e) {
 			e.printStackTrace(System.err);
 		}
 

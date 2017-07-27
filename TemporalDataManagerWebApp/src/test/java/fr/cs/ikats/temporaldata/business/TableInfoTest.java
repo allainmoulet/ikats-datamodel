@@ -53,13 +53,18 @@ public class TableInfoTest extends TestCase {
             objectMapper.configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS,  false);
             objectMapper.setSerializationInclusion(Include.NON_NULL);
             TableInfo testedTable = objectMapper.readValue( jsonContent, TableInfo.class);
+            
+            // Review#158227 FTL code en commentaire, à supprimer
             // System.out.println( testedTable );
             
             
              String written1 = new ObjectMapper().writeValueAsString(testedTable);
+             // Review#158227 FTL code en commentaire, à supprimer
              // System.out.println( "avec null: " + written1);
              String written2 = objectMapper.writeValueAsString(testedTable);
+             // Review#158227 FTL code en commentaire, à supprimer
              // System.out.println( "sans null: " + written2);
+             // Review#158227 FTL code en commentaire, à supprimer
              // System.out.println( "ref input: " + jsonContent);
             
             // non-exhaustive test
@@ -119,13 +124,17 @@ public class TableInfoTest extends TestCase {
             objectMapper.configure(SerializationFeature.WRITE_EMPTY_JSON_ARRAYS,  false);
             objectMapper.setSerializationInclusion(Include.NON_NULL);
             TableInfo testedTable = objectMapper.readValue( jsonContent, TableInfo.class);
+            // Review#158227 FTL code en commentaire, à supprimer
             // System.out.println( testedTable );
             
             
              String written1 = new ObjectMapper().writeValueAsString(testedTable);
+             // Review#158227 FTL code en commentaire, à supprimer
              // System.out.println( "avec null: " + written1);
              String written2 = objectMapper.writeValueAsString(testedTable);
+             // Review#158227 FTL code en commentaire, à supprimer
              // System.out.println( "sans null: " + written2);
+             // Review#158227 FTL code en commentaire, à supprimer
              // System.out.println( "ref input: " + jsonContent);
             
             // non-exhaustive test
@@ -197,6 +206,7 @@ public class TableInfoTest extends TestCase {
             
             String lJson = mng.serializeToJson(myJsonPojo);
 
+            // Review#158227 FTL code en commentaire, à supprimer
             // System.out.println( lJson );
             
             TableInfo reloadedPojo = mng.loadFromJson(lJson);

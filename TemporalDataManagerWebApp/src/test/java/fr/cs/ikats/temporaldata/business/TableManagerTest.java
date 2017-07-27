@@ -41,6 +41,7 @@ public class TableManagerTest extends TestCase {
             
             tableH.checkConsistency();
             
+            // Review#158227 FTL non utilisé
             String firstColName = (String) tableH.getColumnsHeader().getData().get(0);
             List<String> funcIds = tableH.getColumn("funcId");
             List<Object> refFuncIds = new ArrayList<Object>(table.headers.row.data);
@@ -53,6 +54,7 @@ public class TableManagerTest extends TestCase {
             
             
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexpected error");
@@ -109,6 +111,7 @@ public class TableManagerTest extends TestCase {
             assertEquals(refOther, other);
             assertEquals(12.1, other.get(0));
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
@@ -154,6 +157,7 @@ public class TableManagerTest extends TestCase {
             assertEquals(Arrays.asList("1", "10", "100"), myTargetsBIS);
 
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
@@ -189,6 +193,7 @@ public class TableManagerTest extends TestCase {
             assertEquals(selectedRowVals, ref);
 
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
@@ -236,9 +241,11 @@ public class TableManagerTest extends TestCase {
 
             assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
 
+            // Review#158227 FTL non utilisé
             List<Object> columnn = tableH.getColumn("One");
 
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Failed test: unexpected error");
@@ -298,6 +305,7 @@ public class TableManagerTest extends TestCase {
 
             assertEquals(columnnOfRowHeaders, Arrays.asList("A", "B", "C"));
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace(System.err);
             fail("Failed test: unexpected error");
@@ -425,6 +433,7 @@ public class TableManagerTest extends TestCase {
             
             
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace(System.err);
             fail("Failed test: unexpected error");
@@ -459,10 +468,13 @@ public class TableManagerTest extends TestCase {
 
             // Tests appended row with not links
             String addedRowHeaderData = "AddedRow";
+            // Review#158227 FTL non utilisé
             int index = tableH.appendRow(addedRowHeaderData, addedList);
 
+            // Review#158227 FTL code en commentaire, à supprimer
             // System.out.println("Row header data: " +
             // table.headers.row.data.get(5));
+            // Review#158227 FTL code en commentaire, à supprimer
             // System.out.println("" + table.content.cells.get(4));
 
             int finalRowCount = tableH.getRowCount(true);
@@ -476,6 +488,7 @@ public class TableManagerTest extends TestCase {
             assertEquals(table.headers.row.data.get(finalRowCount - 1), addedRowHeaderData);
             assertEquals(table.content.cells.get(finalRowCount - 2), addedList);
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexpected error");
@@ -500,6 +513,7 @@ public class TableManagerTest extends TestCase {
 
             List<Boolean> strOneList = myT.getColumn("One", Boolean.class);
             List<String> strOneListAString = myT.getColumn("One");
+            // Review#158227 FTL code mort à supprimer : wrongTypeTested non utilisé
             try {
                 List<BigDecimal> wrongTypeTested = myT.getColumn("One", BigDecimal.class);
                 fail("Incorrect: class cast exception not detected !");
@@ -514,6 +528,7 @@ public class TableManagerTest extends TestCase {
             assert (strOneList.get(0) instanceof Boolean);
             assert (strOneListAString.get(0) instanceof String);
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
@@ -538,6 +553,7 @@ public class TableManagerTest extends TestCase {
 
             List<Integer> strOneList = myT.getRow("row1", Integer.class);
             List<String> strOneListAString = myT.getRow("row1");
+            // Review#158227 FTL code mort à supprimer : wrongTypeTested non utilisé
             try {
                 List<BigDecimal> wrongTypeTested = myT.getRow("row2", BigDecimal.class);
                 fail("Incorrect: class cast exception not detected !");
@@ -557,6 +573,7 @@ public class TableManagerTest extends TestCase {
             assert (strOneListAString.get(1).equals("2" ));
            
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
@@ -591,6 +608,7 @@ public class TableManagerTest extends TestCase {
             // in that case: we also retrieve the row using myT.getRow("0") instead of myT.getRow(0) 
             // => this will work
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
@@ -639,6 +657,7 @@ public class TableManagerTest extends TestCase {
             System.out.println(myUsualT.getColumn("10"));
             
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexpected error");
@@ -661,6 +680,7 @@ public class TableManagerTest extends TestCase {
             myTWithoutRowHeader.appendRow(Arrays.asList("bla6", "BLAH6", 6.0));
             myTWithoutRowHeader.appendRow(Arrays.asList("-bla6", "-BLAH6", -6.0));
 
+            // Review#158227 FTL non utilisé
             boolean display = true;
             
             displayTestedTable(myTWithoutRowHeader);
@@ -680,6 +700,7 @@ public class TableManagerTest extends TestCase {
             myTWithoutRowHeader.checkConsistency();
             
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
@@ -705,6 +726,7 @@ public class TableManagerTest extends TestCase {
             myTWithoutRowHeader.appendRow(Arrays.asList("bla6", "BLAH6", 6));
             myTWithoutRowHeader.appendRow(Arrays.asList("-bla6", "-BLAH6", -6));
 
+            // Review#158227 FTL non utilisé
             boolean display = true;
             
             displayTestedTable(myTWithoutRowHeader);
@@ -723,6 +745,7 @@ public class TableManagerTest extends TestCase {
             
             myTWithoutRowHeader.checkConsistency();
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
@@ -750,6 +773,7 @@ public class TableManagerTest extends TestCase {
             myTWithoutRowHeader.appendRow("A10", Arrays.asList("bla6", "BLAH6", 6));
             myTWithoutRowHeader.appendRow("A2", Arrays.asList("-bla6", "-BLAH6", -6));
 
+            // Review#158227 FTL non utilisé
             boolean display = true;
             
             displayTestedTable( myTWithoutRowHeader);
@@ -774,6 +798,7 @@ public class TableManagerTest extends TestCase {
             
             myTWithoutRowHeader.checkConsistency();
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
@@ -814,6 +839,7 @@ public class TableManagerTest extends TestCase {
             assertEquals(Arrays.asList( true, false, "text", null, 3.14 ), myTable.getColumn("Bazar", Object.class) );
             
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
@@ -838,6 +864,7 @@ public class TableManagerTest extends TestCase {
             myTWithColHeader.appendRow(Arrays.asList("bla6", "BLAH6", 6));
             myTWithColHeader.appendRow(Arrays.asList("-bla6", "-BLAH6", -6));
 
+            // Review#158227 FTL non utilisé
             boolean display = true;
             
             displayTestedTable( myTWithColHeader);
@@ -852,6 +879,7 @@ public class TableManagerTest extends TestCase {
             assertEquals(Arrays.asList( true, false, "text", null, 3.14 ), myTWithColHeader.getColumn("Bazar", Object.class) );
             
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexpected error");
@@ -875,6 +903,7 @@ public class TableManagerTest extends TestCase {
             myTable.appendRow(Arrays.asList("bla6", "BLAH6", 6));
             myTable.appendRow(Arrays.asList("-bla6", "-BLAH6", -6));
 
+            // Review#158227 FTL non utilisé
             boolean display = true;
             
             displayTestedTable( myTable);
@@ -888,6 +917,7 @@ public class TableManagerTest extends TestCase {
             assertEquals(Arrays.asList( true, false, "text", null, 3.14 ), myTable.getColumn(1, Object.class) );
             
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
@@ -911,6 +941,7 @@ public class TableManagerTest extends TestCase {
             myTable.appendRow(Arrays.asList("bla6", "BLAH6", 6));
             myTable.appendRow(Arrays.asList("-bla6", "-BLAH6", -6));
 
+            // Review#158227 FTL non utilisé
             boolean display = true;
             
             displayTestedTable( myTable);
@@ -925,6 +956,7 @@ public class TableManagerTest extends TestCase {
             assertEquals(Arrays.asList("bla2", "BLAH2", 2 ), myTable.getRow(2, Object.class) );
             
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");
@@ -951,6 +983,7 @@ public class TableManagerTest extends TestCase {
             myTable.appendRow("A10", Arrays.asList("bla6", "BLAH6", 6));
             myTable.appendRow("A2", Arrays.asList("-bla6", "-BLAH6", -6));
 
+            // Review#158227 FTL non utilisé
             boolean display = true;
             
             displayTestedTable( myTable);
@@ -967,6 +1000,7 @@ public class TableManagerTest extends TestCase {
             assertEquals(Arrays.asList( true, false, 3.14), myTable.getRow(3, Object.class) );
             
         }
+        // Review#158227 FTL try catch Exception inutile, à supprimer
         catch (Exception e) {
             e.printStackTrace();
             fail("Test got unexptected error");

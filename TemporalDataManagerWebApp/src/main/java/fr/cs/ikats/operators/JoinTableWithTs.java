@@ -3,6 +3,7 @@ package fr.cs.ikats.operators;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+// Review#158227 FTL CTRL + SHIFT + o -> réorganise les imports, en enlevant les inutiles.
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import java.util.stream.Collectors;
 
 import org.apache.log4j.Logger;
 
+//Review#158227 FTL CTRL + SHIFT + o -> réorganise les imports, en enlevant les inutiles.
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.expr.SingleValueComparator;
@@ -37,7 +39,10 @@ import fr.cs.ikats.temporaldata.resource.TableResource;
 import fr.cs.ikats.temporaldata.utils.Chronometer;
 import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 
+// Review#158227 FTL La javadoc ici ne doit concerner que ce que fait l'opérateur (la responsabilité de cette classe).
+// Review#157227 FTL Tout le reste sur le package et le découpage 'resource', 'manager' n'a pas sa place ici
 /**
+ * 
  * The class JoinTableWithTs is mixing the use of several business managers (TableManager, MetadataManager,
  * DatasetManager ...) in order to propose the Table operator
  * <p/>
