@@ -67,7 +67,7 @@ public class TablesMerge {
     public TablesMerge(Request request) throws IkatsOperatorException {
 
         // Check the inputs
-        if (request.tables.length < 2) {
+        if (request.tables == null || request.tables.length < 2) {
             throw new IkatsOperatorException("There should be 2 tables for a merge");
         }
 
