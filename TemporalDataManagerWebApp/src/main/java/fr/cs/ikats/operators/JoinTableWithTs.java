@@ -37,9 +37,8 @@ import fr.cs.ikats.temporaldata.utils.Chronometer;
 import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 
 /**
- * 
- * The class JoinTableWithTs is mixing the use of several business managers (TableManager, MetadataManager,
- * DatasetManager ...) in order to propose the Table operator
+ * Provides the computation for the Table Operator "Join By Metrics". <br>
+ * The documentation of the operator is available at {@link TableResource#joinByMetrics(String, String, String, String, String, String, String)}
  */
 public class JoinTableWithTs {
 
