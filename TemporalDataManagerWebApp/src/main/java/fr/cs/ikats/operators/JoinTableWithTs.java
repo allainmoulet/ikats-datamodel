@@ -3,8 +3,6 @@ package fr.cs.ikats.operators;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-// Review#158227 FTL CTRL + SHIFT + o -> réorganise les imports, en enlevant les inutiles.
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,7 +16,6 @@ import org.apache.log4j.Logger;
 
 //Review#158227 FTL CTRL + SHIFT + o -> réorganise les imports, en enlevant les inutiles.
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.expr.SingleValueComparator;
 import fr.cs.ikats.lang.NaturalOrderComparator;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
@@ -39,23 +36,10 @@ import fr.cs.ikats.temporaldata.resource.TableResource;
 import fr.cs.ikats.temporaldata.utils.Chronometer;
 import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 
-// Review#158227 FTL La javadoc ici ne doit concerner que ce que fait l'opérateur (la responsabilité de cette classe).
-// Review#157227 FTL Tout le reste sur le package et le découpage 'resource', 'manager' n'a pas sa place ici
 /**
  * 
  * The class JoinTableWithTs is mixing the use of several business managers (TableManager, MetadataManager,
  * DatasetManager ...) in order to propose the Table operator
- * <p/>
- * The new level of package fr.cs.ikats.operators, enables to isolate each resource managers (here TableManager) from
- * the others (here: MetadataManager, DatasetManager, etc).
- * <p/>
- * For each complex operator identified, and to be published as Rest service:
- * <ul>
- * <li>TableResource defines the Rest interface part</li>
- * <li>the operator, here JoinTableWithTs defines the complex, and specific services about Table.</li>
- * <li>TableManager defines the basic operations on the Table</li>
- * <p/>
- * 
  */
 public class JoinTableWithTs {
 
@@ -104,11 +88,7 @@ public class JoinTableWithTs {
 	private DataSetManager datasetManager;
 
 	/**
-	 * Default constructor initializes the resources
-	 * 
-	 * @param tableManager
-	 * @param metaManager
-	 * @param datasetManager
+	 * Default constructor initializes the resources 
 	 */
 	public JoinTableWithTs() {
 		super();
