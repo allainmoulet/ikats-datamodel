@@ -109,6 +109,10 @@ public class TablesMerge {
             catch (IkatsException e) {
                 throw new IkatsOperatorException("Join column '" + joinKey + "' not found in table '" + firstTable.getName() + "'. Additional info: " + e.getMessage(), e);
             }
+            
+            if (joinIndexOnFirstTable == -1) {
+                throw new IkatsOperatorException("Join column '" + joinKey + "' not found in table '" + firstTable.getName());
+            }
         }
 
         // -- Verify that the join column is in the second, if found :
@@ -130,6 +134,10 @@ public class TablesMerge {
                 // Exception is synonym of not found
                 // INNER JOIN could not be realized
                 throw new IkatsOperatorException("Join column not found in the second table");
+            }
+
+            if (joinIndexInSecondTable == -1) {
+                throw new IkatsOperatorException("Join column '" + joinKey + "' not found in table '" + secondTable.getName());
             }
         }
 

@@ -33,7 +33,9 @@ import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 // Review#158268 FTL : déjà fait -> testDoMergeWithHeaderOnSecondTable
 
 // Review#158268 FTA : New test proposed : JoinKey not found in Table 1
+// Review#158268 FTL : -> testDoMergeWithJoinKeyNotFoundFirstTable()
 // Review#158268 FTA : New test proposed : JoinKey not found in Table 2
+// Review#158268 FTL : -> testDoMergeWithJoinKeyNotFoundSecondTable()
 // Review#158268 FTA : New test proposed : JoinKey present in both table but no identical values
 // Review#158268 FTL : OK a faire -> décision MBD
 public class TablesMergeTest {
@@ -221,7 +223,7 @@ public class TablesMergeTest {
      */
     @Test
     public final void testDoMergeNominalDifferentSize() throws IOException, IkatsException, IkatsOperatorException {
-
+        
     	// Review#158268 FTA : begin
     	//      MBD: review point copied from testDoMergeNominal: did not corrected the test for that point
         // I don't think having 2 columns named "H1-1" is what PO wants in results. 
@@ -340,6 +342,38 @@ public class TablesMergeTest {
         testTableMerge(table4, table1, null, "MergeWithHeaderOnSecondTable", expected_merge);
     }
 
+
+    
+    /**
+     * Test the operator exception where JoinKey is not found in Table 1
+     * 
+     * @throws IkatsJsonException
+     * @throws IOException
+     * @throws IkatsException
+     * @throws IkatsOperatorException
+     */
+    @Test(expected = IkatsOperatorException.class)
+    public final void testDoMergeWithJoinKeyNotFoundFirstTable() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+        
+        String expected_merge = ";";
+        testTableMerge(table1, table2, "H2-2", "MergeWithJoinKeyNotFound1", expected_merge);
+    }
+    
+    /**
+     * Test the operator exception where JoinKey is not found in Table 1
+     * 
+     * @throws IkatsJsonException
+     * @throws IOException
+     * @throws IkatsException
+     * @throws IkatsOperatorException
+     */
+    @Test(expected = IkatsOperatorException.class)
+    public final void testDoMergeWithJoinKeyNotFoundSecondTable() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+        
+        String expected_merge = ";";
+        testTableMerge(table1, table2, "H1-3", "MergeWithJoinKeyNotFound2", expected_merge);
+    }
+    
     @Test
     public final void testDoMergeWithoutJoinKeyAndNoMatch() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
 
@@ -372,7 +406,7 @@ public class TablesMergeTest {
             // Assuming first line contains headers
             line = bufReader.readLine();
             List<String> headersTitle = Arrays.asList(line.split(";"));
-            // Replace empty strings with null (that what do merge when adding empty headers)
+            // Replace empty strings with null (that's what do the operator when adding empty headers)
             headersTitle.replaceAll(ht -> ht.isEmpty() ? null : ht);
             table = tableManager.initTable(headersTitle, false);
         }
