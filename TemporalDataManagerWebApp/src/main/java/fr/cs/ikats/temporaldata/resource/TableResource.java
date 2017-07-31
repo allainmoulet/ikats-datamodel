@@ -5,56 +5,39 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
+import fr.cs.ikats.operators.JoinTableWithTs;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.expr.SingleValueComparator;
 import fr.cs.ikats.metadata.MetaDataFacade;
-import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
-import fr.cs.ikats.metadata.model.MetadataCriterion;
-import fr.cs.ikats.operators.JoinTableWithTs;
+import fr.cs.ikats.temporaldata.business.*;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
-import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.Table;
-import fr.cs.ikats.temporaldata.business.TableElement;
 import fr.cs.ikats.temporaldata.business.TableInfo;
-import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
-import fr.cs.ikats.temporaldata.business.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.temporaldata.utils.Chronometer;
-import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 
 /**
  * resource for Table
@@ -67,7 +50,7 @@ public class TableResource extends AbstractResource {
      */
 
     private static Logger logger = Logger.getLogger(TableResource.class);
- 
+
     /**
      * TableManager
      */
@@ -249,7 +232,7 @@ public class TableResource extends AbstractResource {
             outputTable.getRowsHeader().addItems(rowHeaders.toArray());
 
             // store Table
-            String rid = tableManager.createInDatabase(tableName, outputTable.getTableInfo());
+            String rid = tableManager.createInDatabase(tableName, outputTable);
             chrono.stop(logger);
 
             // result id is returned in the body
@@ -329,11 +312,11 @@ public class TableResource extends AbstractResource {
             @FormDataParam("joinMetaName") @DefaultValue("") String joinMetaName,
             @FormDataParam("targetColName") @DefaultValue("") String targetColName, @FormDataParam("outputTableName") String outputTableName)
             throws IkatsDaoException, InvalidValueException, ResourceNotFoundException, IkatsException {
-        
+
         // delegates the work to the operator JoinTableWithTs
         JoinTableWithTs opeJoinTableWithTs = new JoinTableWithTs();
         String rid = opeJoinTableWithTs.apply(tableJson, metrics, dataset, joinColName, joinMetaName, targetColName, outputTableName);
-        
+
         // Nominal case: result id is returned in the body
         // Note: with DAO Table: should be changed to return the name of Table
         return Response.status(Response.Status.OK).entity(rid).build();
@@ -432,10 +415,6 @@ public class TableResource extends AbstractResource {
         List<String> listMetaTs = new ArrayList<>(setMetaTs);
         Collections.sort(listMetaTs);
 
-        // filling outputTable
-        // filling col headers
-        // first element is null
-        
         // init empty table managing rows/columns headers
         Table outputTable = tableManager.initEmptyTable(true, true);
         outputTable.getColumnsHeader().addItem(null);
@@ -493,9 +472,9 @@ public class TableResource extends AbstractResource {
     /**
      * Read the Table from database, using media-type
      * (with DAO Table: merge equivalent services readTable <=> downlodTable into one compliant with final solution)
-     * 
+     *
      * @param name unique identifier of the table
-     * @return the table read from database 
+     * @return the table read from database
      * @throws IkatsJsonException error parsing the json content from the database
      * @throws IkatsDaoException database access error
      * @throws ResourceNotFoundException resource not found in the database, for specified name
@@ -509,4 +488,58 @@ public class TableResource extends AbstractResource {
     	TableManager tableMgt = new TableManager();
     	return tableMgt.readFromDatabase( name);
     }
+    /**
+     * Table process to :
+     * - change table key from metadata (populationId)
+     * - add metadata (metaName) value to original column headers  : metaName_colHeader
+     * <p>
+     * Input table first column must be time series functional identifiers
+     *
+     * @param tableJson the table to convert (json)
+     * @param formData  the form data
+     * @param uriInfo   all info on URI
+     *
+     * @return the internal id
+     *
+     * @throws IOException               error when parsing input csv file
+     * @throws IkatsDaoException         error while accessing database to check if table already exists
+     * @throws InvalidValueException     if table name does not match expected pattern
+     * @throws IkatsException            row from input table is undefined
+     * @throws ResourceNotFoundException row from input table is not found
+     */
+    @POST
+    @Path("/traintestsplit")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response trainTestSplit(@FormDataParam("tableJson") String tableJson,
+                                   @FormDataParam("targetColumnName") @DefaultValue("") String targetColumnName,
+                                   @FormDataParam("repartitionRate") @DefaultValue("0.5") double repartitionRate,
+                                   @FormDataParam("outputTableName") String outputTableName,
+                                   FormDataMultiPart formData,
+                                   @Context UriInfo uriInfo) throws IOException, IkatsDaoException, IkatsException, InvalidValueException, ResourceNotFoundException {
+
+
+        Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
+
+        // Convert tableJson to table
+        TableInfo tableInfo = tableManager.loadFromJson(tableJson);
+        Table table = tableManager.initTable(tableInfo, false);
+
+        List<Table> tabListResult;
+        if (targetColumnName.equals("")) {
+            tabListResult = tableManager.randomSplitTable(table, repartitionRate);
+        }
+        else {
+            tabListResult = tableManager.trainTestSplitTable(table, targetColumnName, repartitionRate);
+        }
+
+        // Store tables in database
+        String rid1 = tableManager.createInDatabase(outputTableName + "_Train", tabListResult.get(0));
+        String rid2 = tableManager.createInDatabase(outputTableName + "_Test", tabListResult.get(1));
+
+        chrono.stop(logger);
+
+        // Result id is returned in the body
+        return Response.status(Response.Status.OK).entity(rid1 + "," + rid2).build();
+    }
+
 }

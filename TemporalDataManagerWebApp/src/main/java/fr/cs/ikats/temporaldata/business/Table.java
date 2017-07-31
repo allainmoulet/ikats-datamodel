@@ -1339,7 +1339,7 @@ public class Table {
 	 * Note: the method forbids to intert the column before the row header, ie the beforeColHeaderData should match
 	 * column in the content part.
 	 * 
-	 * @param beforeColHeaderData
+	 * @param beforeColHeader
 	 *            the header value defining the insert location: String value compared to each header item as String.
 	 * 
 	 * @param colHeaderData
