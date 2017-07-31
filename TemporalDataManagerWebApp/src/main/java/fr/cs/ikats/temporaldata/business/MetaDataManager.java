@@ -241,6 +241,32 @@ public class MetaDataManager {
     }
 
     /**
+     * Builds the map of metadata grouped by the tsuid: each entry is composed of:
+     * <ul>
+     *     <li>key: the tsuid reference of the TS</li>
+     *     <li>value: List of Metadata associated to the TS</li>
+     * </ul>
+     *  
+     * This service is based upon MetadataFacade.getMetadataForTS()
+     * @param tsuids: set of tsuids of the map
+     * @return the built map.
+     * @throws IkatsDaoMissingRessource
+     * @throws IkatsDaoException
+     */
+    public Map<String, List<MetaData>> getMapGroupingByTsuid(Set<String> tsuids) throws IkatsDaoMissingRessource, IkatsDaoException {
+        MetaDataFacade facade = getMetaDataFacade();
+
+        // List of metadata returned
+        Map<String, List<MetaData>> result = new HashMap<String, List<MetaData>>();
+
+        // Iterates on each tsuid in order to complete the map
+        for (String tsuid : tsuids) {
+            result.put( tsuid, new ArrayList<>( facade.getMetaDataForTS(tsuid.trim())) );
+        }
+        return result;
+    }
+    
+    /**
      * get a list of metadata {name:type} for the list of tsuids in param
      *
      * @return a json formatted string.

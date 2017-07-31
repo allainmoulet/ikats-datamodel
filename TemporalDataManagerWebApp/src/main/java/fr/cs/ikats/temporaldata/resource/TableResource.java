@@ -1,37 +1,60 @@
 package fr.cs.ikats.temporaldata.resource;
 
-import java.io.*;
-import java.sql.SQLException;
-import java.util.*;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
-import fr.cs.ikats.metadata.MetaDataFacade;
-import fr.cs.ikats.metadata.model.MetaData;
-import fr.cs.ikats.temporaldata.business.TableInfo;
-import fr.cs.ikats.temporaldata.business.TableManager;
-import fr.cs.ikats.temporaldata.business.TableManager.Table;
-import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
-import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.common.expr.SingleValueComparator;
+import fr.cs.ikats.metadata.MetaDataFacade;
+import fr.cs.ikats.metadata.model.FunctionalIdentifier;
+import fr.cs.ikats.metadata.model.MetaData;
+import fr.cs.ikats.metadata.model.MetadataCriterion;
+import fr.cs.ikats.operators.JoinTableWithTs;
+import fr.cs.ikats.temporaldata.business.DataSetManager;
+import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
+import fr.cs.ikats.temporaldata.business.MetaDataManager;
+import fr.cs.ikats.temporaldata.business.Table;
+import fr.cs.ikats.temporaldata.business.TableElement;
+import fr.cs.ikats.temporaldata.business.TableInfo;
+import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
+import fr.cs.ikats.temporaldata.business.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
+import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
+import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.temporaldata.utils.Chronometer;
-
+import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 
 /**
  * resource for Table
@@ -39,48 +62,66 @@ import fr.cs.ikats.temporaldata.utils.Chronometer;
 @Path("table")
 public class TableResource extends AbstractResource {
 
-    private static Logger logger = Logger.getLogger(TableResource.class);
+    /**
+     * 
+     */
 
+    private static Logger logger = Logger.getLogger(TableResource.class);
+ 
     /**
      * TableManager
      */
     private TableManager tableManager;
 
     /**
-     * init the tableManager
+     * MetadataManager
+     */
+    private MetaDataManager metaManager;
+
+    /**
+     * DatasetManager
+     */
+    private DataSetManager datasetManager;
+
+    /**
+     * init the processDataManager
      */
     public TableResource() {
+
         tableManager = new TableManager();
+        datasetManager = new DataSetManager();
+        metadataManager = new MetaDataManager();
+
     }
 
 
     /**
      * get the JSON result as an attachement file in the response.
      *
-     * @param tableName the name of the table to retrieve
+     * @param tableName
+     *            the name of the table to retrieve
      * @return a Response with content-type json
-     * @throws ResourceNotFoundException if table not found
-     * @throws IkatsDaoException         if hibernate exception raised while storing table in db
-     * @throws IkatsException            others unexpected exceptions
-     * @throws IkatsJsonException        error when mapping downloaded table to business object Table
+     * @throws ResourceNotFoundException
+     *             if table not found
+     * @throws IkatsDaoException
+     *             if hibernate exception raised while storing table in db
+     * @throws IkatsException
+     *             others unexpected exceptions
      */
     @GET
     @Path("/{tableName}")
     public Response downloadTable(@PathParam("tableName") String tableName) throws ResourceNotFoundException, IkatsException, IkatsDaoException, IkatsJsonException {
         // get id of table in processData db
         // assuming there is only one table by tableName
-
         TableInfo table = tableManager.readFromDatabase(tableName);
-
         try {
 
             String jsonString = tableManager.serializeToJson(table);
 
             return Response.ok(jsonString, MediaType.APPLICATION_JSON_TYPE).build();
-
-        } catch (Exception e) {
-            throw new IkatsException("Failed: service downloadTable() " +
-                    tableName + " : caught unexpected Exception:", e);
+        }
+        catch (Exception e) {
+            throw new IkatsException("Failed: service downloadTable() " + tableName + " : caught unexpected Throwable:", e);
         }
 
     }
@@ -88,12 +129,18 @@ public class TableResource extends AbstractResource {
     /**
      * Database (processData table) import of a csv table
      *
-     * @param tableName       name of the table
-     * @param fileis          the file input stream
-     * @param fileDisposition information about the Multipart with file
-     * @param rowName         table row name for unique id
-     * @param formData        the form data
-     * @param uriInfo         all info on URI
+     * @param tableName
+     *            name of the table
+     * @param fileis
+     *            the file input stream
+     * @param fileDisposition
+     *            information about the Multipart with file
+     * @param rowName
+     *            table row name for unique id
+     * @param formData
+     *            the form data
+     * @param uriInfo
+     *            all info on URI
      * @return the internal id
      * @throws IOException           error when parsing input csv file
      * @throws IkatsDaoException     error while accessing database to check if table already
@@ -150,8 +197,8 @@ public class TableResource extends AbstractResource {
             // first element of row header is column header : set to null
             rowHeaders.add(null);
 
-            // init output table
-            Table outputTable = tableManager.initEmptyTable();
+            // init output table with both columns/rows header
+            Table outputTable = tableManager.initEmptyTable(true, true);
 
             // parse csv content to :
             // 1. retrieve data to build json table structure to store
@@ -198,20 +245,98 @@ public class TableResource extends AbstractResource {
             outputTable.setDescription(fileName);
 
             // fill headers
-            outputTable.getColumnsHeader().getData().addAll(columnHeaders);
-            outputTable.getRowsHeader().getData().addAll(rowHeaders);
+            outputTable.getColumnsHeader().addItems(columnHeaders.toArray());
+            outputTable.getRowsHeader().addItems(rowHeaders.toArray());
 
             // store Table
             String rid = tableManager.createInDatabase(tableName, outputTable.getTableInfo());
             chrono.stop(logger);
 
             // result id is returned in the body
+            // Note: with DAO Table: should be changed to return the name of Table
             return Response.status(Response.Status.OK).entity(rid).build();
 
         } catch (IOException e) {
             String contextError = "Unexpected interruption while parsing CSV file : " + fileName;
             throw new IOException(contextError, e);
         }
+
+    }
+
+    /**
+     * Extends the table defined by the tableJson parameter, by adding one
+     * column per selected metric:
+     * <ul>
+     * <li>Insert column header having the metric name,</li>
+     * <li>Insert cells of timeseries references, from selected dataset,
+     * selected by the join column, present in original table.</li>
+     * </ul>
+     * <p>
+     * Join principle: for the inserted column J for metric XXX, each joined
+     * timeseries at table[i,J] has the specified metric metadata value=XXX and
+     * has the metadata
+     * <ul>
+     * <li>with name defined by the parameter joinMetaName</li>,
+     * <li>whose value is equal to the value table[i,K] from join column K,
+     * defined by the parameter joinColName.</li>
+     * </ul>
+     * <p>
+     * Created columns are inserted according to the parameter targetColName.
+     * 
+     * @param tableJson
+     *            the raw String representing the JSON plain content
+     * @param metrics
+     *            selected metrics separated by ";". Spaces are ignored.
+     * @param dataset
+     *            the dataset name.
+     * @param joinColName
+     *            the name of the table column used by the join. Optional: if
+     *            undefined (""), the first column will be used by the join.
+     * @param joinMetaName
+     *            defines the name of metadata used by the join, useful when the
+     *            column and metadata names are different. Optional default is
+     *            undefined (""): if joinMetaName is undefined, then the
+     *            metadata has the name of the table column used by the join
+     *            (see joinColName), and if both criteria (joinColName +
+     *            joinMetaName) are undefined: it is assumed that the first
+     *            column header provides the expected metadata name.
+     * @param targetColName
+     *            name of the target column. Optional: default is undefined
+     *            (""). When target name is defined, the joined columns are
+     *            inserted before the target column; when undefined, the joined
+     *            columns are appended at the end.
+     * @param outputTableName
+     *            name of the table joined by metric, and created in the
+     *            database. The name ought to be conformed to the pattern:
+     *            {@link TableManager#TABLE_NAME_PATTERN}
+     * @return
+     * @throws IkatsDaoException
+     *             a database access error occured during the service.
+     * @throws InvalidValueException
+     *             error raised if one of the inputs is invalid.
+     * @throws ResourceNotFoundException
+     *             error raised if one of the resource required by computing is
+     *             not found
+     * @throws IkatsException
+     *             unexpected error occured on the server.
+     */
+    @POST
+    @SuppressWarnings("unchecked")
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    @Path("/join/metrics")
+    public Response joinByMetrics(@FormDataParam("tableJson") String tableJson, @FormDataParam("metrics") String metrics,
+            @FormDataParam("dataset") String dataset, @FormDataParam("joinColName") @DefaultValue("") String joinColName,
+            @FormDataParam("joinMetaName") @DefaultValue("") String joinMetaName,
+            @FormDataParam("targetColName") @DefaultValue("") String targetColName, @FormDataParam("outputTableName") String outputTableName)
+            throws IkatsDaoException, InvalidValueException, ResourceNotFoundException, IkatsException {
+        
+        // delegates the work to the operator JoinTableWithTs
+        JoinTableWithTs opeJoinTableWithTs = new JoinTableWithTs();
+        String rid = opeJoinTableWithTs.apply(tableJson, metrics, dataset, joinColName, joinMetaName, targetColName, outputTableName);
+        
+        // Nominal case: result id is returned in the body
+        // Note: with DAO Table: should be changed to return the name of Table
+        return Response.status(Response.Status.OK).entity(rid).build();
 
     }
 
@@ -277,8 +402,8 @@ public class TableResource extends AbstractResource {
         logger.info("Output table name is (" + outputTableName + ")");
 
         // retrieve headers
-        List<Object> colHeaders = table.getColumnsHeader().getData();
-        List<Object> rowHeaders = table.getRowsHeader().getData();
+        List<Object> colHeaders = table.getColumnsHeader().getItems(Object.class);
+        List<Object> rowHeaders = table.getRowsHeader().getItems(Object.class);
 
         MetaDataFacade metaFacade = new MetaDataFacade();
         List<String> colPopId = new ArrayList<>();
@@ -310,14 +435,16 @@ public class TableResource extends AbstractResource {
         // filling outputTable
         // filling col headers
         // first element is null
-        Table outputTable = tableManager.initEmptyTable();
+        
+        // init empty table managing rows/columns headers
+        Table outputTable = tableManager.initEmptyTable(true, true);
         outputTable.getColumnsHeader().addItem(null);
         for (String metaTs : listMetaTs) {
             for (int i = 1; i < colHeaders.size(); i++) {
                 outputTable.getColumnsHeader().addItem(metaTs + "_" + colHeaders.get(i));
             }
         }
-        int tableContentWidth = outputTable.getColumnsHeader().getData().size() - 1;
+        int tableContentWidth = outputTable.getColumnsHeader().getItems().size() - 1;
 
         // filling rows headers and content by popId
         outputTable.getRowsHeader().addItem(populationId);
@@ -329,7 +456,7 @@ public class TableResource extends AbstractResource {
             for (String metaTS : listMetaTs) {
                 for (Integer index : listIndexPopId) {
                     if (metaTS.equals(colMetaTs.get(index))) {
-                        cellsLine.addAll(table.getRow(index + 1));
+                        cellsLine.addAll(table.getRow(index + 1, Object.class));
                     }
                 }
             }
@@ -341,11 +468,12 @@ public class TableResource extends AbstractResource {
             outputTable.appendRow(cellsLine);
         }
         // store table in db
-        String rid = tableManager.createInDatabase(outputTableName, outputTable.getTableInfo());
+        String rid = tableManager.createInDatabase(outputTableName, outputTable);
 
         chrono.stop(logger);
 
         // result id is returned in the body
+        // Note: with DAO Table: should be changed to return the name of Table
         return Response.status(Response.Status.OK).entity(rid).build();
     }
 
@@ -362,4 +490,23 @@ public class TableResource extends AbstractResource {
         return result;
     }
 
+    /**
+     * Read the Table from database, using media-type
+     * (with DAO Table: merge equivalent services readTable <=> downlodTable into one compliant with final solution)
+     * 
+     * @param name unique identifier of the table
+     * @return the table read from database 
+     * @throws IkatsJsonException error parsing the json content from the database
+     * @throws IkatsDaoException database access error
+     * @throws ResourceNotFoundException resource not found in the database, for specified name
+     */
+    @GET
+    @Path("/json/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @SuppressWarnings("unchecked")
+    public TableInfo readTable(@PathParam("name") String name) throws IkatsJsonException, IkatsDaoException, ResourceNotFoundException
+    {
+    	TableManager tableMgt = new TableManager();
+    	return tableMgt.readFromDatabase( name);
+    }
 }

@@ -105,5 +105,14 @@ public class InvalidValueException extends Exception {
     public InvalidValueException(String message) {
         super(message);
     }
+    
+    /**
+     * Constructor from one message and one cause exception 
+     * @param message the invalid value message
+     * @param cause the exception causing this exception
+     */
+    public InvalidValueException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
 }

@@ -1,8 +1,9 @@
 package fr.cs.ikats.temporaldata;
 
+import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableManager;
-import fr.cs.ikats.temporaldata.business.TableManager.Table;
+
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -60,11 +61,17 @@ public class TableRequestTest extends AbstractRequestTest {
             TableManager tableManager = new TableManager();
             TableInfo tableIn = tableManager.loadFromJson(jsonTableIn);
 
+            System.out.println( "IN ...");
+            System.out.println( tableManager.serializeToJson(tableIn) );
+            
             doTs2Feature(tableManager.serializeToJson(tableIn), "metric", "flightId", "outputTableTest", 200);
 
             String jsonTableOut = doGetDataDownload("outputTableTest");
             TableInfo tableOut = tableManager.loadFromJson(jsonTableOut);
 
+            System.out.println( "OUT ...");
+            System.out.println( tableManager.serializeToJson(tableOut) );
+            
             assertEquals(Arrays.asList(null,
                     "M1_B1_OP1", "M1_B2_OP1", "M1_B1_OP2", "M1_B2_OP2",
                     "M2_B1_OP1", "M2_B2_OP1", "M2_B1_OP2", "M2_B2_OP2"), tableOut.headers.col.data);
@@ -101,7 +108,7 @@ public class TableRequestTest extends AbstractRequestTest {
             TableInfo tableInfo = tableManager.loadFromJson(jsonTable);
             Table table = tableManager.initTable(tableInfo, false);
 
-            assertEquals(Arrays.asList("timestamp", "value"), table.getColumnsHeader().getData());
+            assertEquals(Arrays.asList("timestamp", "value"), table.getColumnsHeader().getItems(String.class));
             assertEquals(Arrays.asList(null,
                     "2015-12-10T14:55:30.5"
                     , "2015-12-10T14:55:31.0"
@@ -115,7 +122,7 @@ public class TableRequestTest extends AbstractRequestTest {
                     , "2015-12-10T14:56:76.0"
                     , "2015-12-10T14:56:37.5"
                     , "2015-12-10T14:56:59.0"
-                    , "2015-12-10T14:56:40.5"), table.getRowsHeader().getData());
+                    , "2015-12-10T14:56:40.5"), table.getRowsHeader().getItems(String.class));
 
             assertEquals(Arrays.asList("6"
                     , "3"
@@ -129,7 +136,7 @@ public class TableRequestTest extends AbstractRequestTest {
                     , "2"
                     , "6"
                     , "9"
-                    , "2"), table.getColumn(1));
+                    , "2"), table.getColumn(1, String.class));
 
             endNominal(testCaseName);
         } catch (Throwable e) {
