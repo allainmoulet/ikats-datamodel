@@ -22,20 +22,7 @@ import fr.cs.ikats.temporaldata.business.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 
-// Review#158268 FTA : .ods file could be removed from git and added as story attachment
-// Review#158268 FTL : Plus utilisable au plus proche du code (difficulté de faire suivre les évols dans la forge). Pas d'impact sur le bianire final
-// Review#158268 FTL : Pour autres relecteurs il est dans src/test/resources/fr.cs.ikats.operator.TablesMerge/tables-tests-csv.ods 
-                     
-// Review#158268 FTA : New test proposed : tables have different row count (headers not included)
-// Review#158268 FTL : OK a faire -> MBD
 
-// Review#158268 FTA : New test proposed : No headers for 1st table, Headers for 2nd table. What happens ?
-// Review#158268 FTL : déjà fait -> testDoMergeWithHeaderOnSecondTable
-
-// Review#158268 FTA : New test proposed : JoinKey not found in Table 1
-// Review#158268 FTL : -> testDoMergeWithJoinKeyNotFoundFirstTable()
-// Review#158268 FTA : New test proposed : JoinKey not found in Table 2
-// Review#158268 FTL : -> testDoMergeWithJoinKeyNotFoundSecondTable()
 // Review#158268 FTA : New test proposed : JoinKey present in both table but no identical values
 // Review#158268 FTL : OK a faire -> décision MBD
 public class TablesMergeTest {
@@ -170,8 +157,6 @@ public class TablesMergeTest {
     @Test(expected = IkatsOperatorException.class)
     public final void testTablesMergeConstructorExceptionNoTables() throws IkatsOperatorException {
 
-        // Review#158268 FTA : Added this test because if in HMI we don't provide inputs, the method could send no values for tables field --> Protect by try catch to raise 400
-    	// Review#158268 MBD test failed : unexpected NullPointerException
     	Request tableMergeRequest = new Request();
         tableMergeRequest.joinOn = "join_key";
         tableMergeRequest.outputTableName = "output_table_name";
@@ -191,10 +176,6 @@ public class TablesMergeTest {
     @Test
     public final void testDoMergeNominal() throws IOException, IkatsException, IkatsOperatorException {
 
-        // Review#158268 FTA : begin
-        // I don't think having 2 columns named "H1-1" is what PO wants in results. 
-        // Check with her and add to the followup the description of the behaviour since we don't have any requirements document
-        // Review#158268 FTA : end
         String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
                 + "H;eight;08;8;1000;3,14;0;0;H\n"
                 + "E;five;05;5;0101;15,71;3,14;0;E\n"
@@ -223,13 +204,7 @@ public class TablesMergeTest {
      */
     @Test
     public final void testDoMergeNominalDifferentSize() throws IOException, IkatsException, IkatsOperatorException {
-        
-    	// Review#158268 FTA : begin
-    	//      MBD: review point copied from testDoMergeNominal: did not corrected the test for that point
-        // I don't think having 2 columns named "H1-1" is what PO wants in results. 
-        // Check with her and add to the followup the description of the behaviour since we don't have any requirements document
-        // Review#158268 FTA : end
-    	
+
     	// The expected result is the same for merge(table1smaller, table2) and merge(table1, table2smaller)
     	// It has no line whose H1-2 is "one" "un" "four" or "six"
         String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
@@ -257,7 +232,6 @@ public class TablesMergeTest {
     @Test
     public final void testDoMergeWithoutJoinKey() throws IOException, IkatsException, IkatsOperatorException {
 
-        // Review#158268 FTA : Same remark as above with "H1-2"
         String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-2\n"
                 + "H;eight;08;8;1000;3,14;0;0;eight\n"
                 + "E;five;05;5;0101;15,71;3,14;0;five\n"
@@ -376,11 +350,6 @@ public class TablesMergeTest {
     
     @Test
     public final void testDoMergeWithoutJoinKeyAndNoMatch() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
-
-        // Review#158268 FTA : Test is KO
-        // Review#158268 FTL : it is ok on my dev branch (see origin/
-    	// Review#158268 MBD : Test is KO
-        // Review#158268 FTL : j'ai déplacé le commit de la branche le la story pour mettre en conformité ce test
         testTableMerge(table3, table2, null, "MergeWithoutJoinKeyAndNoMatch", ";");
     }
 
