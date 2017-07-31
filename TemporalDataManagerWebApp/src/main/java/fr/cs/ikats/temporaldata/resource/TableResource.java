@@ -1,36 +1,43 @@
 package fr.cs.ikats.temporaldata.resource;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.expr.SingleValueComparator;
-import fr.cs.ikats.metadata.MetaDataFacade;
-import fr.cs.ikats.metadata.model.FunctionalIdentifier;
-import fr.cs.ikats.metadata.model.MetaData;
-import fr.cs.ikats.metadata.model.MetadataCriterion;
-import fr.cs.ikats.temporaldata.business.*;
-import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
-import fr.cs.ikats.temporaldata.exception.IkatsException;
-import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
-import fr.cs.ikats.temporaldata.exception.InvalidValueException;
-import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
-import fr.cs.ikats.temporaldata.utils.Chronometer;
-import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
-import org.apache.log4j.Logger;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.FormDataParam;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.text.MessageFormat;
-import java.util.*;
-import java.util.stream.Collectors;
+
+import fr.cs.ikats.operators.JoinTableWithTs;
+import org.apache.log4j.Logger;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.metadata.MetaDataFacade;
+import fr.cs.ikats.metadata.model.MetaData;
+import fr.cs.ikats.temporaldata.business.*;
+import fr.cs.ikats.temporaldata.business.DataSetManager;
+import fr.cs.ikats.temporaldata.business.MetaDataManager;
+import fr.cs.ikats.temporaldata.business.Table;
+import fr.cs.ikats.temporaldata.business.TableInfo;
+import fr.cs.ikats.temporaldata.exception.IkatsException;
+import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
+import fr.cs.ikats.temporaldata.exception.InvalidValueException;
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
+import fr.cs.ikats.temporaldata.utils.Chronometer;
 
 /**
  * resource for Table
@@ -39,18 +46,10 @@ import java.util.stream.Collectors;
 public class TableResource extends AbstractResource {
 
     /**
-     *
+     * 
      */
 
     private static Logger logger = Logger.getLogger(TableResource.class);
-
-    private static final String MSG_DAO_KO_JOIN_BY_METRICS = "Failed to apply joinByMetrics(): DAO error occured with dataset name=''{0}'' on metrics=''{1}'' on table=''{2}''";
-    private static final String MSG_INVALID_METRICS_FOR_JOIN_BY_METRICS = "Invalid metrics value=''{0}'' for joinByMetrics with dataset name=''{1}'' and table name=''{2}''";
-    private static final String MSG_INVALID_TABLE_FOR_JOIN_BY_METRICS = "Invalid table ''{0}'' for joinByMetrics on dataset name=''{1}'' and metrics=''{2}''";
-    private static final String MSG_RESOURCE_NOT_FOUND_JOIN_BY_METRICS = "Resource not found error occured for joinByMetrics with dataset name=''{0}'' metrics=''{1}'' and table=''{2}''";
-    private static final String MSG_UNEXPECTED_ERROR_JOIN_BY_METRICS = "Unexpected error occured in joinByMetrics with dataset name=''{0}'' on metrics=''{1}'' and table=''{2}''";
-    private static final String MSG_INVALID_INPUT_ERROR_JOIN_BY_METRICS = "Invalid input name=''{0}'' value=''{1}'' in joinByMetrics with dataset name=''{2}'' on metrics=''{3}'' and table=''{4}''";
-
 
     /**
      * TableManager
@@ -82,13 +81,15 @@ public class TableResource extends AbstractResource {
     /**
      * get the JSON result as an attachement file in the response.
      *
-     * @param tableName the name of the table to retrieve
-     *
+     * @param tableName
+     *            the name of the table to retrieve
      * @return a Response with content-type json
-     *
-     * @throws ResourceNotFoundException if table not found
-     * @throws IkatsDaoException         if hibernate exception raised while storing table in db
-     * @throws IkatsException            others unexpected exceptions
+     * @throws ResourceNotFoundException
+     *             if table not found
+     * @throws IkatsDaoException
+     *             if hibernate exception raised while storing table in db
+     * @throws IkatsException
+     *             others unexpected exceptions
      */
     @GET
     @Path("/{tableName}")
@@ -111,17 +112,22 @@ public class TableResource extends AbstractResource {
     /**
      * Database (processData table) import of a csv table
      *
-     * @param tableName       name of the table
-     * @param fileis          the file input stream
-     * @param fileDisposition information about the Multipart with file
-     * @param rowName         table row name for unique id
-     * @param formData        the form data
-     * @param uriInfo         all info on URI
-     *
+     * @param tableName
+     *            name of the table
+     * @param fileis
+     *            the file input stream
+     * @param fileDisposition
+     *            information about the Multipart with file
+     * @param rowName
+     *            table row name for unique id
+     * @param formData
+     *            the form data
+     * @param uriInfo
+     *            all info on URI
      * @return the internal id
-     *
      * @throws IOException           error when parsing input csv file
-     * @throws IkatsDaoException     error while accessing database to check if table already exists
+     * @throws IkatsDaoException     error while accessing database to check if table already
+     *                               exists
      * @throws IkatsJsonException    error when mapping imported table to business object Table
      * @throws InvalidValueException if table name does not match expected pattern
      */
@@ -152,6 +158,7 @@ public class TableResource extends AbstractResource {
             Integer rowIndexId = -1;
             List<String> columnHeaders;
             List<String> rowHeaders = new ArrayList<>();
+            List<List<String>> cells = new ArrayList<>();
 
             // consume header to retrieve column index of unique identifier in the table
             columnHeaders = Arrays.asList(reader.readLine().split(separator));
@@ -208,8 +215,7 @@ public class TableResource extends AbstractResource {
                 String idRef = items[rowIndexId];
                 if (!keyTableMap.containsKey(idRef)) {
                     keyTableMap.put(idRef, "NA");
-                }
-                else {
+                } else {
                     String context = "Duplicate found in csv file: " + rowName + " = " + idRef;
                     logger.error(context);
                     return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
@@ -226,14 +232,14 @@ public class TableResource extends AbstractResource {
             outputTable.getRowsHeader().addItems(rowHeaders.toArray());
 
             // store Table
-            String rid = tableManager.createInDatabase(tableName, outputTable.getTableInfo());
+            String rid = tableManager.createInDatabase(tableName, outputTable);
             chrono.stop(logger);
 
             // result id is returned in the body
+            // Note: with DAO Table: should be changed to return the name of Table
             return Response.status(Response.Status.OK).entity(rid).build();
 
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             String contextError = "Unexpected interruption while parsing CSV file : " + fileName;
             throw new IOException(contextError, e);
         }
@@ -259,212 +265,61 @@ public class TableResource extends AbstractResource {
      * </ul>
      * <p>
      * Created columns are inserted according to the parameter targetColName.
-     *
-     * @param tableJson       the raw String representing the JSON plain content
-     * @param metrics         selected metrics separated by ";". Spaces are ignored.
-     * @param dataset         the dataset name.
-     * @param joinColName     the name of the table column used by the join. Optional: if undefined (""), the first
-     *                        column will be used by the join.
-     * @param joinMetaName    defines the name of metadata used by the join, useful when the column and metadata names
-     *                        are different. Optional default is undefined (""): if joinMetaName is undefined, then the
-     *                        metadata has the name of the table column used by the join (see joinColName), and if both
-     *                        criteria (joinColName + joinMetaName) are undefined: it is assumed that the first column
-     *                        header provides the expected metadata name.
-     * @param targetColName   name of the target column. Optional: default is undefined (""). When target name is
-     *                        defined, the joined columns are inserted before the target column; when undefined, the
-     *                        joined columns are appended at the end.
-     * @param outputTableName name of the table joined by metric, and created in the database. The name ought to be
-     *                        conformed to the pattern: {@link TableManager#TABLE_NAME_PATTERN}
-     *
+     * 
+     * @param tableJson
+     *            the raw String representing the JSON plain content
+     * @param metrics
+     *            selected metrics separated by ";". Spaces are ignored.
+     * @param dataset
+     *            the dataset name.
+     * @param joinColName
+     *            the name of the table column used by the join. Optional: if
+     *            undefined (""), the first column will be used by the join.
+     * @param joinMetaName
+     *            defines the name of metadata used by the join, useful when the
+     *            column and metadata names are different. Optional default is
+     *            undefined (""): if joinMetaName is undefined, then the
+     *            metadata has the name of the table column used by the join
+     *            (see joinColName), and if both criteria (joinColName +
+     *            joinMetaName) are undefined: it is assumed that the first
+     *            column header provides the expected metadata name.
+     * @param targetColName
+     *            name of the target column. Optional: default is undefined
+     *            (""). When target name is defined, the joined columns are
+     *            inserted before the target column; when undefined, the joined
+     *            columns are appended at the end.
+     * @param outputTableName
+     *            name of the table joined by metric, and created in the
+     *            database. The name ought to be conformed to the pattern:
+     *            {@link TableManager#TABLE_NAME_PATTERN}
      * @return
-     *
-     * @throws IkatsDaoException         a database access error occured during the service.
-     * @throws InvalidValueException     error raised if one of the inputs is invalid.
-     * @throws ResourceNotFoundException error raised if one of the resource required by computing is not found
-     * @throws IkatsException            unexpected error occured on the server.
+     * @throws IkatsDaoException
+     *             a database access error occured during the service.
+     * @throws InvalidValueException
+     *             error raised if one of the inputs is invalid.
+     * @throws ResourceNotFoundException
+     *             error raised if one of the resource required by computing is
+     *             not found
+     * @throws IkatsException
+     *             unexpected error occured on the server.
      */
     @POST
     @SuppressWarnings("unchecked")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Path("/join/metrics")
     public Response joinByMetrics(@FormDataParam("tableJson") String tableJson, @FormDataParam("metrics") String metrics,
-                                  @FormDataParam("dataset") String dataset, @FormDataParam("joinColName") @DefaultValue("") String joinColName,
-                                  @FormDataParam("joinMetaName") @DefaultValue("") String joinMetaName,
-                                  @FormDataParam("targetColName") @DefaultValue("") String targetColName, @FormDataParam("outputTableName") String outputTableName)
+            @FormDataParam("dataset") String dataset, @FormDataParam("joinColName") @DefaultValue("") String joinColName,
+            @FormDataParam("joinMetaName") @DefaultValue("") String joinMetaName,
+            @FormDataParam("targetColName") @DefaultValue("") String targetColName, @FormDataParam("outputTableName") String outputTableName)
             throws IkatsDaoException, InvalidValueException, ResourceNotFoundException, IkatsException {
-        // the tableExprLogged is the logged expression about input table:
-        // - temporary solution before passing explicite RID or table name to
-        // the service
-        String tableExprLogged = "null";
-        // will be recomputed at step 0
 
-        try {
+        // delegates the work to the operator JoinTableWithTs
+        JoinTableWithTs opeJoinTableWithTs = new JoinTableWithTs();
+        String rid = opeJoinTableWithTs.apply(tableJson, metrics, dataset, joinColName, joinMetaName, targetColName, outputTableName);
 
-            // step 0: check + prepare data
-            //
-            // parse JSON resource
-            TableManager tableManager = new TableManager();
-            Table table = tableManager.initTable(tableJson);
-
-            // toString() service provides a summary about the table
-            tableExprLogged = table.toString();
-
-            String finalJoinByColName = joinColName == null ? "" : joinColName.trim();
-            String finalJoinByMetaName = joinMetaName == null ? "" : joinMetaName.trim();
-            if (finalJoinByColName.isEmpty())
-                finalJoinByColName = table.getColumnsHeader().getItems().get(0);
-            if (finalJoinByMetaName.isEmpty())
-                finalJoinByMetaName = finalJoinByColName;
-
-            String finalTargetName = targetColName.equals("") ? null : targetColName.trim();
-
-            if (outputTableName == null || outputTableName.equals("")) {
-                String msg = MessageFormat.format(TableResource.MSG_INVALID_INPUT_ERROR_JOIN_BY_METRICS,
-                                                  "outputTableName", "", dataset, metrics, tableExprLogged);
-                throw new InvalidValueException(msg);
-            }
-
-
-            // 1: restrict Timeseries to those having the metadata named
-            // "metric" in the metrics list
-            //
-            // The metadata filtering is ignoring spaces around ';' but
-            // we also remove the spaces starting/ending the metrics:
-            String preparedMetrics = metrics.trim();
-
-            if (preparedMetrics.length() == 0)
-                throw new InvalidValueException(MessageFormat.format(MSG_INVALID_METRICS_FOR_JOIN_BY_METRICS, metrics, dataset, tableExprLogged));
-
-            List<MetadataCriterion> selectByMetrics = new ArrayList<>();
-            selectByMetrics.add(new MetadataCriterion("metric", SingleValueComparator.IN.getText(), preparedMetrics));
-            FilterOnTsWithMetadata filterDataseByMetrics = new FilterOnTsWithMetadata();
-
-            // Determine the list of dataset links from the datasetManager
-            // => converts list of LinkDatasetTimeSeries into list of
-            // FunctionalIdentifier
-            List<FunctionalIdentifier> allDatasetFuncIds = datasetManager.getDataSetContent(dataset).stream()
-                    .map(LinkDatasetTimeSeries::getFuncIdentifier).collect(Collectors.toList());
-
-            filterDataseByMetrics.setTsList(allDatasetFuncIds);
-            filterDataseByMetrics.setCriteria(selectByMetrics);
-
-            List<FunctionalIdentifier> filteredFuncIds = metadataManager.searchFunctionalIdentifiers(filterDataseByMetrics);
-
-            // 2: read, organize and store each used metadata on retained
-            // timeseries in a specific join Map: ( <join identifier> => (
-            // <metric> => ( funcId + tsuid )))
-            // - key: <join identifier> (example: FlihtId= "899" )
-            // - value: the map ( <metric> => ( funcId + tsuid )):
-            // - key: <metric>
-            // - value: FunctionalIdentifier
-            //
-            // 2.1 prepare the String list of tsuids: useful to create a map
-            // associating tsuids to FunctionalIdentifier
-            //
-            Map<String, FunctionalIdentifier> originalRefs = new HashMap<>();
-            for (FunctionalIdentifier functionalIdentifier : filteredFuncIds)
-                originalRefs.put(functionalIdentifier.getTsuid(), functionalIdentifier);
-
-            // 2.2 get the metadata map: TSUID => list of Metadata
-            //
-            Set<String> filteredTsuids = originalRefs.keySet();
-            Map<String, List<MetaData>> metaGroupedByTsuid = metadataManager.getMapGroupingByTsuid(filteredTsuids);
-
-            // 2.3 finalize the map: joinMap
-            //
-            // <join name> => Metric name => TSUID
-            //
-            List<String> listMetrics = Arrays.asList(preparedMetrics.split("\\s*;\\s*"));
-            Map<String, Map<String, FunctionalIdentifier>> joinMap = new HashMap<String, Map<String, FunctionalIdentifier>>();
-
-            for (Map.Entry<String, List<MetaData>> entryMeta : metaGroupedByTsuid.entrySet()) {
-                String tsuid = entryMeta.getKey();
-                List<MetaData> metaForTsuid = entryMeta.getValue();
-
-                // from current TS, search the metric value and the join
-                // identifier
-                //
-                String joinIdentifier = null;
-                String metric = null;
-                Iterator<MetaData> iterMeta = metaForTsuid.iterator();
-                while (iterMeta.hasNext() && ((metric == null) || (joinIdentifier == null))) {
-                    MetaData metaData = iterMeta.next();
-                    String metaName = metaData.getName();
-
-                    if (finalJoinByMetaName.equals(metaName)) {
-                        joinIdentifier = metaData.getValue();
-                    }
-                    else if (metaName.equals("metric") && listMetrics.contains(metaData.getValue())) {
-                        metric = metaData.getValue();
-                    }
-                }
-
-                if ((metric != null) && (joinIdentifier != null)) {
-                    // ... complete the joinMap, updating the
-                    // entry ( key: joinIdentifier , value: fromMetricToFuncId )
-                    //
-                    Map<String, FunctionalIdentifier> fromMetricToFuncId = joinMap.get(joinIdentifier);
-                    if (fromMetricToFuncId == null) {
-                        fromMetricToFuncId = new HashMap<String, FunctionalIdentifier>();
-                        joinMap.put(joinIdentifier, fromMetricToFuncId);
-                    }
-                    fromMetricToFuncId.put(metric, originalRefs.get(tsuid));
-                }
-            }
-
-            // 3: complete and save the table
-            // store table in db
-
-            // throws ResourceNotFoundException
-            table.sortRowsByColumnValues(finalJoinByColName, false);
-            List<String> joinIdentifers = table.getColumn(finalJoinByColName);
-
-            Collections.sort(listMetrics);
-            DataLink defaultLink = new DataLink();
-
-            // triggers ON the links, filling undefined ones with null
-            table.enableLinks(false, null, false, null, true, DataLink.buildLink("todo link type", null, "todo link context"));
-
-            for (String insertedMetric : listMetrics) {
-
-                List<TableElement> metricColumn = new ArrayList<>();
-                for (String joinIdentifier : joinIdentifers) {
-                    FunctionalIdentifier addData = joinMap.get(joinIdentifier).get(insertedMetric);
-                    DataLink link = new DataLink();
-                    link.val = addData;
-
-                    // add TableElement:
-                    // - data: the funcId text
-                    // - link: the json generated by FunctionalIdentifier
-                    TableElement elem = new TableElement(addData.getFuncId(), link);
-                    metricColumn.add(elem);
-                }
-
-                table.insertColumn(finalTargetName, insertedMetric, metricColumn);
-            }
-
-            String rid = tableManager.createInDatabase(outputTableName, table.getTableInfo());
-
-            // result id is returned in the body
-            return Response.status(Response.Status.OK).entity(rid).build();
-        }
-        catch (IkatsJsonException jsonError) {
-            String msg = MessageFormat.format(MSG_INVALID_TABLE_FOR_JOIN_BY_METRICS, tableExprLogged, dataset, metrics);
-            throw new InvalidValueException(msg, jsonError);
-        }
-        catch (IkatsDaoException daoError) {
-            String msg = MessageFormat.format(MSG_DAO_KO_JOIN_BY_METRICS, dataset, metrics, tableExprLogged);
-            throw new IkatsDaoException(msg, daoError);
-        }
-        catch (ResourceNotFoundException rnfError) {
-            // Resource not found error occured ...
-            String msg = MessageFormat.format(MSG_RESOURCE_NOT_FOUND_JOIN_BY_METRICS, dataset, metrics, tableExprLogged);
-            throw new ResourceNotFoundException(msg, rnfError);
-        }
-        catch (Exception e) {
-            String msg = MessageFormat.format(MSG_UNEXPECTED_ERROR_JOIN_BY_METRICS, dataset, metrics, tableExprLogged);
-            throw new IkatsException(msg, e);
-        }
+        // Nominal case: result id is returned in the body
+        // Note: with DAO Table: should be changed to return the name of Table
+        return Response.status(Response.Status.OK).entity(rid).build();
 
     }
 
@@ -481,9 +336,7 @@ public class TableResource extends AbstractResource {
      * @param outputTableName name of the table generated
      * @param formData        the form data
      * @param uriInfo         all info on URI
-     *
      * @return the internal id
-     *
      * @throws IOException               error when parsing input csv file
      * @throws IkatsDaoException         error while accessing database to check if table already exists
      * @throws ResourceNotFoundException if table not found
@@ -527,8 +380,8 @@ public class TableResource extends AbstractResource {
         Table table = tableManager.initTable(tableInfo, false);
 
         logger.info("Working on table (" + table.getDescription() + ") " +
-                            "with metaName (" + metaName + ") " +
-                            "and with populationId (" + populationId + ")");
+                "with metaName (" + metaName + ") " +
+                "and with populationId (" + populationId + ")");
         logger.info("Output table name is (" + outputTableName + ")");
 
         // retrieve headers
@@ -562,10 +415,6 @@ public class TableResource extends AbstractResource {
         List<String> listMetaTs = new ArrayList<>(setMetaTs);
         Collections.sort(listMetaTs);
 
-        // filling outputTable
-        // filling col headers
-        // first element is null
-
         // init empty table managing rows/columns headers
         Table outputTable = tableManager.initEmptyTable(true, true);
         outputTable.getColumnsHeader().addItem(null);
@@ -598,11 +447,12 @@ public class TableResource extends AbstractResource {
             outputTable.appendRow(cellsLine);
         }
         // store table in db
-        String rid = tableManager.createInDatabase(outputTableName, outputTable.getTableInfo());
+        String rid = tableManager.createInDatabase(outputTableName, outputTable);
 
         chrono.stop(logger);
 
         // result id is returned in the body
+        // Note: with DAO Table: should be changed to return the name of Table
         return Response.status(Response.Status.OK).entity(rid).build();
     }
 
@@ -619,6 +469,25 @@ public class TableResource extends AbstractResource {
         return result;
     }
 
+    /**
+     * Read the Table from database, using media-type
+     * (with DAO Table: merge equivalent services readTable <=> downlodTable into one compliant with final solution)
+     *
+     * @param name unique identifier of the table
+     * @return the table read from database
+     * @throws IkatsJsonException error parsing the json content from the database
+     * @throws IkatsDaoException database access error
+     * @throws ResourceNotFoundException resource not found in the database, for specified name
+     */
+    @GET
+    @Path("/json/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    @SuppressWarnings("unchecked")
+    public TableInfo readTable(@PathParam("name") String name) throws IkatsJsonException, IkatsDaoException, ResourceNotFoundException
+    {
+    	TableManager tableMgt = new TableManager();
+    	return tableMgt.readFromDatabase( name);
+    }
     /**
      * Table process to :
      * - change table key from metadata (populationId)
@@ -664,8 +533,8 @@ public class TableResource extends AbstractResource {
         }
 
         // Store tables in database
-        String rid1 = tableManager.createInDatabase(outputTableName + "_Train", tabListResult.get(0).getTableInfo());
-        String rid2 = tableManager.createInDatabase(outputTableName + "_Test", tabListResult.get(1).getTableInfo());
+        String rid1 = tableManager.createInDatabase(outputTableName + "_Train", tabListResult.get(0));
+        String rid2 = tableManager.createInDatabase(outputTableName + "_Test", tabListResult.get(1));
 
         chrono.stop(logger);
 

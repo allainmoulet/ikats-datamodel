@@ -55,6 +55,16 @@ public class Chronometer {
     }
 
     /**
+     * update this name, then (re)start the chronometer, using start(). 
+     * Justified use when one same Chronometer mesures durations of several steps. 
+     * @param updatedName the updated name
+     */
+    public void start( String updatedName) {
+        name = updatedName;
+        start();
+    }
+    
+    /**
      * stop the chronometer. if LOGGER is not null, use it to log the result
      * 
      * @param logger the logger to use to log ellapsed time
