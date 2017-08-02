@@ -24,7 +24,7 @@ import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 
 
 // Review#158268 FTA : New test proposed : JoinKey present in both table but no identical values
-// Review#158268 FTL : OK a faire -> décision MBD
+// Review#158268 MBD: done: see testDoMergeWithJoinKeyAndNoMatch()
 public class TablesMergeTest {
 
     private static final Logger logger       = Logger.getLogger(TablesMergeTest.class);
@@ -95,12 +95,21 @@ public class TablesMergeTest {
             + "E;five;15,71;3,14;0\n"
             + "J;ten;15,71;15,71;6,28\n";
 
+    private static final String TABLE5_CSV   = "H1-1;H5-2;H5-3;H5-4;H5-5\n"
+            + "W;eight;08;8;1000\n"
+            + "X;five;05;5;0101\n"
+            + "Z;four;04;4;0100\n"
+            + "P;nine;09;9;1001\n"
+            + "V;one;01;1;0001\n"
+            + "S;seven;07;7;0111\n";
+           
     private static Table        table1       = null;
     private static Table        table2       = null;
     private static Table        table1Smaller       = null;
     private static Table        table2Smaller       = null;
     private static Table        table3       = null;
     private static Table        table4       = null;
+    private static Table        table5       = null;
     private static TableManager tableManager = new TableManager();
 
     @BeforeClass
@@ -111,6 +120,7 @@ public class TablesMergeTest {
         table2Smaller = buildTableFromCSVString("table2Smaller", TABLE2_SMALLER_CSV, true);
         table3 = buildTableFromCSVString("table3", TABLE3_CSV, false);
         table4 = buildTableFromCSVString("table4", TABLE4_CSV, false);
+        table5 = buildTableFromCSVString("table4", TABLE5_CSV, true);
     }
 
     /**
@@ -124,7 +134,7 @@ public class TablesMergeTest {
         tableMergeRequest.joinOn = "join_key";
         tableMergeRequest.outputTableName = "output_table_name";
         tableMergeRequest.tables = new TableInfo[] { table1.getTableInfo(), table2.getTableInfo() };
-
+ 
         try {
             // Pass it to the constructor
             new TablesMerge(tableMergeRequest);
@@ -132,8 +142,10 @@ public class TablesMergeTest {
         catch (IkatsOperatorException e) {
             fail("Error initializing TablesMerge operator");
         }
-
+       
         // Review#158268 FTA : Internal attributes of construction could be also checked (to prove all attributes are taken in account).
+        // Review#158268  reply MBD: unit test applied are considering the TableMerge as "black box": 
+        // so testing internal state (private attributes) seems out of the scope ?
     }
 
     /**
@@ -276,7 +288,16 @@ public class TablesMergeTest {
     public final void testDoMergeWithoutColumnsHeader() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
 
         // Review#158268 FTA : About @Ignore, when is it planned ? Test method not reviewed until I get answer
-
+    	// Review#158268 begin reply MBD 
+    	// Do we need to plan this evolution ?  
+    	// See story follow-up: 
+    	//    "paramètre : nom de l'identifiant sur lequel faire la jointure - peut être vide - dans ce cas, on prend la 1ere colonne"
+    	//
+    	// There is no requirement that expresses the need to convert the column name into an index. 
+    	// And also see in the reviewed front part: HMI helper for the "join on" name parameter.
+    	// 
+    	// Conclusion: I propose to remove the test testDoMergeWithoutColumnsHeader: out of the scope of this story.
+        // Review#158268 end reply MBD
         String expected_merge = "H;eight;08;8;1000;H;3,14;0;0\n"
                 + "E;five;05;5;0101;E;15,71;3,14;0\n"
                 + "D;four;04;4;0100;D;3,14;15,71;12,57\n"
@@ -319,7 +340,7 @@ public class TablesMergeTest {
 
     
     /**
-     * Test the operator exception where JoinKey is not found in Table 1
+     * Test the operator exception where JoinKey is not found in the first Table
      * 
      * @throws IkatsJsonException
      * @throws IOException
@@ -334,7 +355,7 @@ public class TablesMergeTest {
     }
     
     /**
-     * Test the operator exception where JoinKey is not found in Table 1
+     * Test the operator exception where JoinKey is not found in the second Table
      * 
      * @throws IkatsJsonException
      * @throws IOException
@@ -348,9 +369,38 @@ public class TablesMergeTest {
         testTableMerge(table1, table2, "H1-3", "MergeWithJoinKeyNotFound2", expected_merge);
     }
     
+    /**
+     * Tests the merge case with undefined join name, and empty inner join:
+     * <ul><li>
+     * first table without headers: first column is the one holding  the list of first table IDs
+     * </li><li>
+     * second table: by default the first column is chosen, and it has no IDs matching first table IDs
+     * </li></ul>
+     * @throws IkatsJsonException
+     * @throws IOException
+     * @throws IkatsException
+     * @throws IkatsOperatorException
+     */
     @Test
     public final void testDoMergeWithoutJoinKeyAndNoMatch() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
         testTableMerge(table3, table2, null, "MergeWithoutJoinKeyAndNoMatch", ";");
+    }
+    
+    /**
+     * Tests the merge case with H1-1 join name, and empty inner join:
+     * <ul><li>
+     * first table with headers: H1-1 column exists
+     * </li><li>
+     * second table with headers: H1-1 column exists (and not matching the first table IDs)
+     * </li></ul>
+     * @throws IkatsJsonException
+     * @throws IOException
+     * @throws IkatsException
+     * @throws IkatsOperatorException
+     */
+    @Test
+    public final void testDoMergeWithJoinKeyAndNoMatch() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+        testTableMerge(table1, table5, "H1-1", "MergeWithJoinKeyAndNoMatch", ";");
     }
 
     /**
