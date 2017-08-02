@@ -569,7 +569,7 @@ public class TableResource extends AbstractResource {
         }
 
         try {
-            // Do the jod and return the JSON table
+            // Do the job and return the JSON table
             Table mergedTable = tablesMergeOperator.doMerge();
             return Response.status(Status.OK).entity(mergedTable.getTableInfo()).build();
         }
