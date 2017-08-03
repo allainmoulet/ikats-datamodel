@@ -1,23 +1,19 @@
 
 package fr.cs.ikats.metadata.dao;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.log4j.Logger;
-import org.hibernate.Criteria;
-import org.hibernate.HibernateException;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.hibernate.criterion.Restrictions;
-import org.hibernate.exception.ConstraintViolationException;
-
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
+import org.apache.log4j.Logger;
+import org.hibernate.*;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.exception.ConstraintViolationException;
+import org.hibernate.transform.Transformers;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * FunctionalIdentifierDAO is providing CRUD services on the resource
@@ -182,6 +178,47 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
         finally {
             session.close();
         }
+        return result;
+
+    }
+
+    /**
+     * Get the list of each FunctionalIdentifier matching the datasetName. See
+     * FunctionalIdentifier: stands for a pair (tsuid, functional ID).
+     *
+     * @param datasetName
+     *            the name of the dataset to use.
+     * @return a list of FunctionalIdentifier, or null if nothing is found
+     */
+    @SuppressWarnings("unchecked")
+    public List<FunctionalIdentifier> listFromDataset(String datasetName) throws IkatsDaoException {
+        List<FunctionalIdentifier> result;
+        Session session = getSession();
+        try {
+            String queryString = "SELECT " +
+                    "tsfunctionalidentifier.tsuid as tsuid, " +
+                    "tsfunctionalidentifier.funcid as FuncId " +
+                    "FROM tsfunctionalidentifier, timeseries_dataset " +
+                    "WHERE tsfunctionalidentifier.tsuid = timeseries_dataset.tsuid AND " +
+                    "timeseries_dataset.dataset_name = '" + datasetName + "'";
+
+            Query q = session.createSQLQuery(queryString)
+                    .addScalar("tsuid", Hibernate.STRING)
+                    .addScalar("FuncId", Hibernate.STRING)
+                    .setResultTransformer(Transformers.aliasToBean(FunctionalIdentifier.class));
+
+            result = (List<FunctionalIdentifier>) q.list();
+        }
+        catch (HibernateException e) {
+            throw new IkatsDaoMissingRessource("Hibernate error: listFromDataset "+ e, e);
+        }
+        catch (Throwable te) {
+            throw new IkatsDaoException("Unexpected error: listFromDataset", te);
+        }
+        finally {
+            session.close();
+        }
+
         return result;
 
     }

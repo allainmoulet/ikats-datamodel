@@ -666,6 +666,19 @@ public class MetaDataFacade {
     }
 
     /**
+     * Get the functional identifier list matching the dataset name
+     *
+     * @param datasetName Name of the dataset to use
+     * @return a list of FunctionalIdentifier, or null if nothing is found.
+     */
+    public List<FunctionalIdentifier> getFunctionalIdentifierFromDataset(String datasetName)
+            throws IkatsDaoException {
+
+        List<FunctionalIdentifier> results = idDao.listFromDataset(datasetName);
+        return results;
+    }
+
+    /**
      * Get the functional identifier list matching the list of tsuid values
      *
      * @param tsuids list of search criteria: tsuid values

@@ -370,6 +370,17 @@ public class MetaDataManager {
         return getMetaDataFacade().getFunctionalIdentifierByTsuidList(tsuids);
 
     }
+    /**
+     * Get the functional identifier list matching the dataset name
+     *
+     * @param datasetName Name of the dataset to use
+     * @return a list of FunctionalIdentifier, or null if nothing is found.
+     */
+    public List<FunctionalIdentifier> getFunctionalIdentifierFromDataset(String datasetName) throws IkatsDaoException {
+
+        return getMetaDataFacade().getFunctionalIdentifierFromDataset(datasetName);
+
+    }
 
     /**
      * Get the functional identifier list matching the list of funcId values
