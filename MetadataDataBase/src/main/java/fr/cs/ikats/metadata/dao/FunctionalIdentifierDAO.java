@@ -4,42 +4,40 @@ package fr.cs.ikats.metadata.dao;
 import java.util.ArrayList;
 import java.util.List;
 
+import fr.cs.ikats.common.dao.DataBaseDAO;
+import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
+import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
 import org.hibernate.exception.ConstraintViolationException;
-
-import fr.cs.ikats.common.dao.DataBaseDAO;
-import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
-import fr.cs.ikats.metadata.model.FunctionalIdentifier;
+import org.hibernate.transform.Transformers;
 
 /**
- * FunctionalIdentifierDAO is providing CRUD services on the resource
- * FunctionalIdentifier. <br/>
- * Note: replaced org.hibernate.HibernateException by Throwable in catch blocs
- * of services.
+ * FunctionalIdentifierDAO is providing CRUD services on the resource FunctionalIdentifier. <br/> Note: replaced
+ * org.hibernate.HibernateException by Throwable in catch blocs of services.
  */
 public class FunctionalIdentifierDAO extends DataBaseDAO {
 
     private static final Logger LOGGER = Logger.getLogger(FunctionalIdentifierDAO.class);
 
     /**
-     * Maximum limit of the SQL 'IN' clause, that cause JDBC driver to hang.
-     * TODO think to move this elsewhere...
+     * Maximum limit of the SQL 'IN' clause, that cause JDBC driver to hang. TODO think to move this elsewhere...
      */
     private static final int MAX_SQL_IN_CLAUSE_LIMIT = 20000;
 
     /**
      * persist FunctionalIdentifier into database
-     * 
-     * @param fi
-     *            FunctionalIdentifier
+     *
+     * @param fi FunctionalIdentifier
+     *
      * @return the internal id
      */
     public int persist(FunctionalIdentifier fi) throws IkatsDaoConflictException, IkatsDaoException {
@@ -81,12 +79,12 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
 
     /**
      * remove FunctionalIdentifier from database.
-     * 
-     * @param tsuidList
-     *            the list of identifiers
+     *
+     * @param tsuidList the list of identifiers
+     *
      * @return number of removals
      */
-    public int remove(List<String> tsuidList) throws IkatsDaoConflictException, IkatsDaoException{
+    public int remove(List<String> tsuidList) throws IkatsDaoConflictException, IkatsDaoException {
         Session session = getSession();
         Transaction tx = null;
         int result = 0;
@@ -128,11 +126,11 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
     }
 
     /**
-     * Get the list of each FunctionalIdentifier matching the tsuids list. See
-     * FunctionalIdentifier: stands for a pair (tsuid, functional ID).
-     * 
-     * @param tsuids
-     *            the criterion list.
+     * Get the list of each FunctionalIdentifier matching the tsuids list. See FunctionalIdentifier: stands for a pair
+     * (tsuid, functional ID).
+     *
+     * @param tsuids the criterion list.
+     *
      * @return null if nothing is found, or error occured.
      */
     @SuppressWarnings("unchecked")
@@ -142,9 +140,9 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
         List<List<String>> tsuidSublists = new ArrayList<List<String>>();
 
         if (tsuids == null || tsuids.isEmpty()) {
-        	return result;
+            return result;
         }
-        
+
         if (tsuids.size() > MAX_SQL_IN_CLAUSE_LIMIT) {
             // Limit raised : cut list in sublists
             int from = 0;
@@ -187,11 +185,53 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
     }
 
     /**
-     * Get the list of each FunctionalIdentifier matching the funcIds list. See
-     * FunctionalIdentifier: stands for a pair (tsuid, functional ID).
-     * 
-     * @param funcIds
-     *            the criterion list
+     * Get the list of each FunctionalIdentifier matching the datasetName. See FunctionalIdentifier: stands for a pair
+     * (tsuid, functional ID).
+     *
+     * @param datasetName the name of the dataset to use.
+     *
+     * @return a list of FunctionalIdentifier, or null if nothing is found
+     */
+    @SuppressWarnings("unchecked")
+    public List<FunctionalIdentifier> listFromDataset(String datasetName) throws IkatsDaoException {
+        List<FunctionalIdentifier> result;
+        Session session = getSession();
+        try {
+            String queryString = "SELECT " +
+                    "tsfunctionalidentifier.tsuid as tsuid, " +
+                    "tsfunctionalidentifier.funcid as FuncId " +
+                    "FROM tsfunctionalidentifier, timeseries_dataset " +
+                    "WHERE tsfunctionalidentifier.tsuid = timeseries_dataset.tsuid AND " +
+                    "timeseries_dataset.dataset_name = '" + datasetName + "'";
+
+            Query q = session.createSQLQuery(queryString)
+                    .addScalar("tsuid", Hibernate.STRING)
+                    .addScalar("tsuid", Hibernate.STRING)
+                    .addScalar("FuncId", Hibernate.STRING)
+                    .setResultTransformer(Transformers.aliasToBean(FunctionalIdentifier.class));
+
+            result = (List<FunctionalIdentifier>) q.list();
+        }
+        catch (HibernateException e) {
+            throw new IkatsDaoMissingRessource("Hibernate error: listFromDataset " + e, e);
+        }
+        catch (Throwable te) {
+            throw new IkatsDaoException("Unexpected error: listFromDataset", te);
+        }
+        finally {
+            session.close();
+        }
+
+        return result;
+
+    }
+
+    /**
+     * Get the list of each FunctionalIdentifier matching the funcIds list. See FunctionalIdentifier: stands for a pair
+     * (tsuid, functional ID).
+     *
+     * @param funcIds the criterion list
+     *
      * @return null if nothing is found, or error occured.
      */
     public List<FunctionalIdentifier> listByFuncIds(List<String> funcIds) {
@@ -232,9 +272,8 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
     }
 
     /**
-     * Get the list of each FunctionalIdentifier. See FunctionalIdentifier:
-     * stands for a pair (tsuid, functional ID).
-     * 
+     * Get the list of each FunctionalIdentifier. See FunctionalIdentifier: stands for a pair (tsuid, functional ID).
+     *
      * @return null if nothing is found, or error occurred.
      */
     public List<FunctionalIdentifier> listAll() {
@@ -272,9 +311,9 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
 
     /**
      * Get the FunctionalIdentifier entity from database with the funcId value
-     * 
-     * @param funcId
-     *            the functional identifier to search for.
+     *
+     * @param funcId the functional identifier to search for.
+     *
      * @return null if nothing found in database, FunctionalIdentifier else.
      */
     public FunctionalIdentifier getFromFuncId(String funcId) throws IkatsDaoMissingRessource, IkatsDaoConflictException, IkatsDaoException {
@@ -287,8 +326,11 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
 
     /**
      * Get the FunctionalIdentifier entity from database with the tsuid value
-     * @param funcId
+     *
+     * @param tsuid
+     *
      * @return
+     *
      * @throws IkatsDaoMissingRessource
      * @throws IkatsDaoConflictException
      * @throws IkatsDaoException
@@ -300,8 +342,8 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
         FunctionalIdentifier result = getByProperty(propertyName, tsuid);
         return result;
     }
-    
-    private FunctionalIdentifier getByProperty(String propertyName, String propertyValue ) throws IkatsDaoException {
+
+    private FunctionalIdentifier getByProperty(String propertyName, String propertyValue) throws IkatsDaoException {
         Session session = null;
         FunctionalIdentifier result = null;
         try {
@@ -323,7 +365,7 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
             throw de;
         }
         catch (Throwable e) {
-            IkatsDaoException le = new IkatsDaoException( e.getClass().getSimpleName() + " in FunctionalIdentifierDAO::getByProperty " + propertyName + "=" + propertyValue);
+            IkatsDaoException le = new IkatsDaoException(e.getClass().getSimpleName() + " in FunctionalIdentifierDAO::getByProperty " + propertyName + "=" + propertyValue);
             throw le;
         }
         finally {

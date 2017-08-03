@@ -242,6 +242,41 @@ public class DataSetDAO extends DataBaseDAO {
     }
 
     /**
+     * Return a DataSet summary instance from database, null if no dataset is found.
+     * linksToTimeSeries won't be gathered
+     *
+     * @param name the name of the dataset
+     *
+     * @return a DataSet or null if no dataset is found.
+     */
+    public DataSet getDataSetSummary(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
+        DataSet result;
+        Session session = getSession();
+        try {
+            result = (DataSet) session.get(DataSet.class, name);
+            if (result == null) {
+                throw new IkatsDaoMissingRessource("DataSet with name=" + name);
+            }
+        }
+        catch (IkatsDaoMissingRessource me) {
+            throw me;
+        }
+        catch (HibernateException e) {
+            IkatsDaoMissingRessource error = new IkatsDaoMissingRessource("DataSet with name=" + name, e);
+            throw error;
+        }
+        catch (Throwable te) {
+            IkatsDaoException error = new IkatsDaoException("Unexpected error: Get DataSet with name=" + name, te);
+            throw error;
+        }
+        finally {
+            session.close();
+        }
+        return result; // never null
+    }
+
+
+    /**
      * Remove the dataset from database.
      *
      * @param name the dataset name to remove

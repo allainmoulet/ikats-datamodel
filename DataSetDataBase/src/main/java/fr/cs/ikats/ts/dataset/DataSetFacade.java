@@ -100,6 +100,17 @@ public class DataSetFacade {
     }
 
     /**
+     * get Dataset Summary
+     *
+     * @param name name of the dataset
+     *
+     * @return the dataset
+     */
+    public DataSet getDataSetSummary(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
+        return dao.getDataSetSummary(name);
+    }
+
+    /**
      * remove dataset for name
      *
      * @param name name of the dataset

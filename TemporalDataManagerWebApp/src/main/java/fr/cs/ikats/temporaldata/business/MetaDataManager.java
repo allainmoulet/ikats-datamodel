@@ -1,5 +1,15 @@
 package fr.cs.ikats.temporaldata.business;
 
+import java.io.InputStream;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
@@ -18,10 +28,6 @@ import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import org.apache.log4j.Logger;
-
-import java.io.InputStream;
-import java.sql.SQLException;
-import java.util.*;
 
 /**
  * MetaData Business Manager singleton.
@@ -46,7 +52,9 @@ public class MetaDataManager {
      * @param tsuid the tsuid of the metadata
      * @param name  name of metadata
      * @param value value of metadata
+     *
      * @return the list of the internal id of the inserted metadata
+     *
      * @throws IkatsDaoConflictException     create error raised on conflict with another resource
      * @throws IkatsDaoInvalidValueException invalid content
      * @throws IkatsDaoException             another error from DAO
@@ -63,7 +71,9 @@ public class MetaDataManager {
      * @param name  name of metadata
      * @param value value of metadata
      * @param dtype data type of metadata
+     *
      * @return the list of the internal id of the inserted metadata
+     *
      * @throws IkatsDaoConflictException     error raised by conflict with another row in database
      * @throws IkatsDaoInvalidValueException error raised for invalid dtype value
      * @throws IkatsDaoException             another error
@@ -80,7 +90,9 @@ public class MetaDataManager {
      * @param name  name of metadata
      * @param value value of metadata
      * @param dtype enumerate type of metadata
+     *
      * @return the list of the internal id of the inserted metadata
+     *
      * @throws IkatsDaoConflictException error raised by conflict with another row in database
      * @throws IkatsDaoException         another error
      */
@@ -94,8 +106,9 @@ public class MetaDataManager {
      * @param tsuid the tsuid of the metadata
      * @param name  name of metadata
      * @param value value of metadata to update
-     * @return the id of the updated metadata or null if no update has been
-     * performed
+     *
+     * @return the id of the updated metadata or null if no update has been performed
+     *
      * @throws IkatsDaoConflictException update error raised on conflict with another resource
      * @throws IkatsDaoMissingRessource  update error raised when a MetaData is missing
      * @throws IkatsDaoException         another error from DAO
@@ -110,9 +123,10 @@ public class MetaDataManager {
      *
      * @param tsuid the tsuid criterion value
      * @param name  the name criterion value
+     *
      * @return MetaData
-     * @throws IkatsDaoMissingRessource  error raised when no metadata is matching the tsuid+name
-     *                                   criteria
+     *
+     * @throws IkatsDaoMissingRessource  error raised when no metadata is matching the tsuid+name criteria
      * @throws IkatsDaoConflictException error raised when multiple metadata are found
      * @throws IkatsDaoException         any other exceptions
      */
@@ -127,9 +141,11 @@ public class MetaDataManager {
      * persist all meta data read in a csv file.
      *
      * @param fileis the fileInputStream
-     * @param update if true, already existing metadata is updated otherwise no
-     *               metadata is persisted if one of them already exists
+     * @param update if true, already existing metadata is updated otherwise no metadata is persisted if one of them
+     *               already exists
+     *
      * @return a list of internal identifiers
+     *
      * @throws IkatsException any other error
      * @since [#142998] Handling IkatsDaoException: keep all the troubles
      */
@@ -144,7 +160,8 @@ public class MetaDataManager {
 
             // raises IkatsDaoException
             results = getMetaDataFacade().persist(mdataListFromCSV, update);
-        } catch (IkatsDaoException daoException) {
+        }
+        catch (IkatsDaoException daoException) {
             // Dealing with the first error ...
 
             IkatsException contextError = new IkatsException(
@@ -153,7 +170,8 @@ public class MetaDataManager {
             logger.error(contextError);
             throw contextError;
 
-        } catch (Exception csvParsingError) {
+        }
+        catch (Exception csvParsingError) {
             // Dealing with unexpected errors like: IOException ...
             IkatsException contextError = new IkatsException(
                     "persistMetaData() : bad CSV format detected before opening the transaction: please correct CSV data at pointed lines in the detailed logs.",
@@ -167,13 +185,13 @@ public class MetaDataManager {
     }
 
     /**
-     * get a synthetic metadata CSV representation for the list of tsduids in
-     * param
+     * get a synthetic metadata CSV representation for the list of tsduids in param
      *
      * @param tsuids : list of tsuid
+     *
      * @return a csv formatted string.
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid
-     *                                  different from '*'
+     *
+     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException        any error raised by DAO layer.
      */
     public String getListAsCSV(List<String> tsuids) throws IkatsDaoMissingRessource, IkatsDaoException {
@@ -222,9 +240,10 @@ public class MetaDataManager {
      * get a list of metadata for the list of tsuids in param
      *
      * @param tsuids : list of tsuid
+     *
      * @return a csv formatted string.
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid
-     *                                  different from '*'
+     *
+     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException        any error raised by DAO layer.
      */
     public List<MetaData> getList(List<String> tsuids) throws IkatsDaoMissingRessource, IkatsDaoException {
@@ -241,15 +260,15 @@ public class MetaDataManager {
     }
 
     /**
-     * Builds the map of metadata grouped by the tsuid: each entry is composed of:
-     * <ul>
-     *     <li>key: the tsuid reference of the TS</li>
-     *     <li>value: List of Metadata associated to the TS</li>
-     * </ul>
-     *  
+     * Builds the map of metadata grouped by the tsuid: each entry is composed of: <ul> <li>key: the tsuid reference of
+     * the TS</li> <li>value: List of Metadata associated to the TS</li> </ul>
+     * <p>
      * This service is based upon MetadataFacade.getMetadataForTS()
+     *
      * @param tsuids: set of tsuids of the map
+     *
      * @return the built map.
+     *
      * @throws IkatsDaoMissingRessource
      * @throws IkatsDaoException
      */
@@ -261,17 +280,17 @@ public class MetaDataManager {
 
         // Iterates on each tsuid in order to complete the map
         for (String tsuid : tsuids) {
-            result.put( tsuid, new ArrayList<>( facade.getMetaDataForTS(tsuid.trim())) );
+            result.put(tsuid, new ArrayList<>(facade.getMetaDataForTS(tsuid.trim())));
         }
         return result;
     }
-    
+
     /**
      * get a list of metadata {name:type} for the list of tsuids in param
      *
      * @return a json formatted string.
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid
-     *                                  different from '*'
+     *
+     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException        any error raised by DAO layer.
      */
     public Map<String, String> getListTypes() throws IkatsDaoMissingRessource, IkatsDaoException {
@@ -283,9 +302,10 @@ public class MetaDataManager {
      * get a list of metadata for a given tsuid
      *
      * @param tsuid : tsuid
+     *
      * @return a csv formatted string.
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid
-     *                                  different from '*'
+     *
+     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException        any error raised by DAO layer.
      */
     public Object getList(String tsuid) throws IkatsDaoMissingRessource, IkatsDaoException {
@@ -297,9 +317,10 @@ public class MetaDataManager {
      * get a CSV representation for a tsuid in param
      *
      * @param tsuid the TS requested
+     *
      * @return a csv formatted string.
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid
-     *                                  different from '*'
+     *
+     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException        any error raised by DAO layer.
      */
     public String getListAsCSV(String tsuid) throws IkatsDaoMissingRessource, IkatsDaoException {
@@ -311,11 +332,11 @@ public class MetaDataManager {
     }
 
     /**
-     * persist meta data for a given tsuid, name and values. One MetaData per
-     * value is created.
+     * persist meta data for a given tsuid, name and values. One MetaData per value is created.
      *
      * @param tsuid  tsuid
      * @param funcId functional identifier. must not be null
+     *
      * @return the number of functionalIdentifier actually stored.
      */
     public int persistFunctionalIdentifier(String tsuid, String funcId) throws IkatsDaoException {
@@ -324,10 +345,12 @@ public class MetaDataManager {
             FunctionalIdentifier id = getMetaDataFacade().getFunctionalIdentifierByTsuid(tsuid);
             if (id != null && id.getFuncId().equals(funcId)) {
                 throw new IkatsDaoConflictException("Functional Identifier " + funcId + " already created for tsuid " + tsuid);
-            } else {
+            }
+            else {
                 return getMetaDataFacade().persistFunctionalIdentifier(tsuid, funcId);
             }
-        } else {
+        }
+        else {
             logger.warn("tsuid is null");
             return 0;
         }
@@ -337,7 +360,9 @@ public class MetaDataManager {
      * delete the functional identifier for tsuid
      *
      * @param tsuid the tsuid
+     *
      * @return the number of rows deleted
+     *
      * @throws IkatsDaoException
      * @throws IkatsDaoConflictException
      */
@@ -351,6 +376,7 @@ public class MetaDataManager {
      * Get the FunctionalIdentifier matching the value tsuid
      *
      * @param tsuid the internal identifier of a TS
+     *
      * @return found FunctionalIdentifier, or null
      */
     public FunctionalIdentifier getFunctionalIdentifierByTsuid(String tsuid) {
@@ -363,6 +389,7 @@ public class MetaDataManager {
      * Get the functional identifier list matching the list of tsuid values
      *
      * @param tsuids list of search criteria: tsuid values
+     *
      * @return a list of FunctionalIdentifier, or null if nothing is found.
      */
     public List<FunctionalIdentifier> getFunctionalIdentifierByTsuidList(List<String> tsuids) {
@@ -372,9 +399,23 @@ public class MetaDataManager {
     }
 
     /**
+     * Get the functional identifier list matching the dataset name
+     *
+     * @param datasetName Name of the dataset to use
+     *
+     * @return a list of FunctionalIdentifier, or null if nothing is found.
+     */
+    public List<FunctionalIdentifier> getFunctionalIdentifierFromDataset(String datasetName) throws IkatsDaoException {
+
+        return getMetaDataFacade().getFunctionalIdentifierFromDataset(datasetName);
+
+    }
+
+    /**
      * Get the functional identifier list matching the list of funcId values
      *
      * @param funcIds : list of functional identifiers
+     *
      * @return a list of FunctionalIdentifier, or null if nothing is found.
      */
     public List<FunctionalIdentifier> getFunctionalIdentifierByFuncIdList(List<String> funcIds) {
@@ -398,7 +439,9 @@ public class MetaDataManager {
      * delete metadata for a TS
      *
      * @param tsuid the TS
+     *
      * @return the number of metadata deleted
+     *
      * @throws IkatsDaoException error deleting the resource
      */
     public int deleteMetaData(String tsuid) throws IkatsDaoException {
@@ -410,7 +453,9 @@ public class MetaDataManager {
      *
      * @param tsuid the TS
      * @param name  name of the metadata
+     *
      * @return the number of metadata deleted
+     *
      * @throws IkatsDaoException dao error deleting the resource
      */
     public int deleteMetaData(String tsuid, String name) throws IkatsDaoException {
@@ -420,9 +465,10 @@ public class MetaDataManager {
     /**
      * Search FunctionalIdentifiers matched by the filter FilterOnTsWithMetadata
      *
-     * @param filterByMeta is the filter defining metadata criterion and a subset of
-     *                     FunctionalIdentifier
+     * @param filterByMeta is the filter defining metadata criterion and a subset of FunctionalIdentifier
+     *
      * @return the filtered list of functional identifiers
+     *
      * @throws IkatsDaoException when error occurred in DAO
      * @throws IkatsDaoException when dataset is used as input (not fully implemented)
      */
@@ -432,12 +478,15 @@ public class MetaDataManager {
             String datasetName = filterByMeta.getDatasetName();
             if (!datasetName.isEmpty()) {
                 return filterByMetaWithDatasetName(filterByMeta.getDatasetName(), filterByMeta.getCriteria());
-            } else {
+            }
+            else {
                 return filterByMetaWithTsuidList(filterByMeta.getTsList(), filterByMeta.getCriteria());
             }
-        } catch (IkatsDaoException daoError) {
+        }
+        catch (IkatsDaoException daoError) {
             throw daoError;
-        } catch (Throwable e) {
+        }
+        catch (Throwable e) {
             throw new IkatsDaoException("MetadataManager::searchFunctionalIdentifiers ended with unhandled error ", e);
         }
     }
@@ -447,7 +496,9 @@ public class MetaDataManager {
      * Simplify a criteria list by converting some comparators
      *
      * @param criteria criteria list to convert
+     *
      * @return the new criteria list
+     *
      * @throws IkatsDaoException
      * @throws SQLException
      * @throws IkatsException            if the database can't be reach
@@ -512,7 +563,9 @@ public class MetaDataManager {
      *
      * @param datasetName Name of the dataset to filter
      * @param criteria    criteria list to use
+     *
      * @return the filtered list of functional identifiers
+     *
      * @throws IkatsDaoException
      * @throws SQLException
      * @throws IkatsException            if the database can't be reach
@@ -533,7 +586,9 @@ public class MetaDataManager {
      *
      * @param tsuidList the list to filter
      * @param lCriteria the criteria to use
+     *
      * @return the filtered list of functional identifiers
+     *
      * @throws IkatsDaoInvalidValueException
      * @throws IkatsDaoException
      */
