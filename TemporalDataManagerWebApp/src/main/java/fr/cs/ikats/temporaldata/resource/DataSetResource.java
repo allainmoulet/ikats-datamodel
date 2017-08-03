@@ -20,16 +20,14 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import org.apache.log4j.Logger;
-
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.DataSetWithFids;
-import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.ts.dataset.model.DataSet;
+import org.apache.log4j.Logger;
 
 /**
  * data set resource class.
@@ -51,13 +49,12 @@ public class DataSetResource extends AbstractResource {
     }
 
     /**
-     * get a summary of all dataset in database. including number of ts per
-     * dataset (optional)
-     * 
+     * get a summary of all dataset in database. including number of ts per dataset (optional)
+     *
      * @return a json of DataSets (name, description, nb_ts)
      */
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public List<DataSet> getAllDataSetNamesWithNb(@QueryParam("size") @DefaultValue("false") boolean getSize)
             throws IkatsDaoMissingRessource, IkatsDaoException {
         return dataSetManager.getAllDataSetSummary();
@@ -65,22 +62,20 @@ public class DataSetResource extends AbstractResource {
 
     /**
      * import a dataset
-     * 
-     * @param datasetId
-     *            identifier of the dataset
-     * @param tsuids
-     *            comma separated list of tsuids.
-     * @param description
-     *            description of the dataset
-     * @return "OK" if import is successful. throw an exception if import
-     *         failed.
+     *
+     * @param datasetId   identifier of the dataset
+     * @param tsuids      comma separated list of tsuids.
+     * @param description description of the dataset
+     *
+     * @return "OK" if import is successful. throw an exception if import failed.
+     *
      * @throws URISyntaxException should never happen
      */
     @POST
     @Path("/import/{datasetId}")
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     public Response importDataSet(@PathParam("datasetId") String datasetId, @FormParam("tsuidList") String tsuids,
-            @FormParam("description") String description) throws IkatsDaoException, URISyntaxException {
+                                  @FormParam("description") String description) throws IkatsDaoException, URISyntaxException {
         logger.info("importing dataset " + datasetId + " with tsuids :" + tsuids);
         List<String> tsuidList = Arrays.asList(tsuids.split(","));
         String result = dataSetManager.persistDataSet(datasetId, description, tsuidList);
@@ -94,17 +89,11 @@ public class DataSetResource extends AbstractResource {
     }
 
     /**
-     * 
-     * @param datasetId
-     *            identifier of the dataset.
-     * @param tsuids
-     *            comma separated list of tsuids.
-     * @param description
-     *            description of the dataset.
-     * @param updateMode
-     *            "replace" for classical update, "append" to add new tsuids to
-     *            the dataset in database.
-     * 
+     * @param datasetId   identifier of the dataset.
+     * @param tsuids      comma separated list of tsuids.
+     * @param description description of the dataset.
+     * @param updateMode  "replace" for classical update, "append" to add new tsuids to the dataset in database.
+     *
      * @throws IkatsDaoInvalidValueException
      * @throws IkatsDaoMissingRessource
      * @throws IkatsDaoException
@@ -113,7 +102,8 @@ public class DataSetResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Path("{datasetId}")
     public void updateDataSet(@PathParam("datasetId") String datasetId, @FormParam("tsuidList") String tsuids,
-            @FormParam("description") String description, @QueryParam("updateMode") @DefaultValue("replace") String updateMode)
+                              @FormParam("description") String description,
+                              @QueryParam("updateMode") @DefaultValue("replace") String updateMode)
             throws IkatsDaoInvalidValueException, IkatsDaoMissingRessource, IkatsDaoException {
 
         logger.info("importing dataset " + datasetId + " with tsuids :" + tsuids);
@@ -126,15 +116,15 @@ public class DataSetResource extends AbstractResource {
 
     /**
      * get the data set with the given datasetId.
-     * 
-     * @param datasetId
-     *            the dataset identifier, which is the name of dataset
+     *
+     * @param datasetId the dataset identifier, which is the name of dataset
+     *
      * @return the list of {@link DataSetWithFids}.
-     * @throws IkatsDaoMissingRessource
-     *             if no dataset is found
+     *
+     * @throws IkatsDaoMissingRessource if no dataset is found
      */
     @GET
-    @Produces({ MediaType.APPLICATION_JSON })
+    @Produces({MediaType.APPLICATION_JSON})
     @Path("{datasetId}")
     public DataSetWithFids getDataSet(@PathParam("datasetId") String datasetId) throws IkatsDaoMissingRessource, IkatsDaoException {
         logger.info("get infos on dataset " + datasetId);
@@ -145,17 +135,17 @@ public class DataSetResource extends AbstractResource {
     }
 
     /**
-     * Remove the dataset reference and links with timeseries. 
-     * 
-     * Option when deep is True: each linked timeseries is deleted -including its metadata-,
-     * unless it belongs to another dataset.
-     * 
-     * @param datasetId
-     *            the dataset identifier
-     * @param deep
-     *            boolean flag, optional (default false): true activates the
-     *            deletion of timeseries and their associated metadata.
+     * Remove the dataset reference and links with timeseries.
+     * <p>
+     * Option when deep is True: each linked timeseries is deleted -including its metadata-, unless it belongs to
+     * another dataset.
+     *
+     * @param datasetId the dataset identifier
+     * @param deep      boolean flag, optional (default false): true activates the deletion of timeseries and their
+     *                  associated metadata.
+     *
      * @return a summary of the execution.
+     *
      * @throws IkatsDaoMissingRessource
      * @throws IkatsDaoException
      */
@@ -173,6 +163,7 @@ public class DataSetResource extends AbstractResource {
 
     /**
      * @param datasetId name of the dataset to get FIDs from
+     *
      * @return
      */
     private DataSetWithFids getDataSetWithFids(String datasetId)
