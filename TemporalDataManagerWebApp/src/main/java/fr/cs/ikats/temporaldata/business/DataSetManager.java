@@ -119,7 +119,18 @@ public class DataSetManager {
     public DataSet getDataSet(String datasetName) throws IkatsDaoMissingRessource, IkatsDaoException {
         DataSet dataset = getDataSetFacade().getDataSet(datasetName);
         return dataset;
-
+    }
+    /**
+     * Return the dataset summary
+     *
+     * @param datasetName
+     *            the identifier
+     * @return null if dataset is not found.
+     */
+    public DataSet getDataSetSummary(String datasetName)
+            throws IkatsDaoMissingRessource, IkatsDaoException {
+        DataSet dataset = getDataSetFacade().getDataSetSummary(datasetName);
+        return dataset;
     }
 
     /**

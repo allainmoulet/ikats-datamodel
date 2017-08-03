@@ -168,7 +168,7 @@ public class DataSetResource extends AbstractResource {
      */
     private DataSetWithFids getDataSetWithFids(String datasetId)
             throws IkatsDaoMissingRessource, IkatsDaoException {
-        DataSet ds = dataSetManager.getDataSet(datasetId);
+        DataSet ds = dataSetManager.getDataSetSummary(datasetId);
         List<FunctionalIdentifier> fids = metadataManager.getFunctionalIdentifierFromDataset(datasetId);
         DataSetWithFids result = new DataSetWithFids(ds.getName(), ds.getDescription(), fids);
         return result;
