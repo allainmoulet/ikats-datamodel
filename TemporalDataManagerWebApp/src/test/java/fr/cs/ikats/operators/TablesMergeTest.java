@@ -1,7 +1,5 @@
 package fr.cs.ikats.operators;
 
-import static org.junit.Assert.*;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -10,8 +8,9 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
+
+import java.util.ArrayList;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -104,7 +103,9 @@ public class TablesMergeTest {
             + "S;seven;07;7;0111\n";
 
     private static Table table1 = null;
+    private static Table table1WithRow = null;
     private static Table table2 = null;
+    private static Table table2WithRow = null;
     private static Table table1Smaller = null;
     private static Table table2Smaller = null;
     private static Table table3 = null;
@@ -114,13 +115,15 @@ public class TablesMergeTest {
 
     @BeforeClass
     public static void setUpBeforClass() throws Exception {
-        table1 = buildTableFromCSVString("table1", TABLE1_CSV, true);
-        table2 = buildTableFromCSVString("table2", TABLE2_CSV, true);
-        table1Smaller = buildTableFromCSVString("table1Smaller", TABLE1_SMALLER_CSV, true);
-        table2Smaller = buildTableFromCSVString("table2Smaller", TABLE2_SMALLER_CSV, true);
-        table3 = buildTableFromCSVString("table3", TABLE3_CSV, false);
-        table4 = buildTableFromCSVString("table4", TABLE4_CSV, false);
-        table5 = buildTableFromCSVString("table5", TABLE5_CSV, true);
+        table1 = buildTableFromCSVString("table1", TABLE1_CSV, true, false);
+        table1WithRow = buildTableFromCSVString("table1", TABLE1_CSV, true, true);
+        table2 = buildTableFromCSVString("table2", TABLE2_CSV, true, false);
+        table2WithRow = buildTableFromCSVString("table2", TABLE2_CSV, true, true);
+        table1Smaller = buildTableFromCSVString("table1Smaller", TABLE1_SMALLER_CSV, true, false);
+        table2Smaller = buildTableFromCSVString("table2Smaller", TABLE2_SMALLER_CSV, true, false);
+        table3 = buildTableFromCSVString("table3", TABLE3_CSV, false, false);
+        table4 = buildTableFromCSVString("table4", TABLE4_CSV, false, false);
+        table5 = buildTableFromCSVString("table5", TABLE5_CSV, true, false);
     }
 
     /**
@@ -196,6 +199,80 @@ public class TablesMergeTest {
                 + "B;two;02;2;0010;9,42;12,57;6,28;B\n";
 
         testTableMerge(table1, table2, "H1-2", "expected join", expected_merge);
+    }
+
+    /**
+     * Both First Table (T1) and Second Table (T2) contain row and column headers
+     * <p>
+     * There is a match: T1-col("H1-2") matches T2-col("H1-2") Note: columns index begins at index 0 in above
+     * description (or use the column name)
+     */
+    @Test
+    public final void testDoMergeNominalWithBothRow() throws IOException, IkatsException, IkatsOperatorException {
+
+        String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
+                + "H;eight;08;8;1000;3,14;0;0;H\n"
+                + "E;five;05;5;0101;15,71;3,14;0;E\n"
+                + "D;four;04;4;0100;3,14;15,71;12,57;D\n"
+                + "I;nine;09;9;1001;9,42;6,28;15,71;I\n"
+                + "A;one;01;1;0001;3,14;9,42;6,28;A\n"
+                + "G;seven;07;7;0111;6,28;9,42;9,42;G\n"
+                + "F;six;06;6;0110;0;3,14;6,28;F\n"
+                + "J;ten;10;10;1010;15,71;15,71;6,28;J\n"
+                + "C;three;03;3;0011;9,42;0;12,57;C\n"
+                + "B;two;02;2;0010;9,42;12,57;6,28;B\n";
+
+        testTableMerge(table1WithRow, table2WithRow, "H1-2", "expected join", expected_merge);
+    }
+
+    /**
+     * Both tables contains column headers
+     * First Table (T1) contains row headers Second Table (T2) doesn't contain row headers
+     * <p>
+     * There is a match: T1-col("H1-2") matches T2-col("H1-2") Note: columns index begins at index 0 in above
+     * description (or use the column name)
+     */
+    @Test
+    public final void testDoMergeNominalWithRowOnTable1() throws IOException, IkatsException, IkatsOperatorException {
+
+        String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
+                + "H;eight;08;8;1000;3,14;0;0;H\n"
+                + "E;five;05;5;0101;15,71;3,14;0;E\n"
+                + "D;four;04;4;0100;3,14;15,71;12,57;D\n"
+                + "I;nine;09;9;1001;9,42;6,28;15,71;I\n"
+                + "A;one;01;1;0001;3,14;9,42;6,28;A\n"
+                + "G;seven;07;7;0111;6,28;9,42;9,42;G\n"
+                + "F;six;06;6;0110;0;3,14;6,28;F\n"
+                + "J;ten;10;10;1010;15,71;15,71;6,28;J\n"
+                + "C;three;03;3;0011;9,42;0;12,57;C\n"
+                + "B;two;02;2;0010;9,42;12,57;6,28;B\n";
+
+        testTableMerge(table1WithRow, table2, "H1-2", "expected join", expected_merge);
+    }
+
+    /**
+     * Both tables contains column headers
+     * First Table (T1) doesn't contain row headers Second Table (T2) contains row headers
+     * <p>
+     * There is a match: T1-col("H1-2") matches T2-col("H1-2") Note: columns index begins at index 0 in above
+     * description (or use the column name)
+     */
+    @Test
+    public final void testDoMergeNominalWithRowOnTable2() throws IOException, IkatsException, IkatsOperatorException {
+
+        String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
+                + "H;eight;08;8;1000;3,14;0;0;H\n"
+                + "E;five;05;5;0101;15,71;3,14;0;E\n"
+                + "D;four;04;4;0100;3,14;15,71;12,57;D\n"
+                + "I;nine;09;9;1001;9,42;6,28;15,71;I\n"
+                + "A;one;01;1;0001;3,14;9,42;6,28;A\n"
+                + "G;seven;07;7;0111;6,28;9,42;9,42;G\n"
+                + "F;six;06;6;0110;0;3,14;6,28;F\n"
+                + "J;ten;10;10;1010;15,71;15,71;6,28;J\n"
+                + "C;three;03;3;0011;9,42;0;12,57;C\n"
+                + "B;two;02;2;0010;9,42;12,57;6,28;B\n";
+
+        testTableMerge(table1, table2WithRow, "H1-2", "expected join", expected_merge);
     }
 
     /**
@@ -368,7 +445,9 @@ public class TablesMergeTest {
      * @throws IOException
      * @throws IkatsException
      */
-    private static Table buildTableFromCSVString(String name, String content, boolean withColumnsHeader)
+    private static Table buildTableFromCSVString(String name, String content,
+                                                 boolean withColumnsHeader,
+                                                 boolean withRowsHeader)
             throws IOException, IkatsException {
 
         // Convert the CSV table to expected Table format
@@ -383,16 +462,22 @@ public class TablesMergeTest {
             List<String> headersTitle = Arrays.asList(line.split(";"));
             // Replace empty strings with null (that's what do the operator when adding empty headers)
             headersTitle.replaceAll(ht -> ht.isEmpty() ? null : ht);
-            table = tableManager.initTable(headersTitle, false);
+            table = tableManager.initTable(headersTitle, withRowsHeader);
         }
         else {
-            table = tableManager.initEmptyTable(false, false);
+            table = tableManager.initEmptyTable(false, withRowsHeader);
         }
 
         // Other lines contain data
         while ((line = bufReader.readLine()) != null) {
-            List<String> items = Arrays.asList(line.split(";"));
-            table.appendRow(items);
+            List<String> items = new ArrayList<>(Arrays.asList(line.split(";")));
+            if (withRowsHeader) {
+                // First item considered as row Header
+                table.appendRow(items.remove(0), items);
+            }
+            else {
+                table.appendRow(items);
+            }
         }
 
         table.setName(name);
@@ -422,10 +507,11 @@ public class TablesMergeTest {
                                 String expected_merge)
             throws IOException, IkatsException, IkatsJsonException, IkatsOperatorException {
 
-        boolean resultTableWithHeader = firstTable.getColumnsHeader() != null || secondTable.getColumnsHeader() != null;
+        boolean resultTableWithColumnHeader = firstTable.getColumnsHeader() != null || secondTable.getColumnsHeader() != null;
+        boolean resultTableWithRowHeader = firstTable.getRowsHeader() != null || secondTable.getRowsHeader() != null;
 
         // Prepare the expected result
-        Table expectedResult = buildTableFromCSVString(outputTableName, expected_merge, resultTableWithHeader);
+        Table expectedResult = buildTableFromCSVString(outputTableName, expected_merge, resultTableWithColumnHeader, resultTableWithRowHeader);
         expectedResult.enableLinks(true, new TableInfo.DataLink(), false, null, true, new TableInfo.DataLink());
         expectedResult.setTitle(null);
         expectedResult.setDescription(null);
