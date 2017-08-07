@@ -150,20 +150,24 @@ public class TablesMerge {
         boolean withColHeaders = firstTable.isHandlingColumnsHeader() | secondTable.isHandlingColumnsHeader();
         boolean withRowHeaders = firstTable.isHandlingRowsHeader() | secondTable.isHandlingRowsHeader();
 
-        Table resultTable = tableManager.initEmptyTable(withColHeaders, withRowHeaders);
+        Table resultTable = tableManager.initEmptyTable(withColHeaders, false);
         resultTable.setName(request.outputTableName);
-        resultTable.enableLinks(withColHeaders, new DataLink(), withRowHeaders, new DataLink(), true, new DataLink());
+        resultTable.enableLinks(withColHeaders, new DataLink(), false, new DataLink(), true, new DataLink());
 
-        // -- Loop over the values in the join column of the first table to found matching keys in the second
+        // -- Loop over the values in the join column of the first table to find matching keys in the second
         int firstRow = firstTable.isHandlingColumnsHeader() ? 1 : 0;
         int rowCount = firstTable.getRowCount(firstTable.isHandlingColumnsHeader());
         for (int i = firstRow; i < rowCount; i++) {
 
             // -- Get the join value of the row in the first table
-            List<TableElement> firstTableRowData = null;
+            List<TableElement> firstTableRowData = new ArrayList<>();
             // First : try to get the row with link
             try {
-                firstTableRowData = firstTable.getRow(i, TableElement.class);
+                if(firstTable.isHandlingRowsHeader()) {
+                    TableElement headerLine = new TableElement(firstTable.getRowsHeader().getItems(String.class).get(i), null);
+                    firstTableRowData.add(headerLine);
+                }
+                firstTableRowData.addAll(firstTable.getRow(i, TableElement.class));
             }
             catch (IkatsException | ResourceNotFoundException e) {
                 logger.error("Can't get the row at index " + i + " for table " + firstTable.getName());
@@ -198,8 +202,13 @@ public class TablesMerge {
 
             // Append the row values to the firstTableRowData
             try {
+                List<TableElement> secondTableRowData = new ArrayList<>();
+                if(secondTable.isHandlingRowsHeader()) {
+                    TableElement headerLine = new TableElement(secondTable.getRowsHeader().getItems(String.class).get(rowIndexForMerge), null);
+                    secondTableRowData.add(headerLine);
+                }
                 // Get the row
-                List<TableElement> secondTableRowData = secondTable.getRow(rowIndexForMerge, TableElement.class);
+                secondTableRowData.addAll(secondTable.getRow(rowIndexForMerge, TableElement.class));
                 // Loop over the row values to add them to the firstTable
                 for (int j = 0; j < secondTableRowData.size(); j++) {
                     if (j == joinIndexInSecondTable) {

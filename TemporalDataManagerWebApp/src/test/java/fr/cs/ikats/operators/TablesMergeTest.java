@@ -511,7 +511,7 @@ public class TablesMergeTest {
         boolean resultTableWithRowHeader = firstTable.getRowsHeader() != null || secondTable.getRowsHeader() != null;
 
         // Prepare the expected result
-        Table expectedResult = buildTableFromCSVString(outputTableName, expected_merge, resultTableWithColumnHeader, resultTableWithRowHeader);
+        Table expectedResult = buildTableFromCSVString(outputTableName, expected_merge, resultTableWithColumnHeader, false);
         expectedResult.enableLinks(true, new TableInfo.DataLink(), false, null, true, new TableInfo.DataLink());
         expectedResult.setTitle(null);
         expectedResult.setDescription(null);
