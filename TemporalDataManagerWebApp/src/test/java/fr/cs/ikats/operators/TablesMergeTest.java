@@ -3,25 +3,21 @@ package fr.cs.ikats.operators;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
-import org.apache.log4j.Logger;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import java.util.ArrayList;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import fr.cs.ikats.operators.TablesMerge.Request;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
-
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
+import org.apache.log4j.Logger;
+import org.junit.BeforeClass;
+import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
@@ -228,7 +224,8 @@ public class TablesMergeTest {
 
     /**
      * Both tables contains column headers
-     * First Table (T1) contains row headers Second Table (T2) doesn't contain row headers
+     * First Table (T1) contains row headers Second Table (T2) doesn't contain row
+     * headers
      * <p>
      * There is a match: T1-col("H1-2") matches T2-col("H1-2") Note: columns index begins at index 0 in above
      * description (or use the column name)
@@ -252,8 +249,8 @@ public class TablesMergeTest {
     }
 
     /**
-     * Both tables contains column headers
-     * First Table (T1) doesn't contain row headers Second Table (T2) contains row headers
+     * Both tables contains column headers First Table (T1) doesn't contain row headers Second Table (T2) contains row
+     * headers
      * <p>
      * There is a match: T1-col("H1-2") matches T2-col("H1-2") Note: columns index begins at index 0 in above
      * description (or use the column name)
