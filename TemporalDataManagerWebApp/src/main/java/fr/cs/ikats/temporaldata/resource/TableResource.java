@@ -573,7 +573,7 @@ public class TableResource extends AbstractResource {
             Table mergedTable = tablesMergeOperator.doMerge();
             return Response.status(Status.OK).entity(mergedTable.getTableInfo()).build();
         }
-        catch (IkatsOperatorException e) {
+        catch (IkatsOperatorException | IkatsException | ResourceNotFoundException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
 

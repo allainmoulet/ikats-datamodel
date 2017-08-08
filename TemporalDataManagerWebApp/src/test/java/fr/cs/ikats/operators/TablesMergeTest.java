@@ -6,6 +6,7 @@ import java.io.StringReader;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -184,7 +185,7 @@ public class TablesMergeTest {
      * description (or use the column name)
      */
     @Test
-    public final void testDoMergeNominal() throws IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeNominal() throws IOException, IkatsException, IkatsOperatorException, ResourceNotFoundException {
 
         String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
                 + "H;eight;08;8;1000;3,14;0;0;H\n"
@@ -208,19 +209,19 @@ public class TablesMergeTest {
      * description (or use the column name)
      */
     @Test
-    public final void testDoMergeNominalWithBothRow() throws IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeNominalWithBothRow() throws IOException, IkatsException, IkatsOperatorException, ResourceNotFoundException {
 
-        String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
-                + "H;eight;08;8;1000;3,14;0;0;H\n"
-                + "E;five;05;5;0101;15,71;3,14;0;E\n"
-                + "D;four;04;4;0100;3,14;15,71;12,57;D\n"
-                + "I;nine;09;9;1001;9,42;6,28;15,71;I\n"
-                + "A;one;01;1;0001;3,14;9,42;6,28;A\n"
-                + "G;seven;07;7;0111;6,28;9,42;9,42;G\n"
-                + "F;six;06;6;0110;0;3,14;6,28;F\n"
-                + "J;ten;10;10;1010;15,71;15,71;6,28;J\n"
-                + "C;three;03;3;0011;9,42;0;12,57;C\n"
-                + "B;two;02;2;0010;9,42;12,57;6,28;B\n";
+        String expected_merge = "H1-2;H1-1;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
+                + "eight;H;08;8;1000;3,14;0;0;H\n"
+                + "five;E;05;5;0101;15,71;3,14;0;E\n"
+                + "four;D;04;4;0100;3,14;15,71;12,57;D\n"
+                + "nine;I;09;9;1001;9,42;6,28;15,71;I\n"
+                + "one;A;01;1;0001;3,14;9,42;6,28;A\n"
+                + "seven;G;07;7;0111;6,28;9,42;9,42;G\n"
+                + "six;F;06;6;0110;0;3,14;6,28;F\n"
+                + "ten;J;10;10;1010;15,71;15,71;6,28;J\n"
+                + "three;C;03;3;0011;9,42;0;12,57;C\n"
+                + "two;B;02;2;0010;9,42;12,57;6,28;B\n";
 
         testTableMerge(table1WithRow, table2WithRow, "H1-2", "expected join", expected_merge);
     }
@@ -233,19 +234,19 @@ public class TablesMergeTest {
      * description (or use the column name)
      */
     @Test
-    public final void testDoMergeNominalWithRowOnTable1() throws IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeNominalWithRowOnTable1() throws IOException, IkatsException, IkatsOperatorException, ResourceNotFoundException {
 
-        String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
-                + "H;eight;08;8;1000;3,14;0;0;H\n"
-                + "E;five;05;5;0101;15,71;3,14;0;E\n"
-                + "D;four;04;4;0100;3,14;15,71;12,57;D\n"
-                + "I;nine;09;9;1001;9,42;6,28;15,71;I\n"
-                + "A;one;01;1;0001;3,14;9,42;6,28;A\n"
-                + "G;seven;07;7;0111;6,28;9,42;9,42;G\n"
-                + "F;six;06;6;0110;0;3,14;6,28;F\n"
-                + "J;ten;10;10;1010;15,71;15,71;6,28;J\n"
-                + "C;three;03;3;0011;9,42;0;12,57;C\n"
-                + "B;two;02;2;0010;9,42;12,57;6,28;B\n";
+        String expected_merge = "H1-2;H1-1;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
+                + "eight;H;08;8;1000;3,14;0;0;H\n"
+                + "five;E;05;5;0101;15,71;3,14;0;E\n"
+                + "four;D;04;4;0100;3,14;15,71;12,57;D\n"
+                + "nine;I;09;9;1001;9,42;6,28;15,71;I\n"
+                + "one;A;01;1;0001;3,14;9,42;6,28;A\n"
+                + "seven;G;07;7;0111;6,28;9,42;9,42;G\n"
+                + "six;F;06;6;0110;0;3,14;6,28;F\n"
+                + "ten;J;10;10;1010;15,71;15,71;6,28;J\n"
+                + "three;C;03;3;0011;9,42;0;12,57;C\n"
+                + "two;B;02;2;0010;9,42;12,57;6,28;B\n";
 
         testTableMerge(table1WithRow, table2, "H1-2", "expected join", expected_merge);
     }
@@ -258,19 +259,19 @@ public class TablesMergeTest {
      * description (or use the column name)
      */
     @Test
-    public final void testDoMergeNominalWithRowOnTable2() throws IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeNominalWithRowOnTable2() throws IOException, IkatsException, IkatsOperatorException, ResourceNotFoundException {
 
-        String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
-                + "H;eight;08;8;1000;3,14;0;0;H\n"
-                + "E;five;05;5;0101;15,71;3,14;0;E\n"
-                + "D;four;04;4;0100;3,14;15,71;12,57;D\n"
-                + "I;nine;09;9;1001;9,42;6,28;15,71;I\n"
-                + "A;one;01;1;0001;3,14;9,42;6,28;A\n"
-                + "G;seven;07;7;0111;6,28;9,42;9,42;G\n"
-                + "F;six;06;6;0110;0;3,14;6,28;F\n"
-                + "J;ten;10;10;1010;15,71;15,71;6,28;J\n"
-                + "C;three;03;3;0011;9,42;0;12,57;C\n"
-                + "B;two;02;2;0010;9,42;12,57;6,28;B\n";
+        String expected_merge = "H1-2;H1-1;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
+                + "eight;H;08;8;1000;3,14;0;0;H\n"
+                + "five;E;05;5;0101;15,71;3,14;0;E\n"
+                + "four;D;04;4;0100;3,14;15,71;12,57;D\n"
+                + "nine;I;09;9;1001;9,42;6,28;15,71;I\n"
+                + "one;A;01;1;0001;3,14;9,42;6,28;A\n"
+                + "seven;G;07;7;0111;6,28;9,42;9,42;G\n"
+                + "six;F;06;6;0110;0;3,14;6,28;F\n"
+                + "ten;J;10;10;1010;15,71;15,71;6,28;J\n"
+                + "three;C;03;3;0011;9,42;0;12,57;C\n"
+                + "two;B;02;2;0010;9,42;12,57;6,28;B\n";
 
         testTableMerge(table1, table2WithRow, "H1-2", "expected join", expected_merge);
     }
@@ -286,7 +287,7 @@ public class TablesMergeTest {
      * @throws IkatsOperatorException
      */
     @Test
-    public final void testDoMergeNominalDifferentSize() throws IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeNominalDifferentSize() throws IOException, IkatsException, IkatsOperatorException, ResourceNotFoundException {
 
         // The expected result is the same for merge(table1smaller, table2) and merge(table1, table2smaller)
         // It has no line whose H1-2 is "one" "un" "four" or "six"
@@ -311,7 +312,7 @@ public class TablesMergeTest {
      * the column name)
      */
     @Test
-    public final void testDoMergeWithoutJoinKey() throws IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeWithoutJoinKey() throws IOException, IkatsException, IkatsOperatorException, ResourceNotFoundException {
 
         String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-2\n"
                 + "H;eight;08;8;1000;3,14;0;0;eight\n"
@@ -334,7 +335,7 @@ public class TablesMergeTest {
      * use the column name)
      */
     @Test
-    public final void testDoMergeWithoutColumnsHeaderAndNoJoinKey() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeWithoutColumnsHeaderAndNoJoinKey() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException, ResourceNotFoundException {
 
         String expected_merge = "H;eight;08;8;1000;eight;3,14;0;0\n"
                 + "E;five;05;5;0101;five;15,71;3,14;0\n"
@@ -356,7 +357,7 @@ public class TablesMergeTest {
      * the column name)
      */
     @Test
-    public final void testDoMergeWithHeaderOnSecondTable() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeWithHeaderOnSecondTable() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException, ResourceNotFoundException {
 
         String expected_merge = ";;;;;H1-2;H1-3;H1-4;H1-5\n"
                 + "F;six;0;3,14;6,28;six;06;6;0110\n"
@@ -383,7 +384,7 @@ public class TablesMergeTest {
      * @throws IkatsOperatorException
      */
     @Test(expected = IkatsOperatorException.class)
-    public final void testDoMergeWithJoinKeyNotFoundFirstTable() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeWithJoinKeyNotFoundFirstTable() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException, ResourceNotFoundException {
 
         String expected_merge = ";";
         testTableMerge(table1, table2, "H2-2", "MergeWithJoinKeyNotFound1", expected_merge);
@@ -398,7 +399,7 @@ public class TablesMergeTest {
      * @throws IkatsOperatorException
      */
     @Test(expected = IkatsOperatorException.class)
-    public final void testDoMergeWithJoinKeyNotFoundSecondTable() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeWithJoinKeyNotFoundSecondTable() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException, ResourceNotFoundException {
 
         String expected_merge = ";";
         testTableMerge(table1, table2, "H1-3", "MergeWithJoinKeyNotFound2", expected_merge);
@@ -415,7 +416,7 @@ public class TablesMergeTest {
      * @throws IkatsOperatorException
      */
     @Test
-    public final void testDoMergeWithoutJoinKeyAndNoMatch() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeWithoutJoinKeyAndNoMatch() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException, ResourceNotFoundException {
         testTableMerge(table3, table2, null, "MergeWithoutJoinKeyAndNoMatch", ";");
     }
 
@@ -429,7 +430,7 @@ public class TablesMergeTest {
      * @throws IkatsOperatorException
      */
     @Test
-    public final void testDoMergeWithJoinKeyAndNoMatch() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException {
+    public final void testDoMergeWithJoinKeyAndNoMatch() throws IkatsJsonException, IOException, IkatsException, IkatsOperatorException, ResourceNotFoundException {
         testTableMerge(table1, table5, "H1-1", "MergeWithJoinKeyAndNoMatch", ";");
     }
 
@@ -505,14 +506,16 @@ public class TablesMergeTest {
      */
     private void testTableMerge(Table firstTable, Table secondTable, String joinOn, String outputTableName,
                                 String expected_merge)
-            throws IOException, IkatsException, IkatsJsonException, IkatsOperatorException {
+            throws IOException, IkatsException, IkatsJsonException, IkatsOperatorException, ResourceNotFoundException {
 
         boolean resultTableWithColumnHeader = firstTable.getColumnsHeader() != null || secondTable.getColumnsHeader() != null;
         boolean resultTableWithRowHeader = firstTable.getRowsHeader() != null || secondTable.getRowsHeader() != null;
 
         // Prepare the expected result
-        Table expectedResult = buildTableFromCSVString(outputTableName, expected_merge, resultTableWithColumnHeader, false);
-        expectedResult.enableLinks(true, new TableInfo.DataLink(), false, null, true, new TableInfo.DataLink());
+        Table expectedResult = buildTableFromCSVString(outputTableName, expected_merge, resultTableWithColumnHeader, resultTableWithRowHeader);
+        expectedResult.enableLinks(true, new TableInfo.DataLink(),
+                                   true, new TableInfo.DataLink(),
+                                   true, new TableInfo.DataLink());
         expectedResult.setTitle(null);
         expectedResult.setDescription(null);
 
@@ -524,19 +527,19 @@ public class TablesMergeTest {
 
         // Instantiate the operator and do the job
         TablesMerge tablesMerge = new TablesMerge(tableMergeRequest);
-        Table resultTable = tablesMerge.doMerge();
+        Table obtainedResult = tablesMerge.doMerge();
 
         // Test the expected number of columns
-        assertEquals("Bad column count", expectedResult.getColumnCount(true), resultTable.getColumnCount(true));
+        assertEquals("Bad column count", expectedResult.getColumnCount(true), obtainedResult.getColumnCount(true));
         // Test the expected number of rows
-        assertEquals("Bad row count", expectedResult.getRowCount(true), resultTable.getRowCount(true));
+        assertEquals("Bad row count", expectedResult.getRowCount(true), obtainedResult.getRowCount(true));
 
         // Test the JSON rendering -> test all the content
         String expectedTableJSON = tableManager.serializeToJson(expectedResult.getTableInfo());
-        String resultTableJSON = tableManager.serializeToJson(resultTable.getTableInfo());
+        String obtainedTableJSON = tableManager.serializeToJson(obtainedResult.getTableInfo());
         expectedTableJSON = prettify(expectedTableJSON);
-        resultTableJSON = prettify(resultTableJSON);
-        assertEquals(expectedTableJSON, resultTableJSON);
+        obtainedTableJSON = prettify(obtainedTableJSON);
+        assertEquals(expectedTableJSON, obtainedTableJSON);
 
     }
 
