@@ -17,6 +17,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
 import fr.cs.ikats.operators.JoinTableWithTs;
@@ -28,11 +29,13 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.MetaData;
-import fr.cs.ikats.temporaldata.business.*;
+import fr.cs.ikats.operators.IkatsOperatorException;
+import fr.cs.ikats.operators.TablesMerge;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableInfo;
+import fr.cs.ikats.temporaldata.business.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
@@ -542,4 +545,37 @@ public class TableResource extends AbstractResource {
         return Response.status(Response.Status.OK).entity(rid1 + "," + rid2).build();
     }
 
+
+    /**
+     * Operator call for the merge of two tables with a join column.<br>
+     * See {@link TablesMerge.Request} for JSON input specification
+     *
+     * @param request
+     * @return the HTTP response with the merged table as content
+     */
+    @POST
+    @Path("/merge")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response mergeTables(TablesMerge.Request request) {
+        TablesMerge tablesMergeOperator;
+        try {
+            // Try to initialize the operator with the request
+            tablesMergeOperator = new TablesMerge(request);
+        }
+        catch (IkatsOperatorException e) {
+            // The request check has failed
+            return Response.status(Status.BAD_REQUEST).entity(e).build();
+        }
+
+        try {
+            // Do the job and return the JSON table
+            Table mergedTable = tablesMergeOperator.doMerge();
+            return Response.status(Status.OK).entity(mergedTable.getTableInfo()).build();
+        }
+        catch (IkatsOperatorException | IkatsException | ResourceNotFoundException e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+        }
+
+    }
 }
