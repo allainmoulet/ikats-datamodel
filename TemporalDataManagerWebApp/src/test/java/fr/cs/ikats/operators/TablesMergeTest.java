@@ -1,5 +1,8 @@
 package fr.cs.ikats.operators;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -7,19 +10,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import fr.cs.ikats.operators.TablesMerge.Request;
+import fr.cs.ikats.process.data.model.ProcessData;
+import fr.cs.ikats.temporaldata.business.ProcessDataManager;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
-import org.apache.log4j.Logger;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 public class TablesMergeTest {
 
@@ -172,6 +177,64 @@ public class TablesMergeTest {
         tableMergeRequest.tables = null;
 
         new TablesMerge(tableMergeRequest);
+    }
+
+    /**
+     * Integration test<br>
+     * Test that the output table is available after being saved.
+     * @throws IkatsOperatorException 
+     */
+    @Test
+    public final void testApplyNominal() throws IkatsOperatorException, Exception {
+        
+        String outputTableName = "output_table_name";
+
+        // Build the reference
+        String expected_merge = "H1-1;H1-2;H1-3;H1-4;H1-5;H2-1;H2-2;H2-3;H1-1\n"
+                + "H;eight;08;8;1000;3,14;0;0;H\n"
+                + "E;five;05;5;0101;15,71;3,14;0;E\n"
+                + "D;four;04;4;0100;3,14;15,71;12,57;D\n"
+                + "I;nine;09;9;1001;9,42;6,28;15,71;I\n"
+                + "A;one;01;1;0001;3,14;9,42;6,28;A\n"
+                + "G;seven;07;7;0111;6,28;9,42;9,42;G\n"
+                + "F;six;06;6;0110;0;3,14;6,28;F\n"
+                + "J;ten;10;10;1010;15,71;15,71;6,28;J\n"
+                + "C;three;03;3;0011;9,42;0;12,57;C\n"
+                + "B;two;02;2;0010;9,42;12,57;6,28;B\n";
+        Table expectedTable = prepareExpectedTable(outputTableName, expected_merge, true, false);
+        
+        // Build the nominal request
+        Request tableMergeRequest = new Request();
+        tableMergeRequest.joinOn = "H1-2";
+        tableMergeRequest.outputTableName = outputTableName;
+        tableMergeRequest.tables = new TableInfo[] { table1.getTableInfo(), table2.getTableInfo() };
+        
+        // pass it to the constructor
+        TablesMerge tablesMergeOperator = new TablesMerge(tableMergeRequest);
+        
+        // get the result reference
+        String ridStr = tablesMergeOperator.apply();
+        
+        // Direct connection to the database
+        ProcessDataManager processDataManager = new ProcessDataManager();
+        
+        Integer intRid = -1;
+        intRid = Integer.parseInt(ridStr);
+        ProcessData writtenData = processDataManager.getProcessPieceOfData(intRid);
+
+        // Check the record in database
+        assertEquals(writtenData.getProcessId(), outputTableName);
+        
+        // Prepare the data for checks
+        TableInfo tableJson = tableManager.readFromDatabase(outputTableName);
+        String resultTableJson = tableManager.serializeToJson(tableJson);
+        String expectedTableJson = tableManager.serializeToJson(expectedTable.getTableInfo());
+        resultTableJson = prettify(resultTableJson);
+        expectedTableJson = prettify(expectedTableJson);
+        
+        // Expect that the table persisted to lower layer is the same than expected
+        assertEquals(expectedTableJson, resultTableJson);
+        
     }
 
     /**
@@ -509,12 +572,8 @@ public class TablesMergeTest {
         boolean resultTableWithRowHeader = firstTable.getRowsHeader() != null || secondTable.getRowsHeader() != null;
 
         // Prepare the expected result
-        Table expectedResult = buildTableFromCSVString(outputTableName, expected_merge, resultTableWithColumnHeader, resultTableWithRowHeader);
-        expectedResult.enableLinks(true, new TableInfo.DataLink(),
-                                   true, new TableInfo.DataLink(),
-                                   true, new TableInfo.DataLink());
-        expectedResult.setTitle(null);
-        expectedResult.setDescription(null);
+        Table expectedResult = prepareExpectedTable(outputTableName, expected_merge, resultTableWithColumnHeader,
+                resultTableWithRowHeader);
 
         // Prepare the parameters of the merge
         Request tableMergeRequest = new Request();
@@ -541,7 +600,28 @@ public class TablesMergeTest {
     }
 
     /**
-     * Format the JSON for pretty print
+     * Prepare the expected {@link Table} as result of the merge
+     * 
+     * @param outputTableName
+     * @param expected_merge
+     * @param resultTableWithColumnHeader
+     * @param resultTableWithRowHeader
+     * @return
+     * @throws IOException
+     * @throws IkatsException
+     */
+    private Table prepareExpectedTable(String outputTableName, String expected_merge, boolean resultTableWithColumnHeader, boolean resultTableWithRowHeader) throws IOException, IkatsException {
+        Table expectedResult = buildTableFromCSVString(outputTableName, expected_merge, resultTableWithColumnHeader, resultTableWithRowHeader);
+        expectedResult.enableLinks(true, new TableInfo.DataLink(),
+                true, new TableInfo.DataLink(),
+                true, new TableInfo.DataLink());
+        expectedResult.setTitle(null);
+        expectedResult.setDescription(null);
+        return expectedResult;
+    }
+    
+    /**
+     * Format the JSON for pretty print. Usefull to debug tests with Eclipse compare feature.
      *
      * @param tableInfoJSON
      *
