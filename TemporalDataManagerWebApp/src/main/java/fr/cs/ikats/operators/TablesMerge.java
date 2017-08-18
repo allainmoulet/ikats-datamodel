@@ -1,8 +1,12 @@
 package fr.cs.ikats.operators;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableElement;
 import fr.cs.ikats.temporaldata.business.TableInfo;
@@ -10,24 +14,30 @@ import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
 import fr.cs.ikats.temporaldata.business.TableInfo.Header;
 import fr.cs.ikats.temporaldata.business.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
+import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
-import org.apache.log4j.Logger;
 
 /**
  * <p>IKATS Operator Tables Merge</p>
- * <p>
+ * 
  * <p>Provides the ability to join 2 tables with an inner join. The instructions are set by the {@link Request}.</p>
- * <p>
- * <p>Rules: <ul> <li>The operator produces an inner join between 2 tables only</li> <li>The first table (in the order)
- * is the reference : all columns will be in the result</li> <li>The operator will copy all the columns of the second
- * table except the join column</li> <li>The join key (see {@link Request#joinOn}) is case sensitive</li> <li>The join
- * key should be found in the 2 tables</li> <li>If the join key is not provided, the first column in the first table is
- * selected, <ul> <li>If the first table has a header name for that column, that name will be used as join  key to
- * select the join column in the second table</li> <li>If the first table has no header, the first column of the second
- * table is used to search matches for the join</li> </ul> <li>If the first table has no header and there is no key
- * provided, the first columns of the two tables are used to match for the join</li> <li>As per {@link TableInfo}
- * construction, each of the two tables could, or not, manage headers, and datalinks. The result will report all the
- * elements. </ul> </p>
+ * 
+ * <p>Rules:
+ * <ul>
+ * <li>The operator produces an inner join between 2 tables only</li>
+ * <li>The first table (in the order) is the reference : all columns will be in the result</li>
+ * <li>The operator will copy all the columns of the second table except the join column</li>
+ * <li>The join key (see {@link Request#joinOn}) is case sensitive</li>
+ * <li>The join key should be found in the 2 tables</li>
+ * <li>If the join key is not provided, the first column in the first table is selected,
+ *   <ul>
+ *     <li>If the first table has a header name for that column, that name will be used as join  key to select the join column in the second table</li>
+ *     <li>If the first table has no header, the first column of the second table is used to search matches for the join</li>
+ *   </ul>
+ * <li>If the first table has no header and there is no key provided, the first columns of the two tables are used to match for the join</li>
+ * <li>As per {@link TableInfo} construction, each of the two tables could, or not, manage headers, and datalinks. The result will report all the elements.
+ * </ul>
+ * </p>
  */
 public class TablesMerge {
 
@@ -69,13 +79,39 @@ public class TablesMerge {
     }
 
     /**
+     * Apply the operator the {@link Request}, save the result and return the reférence RID.
+     * 
+     * @return the rid of the result Table in ProcessData
+     * @throws IkatsOperatorException
+     */
+    public String apply() throws IkatsOperatorException {
+        
+        // do the job
+        Table resultTable = doMerge();
+        
+        // then try to save it in the database and get the reference to be returned
+        String rid;
+        try {
+            rid = tableManager.createInDatabase(request.outputTableName, resultTable);
+            logger.info("Table '" + resultTable.getName() + "' by '" + TablesMerge.class.getName() + "' operator, created in database");
+        }
+        catch (IkatsException | IkatsDaoException | InvalidValueException e) {
+            String msgFormat = "The table ''{0}'' could not be saved to database. Error message: ''{1}''";
+            String msg = MessageFormat.format(msgFormat, resultTable.getName(), e.getMessage());
+            throw new IkatsOperatorException(msg, e);
+        }
+
+        return rid;
+    }
+
+    /**
      * Operator processing for the merge
      *
      * @return the merged table
      *
      * @throws IkatsOperatorException if table is badly formatted
      */
-    public Table doMerge() throws IkatsOperatorException, ResourceNotFoundException, IkatsException {
+    public Table doMerge() throws IkatsOperatorException {
 
         // Normalize the request data
         Table firstTable = tableManager.initTable(this.request.tables[0], false);
@@ -246,29 +282,37 @@ public class TablesMerge {
      * @param colIndex index of the column (in data) to set as row Header
      *
      * @return the converted table
+     * @throws IkatsOperatorException 
      */
-    private Table extractColAsRowHeader(Table table, int colIndex) throws ResourceNotFoundException, IkatsException {
+    private Table extractColAsRowHeader(Table table, int colIndex) throws IkatsOperatorException {
 
-        if (table.isHandlingRowsHeader()) {
-            // Extract column
-            int firstCol = table.isHandlingRowsHeader() ? 1 : 0;
-            List<TableElement> headerValues = table.getColumn(colIndex + firstCol, TableElement.class);
+        try {
+            if (table.isHandlingRowsHeader()) {
+                // Extract column
+                int firstCol = table.isHandlingRowsHeader() ? 1 : 0;
+                List<TableElement> headerValues = table.getColumn(colIndex + firstCol, TableElement.class);
 
-            // Create Headers
-            table.getRowsHeader().addItem(null);
-            table.getRowsHeader().addItems(headerValues.toArray());
+                // Create Headers
+                table.getRowsHeader().addItem(null);
+                table.getRowsHeader().addItems(headerValues.toArray());
 
-            // Remove extracted column from content
-            int rowCount = table.getRowCount(false);
-            for (int i = 0; i < rowCount; i++) {
-                table.getTableInfo().content.getRowData(i).remove(colIndex);
-                table.getTableInfo().content.links.get(i).remove(colIndex);
+                // Remove extracted column from content
+                int rowCount = table.getRowCount(false);
+                for (int i = 0; i < rowCount; i++) {
+                    table.getTableInfo().content.getRowData(i).remove(colIndex);
+                    table.getTableInfo().content.links.get(i).remove(colIndex);
+                }
+
+                // Remove extracted column from column headers
+                table.getTableInfo().headers.col.data.add(0, table.getTableInfo().headers.col.data.remove(colIndex));
             }
-
-            // Remove extracted column from column headers
-            table.getTableInfo().headers.col.data.add(0, table.getTableInfo().headers.col.data.remove(colIndex));
+            
+            return table;
+            
         }
-        return table;
+        catch (IndexOutOfBoundsException | IkatsException | ResourceNotFoundException e) {
+            throw new IkatsOperatorException("Could not set the column " + colIndex + " as a row header for the result table.", e);
+        }
 
     }
 

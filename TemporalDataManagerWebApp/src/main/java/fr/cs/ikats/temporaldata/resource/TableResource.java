@@ -13,14 +13,19 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.*;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DefaultValue;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
-import fr.cs.ikats.operators.JoinTableWithTs;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -30,8 +35,8 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.operators.IkatsOperatorException;
+import fr.cs.ikats.operators.JoinTableWithTs;
 import fr.cs.ikats.operators.TablesMerge;
-import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableInfo;
@@ -60,22 +65,11 @@ public class TableResource extends AbstractResource {
     private TableManager tableManager;
 
     /**
-     * MetadataManager
-     */
-    private MetaDataManager metaManager;
-
-    /**
-     * DatasetManager
-     */
-    private DataSetManager datasetManager;
-
-    /**
      * init the processDataManager
      */
     public TableResource() {
 
         tableManager = new TableManager();
-        datasetManager = new DataSetManager();
         metadataManager = new MetaDataManager();
 
     }
@@ -136,7 +130,6 @@ public class TableResource extends AbstractResource {
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @SuppressWarnings("unchecked")
     public Response importTableFromCSV(@FormDataParam("tableName") String tableName,
                                        @FormDataParam("file") InputStream fileis,
                                        @FormDataParam("file") FormDataContentDisposition fileDisposition,
@@ -161,7 +154,6 @@ public class TableResource extends AbstractResource {
             Integer rowIndexId = -1;
             List<String> columnHeaders;
             List<String> rowHeaders = new ArrayList<>();
-            List<List<String>> cells = new ArrayList<>();
 
             // consume header to retrieve column index of unique identifier in the table
             columnHeaders = Arrays.asList(reader.readLine().split(separator));
@@ -307,7 +299,6 @@ public class TableResource extends AbstractResource {
      *             unexpected error occured on the server.
      */
     @POST
-    @SuppressWarnings("unchecked")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Path("/join/metrics")
     public Response joinByMetrics(@FormDataParam("tableJson") String tableJson, @FormDataParam("metrics") String metrics,
@@ -349,7 +340,6 @@ public class TableResource extends AbstractResource {
     @POST
     @Path("/ts2feature")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @SuppressWarnings("unchecked")
     public Response ts2Feature(@FormDataParam("tableJson") String tableJson,
                                @FormDataParam("metaName") String metaName,
                                @FormDataParam("populationId") String populationId,
@@ -485,12 +475,12 @@ public class TableResource extends AbstractResource {
     @GET
     @Path("/json/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    @SuppressWarnings("unchecked")
     public TableInfo readTable(@PathParam("name") String name) throws IkatsJsonException, IkatsDaoException, ResourceNotFoundException
     {
     	TableManager tableMgt = new TableManager();
     	return tableMgt.readFromDatabase( name);
     }
+    
     /**
      * Table process to :
      * - change table key from metadata (populationId)
@@ -569,11 +559,11 @@ public class TableResource extends AbstractResource {
         }
 
         try {
-            // Do the job and return the JSON table
-            Table mergedTable = tablesMergeOperator.doMerge();
-            return Response.status(Status.OK).entity(mergedTable.getTableInfo()).build();
+            // Do the job and return the RID of the table
+            String rid = tablesMergeOperator.apply();
+            return Response.status(Status.OK).entity(rid).build();
         }
-        catch (IkatsOperatorException | IkatsException | ResourceNotFoundException e) {
+        catch (IkatsOperatorException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
 
