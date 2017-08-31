@@ -410,7 +410,7 @@ public class TableResource extends AbstractResource {
 
         // init empty table managing rows/columns headers
         Table outputTable = tableManager.initEmptyTable(true, true);
-        outputTable.getColumnsHeader().addItem(null);
+        outputTable.getColumnsHeader().addItem(populationId);
         for (String metaTs : listMetaTs) {
             for (int i = 1; i < colHeaders.size(); i++) {
                 outputTable.getColumnsHeader().addItem(metaTs + "_" + colHeaders.get(i));
@@ -419,7 +419,7 @@ public class TableResource extends AbstractResource {
         int tableContentWidth = outputTable.getColumnsHeader().getItems().size() - 1;
 
         // filling rows headers and content by popId
-        outputTable.getRowsHeader().addItem(populationId);
+        outputTable.getRowsHeader().addItem(null);
         for (String popId : listPopId) {
             outputTable.getRowsHeader().addItem(popId);
             List<Integer> listIndexPopId = retrieveIndexesListOfEltInList(popId, colPopId);
