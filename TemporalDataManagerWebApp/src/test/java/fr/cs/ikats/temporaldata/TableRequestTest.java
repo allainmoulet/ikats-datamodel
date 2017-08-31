@@ -73,10 +73,10 @@ public class TableRequestTest extends AbstractRequestTest {
             System.out.println("OUT ...");
             System.out.println(tableManager.serializeToJson(tableOut));
 
-            assertEquals(Arrays.asList(null,
+            assertEquals(Arrays.asList("flightId",
                     "M1_B1_OP1", "M1_B2_OP1", "M1_B1_OP2", "M1_B2_OP2",
                     "M2_B1_OP1", "M2_B2_OP1", "M2_B1_OP2", "M2_B2_OP2"), tableOut.headers.col.data);
-            assertEquals(Arrays.asList("flightId", "1", "2"), tableOut.headers.row.data);
+            assertEquals(Arrays.asList(null, "1", "2"), tableOut.headers.row.data);
             assertEquals(Arrays.asList("1", "2", "3", "4", "5", "6", "7", "8"), tableOut.content.cells.get(0));
             assertEquals(Arrays.asList("13", "14", "15", "16", "9", "10", "11", "12"), tableOut.content.cells.get(1));
 
