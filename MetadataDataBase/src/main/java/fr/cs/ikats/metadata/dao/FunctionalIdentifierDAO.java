@@ -202,7 +202,8 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
                     "tsfunctionalidentifier.funcid as FuncId " +
                     "FROM tsfunctionalidentifier, timeseries_dataset " +
                     "WHERE tsfunctionalidentifier.tsuid = timeseries_dataset.tsuid AND " +
-                    "timeseries_dataset.dataset_name = '" + datasetName + "'";
+                    "timeseries_dataset.dataset_name = '" + datasetName + "'" +
+                    "ORDER BY FuncId";
 
             Query q = session.createSQLQuery(queryString)
                     .addScalar("tsuid", Hibernate.STRING)
