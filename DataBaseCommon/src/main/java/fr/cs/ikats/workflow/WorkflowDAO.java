@@ -1,5 +1,6 @@
 package fr.cs.ikats.workflow;
 
+import java.nio.channels.SeekableByteChannel;
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -246,9 +247,9 @@ public class WorkflowDAO extends DataBaseDAO {
             if (deletedCount == 0) {
                 String msg = "No workflow exists with Id:" + id.toString();
                 LOGGER.warn(msg);
+                session.getTransaction().rollback();
                 throw new IkatsDaoMissingRessource(msg);
             }
-
             tx.commit();
         } catch (HibernateException e) {
             IkatsDaoException error = new IkatsDaoException("Deleting Workflow rows matching id=" + id, e);

@@ -30,7 +30,7 @@ public class Workflow {
     @Column(name = "isMacroOp")
     private Boolean isMacroOp;
 
-    @Column(name = "raw", columnDefinition = "TEXT")
+    @Column(name = "raw")
     private String raw;
 
     /**
