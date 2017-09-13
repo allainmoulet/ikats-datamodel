@@ -73,36 +73,38 @@ public class MetaDataDAO extends DataBaseDAO {
      * @throws IkatsDaoException         any other error
      */
     public Integer persist(MetaData md) throws IkatsDaoConflictException, IkatsDaoException {
-        Session session = getSession();
-        Transaction tx = null;
         Integer mdId = null;
         String mdInfo = "null";
+        
+        Session session = getSession();
+        Transaction tx = null;
         try {
+            tx = session.beginTransaction();
+
             mdInfo = md.toString();
             tx = session.beginTransaction();
             mdId = (Integer) session.save(md);
-            tx.commit();
             LOGGER.debug("Created " + mdInfo + " with value=" + md.getValue());
-        } catch (ConstraintViolationException e) {
 
+            tx.commit();
+        } catch (ConstraintViolationException e) {
+            
             String msg = "Creating: " + mdInfo + ": already exists in base for same (TSUID, name)";
             LOGGER.warn(msg);
-
+            
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
-        } catch (HibernateException e) {
-            String msg = "Creating: " + mdInfo + ": unexpected HibernateException";
-            LOGGER.error(msg, e);
-
-            rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
-        } catch (Exception anotherError) {
-            // deals with null pointer exceptions ...
-            String msg = "Creating MetaData: " + mdInfo + ": unexpected Exception";
-            LOGGER.error(msg, anotherError);
-
-            rollbackAndThrowException(tx, new IkatsDaoException(msg, anotherError));
-        } finally {
+        }
+        catch (RuntimeException e) {
+            // try to rollback
+            if (tx != null && !tx.wasRolledBack()) tx.rollback();
+            // Re-raise the original exception
+            throw e;
+        }
+        finally {
+            // end the session
             session.close();
         }
+
         return mdId;
     }
 
@@ -119,27 +121,31 @@ public class MetaDataDAO extends DataBaseDAO {
      * @throws IkatsDaoException
      */
     public List<Integer> persist(List<MetaData> mdList, Boolean update) throws IkatsDaoConflictException, IkatsDaoException {
-        Session session = getSession();
-        Transaction tx = null;
         Integer mdId = null;
         String mdInfo = "null";
         MetaData currentRow = null;
         List<Integer> lProcessedIds = new ArrayList<Integer>();
         Long date = (new Date()).getTime();
+        
+        Session session = getSession();
+        Transaction tx = null;
         try {
             tx = session.beginTransaction();
-            LOGGER.info("MetaDataDAO::persist(Lis<MetaData>): started transaction [" + date + "] ...");
+
+            
+            tx = session.beginTransaction();
+            LOGGER.debug("MetaDataDAO::persist(Lis<MetaData>): started transaction [" + date + "] ...");
             for (Iterator<MetaData> iterator = mdList.iterator(); iterator.hasNext(); ) {
                 currentRow = iterator.next();
                 if (update) {
                     // check if metadata already exists
                     String queryStr = "select id from tsmetadata where name = '" + currentRow.getName() + "' and tsuid ='" + currentRow.getTsuid()
-                            + "'";
-                    List<Object> result = session.createSQLQuery(queryStr).list();
+                    + "'";
+                    List<?> result = session.createSQLQuery(queryStr).list();
                     if (result.size() == 0) {
                         // creation of metadata
                         mdId = (Integer) session.save(currentRow);
-                        LOGGER.debug("- ... created metadata id=" + mdId);
+                        LOGGER.trace("- ... created metadata id=" + mdId);
                     } else {
                         // update of metadata
                         mdId = (Integer) result.get(0);
@@ -147,40 +153,37 @@ public class MetaDataDAO extends DataBaseDAO {
                         meta.setDType(currentRow.getDType());
                         meta.setValue(currentRow.getValue());
                         session.update(meta);
-                        LOGGER.debug("- ... updated metadata id=" + mdId);
+                        LOGGER.trace("- ... updated metadata id=" + mdId);
                     }
                 } else {
                     // creation of metadata
                     mdId = (Integer) session.save(currentRow);
-                    LOGGER.debug("- ... created metadata id=" + mdId);
+                    LOGGER.trace("- ... created metadata id=" + mdId);
                 }
                 lProcessedIds.add(mdId);
             }
-            LOGGER.info("MetaDataDAO::persist(List<MetaData>) has successfully imported " + mdList.size() + " metadata rows");
+            LOGGER.debug("MetaDataDAO::persist(List<MetaData>) has successfully imported " + mdList.size() + " metadata rows");
             tx.commit();
-            LOGGER.info("MetaDataDAO::persist(List<MetaData>): committed transaction [" + date + "]");
-        } catch (ConstraintViolationException e) {
+            LOGGER.trace("MetaDataDAO::persist(List<MetaData>): committed transaction [" + date + "]");
+        }
+        catch (ConstraintViolationException e) {
             mdInfo = (currentRow != null) ? currentRow.toString() : "null";
             String msg = "Importing: " + mdInfo + ": ConstraintViolationException occurred: see the full error stack in the logs for further details";
             LOGGER.error(msg);
-
+            
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
-        } catch (HibernateException e) {
-            mdInfo = (currentRow != null) ? currentRow.toString() : "null";
-            String msg = "Importing: " + mdInfo + ": unexpected HibernateException";
-            LOGGER.error(msg, e);
-
-            rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
-        } catch (Exception anotherError) {
-            mdInfo = (currentRow != null) ? currentRow.toString() : "null";
-            // deals with null pointer exceptions ...
-            String msg = "Importing MetaData: " + mdInfo + ": unexpected Exception";
-            LOGGER.error(msg, anotherError);
-
-            rollbackAndThrowException(tx, new IkatsDaoException(msg, anotherError));
-        } finally {
+        }
+        catch (RuntimeException e) {
+            // try to rollback
+            if (tx != null) tx.rollback();
+            // Re-raise the original exception
+            throw e;
+        }
+        finally {
+            // end the session
             session.close();
         }
+
         return lProcessedIds;
     }
 
@@ -195,37 +198,40 @@ public class MetaDataDAO extends DataBaseDAO {
      * method rollbackAndThrowException
      */
     public boolean update(MetaData md) throws IkatsDaoConflictException, IkatsDaoException {
+
+        String mdInfo = null;
+        boolean updated = false;
+        
         Session session = getSession();
         Transaction tx = null;
-        String mdInfo = "null";
-        boolean updated = false;
         try {
+            tx = session.beginTransaction();
+
             mdInfo = md.toString();
             tx = session.beginTransaction();
             session.update(md);
-            tx.commit();
             updated = true;
             LOGGER.debug("Updated:" + mdInfo + " with value=" + md.getValue());
-        } catch (ConstraintViolationException e) {
 
+            tx.commit();
+        } catch (ConstraintViolationException e) {
+            
             String msg = "Updating: " + mdInfo + ": already exists in base for same (TSUID, name)";
             LOGGER.warn(msg);
-
+            
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
-        } catch (HibernateException e) {
-            String msg = "Updating: " + mdInfo + ": unexpected HibernateException";
-            LOGGER.error(msg, e);
-
-            rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
-        } catch (Exception anotherError) {
-            // deals with null pointer exceptions ...
-            String msg = "Updating MetaData: " + mdInfo + ": unexpected Exception";
-            LOGGER.error(msg, anotherError);
-
-            rollbackAndThrowException(tx, new IkatsDaoException(msg, anotherError));
-        } finally {
+        }
+        catch (RuntimeException e) {
+            // try to rollback
+            if (tx != null) tx.rollback();
+            // Re-raise the original exception
+            throw e;
+        }
+        finally {
+            // end the session
             session.close();
         }
+
         return updated;
     }
 
@@ -237,23 +243,31 @@ public class MetaDataDAO extends DataBaseDAO {
      * @throws IkatsDaoException
      */
     public int remove(String tsuid) throws IkatsDaoException {
+        int result = 0;
+        
         Session session = getSession();
         Transaction tx = null;
-        int result = 0;
         try {
             tx = session.beginTransaction();
+
             String hql = "delete from MetaData where tsuid= :uid";
             Query query = session.createQuery(hql);
             query.setString("uid", tsuid);
             result = query.executeUpdate();
+
             tx.commit();
-        } catch (HibernateException e) {
-            IkatsDaoException ierror = new IkatsDaoException("Deleting MetaData rows matching tsuid=" + tsuid, e);
-            LOGGER.error(ierror);
-            rollbackAndThrowException(tx, ierror);
-        } finally {
+        }
+        catch (RuntimeException e) {
+            // try to rollback
+            if (tx != null) tx.rollback();
+            // Re-raise the original exception
+            throw e;
+        }
+        finally {
+            // end the session
             session.close();
         }
+
         return result;
     }
 
@@ -266,25 +280,32 @@ public class MetaDataDAO extends DataBaseDAO {
      * @throws IkatsDaoException error deleting the resource
      */
     public int remove(String tsuid, String name) throws IkatsDaoException {
+        int result = 0;
+        
         Session session = getSession();
         Transaction tx = null;
-        int result = 0;
         try {
             tx = session.beginTransaction();
+
             String hql = "delete from MetaData where tsuid= :uid and name= :name";
             Query query = session.createQuery(hql);
             query.setString("uid", tsuid);
             query.setString("name", name);
             result = query.executeUpdate();
-            tx.commit();
-        } catch (HibernateException e) {
 
-            IkatsDaoException ierror = new IkatsDaoException("Deleting MetaData rows matching tsuid=" + tsuid + " name=" + name, e);
-            LOGGER.error(ierror);
-            rollbackAndThrowException(tx, ierror);
-        } finally {
+            tx.commit();
+        }
+        catch (RuntimeException e) {
+            // try to rollback
+            if (tx != null) tx.rollback();
+            // Re-raise the original exception
+            throw e;
+        }
+        finally {
+            // end the session
             session.close();
         }
+
         return result;
     }
 
@@ -300,8 +321,11 @@ public class MetaDataDAO extends DataBaseDAO {
     @SuppressWarnings("unchecked")
     public List<MetaData> listForTS(String tsuid) throws IkatsDaoMissingRessource, IkatsDaoException {
         List<MetaData> result = null;
+
         Session session = getSession();
+        Transaction tx = null;
         try {
+            tx = session.beginTransaction();
 
             if (tsuid.equals("*")) {
                 Criteria criteria = session.createCriteria(MetaData.class);
@@ -315,23 +339,20 @@ public class MetaDataDAO extends DataBaseDAO {
                 if (result == null || (result.size() == 0)) {
                     String msg = "Searching MetaData from tsuid=" + tsuid + ": no resource found, but should exist.";
                     LOGGER.error(msg);
-
                     throw new IkatsDaoMissingRessource(msg);
                 }
             }
-        } catch (HibernateException hibException) {
-            String msg = "Searching MetaData from tsuid=" + tsuid + ": unexpected HibernateException.";
-            LOGGER.error(msg);
-            throw new IkatsDaoException(msg);
-        } catch (Exception error) {
-            if (error instanceof IkatsDaoMissingRessource) {
-                throw error;
-            } else {
-                String msg = "Searching MetaData from tsuid=" + tsuid + ": unexpected Exception.";
-                LOGGER.error(msg);
-                throw new IkatsDaoException(msg);
-            }
-        } finally {
+            
+        }
+        catch (RuntimeException e) {
+            // Re-raise the original exception
+            throw e;
+        }
+        finally {
+            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
+            tx.commit();
+
+            // end the session
             session.close();
         }
 
@@ -346,30 +367,31 @@ public class MetaDataDAO extends DataBaseDAO {
      *                                  different from '*'
      * @throws IkatsDaoException        other errors
      */
-    @SuppressWarnings("unchecked")
     public Map<String, String> listTypes() throws IkatsDaoMissingRessource, IkatsDaoException {
         Map<String, String> result = new HashMap<>();
+        
         Session session = getSession();
+        Transaction tx = null;
         try {
+            tx = session.beginTransaction();
+
             Query q = session.createSQLQuery("select distinct LOWER(name) as name,dtype from tsmetadata order by name;");
-            List q_result = q.list();
+            List<?> q_result = q.list();
             for (Object result_elem : q_result) {
                 Object[] obj_result = (Object[]) result_elem;
                 result.put((String) obj_result[0], (String) obj_result[1]);
             }
-        } catch (HibernateException hibException) {
-            String msg = "Searching MetaData types : unexpected HibernateException.";
-            LOGGER.error(msg);
-            throw new IkatsDaoException(msg);
-        } catch (Exception error) {
-            if (error instanceof IkatsDaoMissingRessource) {
-                throw error;
-            } else {
-                String msg = "Searching MetaData types: unexpected Exception.";
-                LOGGER.error(msg);
-                throw new IkatsDaoException(msg);
-            }
-        } finally {
+            
+        }
+        catch (RuntimeException e) {
+            // Re-raise the original exception
+            throw e;
+        }
+        finally {
+            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
+            tx.commit();
+
+            // end the session
             session.close();
         }
 
@@ -382,36 +404,42 @@ public class MetaDataDAO extends DataBaseDAO {
      * @param tsuid the ts identifier
      * @param name  the name of the metadata
      * @return the list if any result found.
-     * @throws IkatsDaoMissingRessource  error raised when no metadata is matching the tsuid+name
-     *                                   criteria
+     * 
      * @throws IkatsDaoConflictException error raised when multiple metadata are found
      * @throws IkatsDaoException         any other exceptions
      */
-    public MetaData getMD(String tsuid, String name) throws IkatsDaoMissingRessource, IkatsDaoConflictException, IkatsDaoException {
+    public MetaData getMD(String tsuid, String name) throws IkatsDaoConflictException, IkatsDaoException {
 
         MetaData result = null;
-        Session session = getSession();
         String pairCriteria = "null";
+        
+        Session session = getSession();
+        Transaction tx = null;
         try {
+            tx = session.beginTransaction();
+
             pairCriteria = "(tsuid=" + tsuid + ", name=" + name + " )";
             Query q = session.createQuery(MetaData.GET_MD);
             q.setString("tsuid", tsuid);
             q.setString("name", name);
             result = (MetaData) q.uniqueResult();
-            if (result == null) {
-                throw new IkatsDaoMissingRessource("Reading MetaData: missing ressource for " + pairCriteria);
-            }
-        } catch (NonUniqueResultException multipleResults) {
-            throw new IkatsDaoConflictException("Multiple MetaData are matching the criteria: " + pairCriteria);
-        } catch (HibernateException hibError) {
-            throw new IkatsDaoException("Reading MetaData: unexpected HibernateError with: " + pairCriteria, hibError);
-        } catch (IkatsDaoException daoError) {
-            throw daoError; // already handled
-        } catch (Exception other) {
-            throw new IkatsDaoException("Reading MetaData: unexpected exception with: " + pairCriteria, other);
-        } finally {
+        }
+        catch (NonUniqueResultException multipleResults) {
+            // Re-raise the original exception
+            throw new IkatsDaoConflictException("Multiple MetaData are matching the criteria: " + pairCriteria, multipleResults);
+        }
+        catch (RuntimeException e) {
+            // Re-raise the original exception
+            throw e;
+        }
+        finally {
+            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
+            tx.commit();
+
+            // end the session
             session.close();
         }
+
         return result;
     }
 
@@ -493,47 +521,48 @@ public class MetaDataDAO extends DataBaseDAO {
         List<String> result = new ArrayList<String>();
         ConnectorExpression lOperator = ConnectorExpression.AND;
 
-        Session session = null;
-
+        Session session = getSession();
+        Transaction tx = null;
         try {
-            session = getSession();
+            tx = session.beginTransaction();
 
             Criteria sessionCriteria = session.createCriteria(MetaData.class);
             Junction lGroupJunction;
-
+            
             if (lOperator == ConnectorExpression.AND) {
                 lGroupJunction = Restrictions.conjunction();
                 lGroupJunction.add(Restrictions.in("tsuid", tsuidsInScope));
                 sessionCriteria.add(lGroupJunction);
-
+                
                 // Create the subquery from the filters
                 Conjunction filtersCritQuery = prepareFiltersCritQuery(criteria);
                 sessionCriteria.add(filtersCritQuery);
             } else {
+                // try to rollback
+                if (tx != null) tx.rollback();
                 throw new IkatsDaoException("Not yet implemented: operator OR grouping  expressions of metadata criterion");
             }
-
+            
             sessionCriteria.setProjection(Projections.projectionList().add(Projections.groupProperty("tsuid")));
             sessionCriteria.addOrder(Order.asc("tsuid"));
-            List l = sessionCriteria.list();
-            result = (List<String>) l;
-        } catch (HibernateException hibException) {
-            String msg = "Searching MetaData from criteria map: unexpected HibernateException.";
-            LOGGER.error(msg);
-            throw new IkatsDaoException(msg, hibException);
-        } catch (IkatsDaoInvalidValueException invalidCriterionException) {
+            
+            result = (List<String>) sessionCriteria.list();
+        }
+        catch (IkatsDaoInvalidValueException invalidCriterionException) {
             String msg = "Resource Not found, searching functional identifiers matched by metadata criteria";
             LOGGER.error("NOT FOUND: " + msg);
             throw new IkatsDaoMissingRessource(msg, invalidCriterionException);
-        } catch (Throwable exception) {
-            String msg = "Searching MetaData from criteria map: unexpected Throwable exception. ";
-            LOGGER.error(msg);
-            throw new IkatsDaoException(msg, exception);
-        } finally {
-            if (session != null) {
-                session.close();
-                LOGGER.info("searchFuncIdForMetadataNamed :: Session closed");
-            }
+        }
+        catch (RuntimeException e) {
+            // Re-raise the original exception
+            throw e;
+        }
+        finally {
+            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
+            tx.commit();
+
+            // end the session
+            session.close();
         }
 
         if (result == null) {
@@ -574,9 +603,8 @@ public class MetaDataDAO extends DataBaseDAO {
                 case LE:
                     // Date or number
                     try {
-                        // Even if numberValue is not used, this trick allow to verify the criterionValue can be casted
-                        // to float number
-                        Float numberValue = Float.parseFloat(criterionValue);
+                        // this trick allow to verify the criterionValue can be casted to float number
+                        Float.parseFloat(criterionValue);
 
                         restrictionToAdd
                                 .add(Restrictions.eq("name", metadataName))
@@ -629,30 +657,49 @@ public class MetaDataDAO extends DataBaseDAO {
      */
     public List<FunctionalIdentifier> searchFuncId(String datasetName, List<MetadataCriterion> criteria)
             throws IkatsDaoException {
+        
+        List<FunctionalIdentifier> result = null;
+        
+        Session session = getSession();
+        Transaction tx = null;
+        try {
+            tx = session.beginTransaction();
 
-        // Example request :
+            // Example request :
+            
+            //  select tsfid.* from tsfunctionalidentifier tsfid
+            //    inner join timeseries_dataset tsds on tsds.tsuid = tsfid.tsuid
+            //    inner join tsmetadata m on m.tsuid = tsds.tsuid
+            //    where tsds.dataset_name = 'DS_AIRBUS_226'
+            //        and m.name = 'FlightId' and m.value = '918';
+            
+            Criteria critQuery = session.createCriteria(FunctionalIdentifier.class);
+            
+            critQuery
+            .createAlias("LinkDatasetTimeSeries", "tsds", Criteria.INNER_JOIN)
+            .add(Restrictions.eqProperty("tsds.tsuid", "FunctionalIdentifier.tsuid"))
+            .createAlias("MetaData", "md", Criteria.INNER_JOIN)
+            .add(Restrictions.eq("md.tsuid", "tsds.tsuid"))
+            .add(Restrictions.eq("tsds.dataset", datasetName));
+            
+            // Loop over the criteria to eval metadata name with value
+            Conjunction filtersCritQuery = prepareFiltersCritQuery(criteria);
+            critQuery.add(filtersCritQuery);
+            
+            result = (List<FunctionalIdentifier>) critQuery.list();
+        }
+        catch (RuntimeException e) {
+            // Re-raise the original exception
+            throw e;
+        }
+        finally {
+            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
+            tx.commit();
 
-        //  select tsfid.* from tsfunctionalidentifier tsfid
-        //    inner join timeseries_dataset tsds on tsds.tsuid = tsfid.tsuid
-        //    inner join tsmetadata m on m.tsuid = tsds.tsuid
-        //    where tsds.dataset_name = 'DS_AIRBUS_226'
-        //        and m.name = 'FlightId' and m.value = '918';
+            // end the session
+            session.close();
+        }
 
-        Criteria critQuery = getSession().createCriteria(FunctionalIdentifier.class);
-
-        critQuery
-                .createAlias("LinkDatasetTimeSeries", "tsds", Criteria.INNER_JOIN)
-                .add(Restrictions.eqProperty("tsds.tsuid", "FunctionalIdentifier.tsuid"))
-                .createAlias("MetaData", "md", Criteria.INNER_JOIN)
-                .add(Restrictions.eq("md.tsuid", "tsds.tsuid"))
-                .add(Restrictions.eq("tsds.dataset", datasetName));
-
-        // Loop over the criteria to eval metadata name with value
-        Conjunction filtersCritQuery = prepareFiltersCritQuery(criteria);
-        critQuery.add(filtersCritQuery);
-
-        @SuppressWarnings("unchecked")
-        List<FunctionalIdentifier> result = (List<FunctionalIdentifier>) critQuery.list();
         return result;
     }
 
@@ -697,22 +744,31 @@ public class MetaDataDAO extends DataBaseDAO {
      */
     @SuppressWarnings("unchecked")
     public List<String> getListFuncIdFromMetric(String metric) throws IkatsDaoException {
-        Session session = getSession();
         List<String> result = null;
+        
+        Session session = getSession();
+        Transaction tx = null;
         try {
+            tx = session.beginTransaction();
+
             String hql = "select Func.funcId from MetaData Meta, FunctionalIdentifier Func  "
                     + "where Meta.name='metric' and Meta.value= :mid and Meta.tsuid=Func.tsuid";
             Query query = session.createQuery(hql);
             query.setString("mid", metric);
             result = query.list();
-        } catch (HibernateException e) {
-            IkatsDaoException ierror = new IkatsDaoException("Error while retrieving Functional identifiers of timeseries matching metric =" + metric,
-                    e);
-            LOGGER.error(ierror);
-            throw ierror;
-        } finally {
+        }
+        catch (RuntimeException e) {
+            // Re-raise the original exception
+            throw e;
+        }
+        finally {
+            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
+            tx.commit();
+
+            // end the session
             session.close();
         }
+
         return result;
     }
 

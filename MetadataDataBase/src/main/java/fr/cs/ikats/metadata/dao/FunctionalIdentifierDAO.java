@@ -41,9 +41,11 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
      * @return the internal id
      */
     public int persist(FunctionalIdentifier fi) throws IkatsDaoConflictException, IkatsDaoException {
+        
+        int result = 0;
+        
         Session session = getSession();
         Transaction tx = null;
-        int result = 0;
         try {
             tx = session.beginTransaction();
             session.save(fi);
@@ -64,16 +66,17 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
 
             rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
         }
-        catch (Throwable eOther) {
-            if (tx != null) {
-                tx.rollback();
-            }
+        catch (RuntimeException e) {
+            if (tx != null) tx.rollback();
             LOGGER.error("Not stored: " + ((fi != null) ? fi.toString() : "FunctionalIdentifier is null"));
-            LOGGER.error(eOther.getClass().getSimpleName() + "Throwable in FunctionalIdentifierDAO::persist", eOther);
+            LOGGER.error(e.getClass().getSimpleName() + "Throwable in FunctionalIdentifierDAO::persist", e);
+            // Re-raise the original exception
+            throw e;
         }
         finally {
             session.close();
         }
+        
         return result;
     }
 
@@ -101,27 +104,23 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
             tx.commit();
         }
         catch (ConstraintViolationException e) {
-
             String msg = "Removing FunctionalIdentifier for tsuid=" + currentTsuid + "failed : constraint violation";
             LOGGER.warn(msg);
-
+            
+            // Re-raise the original exception
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
         }
         catch (HibernateException e) {
             String msg = "Removing FunctionalIdentifier for tsuid=" + currentTsuid + "failed : does not exist";
             LOGGER.error(msg, e);
-
+            
+            // Re-raise the original exception
             rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
-        }
-        catch (Exception anotherError) {
-            String msg = "Removing FunctionalIdentifier for tsuid=" + currentTsuid + "failed : unexpected Exception";
-            LOGGER.error(msg, anotherError);
-
-            rollbackAndThrowException(tx, new IkatsDaoException(msg, anotherError));
         }
         finally {
             session.close();
         }
+        
         return result;
     }
 
@@ -135,7 +134,7 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
      */
     @SuppressWarnings("unchecked")
     public List<FunctionalIdentifier> list(List<String> tsuids) {
-        Session session = getSession();
+
         List<FunctionalIdentifier> result = new ArrayList<>();
         List<List<String>> tsuidSublists = new ArrayList<List<String>>();
 
@@ -164,8 +163,12 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
             // Limit not raised : add the entire list
             tsuidSublists.add(tsuids);
         }
-
+        
+        Session session = getSession();
+        Transaction tx = null;
         try {
+            tx = session.beginTransaction();
+
             for (List<String> tsuidList : tsuidSublists) {
                 // loop over each sublists (if more than one) and concatenate
                 // the result
@@ -174,14 +177,19 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
                 result.addAll(criteria.list());
             }
         }
-        catch (Throwable eOther) {
-            LOGGER.error(eOther.getClass().getSimpleName() + " in FunctionalIdentifierDAO::list", eOther);
+        catch (RuntimeException e) {
+            // Re-raise the original exception
+            throw e;
         }
         finally {
+            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
+            tx.commit();
+
+            // end the session
             session.close();
         }
-        return result;
 
+        return result;
     }
 
     /**
@@ -195,8 +203,12 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
     @SuppressWarnings("unchecked")
     public List<FunctionalIdentifier> listFromDataset(String datasetName) throws IkatsDaoException {
         List<FunctionalIdentifier> result;
+
         Session session = getSession();
+        Transaction tx = null;
         try {
+            tx = session.beginTransaction();
+
             String queryString = "SELECT " +
                     "tsfunctionalidentifier.tsuid as tsuid, " +
                     "tsfunctionalidentifier.funcid as FuncId " +
@@ -204,27 +216,28 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
                     "WHERE tsfunctionalidentifier.tsuid = timeseries_dataset.tsuid AND " +
                     "timeseries_dataset.dataset_name = '" + datasetName + "'" +
                     "ORDER BY FuncId";
-
+            
             Query q = session.createSQLQuery(queryString)
                     .addScalar("tsuid", Hibernate.STRING)
                     .addScalar("tsuid", Hibernate.STRING)
                     .addScalar("FuncId", Hibernate.STRING)
                     .setResultTransformer(Transformers.aliasToBean(FunctionalIdentifier.class));
-
+            
             result = (List<FunctionalIdentifier>) q.list();
         }
-        catch (HibernateException e) {
-            throw new IkatsDaoMissingRessource("Hibernate error: listFromDataset " + e, e);
-        }
-        catch (Throwable te) {
-            throw new IkatsDaoException("Unexpected error: listFromDataset", te);
+        catch (RuntimeException e) {
+            // Re-raise the original exception
+            throw e;
         }
         finally {
+            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
+            tx.commit();
+
+            // end the session
             session.close();
         }
 
         return result;
-
     }
 
     /**
@@ -236,40 +249,31 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
      * @return null if nothing is found, or error occured.
      */
     public List<FunctionalIdentifier> listByFuncIds(List<String> funcIds) {
+
+        List<FunctionalIdentifier> result = null;
+        
         Session session = getSession();
         Transaction tx = null;
-        List<FunctionalIdentifier> result = null;
         try {
             tx = session.beginTransaction();
+
             Criteria criteria = session.createCriteria(FunctionalIdentifier.class);
             criteria.add(Restrictions.in("funcId", funcIds));
             result = criteria.list();
-            tx.commit();
         }
-        // catch (HibernateException e) {
-        // if (tx != null) {
-        // tx.rollback();
-        // }
-        // LOGGER.error("FunctionalIdentifierDAO::listByFuncIds", e);
-        // }
-        catch (Throwable eOther) {
-            try {
-                if (tx != null) {
-                    tx.rollback();
-                }
-            }
-            catch (Throwable e) {
-
-                LOGGER.error(this.getClass().getSimpleName() + "::listByFuncIds : failed roll-back", e);
-            }
-
-            LOGGER.error(eOther.getClass().getSimpleName() + " in FunctionalIdentifierDAO::listByFuncIds", eOther);
+        catch (RuntimeException e) {
+            // Re-raise the original exception
+            throw e;
         }
         finally {
+            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
+            tx.commit();
+
+            // end the session
             session.close();
         }
-        return result;
 
+        return result;
     }
 
     /**
@@ -278,36 +282,29 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
      * @return null if nothing is found, or error occurred.
      */
     public List<FunctionalIdentifier> listAll() {
+
+        List<FunctionalIdentifier> result = null;
+        
         Session session = getSession();
         Transaction tx = null;
-        List<FunctionalIdentifier> result = null;
         try {
             tx = session.beginTransaction();
-            // Query q = session.createQuery("FROM FunctionalIdentifier");
-            // result = (List<FunctionalIdentifier>)q.list();
 
             result = (List<FunctionalIdentifier>) session.createCriteria(FunctionalIdentifier.class).list();
-
-            tx.commit();
         }
-        catch (Throwable eOther) {
-
-            try {
-                if (tx != null) {
-                    tx.rollback();
-                }
-            }
-            catch (Throwable e) {
-
-                LOGGER.error(this.getClass().getSimpleName() + "::listall : failed roll-back", e);
-            }
-            LOGGER.error(eOther.getClass().getSimpleName() + " in FunctionalIdentifierDAO::listAll", eOther);
+        catch (RuntimeException e) {
+            // Re-raise the original exception
+            throw e;
         }
         finally {
+            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
+            tx.commit();
+
+            // end the session
             session.close();
         }
-        return result;
 
+        return result;
     }
 
     /**
@@ -345,14 +342,18 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
     }
 
     private FunctionalIdentifier getByProperty(String propertyName, String propertyValue) throws IkatsDaoException {
-        Session session = null;
+        
         FunctionalIdentifier result = null;
+        
+        Session session = getSession();
+        Transaction tx = null;
         try {
-            session = getSession();
-            Criteria criteria = session.createCriteria(FunctionalIdentifier.class);
+            tx = session.beginTransaction();
 
+            Criteria criteria = session.createCriteria(FunctionalIdentifier.class);
+            
             criteria.add(Restrictions.eq(propertyName, propertyValue));
-            List<FunctionalIdentifier> results = criteria.list();
+            List<?> results = criteria.list();
             if ((results == null) || (results.size() == 0)) {
                 throw new IkatsDaoMissingRessource("Missing FunctionalIdentifier matching " + propertyName + "=" + propertyValue);
             }
@@ -362,18 +363,18 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
             }
             result = (FunctionalIdentifier) results.get(0);
         }
-        catch (IkatsDaoException de) {
-            throw de;
-        }
-        catch (Throwable e) {
-            IkatsDaoException le = new IkatsDaoException(e.getClass().getSimpleName() + " in FunctionalIdentifierDAO::getByProperty " + propertyName + "=" + propertyValue);
-            throw le;
+        catch (RuntimeException e) {
+            // Re-raise the original exception
+            throw e;
         }
         finally {
-            if (session != null) {
-                session.close();
-            }
+            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
+            tx.commit();
+
+            // end the session
+            session.close();
         }
+
         return result;
     }
 }

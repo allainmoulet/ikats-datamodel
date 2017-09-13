@@ -116,6 +116,9 @@ public class MetaDataFacade {
         // [#142998] do not need to test the results from facade/dao:
         // exception is raised if result is not good
         MetaData metadata = getMetaData(tsuid, name);
+        if (metadata == null) {
+            throw new IkatsDaoMissingRessource("Metadata " + name + "does not exists for tsuid <" + tsuid + ">");
+        }
         metadata.setValue(value);
         dao.update(metadata);
         return metadata.getId();
@@ -243,13 +246,12 @@ public class MetaDataFacade {
      * @param tsuid the tsuid criterion value
      * @param name  the name criterion value
      *
-     * @return List of MetaData
+     * @return the MetaData or null if not exists
      *
-     * @throws IkatsDaoMissingRessource  error raised when no metadata is matching the tsuid+name criteria
      * @throws IkatsDaoConflictException error raised when multiple metadata are found
      * @throws IkatsDaoException         any other exceptions
      */
-    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoMissingRessource, IkatsDaoConflictException, IkatsDaoException {
+    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoConflictException, IkatsDaoException {
         return dao.getMD(tsuid, name);
     }
 
