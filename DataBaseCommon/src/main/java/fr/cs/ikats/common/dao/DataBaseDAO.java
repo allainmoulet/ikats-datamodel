@@ -55,7 +55,7 @@ public abstract class DataBaseDAO {
      * 
      * @param annotatedClass the class with annotations
      */
-    public void addAnnotatedClass(Class annotatedClass) {
+    public void addAnnotatedClass(Class<?> annotatedClass) {
         if (sessionFactory != null) {
             LOGGER.error("Configuration is already complete, nothing done");
         }
@@ -119,7 +119,7 @@ public abstract class DataBaseDAO {
      * close the sessionFactory
      */
     public void stop() {
-        System.out.println("Stopping DataBase Dao : "+getClass());            
+        LOGGER.trace("Stopping DataBase Dao : "+getClass());
         sessionFactory.close();
     }
      
