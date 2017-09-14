@@ -81,10 +81,9 @@ public class ProcessDataTest {
         try {
             inS = processData.getData().getBinaryStream();
             byte[] buff = new byte[512];
-            int read = 0;
             StringBuffer strBuff = new StringBuffer();
 
-            while ((read = inS.read(buff)) != -1) {
+            while (inS.read(buff) != -1) {
                 strBuff.append(new String(buff, Charset.defaultCharset()));
             }
             resultData = strBuff.toString().trim();
