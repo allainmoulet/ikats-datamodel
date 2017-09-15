@@ -1,7 +1,5 @@
 package fr.cs.ikats.process.data.model;
 
-import java.sql.Blob;
-
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -65,7 +63,7 @@ public class ProcessData {
     @Lob
     @Column(name = "DATA", unique = false, nullable = false)
     @JsonIgnore
-    private Blob data;
+    private byte[] data;
     
     
     /**
@@ -73,7 +71,7 @@ public class ProcessData {
      * @return the data
      */
     @JsonIgnore
-    public Blob getData() {
+    public byte[] getData() {
         return data;
     }
     
@@ -81,7 +79,7 @@ public class ProcessData {
      * Setter
      * @param data the data to set
      */
-    public void setData(Blob data) {
+    public void setData(byte[] data) {
         this.data = data;
     }
 

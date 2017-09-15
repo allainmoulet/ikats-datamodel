@@ -18,6 +18,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
@@ -98,25 +99,28 @@ public class ProcessDataResource extends AbstractResource {
             ResponseBuilder responseBuilder;
 
             if (result.getDataType().equals(ProcessResultTypeEnum.ANY.toString())) {
-                byte[] bytes = result.getData().getBytes(1, (int) result.getData().length());
+//                byte[] bytes = result.getData().getBytes(1, (int) result.getData().length());
+                byte[] bytes = result.getData();
                 logger.trace("Body written : " + Arrays.toString(bytes) + " END");
                 responseBuilder = Response.ok(bytes, MediaType.APPLICATION_OCTET_STREAM);
             } else if (result.getDataType().equals(ProcessResultTypeEnum.JSON.toString())) {
-                String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
+//                String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
+                String jsonString = new String(result.getData(), Charset.defaultCharset());
                 logger.trace("JSON String written : " + jsonString + " END");
                 responseBuilder = Response.ok(jsonString, MediaType.APPLICATION_JSON_TYPE);
             } else {
-                responseBuilder = Response.ok(getOut(result.getData().getBytes(1, (int) result.getData().length()))).header("Content-Disposition",
-                        "attachment;filename=" + fileName);
+//                responseBuilder = Response.ok(getOut(result.getData().getBytes(1, (int) result.getData().length()))).header("Content-Disposition",
+//                        "attachment;filename=" + fileName);
+                responseBuilder = Response.ok(getOut(result.getData())).header("Content-Disposition", "attachment;filename=" + fileName);
                 if (result.getDataType().equals(ProcessResultTypeEnum.CSV.toString())) {
                     responseBuilder.header("Content-Type", "application/ms-excel");
                 }
             }
 
             return responseBuilder.build();
-        } catch (SQLException sqle) {
-            logger.error("Failed: service downloadProcessData(): caught SQLException:", sqle);
-            throw sqle;
+//        } catch (SQLException sqle) {
+//            logger.error("Failed: service downloadProcessData(): caught SQLException:", sqle);
+//            throw sqle;
         } catch (Throwable e) {
             IkatsDaoException ierror = new IkatsDaoException("Failed: service downloadProcessData(): caught unexpected Throwable:", e);
             logger.error(ierror);
@@ -158,19 +162,21 @@ public class ProcessDataResource extends AbstractResource {
             multipart.bodyPart(new BodyPart(result, MediaType.APPLICATION_JSON_TYPE));
 
             if (ProcessResultTypeEnum.valueOf(result.getDataType()).equals(ProcessResultTypeEnum.JSON)) {
-                String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
+//                String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
+                String jsonString = new String(result.getData(), Charset.defaultCharset());
                 multipart.bodyPart(new BodyPart(jsonString, MediaType.APPLICATION_JSON_TYPE));
             } else if (ProcessResultTypeEnum.valueOf(result.getDataType()).equals(ProcessResultTypeEnum.CSV)) {
-                multipart.bodyPart(new StreamDataBodyPart("myFile.csv", result.getData().getBinaryStream()));
+//                multipart.bodyPart(new StreamDataBodyPart("myFile.csv", result.getData().getBinaryStream()));
+                multipart.bodyPart(new StreamDataBodyPart("myFile.csv", new ByteArrayInputStream(result.getData())));
             }
-        } catch (SQLException sqle) {
-            logger.error("Failed: service getProcessData(Integer): caught SQLException:", sqle);
-            try {
-                multipart.close();
-            } catch (Throwable e) { // no more closing attempt
-            }
-
-            throw sqle;
+//        } catch (SQLException sqle) {
+//            logger.error("Failed: service getProcessData(Integer): caught SQLException:", sqle);
+//            try {
+//                multipart.close();
+//            } catch (Throwable e) { // no more closing attempt
+//            }
+//
+//            throw sqle;
         } catch (Throwable e) {
             IkatsException ierror = new IkatsException("Failed: service getProcessData(Integer): caught unexpected Throwable:", e);
             logger.error(ierror);

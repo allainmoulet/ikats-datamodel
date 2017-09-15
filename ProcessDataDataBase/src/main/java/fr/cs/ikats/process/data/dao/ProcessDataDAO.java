@@ -1,20 +1,17 @@
 package fr.cs.ikats.process.data.dao;
 
-import java.sql.Blob;
 import java.util.List;
 
-
-import fr.cs.ikats.common.dao.DataBaseDAO;
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.process.data.model.ProcessData;
 import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
-import org.hibernate.Hibernate;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;
+
+import fr.cs.ikats.common.dao.DataBaseDAO;
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.process.data.model.ProcessData;
 
 /**
  * DAO for ProcessData
@@ -47,9 +44,7 @@ public class ProcessDataDAO extends DataBaseDAO {
         try {
             tx = session.beginTransaction();
 
-            Blob blob;
-            blob = Hibernate.createBlob(data);
-            ds.setData(blob);
+            ds.setData(data);
             processDataId = (Integer) session.save(ds);
             LOGGER.trace("ProcessData stored " + ds);
 
@@ -113,7 +108,7 @@ public class ProcessDataDAO extends DataBaseDAO {
      */
     public List<ProcessData> getProcessData(String processId) {
         List<ProcessData> result = null;
-        
+
         Session session = getSession();
         //Transaction code commented due to blob usage in the ProcessData entity and upstream services
         // See 161722-try-blobfix branch for a possible fix
@@ -141,7 +136,7 @@ public class ProcessDataDAO extends DataBaseDAO {
         if ((result != null) && result.isEmpty()) {
             LOGGER.debug("No process Data for processId=" + result + " found in database");
         }
-        
+
         return result;
     }
 
@@ -153,8 +148,11 @@ public class ProcessDataDAO extends DataBaseDAO {
     public List<ProcessData> listTables() {
         List<ProcessData> result = null;
         Session session = getSession();
-
+        //Transaction code commented due to blob usage in the ProcessData entity and upstream services
+        // See 161722-try-blobfix branch for a possible fix
+        //Transaction tx = null;
         try {
+        	//tx = session.beginTransaction();
             Criteria criteria = session.createCriteria(ProcessData.class);
             criteria.add(Restrictions.sqlRestriction("processid ~ '[a-zA-Z]'"));
             // Table are handled in ProcessData so as CorrelationDataset results.
@@ -166,13 +164,19 @@ public class ProcessDataDAO extends DataBaseDAO {
                                     )
                         );
             result = criteria.list();
+            
+            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
+            //tx.commit();
         }
-        catch (HibernateException e) {
+        catch (RuntimeException e) {
             // In next version: we ought to manage exceptions instead of returning null:
             // =>  impact analysis + global refactoring: we need to correct each impacted service
             //
             // throw new IkatsDaoException("Error reading process Data for processId " + processId + " in database", e);
             LOGGER.error("Error reading process Data in database", e);
+            
+            // code commented: try to rollback
+            // if (tx != null) tx.rollback();
         }
         finally {
             session.close();
@@ -183,7 +187,6 @@ public class ProcessDataDAO extends DataBaseDAO {
         }
         return result;
     }
-
 
     /**
      * remove the ProcessData from database.

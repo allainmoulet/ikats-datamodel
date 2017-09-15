@@ -76,22 +76,24 @@ public class ProcessDataTest {
      * @return
      */
     private String getDataFromResult(ProcessData processData) {
-        String resultData = null;
-        InputStream inS;
-        try {
-            inS = processData.getData().getBinaryStream();
-            byte[] buff = new byte[512];
-            StringBuffer strBuff = new StringBuffer();
-
-            while (inS.read(buff) != -1) {
-                strBuff.append(new String(buff, Charset.defaultCharset()));
-            }
-            resultData = strBuff.toString().trim();
-        } catch (SQLException | IOException e1) {
-            e1.printStackTrace();
-            fail();
-        }
-        return resultData;
+//        String resultData = null;
+//        InputStream inS;
+//        try {
+//            inS = processData.getData().getBinaryStream();
+//            byte[] buff = new byte[512];
+//            StringBuffer strBuff = new StringBuffer();
+//
+//            while (inS.read(buff) != -1) {
+//                strBuff.append(new String(buff, Charset.defaultCharset()));
+//            }
+//            resultData = strBuff.toString().trim();
+//        } catch (SQLException | IOException e1) {
+//            e1.printStackTrace();
+//            fail();
+//        }
+//        return resultData;
+//        
+        return new String(processData.getData(), Charset.defaultCharset());
     }
 
     /**
@@ -99,15 +101,16 @@ public class ProcessDataTest {
      * @return
      */
     private byte[] getRawDataFromResult(ProcessData processData) {
-        Blob data = processData.getData();
-        byte[] result = null;
-        try {
-            result = data.getBytes(1, (int) data.length());
-        } catch (SQLException e1) {
-            e1.printStackTrace();
-            fail();
-        }
-        return result;
+//        Blob data = processData.getData();
+//        byte[] result = null;
+//        try {
+//            result = data.getBytes(1, (int) data.length());
+//        } catch (SQLException e1) {
+//            e1.printStackTrace();
+//            fail();
+//        }
+//        return result;
+        return processData.getData();
     }
 
 
