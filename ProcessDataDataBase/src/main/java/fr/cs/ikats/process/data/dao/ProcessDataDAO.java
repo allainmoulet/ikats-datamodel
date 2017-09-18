@@ -119,6 +119,7 @@ public class ProcessDataDAO extends DataBaseDAO {
         Session session = getSession();
         try {
             Criteria criteria = session.createCriteria(ProcessData.class);
+            criteria.add(Restrictions.sqlRestriction("processid ~ '[a-zA-Z]'"));
             result = criteria.list();
         } catch (HibernateException e) {
             // In next version: we ought to manage exceptions instead of returning null:
