@@ -110,6 +110,33 @@ public class ProcessDataDAO extends DataBaseDAO {
         return result;
     }
 
+    /**
+     * return all ProcessData from database,
+     *
+     */
+    public List<ProcessData> listTables() {
+        List<ProcessData> result = null;
+        Session session = getSession();
+        try {
+            Criteria criteria = session.createCriteria(ProcessData.class);
+            result = criteria.list();
+        } catch (HibernateException e) {
+            // In next version: we ought to manage exceptions instead of returning null:
+            // =>  impact analysis + global refactoring: we need to correct each impacted service
+            //
+            // throw new IkatsDaoException("Error reading process Data for processId " + processId + " in database", e);
+            LOGGER.error("Error reading process Data in database", e);
+        } finally {
+            session.close();
+        }
+
+        if ((result != null) && result.isEmpty()) {
+            LOGGER.info("No process Data found in database");
+        }
+        return result;
+    }
+
+
 
     /**
      * remove the ProcessData from database.

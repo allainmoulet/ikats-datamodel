@@ -133,6 +133,13 @@ public class ProcessDataFacade {
     }
 
     /**
+     * List all Tables
+     */
+    public List<ProcessData> listTables() {
+        return dao.listTables();
+    }
+
+    /**
      * remove all processResults for processId
      *
      * @param processId

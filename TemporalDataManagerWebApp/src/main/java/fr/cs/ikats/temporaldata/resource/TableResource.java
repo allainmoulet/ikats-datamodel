@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
@@ -26,6 +27,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import fr.cs.ikats.process.data.model.ProcessData;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -567,5 +569,33 @@ public class TableResource extends AbstractResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
 
+    }
+
+
+    /**
+     * List all tables found in database <br>
+     *
+     * @return the HTTP response with the list of all table as content
+     */
+    @GET
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listTables() {
+        // List the tables
+        List<ProcessData> tables = tableManager.listTables();
+
+        return Response.status(Status.OK).entity(tables).build();
+
+    }
+
+
+    /**
+     * Delete a Table
+     * @param tableName the name of the table delete
+     */
+    @DELETE
+    @Path("/{tableName}")
+    public void removeTable(@PathParam("tableName") String tableName) {
+        tableManager.removeTable(tableName);
     }
 }

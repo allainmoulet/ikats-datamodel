@@ -107,6 +107,23 @@ public class ProcessDataManager {
     }
 
     /**
+     * get All Tables
+     */
+    public List<ProcessData> listTables() {
+        return getProcessDataFacade().listTables();
+    }
+
+
+    /**
+     * remove a Table from processData
+     *
+     * @param tableName the name of the table.
+     */
+    public void removeTable(String tableName) {
+        getProcessDataFacade().removeProcessData(tableName);
+    }
+
+    /**
      * remove all processResults for a processId.
      *
      * @param processId the process exec identifier.
