@@ -1,6 +1,7 @@
 package fr.cs.ikats.temporaldata.business;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
@@ -1365,4 +1366,106 @@ public class TableManagerTest extends TestCase {
         }
         return table;
     }
+
+	/**
+	 * Tests the List all Tables service with no result
+	 */
+	public void testListTablesEmpty() throws Exception {
+
+		TableManager mng = new TableManager();
+        List<ProcessData> result = mng.listTables();
+
+        assertNotNull(result);
+        assertEquals(0, result.size());
+	}
+
+
+	/**
+	 * Tests the List all Table service with result
+	 */
+	public void testListTablesNotEmpty() throws Exception {
+
+		TableManager mng = new TableManager();
+
+        TableInfo table = new TableInfo();
+		Table tableH = mng.initTable(table, false);
+
+		// Deprecated for end-user
+		tableH.initColumnsHeader(true, null, new ArrayList<>(), null)
+                .addItem("One", null)
+                .addItem("Two", null)
+				.addItem("Three", null);
+		tableH.initContent(false, null);
+
+		// Simple initializer
+		Table tableHBis = mng.initTable(Arrays.asList("One", "Two", "Three"), false);
+
+		Object[] row1 = new Object[] { "One", new Double(2.0), Boolean.FALSE };
+
+		Double[] row2 = new Double[] { 1.0, 2.2, 3.5 };
+
+		Boolean[] row3 = new Boolean[] { Boolean.TRUE, false, Boolean.TRUE };
+
+		tableH.appendRow(Arrays.asList(row1));
+		tableH.appendRow(Arrays.asList(row2));
+		tableH.appendRow(Arrays.asList(row3));
+		tableHBis.appendRow(Arrays.asList(row1));
+		tableHBis.appendRow(Arrays.asList(row2));
+		tableHBis.appendRow(Arrays.asList(row3));
+
+		tableH.checkConsistency();
+		mng.createInDatabase("TEST_TABLE",tableH);
+
+        List<ProcessData> result = mng.listTables();
+
+        assertNotNull(result);
+        assertEquals(1, result.size());
+	}
+
+	/**
+	 * Tests the Delete a table service with result
+	 */
+	public void testDeleteTable() throws Exception {
+
+		TableManager mng = new TableManager();
+
+        TableInfo table = new TableInfo();
+		Table tableH = mng.initTable(table, false);
+
+		// Deprecated for end-user
+		tableH.initColumnsHeader(true, null, new ArrayList<>(), null)
+                .addItem("One", null)
+                .addItem("Two", null)
+				.addItem("Three", null);
+		tableH.initContent(false, null);
+
+		// Simple initializer
+		Table tableHBis = mng.initTable(Arrays.asList("One", "Two", "Three"), false);
+
+		Object[] row1 = new Object[] { "One", new Double(2.0), Boolean.FALSE };
+
+		Double[] row2 = new Double[] { 1.0, 2.2, 3.5 };
+
+		Boolean[] row3 = new Boolean[] { Boolean.TRUE, false, Boolean.TRUE };
+
+		tableH.appendRow(Arrays.asList(row1));
+		tableH.appendRow(Arrays.asList(row2));
+		tableH.appendRow(Arrays.asList(row3));
+		tableHBis.appendRow(Arrays.asList(row1));
+		tableHBis.appendRow(Arrays.asList(row2));
+		tableHBis.appendRow(Arrays.asList(row3));
+
+		tableH.checkConsistency();
+		String tableName = "TEST_TABLE_to_delete";
+		mng.createInDatabase(tableName,tableH);
+
+        List<ProcessData> resultBefore = mng.listTables();
+        assertNotNull(resultBefore);
+
+        mng.removeTable(tableName);
+
+        List<ProcessData> resultAfter = mng.listTables();
+        assertNotNull(resultAfter);
+        assertEquals(resultBefore.size()-1, resultAfter.size());
+	}
 }
