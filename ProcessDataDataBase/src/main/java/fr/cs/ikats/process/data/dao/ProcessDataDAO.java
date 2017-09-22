@@ -11,6 +11,7 @@ import org.hibernate.Hibernate;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
+import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;
 
 
@@ -127,6 +128,14 @@ public class ProcessDataDAO extends DataBaseDAO {
         try {
             Criteria criteria = session.createCriteria(ProcessData.class);
             criteria.add(Restrictions.sqlRestriction("processid ~ '[a-zA-Z]'"));
+            // Table are handled in ProcessData so as CorrelationDataset results.
+            // This restriction prevents from having too much non-table data.
+            // This temporary patch will be fixed once we switch to JHipster to generate "table" part
+            criteria.add(
+                    Restrictions.not(
+                            Restrictions.ilike("processId", "CorrelationDataset", MatchMode.START)
+                                    )
+                        );
             result = criteria.list();
         }
         catch (HibernateException e) {
