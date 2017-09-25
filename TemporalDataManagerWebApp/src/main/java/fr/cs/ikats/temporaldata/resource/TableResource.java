@@ -557,6 +557,14 @@ public class TableResource extends AbstractResource {
     public Response listTables() {
         // List the tables
         List<ProcessData> tables = tableManager.listTables();
+        // Review#161602 begin
+		//  missing: the error management when the DAO layer returns null  
+        //  ( tables == null ) meaning DB error 
+        //
+        //  => will always have http status 200 ... even if there is a server error
+        //      It would be good to enable error management, when server fails to execute query
+        //  
+        // Review#161602 end
 
         return Response.status(Status.OK).entity(tables).build();
 
@@ -571,6 +579,14 @@ public class TableResource extends AbstractResource {
     @DELETE
     @Path("/{tableName}")
     public void removeTable(@PathParam("tableName") String tableName) {
+    	// Review#161602 begin
+		//   presently the existing service ProcessDataDAO::removeAllProcessData is not informing
+        //   that service failed/succeeded
+    	//    => will always have http status 200 ... even if there is a server error
+        //   It would be good to enable error management, when server fails to execute query
+        //     
+    	// 
+    	// Review#161602 end
         tableManager.removeTable(tableName);
     }
 }

@@ -121,10 +121,15 @@ public class ProcessDataDAO extends DataBaseDAO {
 
     /**
      * return all ProcessData from database,
+     * 
+     * Review#161602 begin
+     *   missing doc: @return ... explain specific value null
+     * Review#161602 end
      */
     public List<ProcessData> listTables() {
         List<ProcessData> result = null;
         Session session = getSession();
+
         try {
             Criteria criteria = session.createCriteria(ProcessData.class);
             criteria.add(Restrictions.sqlRestriction("processid ~ '[a-zA-Z]'"));
