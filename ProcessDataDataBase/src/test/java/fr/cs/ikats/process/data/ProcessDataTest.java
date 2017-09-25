@@ -1,5 +1,6 @@
 package fr.cs.ikats.process.data;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.process.data.model.ProcessData;
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
@@ -19,7 +20,7 @@ public class ProcessDataTest {
 
 
     @Test
-    public void testInsert() throws IOException {
+    public void testInsert() throws IOException, IkatsDaoException {
         ProcessDataFacade facade = new ProcessDataFacade();
         InputStream stream = new ByteArrayInputStream("Ceci est le contenu du fichier de test".getBytes());
         ProcessData data = new ProcessData("execId1", "JSON", "Chaine_char");
@@ -47,7 +48,7 @@ public class ProcessDataTest {
      * Test the persistence of a string to database
      */
     @Test
-    public void testInsertAny() {
+    public void testInsertAny() throws IkatsDaoException {
         ProcessDataFacade facade = new ProcessDataFacade();
 
         // Random bytes generation
@@ -71,7 +72,7 @@ public class ProcessDataTest {
     }
 
     /**
-     * @param result
+     * @param processData
      * @return
      */
     private String getDataFromResult(ProcessData processData) {
@@ -112,7 +113,7 @@ public class ProcessDataTest {
 
 
     @Test
-    public void testGetForProcessId() throws IOException {
+    public void testGetForProcessId() throws IOException, IkatsDaoException {
         ProcessDataFacade facade = new ProcessDataFacade();
         InputStream stream = new ByteArrayInputStream("Ceci est le contenu du fichier de test".getBytes());
         InputStream stream2 = new ByteArrayInputStream("Ceci est le contenu du fichier de test 1".getBytes());
@@ -157,11 +158,14 @@ public class ProcessDataTest {
         } catch (IOException e1) {
             e1.printStackTrace();
         }
+        catch (IkatsDaoException e) {
+            e.printStackTrace();
+        }
 
     }
 
     @Test
-    public void testDelete() throws IOException {
+    public void testDelete() throws IOException, IkatsDaoException {
         ProcessDataFacade facade = new ProcessDataFacade();
         InputStream stream = new ByteArrayInputStream("Ceci est le contenu du fichier de test".getBytes());
         ProcessData data = new ProcessData("execId1", "JSON", "Chaine_char");
@@ -172,7 +176,7 @@ public class ProcessDataTest {
     }
 
     @Test
-    public void testGetById() throws IOException {
+    public void testGetById() throws IOException, IkatsDaoException {
         ProcessDataFacade facade = new ProcessDataFacade();
         InputStream stream = new ByteArrayInputStream("Ceci est le contenu du fichier de test".getBytes());
         ProcessData data = new ProcessData("execId1", "JSON", "Chaine_char");

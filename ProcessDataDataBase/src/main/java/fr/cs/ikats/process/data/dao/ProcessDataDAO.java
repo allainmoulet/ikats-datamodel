@@ -4,6 +4,7 @@ import java.sql.Blob;
 import java.util.List;
 
 import fr.cs.ikats.common.dao.DataBaseDAO;
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.process.data.model.ProcessData;
 import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
@@ -120,11 +121,9 @@ public class ProcessDataDAO extends DataBaseDAO {
     }
 
     /**
-     * return all ProcessData from database,
+     * return all Tables from database,
      * 
-     * Review#161602 begin
-     *   missing doc: @return ... explain specific value null
-     * Review#161602 end
+     * @return the list of all tables
      */
     public List<ProcessData> listTables() {
         List<ProcessData> result = null;
@@ -165,8 +164,10 @@ public class ProcessDataDAO extends DataBaseDAO {
      * remove the ProcessData from database.
      *
      * @param processId identifier of the producer
+     *
+     * @throws IkatsDaoException if error occurs in database
      */
-    public void removeAllProcessData(String processId) {
+    public void removeAllProcessData(String processId) throws IkatsDaoException {
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -182,6 +183,7 @@ public class ProcessDataDAO extends DataBaseDAO {
                 tx.rollback();
             }
             LOGGER.error("Error deleting ProcessData for " + processId, e);
+            throw new IkatsDaoException("Can't delete "+ processId);
         }
         finally {
             session.close();

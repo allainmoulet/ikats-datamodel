@@ -222,8 +222,14 @@ public class ProcessDataResource extends AbstractResource {
      */
     @DELETE
     @Path("/{processId}")
-    public void deleteProcessData(@PathParam("processId") String processId) {
-        processDataManager.removeProcessData(processId);
+    public Response deleteProcessData(@PathParam("processId") String processId)  {
+        try {
+            processDataManager.removeProcessData(processId);
+        }
+        catch (IkatsDaoException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+        }
+        return Response.status(Response.Status.OK).build();
     }
 
     /**
