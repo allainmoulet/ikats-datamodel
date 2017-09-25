@@ -219,6 +219,7 @@ public class ProcessDataResource extends AbstractResource {
 
     /**
      * @param processId the process id to delete
+     * @return the Response with HTTP status end message: useful in case of error.
      */
     @DELETE
     @Path("/{processId}")

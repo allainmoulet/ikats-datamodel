@@ -29,8 +29,13 @@ import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import org.apache.log4j.Logger;
 
 /**
- * The manager is grouping services on the Table objects <ul> <li>JSON persistence services</li> <li>database
- * persistence services</li> <li>data selection services</li> <li>data modification services</li> </ul>
+ * The manager is grouping services on the Table objects
+ * <ul>
+ * <li>JSON persistence services</li>
+ * <li>database persistence services</li>
+ * <li>data selection services</li>
+ * <li>data modification services</li>
+ * </ul>
  */
 public class TableManager {
 
@@ -111,9 +116,12 @@ public class TableManager {
     }
 
     /**
-     * Creates and initializes the structure of an empty Table, <ul> <li>with columns header enabled when parameter
-     * withColumnsHeader is true ,</li> <li>with rows header enabled when parameter withColumnsHeader is true ,</li>
-     * </ul> This Table is initialized without links managed: see how to configure links management with enablesLinks()
+	 * Creates and initializes the structure of an empty Table,
+	 * <ul>
+	 * <li>with columns header enabled when parameter withColumnsHeader is true ,</li>
+	 * <li>with rows header enabled when parameter withColumnsHeader is true ,</li>
+	 * </ul>
+	 * This Table is initialized without links managed: see how to configure links management with enablesLinks()
      * method.
      *
      * @return created Table, ready to be completed.
@@ -299,6 +307,7 @@ public class TableManager {
 
     /**
      * Gets the JSON resource TableInfo from process data database.
+     * @return list of ProcessData. null returned only in case of server error.
      */
     public List<ProcessData> listTables() {
         return processDataManager.listTables();
@@ -316,8 +325,12 @@ public class TableManager {
     }
 
     /**
-     * Creates a new Table in database: <ul> <li>checks the table+name consistency</li> <li>saves the table json content
-     * in database with its key identifier tableName, and tableToStore.getTableInfo() </li> </ul>
+	 * Creates a new Table in database:
+	 * <ul>
+	 * <li>checks the table+name consistency</li>
+	 * <li>saves the table json content in database with its key identifier tableName, and tableToStore.getTableInfo()
+	 * </li>
+	 * </ul>
      *
      * @param tableName    the unique identifier of the Table is its name
      * @param tableToStore the Table wrapping the TableInfo required to write the content into the database.
@@ -418,7 +431,10 @@ public class TableManager {
     /**
      * Gets a table column from a table, reading the table in database.
      * <p>
-     * <ul> <li>calls readFromDatabase(tableName)</li> <li>and then getColumnFromTable(table, columnName)</li> </ul>
+	 * <ul>
+	 * <li>calls readFromDatabase(tableName)</li>
+	 * <li>and then getColumnFromTable(table, columnName)</li>
+	 * </ul>
      * <p>
      * Warning: do not repeat this operation if you have several columns to read from the same table, this will clearly
      * be inefficient! Instead, in that case, use readFromDatabase(), then initTable(TableInfo) and finally use services

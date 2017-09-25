@@ -116,7 +116,7 @@ public class ProcessDataManager {
     /**
      * get All Tables
      *
-     * @return the list of all tables
+     * @return the list of all tables. null returned only in case of error.
      */
     public List<ProcessData> listTables() {
         return getProcessDataFacade().listTables();
