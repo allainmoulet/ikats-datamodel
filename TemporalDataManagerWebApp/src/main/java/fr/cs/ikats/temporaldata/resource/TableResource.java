@@ -558,6 +558,10 @@ public class TableResource extends AbstractResource {
         // List the tables
         List<ProcessData> tables = tableManager.listTables();
 
+        if (tables == null) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("Error occurred while reading Table").build();
+        }
+
         return Response.status(Status.OK).entity(tables).build();
 
     }
@@ -567,10 +571,18 @@ public class TableResource extends AbstractResource {
      * Delete a Table
      *
      * @param tableName the name of the table delete
+     * 
+     * @return the HTTP response: useful in case of error
      */
     @DELETE
     @Path("/{tableName}")
-    public void removeTable(@PathParam("tableName") String tableName) {
-        tableManager.removeTable(tableName);
+    public Response removeTable(@PathParam("tableName") String tableName) {
+        try {
+            tableManager.removeTable(tableName);
+        }
+        catch (IkatsDaoException e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+        }
+        return Response.status(Status.NO_CONTENT).build();
     }
 }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.process.data.ProcessDataFacade;
 import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
@@ -114,6 +115,8 @@ public class ProcessDataManager {
 
     /**
      * get All Tables
+     *
+     * @return the list of all tables. null returned only in case of error.
      */
     public List<ProcessData> listTables() {
         return getProcessDataFacade().listTables();
@@ -124,8 +127,10 @@ public class ProcessDataManager {
      * remove a Table from processData
      *
      * @param tableName the name of the table.
+     *
+     * @throws IkatsDaoException if error occurs in database
      */
-    public void removeTable(String tableName) {
+    public void removeTable(String tableName) throws IkatsDaoException {
         getProcessDataFacade().removeProcessData(tableName);
     }
 
@@ -133,8 +138,10 @@ public class ProcessDataManager {
      * remove all processResults for a processId.
      *
      * @param processId the process exec identifier.
+     *
+     * @throws IkatsDaoException if error occurs in database
      */
-    public void removeProcessData(String processId) {
+    public void removeProcessData(String processId) throws IkatsDaoException {
         getProcessDataFacade().removeProcessData(processId);
     }
 

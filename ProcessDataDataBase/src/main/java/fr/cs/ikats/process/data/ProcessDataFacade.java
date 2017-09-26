@@ -133,6 +133,9 @@ public class ProcessDataFacade {
 
     /**
      * List all Tables
+     *
+     * @return the list of all tables
+     * 
      */
     public List<ProcessData> listTables() {
         return dao.listTables();
@@ -142,8 +145,10 @@ public class ProcessDataFacade {
      * remove all processResults for processId
      *
      * @param processId the producer
+     *
+     * @throws IkatsDaoException if error occurs in database
      */
-    public void removeProcessData(String processId) {
+    public void removeProcessData(String processId) throws IkatsDaoException {
         dao.removeAllProcessData(processId);
     }
 

@@ -29,8 +29,13 @@ import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import org.apache.log4j.Logger;
 
 /**
- * The manager is grouping services on the Table objects <ul> <li>JSON persistence services</li> <li>database
- * persistence services</li> <li>data selection services</li> <li>data modification services</li> </ul>
+ * The manager is grouping services on the Table objects
+ * <ul>
+ * <li>JSON persistence services</li>
+ * <li>database persistence services</li>
+ * <li>data selection services</li>
+ * <li>data modification services</li>
+ * </ul>
  */
 public class TableManager {
 
@@ -111,9 +116,12 @@ public class TableManager {
     }
 
     /**
-     * Creates and initializes the structure of an empty Table, <ul> <li>with columns header enabled when parameter
-     * withColumnsHeader is true ,</li> <li>with rows header enabled when parameter withColumnsHeader is true ,</li>
-     * </ul> This Table is initialized without links managed: see how to configure links management with enablesLinks()
+	 * Creates and initializes the structure of an empty Table,
+	 * <ul>
+	 * <li>with columns header enabled when parameter withColumnsHeader is true ,</li>
+	 * <li>with rows header enabled when parameter withColumnsHeader is true ,</li>
+	 * </ul>
+	 * This Table is initialized without links managed: see how to configure links management with enablesLinks()
      * method.
      *
      * @return created Table, ready to be completed.
@@ -299,26 +307,30 @@ public class TableManager {
 
     /**
      * Gets the JSON resource TableInfo from process data database.
-     *
-     * @throws IkatsJsonException        failed to read consistent JSON format into TableInfo structure.
-     * @throws IkatsDaoException         unexpected DAO error, from Hibernate, reading the database
-     * @throws ResourceNotFoundException the table name tableName is not matched in the database.
+     * @return list of ProcessData. null returned only in case of server error.
      */
     public List<ProcessData> listTables() {
         return processDataManager.listTables();
     }
 
-
     /**
      * Delete a table in database
+     *
+     * @param tableName the name of the Table to delete
+     *
+     * @throws IkatsDaoException if error occurs in database
      */
-    public void removeTable(String tableName) {
+    public void removeTable(String tableName) throws IkatsDaoException {
         processDataManager.removeTable(tableName);
     }
 
     /**
-     * Creates a new Table in database: <ul> <li>checks the table+name consistency</li> <li>saves the table json content
-     * in database with its key identifier tableName, and tableToStore.getTableInfo() </li> </ul>
+	 * Creates a new Table in database:
+	 * <ul>
+	 * <li>checks the table+name consistency</li>
+	 * <li>saves the table json content in database with its key identifier tableName, and tableToStore.getTableInfo()
+	 * </li>
+	 * </ul>
      *
      * @param tableName    the unique identifier of the Table is its name
      * @param tableToStore the Table wrapping the TableInfo required to write the content into the database.
@@ -383,8 +395,10 @@ public class TableManager {
      * Deletes the table from the database.
      *
      * @param tableName the unique identifier of the Table is its name
+     *
+     * @throws IkatsDaoException if error occurs in database
      */
-    public void deleteFromDatabase(String tableName) {
+    public void deleteFromDatabase(String tableName) throws IkatsDaoException {
         // The name of the table is in the processId column of table processData
         // => so, we can use directly the removeProcessData(processId) service.
 
@@ -417,7 +431,10 @@ public class TableManager {
     /**
      * Gets a table column from a table, reading the table in database.
      * <p>
-     * <ul> <li>calls readFromDatabase(tableName)</li> <li>and then getColumnFromTable(table, columnName)</li> </ul>
+	 * <ul>
+	 * <li>calls readFromDatabase(tableName)</li>
+	 * <li>and then getColumnFromTable(table, columnName)</li>
+	 * </ul>
      * <p>
      * Warning: do not repeat this operation if you have several columns to read from the same table, this will clearly
      * be inefficient! Instead, in that case, use readFromDatabase(), then initTable(TableInfo) and finally use services
@@ -467,12 +484,10 @@ public class TableManager {
 
     /**
      * Randomly split table list indexes in 2 indexes lists according to repartition rate ex : repartitionRate = 0.6 =>
-     * list1 = 60% of input list ( => list2 = 40% of input list output = [table1 ; table2]
-     * <p>
-     * NB: number of items in output lists are rounded to the nearest value
+     * list1 = 60% of input list ( => list2 = 40% of input list output = [table1 ; table2] <p> NB: number of items in
+     * output lists are rounded to the nearest value
      *
-     * @param indexList       list of table indexes
-     * @param repartitionRate repartition rate between two output indexes lists
+     * @param indexList list of table indexes @param repartitionRate repartition rate between two output indexes lists
      *
      * @throws
      */
@@ -509,7 +524,8 @@ public class TableManager {
      * @throws IkatsException            row from original table is undefined
      * @throws ResourceNotFoundException row from original table is not found
      */
-    public List<Table> randomSplitTable(Table table, double repartitionRate) throws ResourceNotFoundException, IkatsException {
+    public List<Table> randomSplitTable(Table table, double repartitionRate)
+            throws ResourceNotFoundException, IkatsException {
 
         List<Integer> indexListInput = new ArrayList<>();
         List<List<Integer>> indexListOutput;
@@ -557,7 +573,8 @@ public class TableManager {
      * @throws IkatsException            row from original table is undefined
      * @throws ResourceNotFoundException row from original table is not found
      */
-    private Table extractIndexes(Table tableIn, Table tableOut, List<Integer> indexList) throws ResourceNotFoundException, IkatsException {
+    private Table extractIndexes(Table tableIn, Table tableOut, List<Integer> indexList)
+            throws ResourceNotFoundException, IkatsException {
 
         // Shifting indexes in case of row headers
         int shift = (tableIn.isHandlingColumnsHeader()) ? 1 : 0;
@@ -596,8 +613,8 @@ public class TableManager {
      * @throws ResourceNotFoundException if target column name not found in table
      * @throws IkatsException            if targetColumnName is null
      */
-    public List<Table> trainTestSplitTable(Table table, String targetColumnName, double repartitionRate) throws
-            ResourceNotFoundException, IkatsException {
+    public List<Table> trainTestSplitTable(Table table, String targetColumnName, double repartitionRate)
+            throws ResourceNotFoundException, IkatsException {
 
         boolean withColHeaders = table.isHandlingColumnsHeader();
         boolean withRowHeaders = table.isHandlingRowsHeader();
