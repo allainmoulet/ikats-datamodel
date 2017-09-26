@@ -1,12 +1,13 @@
 package fr.cs.ikats.temporaldata.business;
 
-import fr.cs.ikats.process.data.ProcessDataFacade;
-import fr.cs.ikats.process.data.model.ProcessData;
-import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.process.data.ProcessDataFacade;
+import fr.cs.ikats.process.data.model.ProcessData;
+import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 
 /**
  * Manager for ProcessData data
@@ -31,7 +32,9 @@ public class ProcessDataManager {
      * @param name       name of data
      * @param processId  the data producer identifier
      * @param dataType   the dataType
+     *
      * @return the internal identifier of the result.
+     *
      * @throws IOException In case of error when reading fileis
      */
     public String importProcessData(InputStream fileis, Long fileLength, String processId, String dataType, String name) throws IOException {
@@ -45,6 +48,7 @@ public class ProcessDataManager {
      * @param processId the data producer identifier
      * @param name      name of data
      * @param data      the data
+     *
      * @return the internal identifier of the result.
      */
     public String importProcessData(String processId, String name, byte[] data) {
@@ -53,20 +57,21 @@ public class ProcessDataManager {
     }
 
     /**
-     * Import a string/opaque byte array to database, with specified datatype: 
-     * this is required for the JSON or CSV results !
+     * Import a string/opaque byte array to database, with specified datatype: this is required for the JSON or CSV
+     * results !
      *
      * @param processId the data producer identifier
      * @param name      name of data
      * @param data      the data
-     * @param type among possible enum values.
+     * @param type      among possible enum values.
+     *
      * @return the internal identifier of the result.
      */
     public String importProcessData(String processId, String name, byte[] data, ProcessResultTypeEnum type) {
         ProcessData processData = new ProcessData(processId, type.toString(), name);
         return getProcessDataFacade().importProcessData(processData, data);
     }
-    
+
     /**
      * ResultType ENUM
      */
@@ -90,6 +95,7 @@ public class ProcessDataManager {
      * get a single processResult for internal identifier id.
      *
      * @param id the internal process identifier
+     *
      * @return null if nothing is found.
      */
     public ProcessData getProcessPieceOfData(int id) {
@@ -100,6 +106,7 @@ public class ProcessDataManager {
      * get All processResults for a processId.
      *
      * @param processId the process execution identifier.
+     *
      * @return null if not processResult is found.
      */
     public List<ProcessData> getProcessData(String processId) {
@@ -107,11 +114,34 @@ public class ProcessDataManager {
     }
 
     /**
+     * get All Tables
+     *
+     * @return the list of all tables. null returned only in case of error.
+     */
+    public List<ProcessData> listTables() {
+        return getProcessDataFacade().listTables();
+    }
+
+
+    /**
+     * remove a Table from processData
+     *
+     * @param tableName the name of the table.
+     *
+     * @throws IkatsDaoException if error occurs in database
+     */
+    public void removeTable(String tableName) throws IkatsDaoException {
+        getProcessDataFacade().removeProcessData(tableName);
+    }
+
+    /**
      * remove all processResults for a processId.
      *
      * @param processId the process exec identifier.
+     *
+     * @throws IkatsDaoException if error occurs in database
      */
-    public void removeProcessData(String processId) {
+    public void removeProcessData(String processId) throws IkatsDaoException {
         getProcessDataFacade().removeProcessData(processId);
     }
 

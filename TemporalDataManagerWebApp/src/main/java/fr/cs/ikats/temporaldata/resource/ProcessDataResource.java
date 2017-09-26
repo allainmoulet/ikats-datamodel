@@ -219,11 +219,18 @@ public class ProcessDataResource extends AbstractResource {
 
     /**
      * @param processId the process id to delete
+     * @return the Response with HTTP status end message: useful in case of error.
      */
     @DELETE
     @Path("/{processId}")
-    public void deleteProcessData(@PathParam("processId") String processId) {
-        processDataManager.removeProcessData(processId);
+    public Response deleteProcessData(@PathParam("processId") String processId)  {
+        try {
+            processDataManager.removeProcessData(processId);
+        }
+        catch (IkatsDaoException e) {
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
+        }
+        return Response.status(Response.Status.OK).build();
     }
 
     /**

@@ -1,17 +1,18 @@
 package fr.cs.ikats.process.data;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+
+import javax.annotation.PreDestroy;
+
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.process.data.dao.ProcessDataDAO;
 import fr.cs.ikats.process.data.model.ProcessData;
 import org.apache.log4j.Logger;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
-
-import javax.annotation.PreDestroy;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 
 /**
  * Facade to the storage facility for datasets
@@ -35,8 +36,8 @@ public class ProcessDataFacade {
     }
 
     /**
-     * init the dao and its mapping : use the hibernate.cfg.xml file + add
-     * package and classes where annotations are set.
+     * init the dao and its mapping : use the hibernate.cfg.xml file + add package and classes where annotations are
+     * set.
      */
     public void init() {
         LOGGER.info("init of hibernate configuration with classpath resource file /processDataHibernate.cfg.xml");
@@ -49,13 +50,12 @@ public class ProcessDataFacade {
     }
 
     /**
-     * @param data
-     *            processData
-     * @param is
-     *            input stream
-     * @param length
-     *            size of data, could be -1 to read until the end of the stream.
+     * @param data   processData
+     * @param is     input stream
+     * @param length size of data, could be -1 to read until the end of the stream.
+     *
      * @return the internal identifier
+     *
      * @throws IOException
      */
     public String importProcessData(ProcessData data, InputStream is, int length) throws IOException {
@@ -83,10 +83,9 @@ public class ProcessDataFacade {
     /**
      * Import a data to database
      *
-     * @param processData
-     *            processData to use
-     * @param data
-     *            data to save
+     * @param processData processData to use
+     * @param data        data to save
+     *
      * @return the internal identifier
      */
     public String importProcessData(ProcessData processData, byte[] data) {
@@ -96,10 +95,9 @@ public class ProcessDataFacade {
     /**
      * get all processData for processId
      *
-     * @param processId
-     *            the producer
-     * @return empty collection if nothing is found. null
-     *         if hibernate error occured
+     * @param processId the producer
+     *
+     * @return empty collection if nothing is found. null if hibernate error occured
      */
     public List<ProcessData> getProcessData(String processId) {
         return dao.getProcessData(processId);
@@ -111,6 +109,7 @@ public class ProcessDataFacade {
 
     /**
      * @param processId
+     *
      * @return
      */
     public int countProcessDataWithProcessId(String processId) throws IkatsDaoException {
@@ -124,8 +123,8 @@ public class ProcessDataFacade {
     /**
      * get the processData for internal id id
      *
-     * @param id
-     *            the internal identifier.
+     * @param id the internal identifier.
+     *
      * @return null if not found.
      */
     public ProcessData getProcessPieceOfData(int id) {
@@ -133,12 +132,23 @@ public class ProcessDataFacade {
     }
 
     /**
+     * List all Tables
+     *
+     * @return the list of all tables
+     * 
+     */
+    public List<ProcessData> listTables() {
+        return dao.listTables();
+    }
+
+    /**
      * remove all processResults for processId
      *
-     * @param processId
-     *            the producer
+     * @param processId the producer
+     *
+     * @throws IkatsDaoException if error occurs in database
      */
-    public void removeProcessData(String processId) {
+    public void removeProcessData(String processId) throws IkatsDaoException {
         dao.removeAllProcessData(processId);
     }
 
