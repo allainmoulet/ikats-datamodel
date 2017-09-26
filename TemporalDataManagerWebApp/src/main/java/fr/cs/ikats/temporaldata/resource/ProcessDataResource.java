@@ -228,15 +228,7 @@ public class ProcessDataResource extends AbstractResource {
             processDataManager.removeProcessData(processId);
         }
         catch (IkatsDaoException e) {
-        	// Review#161602 begin
-        	//    missing message in the body: add entity(e):
-			//      - use Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build()
-			//    
-        	//    missing log of e: this is the good place here
-        	// 
-        	// Review#161602 end
-
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
         return Response.status(Response.Status.OK).build();
     }

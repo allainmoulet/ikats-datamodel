@@ -559,14 +559,7 @@ public class TableResource extends AbstractResource {
         List<ProcessData> tables = tableManager.listTables();
 
         if (tables == null) {
-        	// Review#161602 begin
-        	//    missing message in the body: add entity(e):
-			//      - use Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity("bla bla").build()
-			//    
-        	//    missing log of e: this is the good place here
-        	// 
-        	// Review#161602 end
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity("Error occurred while reading Table").build();
         }
 
         return Response.status(Status.OK).entity(tables).build();
@@ -588,14 +581,7 @@ public class TableResource extends AbstractResource {
             tableManager.removeTable(tableName);
         }
         catch (IkatsDaoException e) {
-        	// Review#161602 begin
-        	//    missing message in the body: add entity(e):
-			//      - use Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build()
-			//    
-        	//    missing log of e: this is the good place here
-        	// 
-        	// Review#161602 end
-            return Response.status(Status.INTERNAL_SERVER_ERROR).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
         return Response.status(Status.NO_CONTENT).build();
     }
