@@ -330,28 +330,28 @@ public class MetaDataDAO extends DataBaseDAO {
             if (tsuid.equals("*")) {
                 Criteria criteria = session.createCriteria(MetaData.class);
                 result = criteria.list();
+                tx.commit();
             } else {
                 // Query q =
                 // session.createQuery("from MetaData where tsuid = :tsuid");
                 Query q = session.createQuery(MetaData.LIST_ALL_FOR_TSUID);
                 q.setString("tsuid", tsuid);
                 result = q.list();
-                if (result == null || (result.size() == 0)) {
+                tx.commit();
+                if (result == null || (result.isEmpty())) {
                     String msg = "Searching MetaData from tsuid=" + tsuid + ": no resource found, but should exist.";
+                    
                     LOGGER.error(msg);
                     throw new IkatsDaoMissingRessource(msg);
                 }
             }
-            
-        }
-        catch (RuntimeException e) {
-            // Re-raise the original exception
-            throw e;
-        }
+        } catch (RuntimeException e) {
+			if (tx != null)
+				tx.rollback();
+			throw e; // or display error message
+		}
         finally {
-            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
-            tx.commit();
-
+            
             // end the session
             session.close();
         }
@@ -382,15 +382,14 @@ public class MetaDataDAO extends DataBaseDAO {
                 result.put((String) obj_result[0], (String) obj_result[1]);
             }
             
-        }
-        catch (RuntimeException e) {
-            // Re-raise the original exception
-            throw e;
-        }
-        finally {
-            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
             tx.commit();
-
+            
+        } catch (RuntimeException e) {
+			if (tx != null)
+				tx.rollback();
+			throw e; // or display error message
+		}
+        finally {
             // end the session
             session.close();
         }
@@ -423,19 +422,21 @@ public class MetaDataDAO extends DataBaseDAO {
             q.setString("tsuid", tsuid);
             q.setString("name", name);
             result = (MetaData) q.uniqueResult();
+            
+            tx.commit();
         }
         catch (NonUniqueResultException multipleResults) {
             // Re-raise the original exception
-            throw new IkatsDaoConflictException("Multiple MetaData are matching the criteria: " + pairCriteria, multipleResults);
+        	if (tx != null)
+				tx.rollback();
+			throw new IkatsDaoConflictException("Multiple MetaData are matching the criteria: " + pairCriteria, multipleResults);
         }
         catch (RuntimeException e) {
-            // Re-raise the original exception
+        	if (tx != null)
+				tx.rollback();
             throw e;
         }
         finally {
-            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
-            tx.commit();
-
             // end the session
             session.close();
         }
@@ -536,6 +537,8 @@ public class MetaDataDAO extends DataBaseDAO {
                 
                 // Create the subquery from the filters
                 Conjunction filtersCritQuery = prepareFiltersCritQuery(criteria);
+                
+                
                 sessionCriteria.add(filtersCritQuery);
             } else {
                 // try to rollback
@@ -547,20 +550,22 @@ public class MetaDataDAO extends DataBaseDAO {
             sessionCriteria.addOrder(Order.asc("tsuid"));
             
             result = (List<String>) sessionCriteria.list();
+            
+            tx.commit();
         }
         catch (IkatsDaoInvalidValueException invalidCriterionException) {
+        	// raised by prepareFiltersCritQuery ...
+        	if (tx != null) tx.rollback();
             String msg = "Resource Not found, searching functional identifiers matched by metadata criteria";
             LOGGER.error("NOT FOUND: " + msg);
             throw new IkatsDaoMissingRessource(msg, invalidCriterionException);
         }
         catch (RuntimeException e) {
-            // Re-raise the original exception
+        	if (tx != null) tx.rollback();
             throw e;
         }
         finally {
-            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
-            tx.commit();
-
+           
             // end the session
             session.close();
         }
@@ -687,15 +692,15 @@ public class MetaDataDAO extends DataBaseDAO {
             critQuery.add(filtersCritQuery);
             
             result = (List<FunctionalIdentifier>) critQuery.list();
+            
+            tx.commit();
         }
         catch (RuntimeException e) {
-            // Re-raise the original exception
+        	if (tx != null) tx.rollback();
             throw e;
         }
         finally {
-            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
-            tx.commit();
-
+            
             // end the session
             session.close();
         }
@@ -756,15 +761,15 @@ public class MetaDataDAO extends DataBaseDAO {
             Query query = session.createQuery(hql);
             query.setString("mid", metric);
             result = query.list();
+            
+            tx.commit();
         }
         catch (RuntimeException e) {
-            // Re-raise the original exception
+        	if (tx != null) tx.rollback();
             throw e;
         }
+        
         finally {
-            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
-            tx.commit();
-
             // end the session
             session.close();
         }
