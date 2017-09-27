@@ -75,23 +75,20 @@ public class ProcessDataDAO extends DataBaseDAO {
         ProcessData result = null;
         
         Session session = getSession();
-        //Transaction code commented due to blob usage in the ProcessData entity and upstream services
-        // See 161722-try-blobfix branch for a possible fix
-        //Transaction tx = null;
+        Transaction tx = null;
         try {
-            //tx = session.beginTransaction();
+            tx = session.beginTransaction();
             LOGGER.debug("Getting processId:" + id);
 
             result = (ProcessData) session.get(ProcessData.class, id);
+            
+            tx.commit();
         }
         catch (RuntimeException e) {
-            // Re-raise the original exception
-            throw e;
+        	 if (tx != null) tx.rollback();
+        	 throw e; // or display error message
         }
         finally {
-            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
-            //tx.commit();
-
             // end the session
             session.close();
         }
@@ -110,11 +107,10 @@ public class ProcessDataDAO extends DataBaseDAO {
         List<ProcessData> result = null;
 
         Session session = getSession();
-        //Transaction code commented due to blob usage in the ProcessData entity and upstream services
-        // See 161722-try-blobfix branch for a possible fix
-        //Transaction tx = null;
+      
+        Transaction tx = null;
         try {
-            //tx = session.beginTransaction();
+            tx = session.beginTransaction();
             LOGGER.debug("Getting processId:" + processId);
 
             Criteria criteria = session.createCriteria(ProcessData.class);
@@ -122,13 +118,10 @@ public class ProcessDataDAO extends DataBaseDAO {
             result = criteria.list();
         }
         catch (RuntimeException e) {
-            // Re-raise the original exception
-            throw e;
+        	 if (tx != null) tx.rollback();
+        	 throw e; // or display error message
         }
         finally {
-            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
-            //tx.commit();
-
             // end the session
             session.close();
         }
