@@ -116,6 +116,8 @@ public class ProcessDataDAO extends DataBaseDAO {
             Criteria criteria = session.createCriteria(ProcessData.class);
             criteria.add(Restrictions.eq("processId", processId));
             result = criteria.list();
+            
+            tx.commit();
         }
         catch (RuntimeException e) {
         	 if (tx != null) tx.rollback();
