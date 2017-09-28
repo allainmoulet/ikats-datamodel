@@ -50,15 +50,15 @@ public class WorkflowDAO extends DataBaseDAO {
             criteria.add(Restrictions.eq("isMacroOp", isMacroOp));
             result = criteria.list();
             
+            tx.commit();
         }
         catch (RuntimeException e) {
+        	if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
         }
         finally {
-            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
-            tx.commit();
-
+ 
             // end the session
             session.close();
         }
@@ -129,16 +129,14 @@ public class WorkflowDAO extends DataBaseDAO {
                 throw new IkatsDaoMissingRessource(msg);
             }
 
-
+            tx.commit();
         }
         catch (RuntimeException e) {
+        	if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
         }
-        finally {
-            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
-            tx.commit();
-            // end the session
+        finally { 
             session.close();
         }
 
