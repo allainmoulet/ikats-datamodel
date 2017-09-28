@@ -49,7 +49,11 @@ public class WorkflowDAO extends DataBaseDAO {
             Criteria criteria = session.createCriteria(Workflow.class);
             criteria.add(Restrictions.eq("isMacroOp", isMacroOp));
             result = criteria.list();
-            
+            for (Workflow workflow : result) {
+            	// quick fix: avoid side effects on session, by removing workflow from synchronized cache
+            	// because workflow is modified by rest service, instead of using a DTO producing JSON
+				session.evict(workflow);
+			}
             tx.commit();
         }
         catch (RuntimeException e) {
@@ -112,7 +116,7 @@ public class WorkflowDAO extends DataBaseDAO {
      * @throws IkatsDaoException        if any other exception occurs
      */
     Workflow getById(Integer id) throws IkatsDaoMissingRessource, IkatsDaoException {
-        List<Workflow> result = null;
+        Workflow result = null;
         
         Session session = getSession();
         Transaction tx = null;
@@ -121,14 +125,21 @@ public class WorkflowDAO extends DataBaseDAO {
 
             Criteria criteria = session.createCriteria(Workflow.class);
             criteria.add(Restrictions.eq("id", id));
-            result = criteria.list();
+            List<Workflow> resultList = criteria.list();
             
-            if (result == null || (result.size() == 0)) {
+            if (resultList == null || (resultList.size() == 0)) {
                 String msg = "Searching workflow from id=" + id + ": no resource found, but should exist.";
                 LOGGER.error(msg);
-                throw new IkatsDaoMissingRessource(msg);
+                rollbackAndThrowException(tx, new IkatsDaoMissingRessource(msg)); 
             }
-
+            else
+            {
+            	result = resultList.get(0);
+            	// quick fix: avoid side effects on session, by removing result from synchronized cache
+            	// because result is modified by rest service, instead of using a DTO producing JSON
+                session.evict(result);
+            }
+                        
             tx.commit();
         }
         catch (RuntimeException e) {
@@ -140,7 +151,7 @@ public class WorkflowDAO extends DataBaseDAO {
             session.close();
         }
 
-        return result.get(0);
+        return result;
     }
 
     /**
