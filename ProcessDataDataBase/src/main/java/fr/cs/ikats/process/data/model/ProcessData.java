@@ -1,5 +1,7 @@
 package fr.cs.ikats.process.data.model;
 
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -93,7 +95,7 @@ public class ProcessData {
 
     /**
      * Getter
-     * @return the processId
+     * @return the processId: the producer identifier of the data.
      */
     public String getProcessId() {
         return processId;
@@ -132,5 +134,42 @@ public class ProcessData {
         sb.append("}");
         return sb.toString();
         
+    }
+    
+    /**
+     * Tests the entity equality between this and obj: database identity
+     *
+     * Using Hibernate: advised to implement equals: see §13.1.3
+     * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
+     *
+     * @param obj object to compare with
+     * @return true if they match, false otherwise
+     */
+    @Override
+    public boolean equals(Object obj) {
+    	
+    	if ( this == obj) return true;
+    	
+    	if ( ! (obj instanceof ProcessData)) return false;
+    	
+    	// It is sufficient to consider producer + name as unique key for a processdata.
+    	// (and avoid database keys id or oid)
+    	ProcessData otherProDt = (ProcessData) obj;
+    	String otherPID = otherProDt.getProcessId();
+		String otherName = otherProDt.getName();
+		        
+        // Avoid null pointer exceptions ...
+		return  Objects.equals(processId, otherPID) && Objects.equals(name, otherName);
+    }
+    
+    /**
+     * Using Hibernate: advised to implement hashcode: see §13.1.3
+     * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+     
+    	return (""+ processId + name + "PrDt").hashCode();
     }
 }

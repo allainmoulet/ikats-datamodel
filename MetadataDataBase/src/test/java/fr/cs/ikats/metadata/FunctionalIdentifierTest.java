@@ -2,7 +2,9 @@ package fr.cs.ikats.metadata;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -260,5 +262,19 @@ public class FunctionalIdentifierTest extends CommonTest {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+    /**
+     * Tests that implemented equals, hashcode are exact or/and robust to null values.
+     */
+	@Test
+	public void testRobustness()
+	{ 
+		(new FunctionalIdentifier(null, null) ).toString();
+		(new FunctionalIdentifier(null, null) ).hashCode();
+		assertTrue((new FunctionalIdentifier(null, null) ).equals( new FunctionalIdentifier(null, null) ));
+		assertTrue( ! (new FunctionalIdentifier(null, null) ).equals( "string" ) );
+		assertNotSame( new FunctionalIdentifier("HI", "HA"), new FunctionalIdentifier("HU", "HA"));
+		assertFalse( (new FunctionalIdentifier("HI", "HA")).equals( new FunctionalIdentifier("HI", "HU")));
 	}
 }

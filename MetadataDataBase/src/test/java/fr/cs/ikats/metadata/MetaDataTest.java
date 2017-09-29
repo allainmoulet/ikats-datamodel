@@ -19,6 +19,7 @@ import fr.cs.ikats.common.expr.Expression;
 import fr.cs.ikats.common.expr.Group;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
+import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
@@ -689,4 +690,30 @@ public class MetaDataTest {
         facade.removeMetaDataForTS("TS8");
     }
 
+    /**
+     * Tests that implemented equals, hashcode are exact or/and robust to null values.
+     */
+    @Test
+    public void testRobustness()
+    {
+    	MetaData meta = new MetaData();
+    	meta.hashCode();
+    	assertFalse( meta.equals("toto"));
+    	assertTrue( meta.equals(meta));
+    	MetaData meta2 = new MetaData();
+    	meta.setTsuid("tsuid1");
+    	meta2.setTsuid(meta.getTsuid());
+    	meta.setName("name1");
+    	meta2.setName(meta.getName());
+    	meta.setDType(MetaType.number);
+    	meta.setValue("12");
+    	meta2.setDType(meta.getDType());
+    	meta2.setValue(meta.getValue());
+    	
+    	assertEquals(meta, meta2);
+    	meta.setValue("11");
+    	assertFalse(meta.equals(meta2));
+    	
+    	
+    }
 }

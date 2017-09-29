@@ -1,5 +1,7 @@
 package fr.cs.ikats.workflow;
 
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -123,6 +125,33 @@ public class Workflow {
         this.raw = raw;
     }
 
+    /**
+     * Tests the entity equality between this and obj: database identity
+     *
+     * Using Hibernate: advised to implement equals: see §13.1.3
+     * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
+     *
+     * @param obj object to compare with
+     * @return true if they match, false otherwise
+     */
+    @Override
+    public boolean equals(Object obj) {
+    	
+    	if ( this == obj) return true;
+    	
+    	if ( ! (obj instanceof Workflow)) return false;
+    	
+        // Avoid null pointer exceptions ...
+    	Workflow otherWkf = (Workflow) obj;
+		String objName = otherWkf.getName();
+        String objDesc = otherWkf.getDescription();
+        Boolean objIsMacroOp = otherWkf.getMacroOp();
+        String objRaw = otherWkf.getRaw();
+        
+    	boolean res =  Objects.equals( name, objName) && Objects.equals(description, objDesc);
+		return res && Objects.equals(isMacroOp, objIsMacroOp) && Objects.equals(raw, objRaw);
+    }
+    
     @Override
     public java.lang.String toString() {
         return "Workflow{" +
@@ -132,5 +161,17 @@ public class Workflow {
                 ", description='" + description + '\'' +
                 ", raw='" + raw + '\'' +
                 '}';
+    }
+    
+    /**
+     * Using Hibernate: advised to implement hashcode: see §13.1.3
+     * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+    	// - avoid to involve the database key this.id: refer to mentioned doc in javadoc
+    	// - do not involve raw: too big ...
+    	return (""+ name + isMacroOp + description +"Wkf").hashCode();
     }
 }

@@ -45,22 +45,25 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
 
 		int result = 0;
 
+		String tsuid= (fi != null) ? fi.getTsuid() : null;
+		String funcId = ( fi != null ) ? fi.getFuncId() : null;
+		
 		Session session = getSession();
 		Transaction tx = null;
 		try {
 			tx = session.beginTransaction();
 			session.save(fi);
 			tx.commit();
-			LOGGER.debug("FunctionalIdentifier stored " + fi.getTsuid() + ";" + fi.getFuncId());
+			LOGGER.debug("FunctionalIdentifier stored " + tsuid + ";" + funcId);
 			result++;
 		} catch (ConstraintViolationException e) {
 
-			String msg = "Removing FunctionalIdentifier for tsuid=" + fi.getTsuid() + "failed : constraint violation";
+			String msg = "Writting FunctionalIdentifier for tsuid=" + tsuid + "failed : constraint violation";
 			LOGGER.warn(msg);
 
 			rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
 		} catch (HibernateException e) {
-			String msg = "Removing FunctionalIdentifier for tsuid=" + fi.getTsuid() + "failed : does not exist";
+			String msg = "Writting FunctionalIdentifier for tsuid=" + tsuid + "failed : does not exist";
 			LOGGER.error(msg, e);
 
 			rollbackAndThrowException(tx, new IkatsDaoException(msg, e));

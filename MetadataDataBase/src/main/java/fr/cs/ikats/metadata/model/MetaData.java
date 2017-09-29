@@ -1,5 +1,7 @@
 package fr.cs.ikats.metadata.model;
 
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
@@ -193,4 +195,45 @@ public class MetaData {
 		this.dtype = value;
 	}
 
+
+    /**
+     * Tests the entity equality between this and obj: database identity
+     *
+     * Using Hibernate: advised to implement equals: see §13.1.3
+     * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
+     *
+     * @param obj object to compare with
+     * @return true if they match, false otherwise
+     */
+    @Override
+    public boolean equals(Object obj) {
+    	
+    	if ( this == obj) return true;
+    	
+    	if ( ! (obj instanceof MetaData)) return false;
+    	
+        MetaData otherMeta = (MetaData) obj;
+		String objTsuid = otherMeta.getTsuid();
+        String objName = otherMeta.getName();
+        MetaType objType = otherMeta.getDType();
+        String objValue = otherMeta.getValue();
+        
+        // Avoid null pointer exceptions ...
+        boolean res = Objects.equals(tsuid, objTsuid );
+		res = res &&  Objects.equals( name, objName);
+		res = res && Objects.equals(dtype, objType);
+        return  res && Objects.equals(value, objValue);
+    }
+    
+    /**
+     * Using Hibernate: advised to implement hashcode: see §13.1.3
+     * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+     
+    	return (""+ dtype + name + tsuid + value + "Meta").hashCode();
+    }
+    
 }
