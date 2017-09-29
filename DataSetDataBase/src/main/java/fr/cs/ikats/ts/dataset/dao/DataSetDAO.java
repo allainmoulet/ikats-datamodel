@@ -216,22 +216,30 @@ public class DataSetDAO extends DataBaseDAO {
     public DataSet getDataSet(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
         DataSet result;
         Session session = getSession();
+        Transaction tx = null;
         try {
+        	tx = session.beginTransaction();
+        	
             result = (DataSet) session.get(DataSet.class, name);
             if (result == null) {
                 throw new IkatsDaoMissingRessource("DataSet with name=" + name);
             }
             Hibernate.initialize(result.getLinksToTimeSeries());
             result.getLinksToTimeSeries();
+            
+            tx.commit();
         }
         catch (IkatsDaoMissingRessource me) {
+        	if (tx != null) tx.rollback();
             throw me;
         }
         catch (HibernateException e) {
+        	if (tx != null) tx.rollback();
             IkatsDaoMissingRessource error = new IkatsDaoMissingRessource("DataSet with name=" + name, e);
             throw error;
         }
         catch (Throwable te) {
+        	if (tx != null) tx.rollback();
             IkatsDaoException error = new IkatsDaoException("Unexpected error: Get DataSet with name=" + name, te);
             throw error;
         }
@@ -252,20 +260,28 @@ public class DataSetDAO extends DataBaseDAO {
     public DataSet getDataSetSummary(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
         DataSet result;
         Session session = getSession();
+        Transaction tx = null;
         try {
+        	tx = session.beginTransaction();
+        	
             result = (DataSet) session.get(DataSet.class, name);
             if (result == null) {
                 throw new IkatsDaoMissingRessource("DataSet with name=" + name);
             }
+            
+            tx.commit();
         }
         catch (IkatsDaoMissingRessource me) {
+        	if (tx != null) tx.rollback();
             throw me;
         }
         catch (HibernateException e) {
+        	if (tx != null) tx.rollback();
             IkatsDaoMissingRessource error = new IkatsDaoMissingRessource("DataSet with name=" + name, e);
             throw error;
         }
         catch (Throwable te) {
+        	if (tx != null) tx.rollback();
             IkatsDaoException error = new IkatsDaoException("Unexpected error: Get DataSet with name=" + name, te);
             throw error;
         }
@@ -303,7 +319,7 @@ public class DataSetDAO extends DataBaseDAO {
             tx.commit();
 
         }
-        catch (HibernateException e) {
+        catch (RuntimeException e) {
             String msg = "Deleting dataset: " + name + ": unexpected HibernateException";
             LOGGER.error(msg, e);
             rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
@@ -333,18 +349,25 @@ public class DataSetDAO extends DataBaseDAO {
     public List<DataSet> getAllDataSets() throws IkatsDaoMissingRessource, IkatsDaoException {
         List<DataSet> result;
         Session session = getSession();
+        Transaction tx = null; 
         try {
+        	tx = session.beginTransaction();
+        	
             Query q = session.createSQLQuery(DataSet.LIST_ALL_DATASETS)
                     .addScalar("name", Hibernate.STRING)
                     .addScalar("description", Hibernate.STRING)
                     .addScalar("nb_ts", Hibernate.LONG)
                     .setResultTransformer(Transformers.aliasToBean(DataSet.class));
             result = (List<DataSet>) q.list();
+            
+            tx.commit();
         }
-        catch (HibernateException e) {
+        catch (RuntimeException e) {
+        	if (tx != null) tx.rollback();
             throw new IkatsDaoMissingRessource("Hibernate error: Get all DataSets ", e);
         }
-        catch (Throwable te) {
+        catch (Exception te) {
+        	if (tx != null && !tx.wasRolledBack()) tx.rollback();
             throw new IkatsDaoException("Unexpected error: Get all DataSets", te);
         }
         finally {
@@ -362,7 +385,10 @@ public class DataSetDAO extends DataBaseDAO {
     public List<String> getDataSetNamesForTsuid(String tsuid) throws IkatsDaoException {
         Session session = getSession();
         List<String> result;
+        Transaction tx = null; 
         try {
+        	tx = session.beginTransaction();
+        	
             Query q = session.createQuery(LinkDatasetTimeSeries.LIST_DATASET_NAMES_FOR_TSUID);
             q.setString("tsuid", tsuid);
             result = q.list();
@@ -372,17 +398,21 @@ public class DataSetDAO extends DataBaseDAO {
             // throw new IkatsDaoMissingRessource("Empty result: Get All DataSet
             // names");
             // }
+            
+            tx.commit();
         }
         // Note: TODO TBC should we handle IkatsDaoMissingRessource here ?
         // catch (IkatsDaoMissingRessource me) {
         // throw me;
         // }
-        catch (HibernateException e) {
+        catch (RuntimeException e) {
+        	if (tx != null) tx.rollback();
             IkatsDaoException error = new IkatsDaoMissingRessource("Hibernate error: Get all DataSet names", e);
             throw error;
 
         }
         catch (Throwable te) {
+        	if (tx != null) tx.rollback();
             IkatsDaoException error = new IkatsDaoException("Unexpected error: Get all DataSet names", te);
             throw error;
 
@@ -411,8 +441,8 @@ public class DataSetDAO extends DataBaseDAO {
             q.executeUpdate();
             tx.commit();
         }
-        catch (HibernateException e) {
-            IkatsDaoException error = new IkatsDaoException("HibernateException occured => failed to delete dataset with name=" + datasetName, e);
+        catch (RuntimeException e) {
+            IkatsDaoException error = new IkatsDaoException("RuntimeException occured => failed to delete dataset with name=" + datasetName, e);
             rollbackAndThrowException(tx, error);
         }
         catch (Throwable te) {
@@ -456,7 +486,7 @@ public class DataSetDAO extends DataBaseDAO {
         catch (IkatsDaoMissingRessource me) {
             rollbackAndThrowException(tx, me);
         }
-        catch (HibernateException e) {
+        catch (RuntimeException e) {
             IkatsDaoException error = new IkatsDaoException(
                     "HibernateException occured => failed to remove TS links from dataset dataset using mode replace, with name=" + name, e);
             rollbackAndThrowException(tx, error);

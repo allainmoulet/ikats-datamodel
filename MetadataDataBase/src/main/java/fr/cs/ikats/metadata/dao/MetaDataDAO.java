@@ -131,9 +131,6 @@ public class MetaDataDAO extends DataBaseDAO {
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
-
-            
-            tx = session.beginTransaction();
             LOGGER.debug("MetaDataDAO::persist(Lis<MetaData>): started transaction [" + date + "] ...");
             for (Iterator<MetaData> iterator = mdList.iterator(); iterator.hasNext(); ) {
                 currentRow = iterator.next();

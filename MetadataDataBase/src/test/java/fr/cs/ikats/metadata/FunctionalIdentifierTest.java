@@ -222,7 +222,7 @@ public class FunctionalIdentifierTest extends CommonTest {
 			facade.removeFunctionalIdentifier(new ArrayList<String>(values.keySet()));
 
 			endWithFailure(testCaseName, new Exception("Expects raised IkatsDaoMissingRessource"));
-			
+
 		} catch (IkatsDaoMissingRessource missingError) {
 			endNominal(testCaseName);
 		} catch (Throwable e) {
@@ -263,18 +263,18 @@ public class FunctionalIdentifierTest extends CommonTest {
 			e.printStackTrace();
 		}
 	}
-	
-    /**
-     * Tests that implemented equals, hashcode are exact or/and robust to null values.
-     */
+
+	/**
+	 * Tests that implemented equals, hashcode are exact or/and robust to null values.
+	 */
 	@Test
-	public void testRobustness()
-	{ 
-		(new FunctionalIdentifier(null, null) ).toString();
-		(new FunctionalIdentifier(null, null) ).hashCode();
-		assertTrue((new FunctionalIdentifier(null, null) ).equals( new FunctionalIdentifier(null, null) ));
-		assertTrue( ! (new FunctionalIdentifier(null, null) ).equals( "string" ) );
-		assertNotSame( new FunctionalIdentifier("HI", "HA"), new FunctionalIdentifier("HU", "HA"));
-		assertFalse( (new FunctionalIdentifier("HI", "HA")).equals( new FunctionalIdentifier("HI", "HU")));
+	public void testRobustness() {
+		(new FunctionalIdentifier(null, null)).toString();
+		(new FunctionalIdentifier(null, null)).hashCode();
+		assertTrue((new FunctionalIdentifier(null, null)).equals(new FunctionalIdentifier(null, null)));
+		assertTrue(!(new FunctionalIdentifier(null, null)).equals("string"));
+		assertNotSame(new FunctionalIdentifier("HI", "HA"), new FunctionalIdentifier("HU", "HA"));
+		assertFalse((new FunctionalIdentifier("HI", "HA")).equals(new FunctionalIdentifier("HI", "HU")));
+
 	}
 }
