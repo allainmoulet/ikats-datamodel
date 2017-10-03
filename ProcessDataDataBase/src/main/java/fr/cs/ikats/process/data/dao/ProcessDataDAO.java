@@ -143,11 +143,10 @@ public class ProcessDataDAO extends DataBaseDAO {
     public List<ProcessData> listTables() {
         List<ProcessData> result = null;
         Session session = getSession();
-        //Transaction code commented due to blob usage in the ProcessData entity and upstream services
-        // See 161722-try-blobfix branch for a possible fix
-        //Transaction tx = null;
+        
+        Transaction tx = null;
         try {
-        	//tx = session.beginTransaction();
+        	tx = session.beginTransaction();
             Criteria criteria = session.createCriteria(ProcessData.class);
             criteria.add(Restrictions.sqlRestriction("processid ~ '[a-zA-Z]'"));
             // Table are handled in ProcessData so as CorrelationDataset results.
@@ -161,7 +160,7 @@ public class ProcessDataDAO extends DataBaseDAO {
             result = criteria.list();
             
             // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
-            //tx.commit();
+            tx.commit();
         }
         catch (RuntimeException e) {
             // In next version: we ought to manage exceptions instead of returning null:
@@ -170,8 +169,7 @@ public class ProcessDataDAO extends DataBaseDAO {
             // throw new IkatsDaoException("Error reading process Data for processId " + processId + " in database", e);
             LOGGER.error("Error reading process Data in database", e);
             
-            // code commented: try to rollback
-            // if (tx != null) tx.rollback();
+            if (tx != null) tx.rollback();
         }
         finally {
             session.close();
@@ -205,9 +203,10 @@ public class ProcessDataDAO extends DataBaseDAO {
             tx.commit();
         }
         catch (RuntimeException e) {
-            // try to rollback
+          
         	LOGGER.error("Error deleting ProcessData for " + processId, e);
             
+        	// try to rollback
         	if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw new IkatsDaoException("Can't delete "+ processId, e);

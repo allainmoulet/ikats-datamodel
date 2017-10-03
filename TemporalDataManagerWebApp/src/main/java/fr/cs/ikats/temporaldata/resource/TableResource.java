@@ -238,39 +238,61 @@ public class TableResource extends AbstractResource {
     }
 
     /**
-     * Extends the table defined by the tableJson parameter, by adding one column per selected metric: <ul> <li>Insert
-     * column header having the metric name,</li> <li>Insert cells of timeseries references, from selected dataset,
-     * selected by the join column, present in original table.</li> </ul>
+     * Extends the table defined by the tableJson parameter, by adding one
+     * column per selected metric:
+     * <ul>
+     * <li>Insert column header having the metric name,</li>
+     * <li>Insert cells of timeseries references, from selected dataset,
+     * selected by the join column, present in original table.</li>
+     * </ul>
      * <p>
-     * Join principle: for the inserted column J for metric XXX, each joined timeseries at table[i,J] has the specified
-     * metric metadata value=XXX and has the metadata <ul> <li>with name defined by the parameter joinMetaName</li>,
-     * <li>whose value is equal to the value table[i,K] from join column K, defined by the parameter joinColName.</li>
+     * Join principle: for the inserted column J for metric XXX, each joined
+     * timeseries at table[i,J] has the specified metric metadata value=XXX and
+     * has the metadata
+     * <ul>
+     * <li>with name defined by the parameter joinMetaName</li>,
+     * <li>whose value is equal to the value table[i,K] from join column K,
+     * defined by the parameter joinColName.</li>
      * </ul>
      * <p>
      * Created columns are inserted according to the parameter targetColName.
      *
-     * @param tableJson       the raw String representing the JSON plain content
-     * @param metrics         selected metrics separated by ";". Spaces are ignored.
-     * @param dataset         the dataset name.
-     * @param joinColName     the name of the table column used by the join. Optional: if undefined (""), the first
-     *                        column will be used by the join.
-     * @param joinMetaName    defines the name of metadata used by the join, useful when the column and metadata names
-     *                        are different. Optional default is undefined (""): if joinMetaName is undefined, then the
-     *                        metadata has the name of the table column used by the join (see joinColName), and if both
-     *                        criteria (joinColName + joinMetaName) are undefined: it is assumed that the first column
-     *                        header provides the expected metadata name.
-     * @param targetColName   name of the target column. Optional: default is undefined (""). When target name is
-     *                        defined, the joined columns are inserted before the target column; when undefined, the
-     *                        joined columns are appended at the end.
-     * @param outputTableName name of the table joined by metric, and created in the database. The name ought to be
-     *                        conformed to the pattern: {@link TableManager#TABLE_NAME_PATTERN}
-     *
+     * @param tableJson
+     *            the raw String representing the JSON plain content
+     * @param metrics
+     *            selected metrics separated by ";". Spaces are ignored.
+     * @param dataset
+     *            the dataset name.
+     * @param joinColName
+     *            the name of the table column used by the join. Optional: if
+     *            undefined (""), the first column will be used by the join.
+     * @param joinMetaName
+     *            defines the name of metadata used by the join, useful when the
+     *            column and metadata names are different. Optional default is
+     *            undefined (""): if joinMetaName is undefined, then the
+     *            metadata has the name of the table column used by the join
+     *            (see joinColName), and if both criteria (joinColName +
+     *            joinMetaName) are undefined: it is assumed that the first
+     *            column header provides the expected metadata name.
+     * @param targetColName
+     *            name of the target column. Optional: default is undefined
+     *            (""). When target name is defined, the joined columns are
+     *            inserted before the target column; when undefined, the joined
+     *            columns are appended at the end.
+     * @param outputTableName
+     *            name of the table joined by metric, and created in the
+     *            database. The name ought to be conformed to the pattern:
+     *            {@link TableManager#TABLE_NAME_PATTERN}
      * @return
-     *
-     * @throws IkatsDaoException         a database access error occured during the service.
-     * @throws InvalidValueException     error raised if one of the inputs is invalid.
-     * @throws ResourceNotFoundException error raised if one of the resource required by computing is not found
-     * @throws IkatsException            unexpected error occured on the server.
+     * @throws IkatsDaoException
+     *             a database access error occured during the service.
+     * @throws InvalidValueException
+     *             error raised if one of the inputs is invalid.
+     * @throws ResourceNotFoundException
+     *             error raised if one of the resource required by computing is
+     *             not found
+     * @throws IkatsException
+     *             unexpected error occured on the server.
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -292,8 +314,9 @@ public class TableResource extends AbstractResource {
     }
 
     /**
-     * Table process to : - change table key from metadata (populationId) - add metadata (metaName) value to original
-     * column headers  : metaName_colHeader
+     * Table process to :
+     * - change table key from metadata (populationId)
+     * - add metadata (metaName) value to original column headers  : metaName_colHeader
      * <p>
      * Input table first column must be time series functional identifiers
      *
@@ -438,8 +461,8 @@ public class TableResource extends AbstractResource {
     }
 
     /**
-     * Read the Table from database, using media-type (with DAO Table: merge equivalent services readTable <=>
-     * downlodTable into one compliant with final solution)
+     * Read the Table from database, using media-type
+     * (with DAO Table: merge equivalent services readTable <=> downlodTable into one compliant with final solution)
      *
      * @param name unique identifier of the table
      *
@@ -452,14 +475,16 @@ public class TableResource extends AbstractResource {
     @GET
     @Path("/json/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public TableInfo readTable(@PathParam("name") String name) throws IkatsJsonException, IkatsDaoException, ResourceNotFoundException {
+    public TableInfo readTable(@PathParam("name") String name) throws IkatsJsonException, IkatsDaoException, ResourceNotFoundException
+    {
         TableManager tableMgt = new TableManager();
         return tableMgt.readFromDatabase(name);
     }
 
     /**
-     * Table process to : - change table key from metadata (populationId) - add metadata (metaName) value to original
-     * column headers  : metaName_colHeader
+     * Table process to :
+     * - change table key from metadata (populationId)
+     * - add metadata (metaName) value to original column headers  : metaName_colHeader
      * <p>
      * Input table first column must be time series functional identifiers
      *
@@ -512,8 +537,8 @@ public class TableResource extends AbstractResource {
 
 
     /**
-     * Operator call for the merge of two tables with a join column.<br> See {@link TablesMerge.Request} for JSON input
-     * specification
+     * Operator call for the merge of two tables with a join column.<br>
+     * See {@link TablesMerge.Request} for JSON input specification
      *
      * @param request
      *
