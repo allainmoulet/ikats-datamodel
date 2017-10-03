@@ -49,11 +49,7 @@ public class WorkflowDAO extends DataBaseDAO {
             Criteria criteria = session.createCriteria(Workflow.class);
             criteria.add(Restrictions.eq("isMacroOp", isMacroOp));
             result = criteria.list();
-            for (Workflow workflow : result) {
-            	// quick fix: avoid side effects on session, by removing workflow from synchronized cache
-            	// because workflow is modified by rest service, instead of using a DTO producing JSON
-				session.evict(workflow);
-			}
+
             tx.commit();
         }
         catch (RuntimeException e) {
@@ -135,9 +131,6 @@ public class WorkflowDAO extends DataBaseDAO {
             else
             {
             	result = resultList.get(0);
-            	// quick fix: avoid side effects on session, by removing result from synchronized cache
-            	// because result is modified by rest service, instead of using a DTO producing JSON
-                session.evict(result);
             }
                         
             tx.commit();
