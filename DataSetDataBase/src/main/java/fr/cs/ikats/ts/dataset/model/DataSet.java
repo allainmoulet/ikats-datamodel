@@ -172,25 +172,32 @@ public class DataSet {
      * <br/>
      * Beware that in our context: equals(...) is True when the operands are targeting the same dataset,
      * but they may require changes.
+     * <br/>
+     * Using Hibernate: advised to implement equals: see §13.1.3
+     * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
+     * 
      * {@inheritDoc}
      */
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof DataSet) {
             DataSet dsObj = (DataSet) obj;
-            // if ( this.name != null )
-            // {
-            return this.name.equals(dsObj.name);
-            // }
-            // else
-            // {
-            // return false; // weird
-            // }
-
+            return this.name.equals(dsObj.name); 
         }
         else {
             return false;
         }
+    }
+    
+    /**
+     * Using Hibernate: advised to implement hashcode: see §13.1.3
+     * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+     
+    	return (""+ name + "DS").hashCode();
     }
 
     public Long getNb_ts() {

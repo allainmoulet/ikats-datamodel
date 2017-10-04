@@ -1,20 +1,17 @@
 package fr.cs.ikats.process.data.dao;
 
-import java.sql.Blob;
 import java.util.List;
 
-import fr.cs.ikats.common.dao.DataBaseDAO;
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.process.data.model.ProcessData;
 import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
-import org.hibernate.Hibernate;
-import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.MatchMode;
 import org.hibernate.criterion.Restrictions;
 
+import fr.cs.ikats.common.dao.DataBaseDAO;
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.process.data.model.ProcessData;
 
 /**
  * DAO for ProcessData
@@ -40,29 +37,30 @@ public class ProcessDataDAO extends DataBaseDAO {
      * @return the internal identifier if ProcessData has been correctly persisted,
      */
     public String persist(ProcessData ds, byte[] data) {
+        Integer processDataId = null;
 
         Session session = getSession();
         Transaction tx = null;
-        Integer processDataId = null;
         try {
             tx = session.beginTransaction();
-            Blob blob;
-            blob = Hibernate.createBlob(data);
-            ds.setData(blob);
+
+            ds.setData(data);
             processDataId = (Integer) session.save(ds);
-            session.flush();
+            LOGGER.trace("ProcessData stored " + ds);
+
             tx.commit();
-            LOGGER.debug("ProcessData stored " + ds);
         }
-        catch (HibernateException e) {
-            if (tx != null) {
-                tx.rollback();
-            }
-            LOGGER.error("", e);
+        catch (RuntimeException e) {
+            // try to rollback
+            if (tx != null) tx.rollback();
+            // Re-raise the original exception
+            throw e;
         }
         finally {
+            // end the session
             session.close();
         }
+
         return processDataId.toString();
     }
 
@@ -75,16 +73,26 @@ public class ProcessDataDAO extends DataBaseDAO {
      */
     public ProcessData getProcessData(Integer id) {
         ProcessData result = null;
+        
         Session session = getSession();
+        Transaction tx = null;
         try {
+            tx = session.beginTransaction();
+            LOGGER.debug("Getting processId:" + id);
+
             result = (ProcessData) session.get(ProcessData.class, id);
+            
+            tx.commit();
         }
-        catch (HibernateException e) {
-            LOGGER.error("ProcessData " + id + " not found in database", e);
+        catch (RuntimeException e) {
+        	 if (tx != null) tx.rollback();
+        	 throw e; // or display error message
         }
         finally {
+            // end the session
             session.close();
         }
+
         return result;
     }
 
@@ -97,26 +105,33 @@ public class ProcessDataDAO extends DataBaseDAO {
      */
     public List<ProcessData> getProcessData(String processId) {
         List<ProcessData> result = null;
+
         Session session = getSession();
+      
+        Transaction tx = null;
         try {
+            tx = session.beginTransaction();
+            LOGGER.debug("Getting processId:" + processId);
+
             Criteria criteria = session.createCriteria(ProcessData.class);
             criteria.add(Restrictions.eq("processId", processId));
             result = criteria.list();
+            
+            tx.commit();
         }
-        catch (HibernateException e) {
-            // In next version: we ought to manage exceptions instead of returning null:
-            // =>  impact analysis + global refactoring: we need to correct each impacted service
-            //
-            // throw new IkatsDaoException("Error reading process Data for processId " + processId + " in database", e);
-            LOGGER.error("Error reading process Data for processId=" + processId + " in database", e);
+        catch (RuntimeException e) {
+        	 if (tx != null) tx.rollback();
+        	 throw e; // or display error message
         }
         finally {
+            // end the session
             session.close();
         }
 
         if ((result != null) && result.isEmpty()) {
-            LOGGER.info("No process Data for processId=" + result + " found in database");
+            LOGGER.debug("No process Data for processId=" + result + " found in database");
         }
+
         return result;
     }
 
@@ -128,8 +143,10 @@ public class ProcessDataDAO extends DataBaseDAO {
     public List<ProcessData> listTables() {
         List<ProcessData> result = null;
         Session session = getSession();
-
+        
+        Transaction tx = null;
         try {
+        	tx = session.beginTransaction();
             Criteria criteria = session.createCriteria(ProcessData.class);
             criteria.add(Restrictions.sqlRestriction("processid ~ '[a-zA-Z]'"));
             // Table are handled in ProcessData so as CorrelationDataset results.
@@ -141,13 +158,18 @@ public class ProcessDataDAO extends DataBaseDAO {
                                     )
                         );
             result = criteria.list();
+            
+            // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
+            tx.commit();
         }
-        catch (HibernateException e) {
+        catch (RuntimeException e) {
             // In next version: we ought to manage exceptions instead of returning null:
             // =>  impact analysis + global refactoring: we need to correct each impacted service
             //
             // throw new IkatsDaoException("Error reading process Data for processId " + processId + " in database", e);
             LOGGER.error("Error reading process Data in database", e);
+            
+            if (tx != null) tx.rollback();
         }
         finally {
             session.close();
@@ -159,7 +181,6 @@ public class ProcessDataDAO extends DataBaseDAO {
         return result;
     }
 
-
     /**
      * remove the ProcessData from database.
      *
@@ -168,25 +189,32 @@ public class ProcessDataDAO extends DataBaseDAO {
      * @throws IkatsDaoException if error occurs in database
      */
     public void removeAllProcessData(String processId) throws IkatsDaoException {
+
         Session session = getSession();
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
+
             List<ProcessData> list = getProcessData(processId);
             for (ProcessData pd : list) {
                 session.delete(pd);
             }
+
             tx.commit();
         }
-        catch (HibernateException e) {
-            if (tx != null) {
-                tx.rollback();
-            }
-            LOGGER.error("Error deleting ProcessData for " + processId, e);
-            throw new IkatsDaoException("Can't delete "+ processId);
+        catch (RuntimeException e) {
+          
+        	LOGGER.error("Error deleting ProcessData for " + processId, e);
+            
+        	// try to rollback
+        	if (tx != null) tx.rollback();
+            // Re-raise the original exception
+            throw new IkatsDaoException("Can't delete "+ processId, e);
         }
         finally {
+            // end the session
             session.close();
         }
     }
+    
 }

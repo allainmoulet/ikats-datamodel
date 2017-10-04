@@ -1,6 +1,8 @@
 
 package fr.cs.ikats.metadata.model;
 
+import java.util.Objects;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -90,15 +92,37 @@ public class FunctionalIdentifier {
     }
 
     /**
-     * Tests the parameter object contains the same tsuid and funcid
+     * Tests the entity equality between this and obj: database identity
+     *
+     * Using Hibernate: advised to implement equals: see §13.1.3
+     * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
      *
      * @param obj object to compare with
      * @return true if they match, false otherwise
      */
     @Override
     public boolean equals(Object obj) {
-        return ((obj instanceof FunctionalIdentifier) &&
-                ((FunctionalIdentifier) obj).getTsuid().equals(tsuid) &&
-                ((FunctionalIdentifier) obj).getFuncId().equals(funcId));
+    	
+    	if ( this == obj) return true;
+    	
+    	if ( ! (obj instanceof FunctionalIdentifier)) return false;
+    	
+        FunctionalIdentifier otherTsIds = (FunctionalIdentifier) obj;
+		String objTsuid = otherTsIds.getTsuid();
+        String objFuncId = otherTsIds.getFuncId();
+        
+        // Avoid null pointer exceptions ...
+		return  Objects.equals(tsuid, objTsuid) && Objects.equals(funcId, objFuncId);
+    }
+    
+    /**
+     * Using Hibernate: advised to implement hashcode: see §13.1.3
+     * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
+     * {@inheritDoc}
+     */
+    @Override
+    public int hashCode() {
+     
+    	return (""+ tsuid + funcId + "TSIds").hashCode();
     }
 }

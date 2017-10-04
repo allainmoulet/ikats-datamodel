@@ -12,12 +12,14 @@ package fr.cs.ikats.metadata;
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.common.expr.Atom;
 import fr.cs.ikats.common.expr.Expression;
 import fr.cs.ikats.common.expr.Group;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
+import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
 import org.hibernate.HibernateException;
 import org.hibernate.Query;
@@ -47,17 +49,6 @@ public class MetaDataTest {
     //
     private static DataBaseDAO dao = new DataBaseDAO() {
     };
-
-    /**
-     * Saves the content of a CSV as a Table
-     *
-     * @param name    name identifying the Table
-     * @param content text corresponding to the CSV format
-     */
-    private static void saveTable(String name, String content) {
-        //TODO Save the table
-
-    }
 
     /**
      * Initializing the class
@@ -91,17 +82,19 @@ public class MetaDataTest {
         Session session = dao.getSession();
 
         Transaction tx = null;
-        Integer mdId = null;
         try {
             tx = session.beginTransaction();
-            Query q = session.createQuery("DELETE FROM tsmetadata where tsuid like '%ts%';");
-            int results = q.executeUpdate();
+            Query q = session.createQuery("DELETE FROM MetaData where tsuid like '%ts%'");
+            q.executeUpdate();
             tx.commit();
-        } catch (HibernateException e) {
+        }
+        catch (HibernateException e) {
             if (tx != null) {
                 tx.rollback();
             }
-        } finally {
+            throw e;
+        }
+        finally {
             session.close();
         }
     }
@@ -111,242 +104,177 @@ public class MetaDataTest {
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.lang.String)}
      * .
+     * @throws IkatsDaoException 
+     * @throws IkatsDaoConflictException 
      */
     @Test
-    public void testPersistMetaData() {
-        try {
-            MetaDataFacade facade = new MetaDataFacade();
-            Integer results = facade.persistMetaData("tsuid1", "MDName1", "value1");
-            assertTrue("Error, results not imported", results >= 0);
-            System.out.println(facade.getCSVForMetaData(facade.getMetaDataForTS("tsuid1")));
-        } catch (Exception e) {
-            fail();
-        }
-
+    public void testPersistMetaData() throws IkatsDaoConflictException, IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
+        Integer results = facade.persistMetaData("tsuid1", "MDName1", "value1");
+        assertTrue("Error, results not imported", results >= 0);
     }
 
     @Test
-    public void testMetaDataTypes() {
+    public void testMetaDataTypes() throws IkatsDaoConflictException, IkatsDaoInvalidValueException, IkatsDaoException {
         MetaDataFacade facade = new MetaDataFacade();
-        try {
-            facade.persistMetaData("tsuidB01", "thatsastring", "blabla", "string");
-            facade.persistMetaData("tsuidB02", "thatsanumber", "12", "number");
-            Map metaTypesTable = facade.getMetaDataTypes();
-            assertNotNull(metaTypesTable);
-            assertEquals("number", metaTypesTable.get("thatsanumber"));
-            assertEquals("string", metaTypesTable.get("thatsastring"));
-        } catch (IkatsDaoException e) {
-            e.printStackTrace();
-        }
+        facade.persistMetaData("tsuidB01", "thatsastring", "blabla", "string");
+        facade.persistMetaData("tsuidB02", "thatsanumber", "12", "number");
+        Map<String, String> metaTypesTable = facade.getMetaDataTypes();
+        assertNotNull(metaTypesTable);
+        assertEquals("number", metaTypesTable.get("thatsanumber"));
+        assertEquals("string", metaTypesTable.get("thatsastring"));
     }
 
     /**
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.lang.String)}
      * .
+     * @throws IkatsDaoException 
+     * @throws IkatsDaoConflictException 
      */
     @Test
-    public void testUpdateMetaData() {
-        try {
-            MetaDataFacade facade = new MetaDataFacade();
-            Integer results1 = facade.persistMetaData("tsuidA01", "MDName1", "value1");
+    public void testUpdateMetaData() throws IkatsDaoConflictException, IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
+        Integer results1 = facade.persistMetaData("tsuidA01", "MDName1", "value1");
 
-            assertTrue("Error, results1 not created", results1.intValue() >= 0);
+        assertTrue("Error, results1 not created", results1.intValue() >= 0);
 
-            List<MetaData> metadataList = facade.getMetaDataForTS("tsuidA01");
-            assertTrue((metadataList != null) && (metadataList.size() == 1));
-            assertTrue(metadataList.get(0).getValue().equals("value1"));
+        List<MetaData> metadataList = facade.getMetaDataForTS("tsuidA01");
+        assertTrue((metadataList != null) && (metadataList.size() == 1));
+        assertTrue(metadataList.get(0).getValue().equals("value1"));
 
-            Integer results2 = facade.updateMetaData("tsuidA01", "MDName1", "value2");
+        Integer results2 = facade.updateMetaData("tsuidA01", "MDName1", "value2");
 
-            assertTrue("Error, results2 not updated", results2.intValue() == results1.intValue());
+        assertTrue("Error, results2 not updated", results2.intValue() == results1.intValue());
 
-            metadataList = facade.getMetaDataForTS("tsuidA01");
-            assertTrue((metadataList != null) && (metadataList.size() == 1));
-            assertTrue(metadataList.get(0).getValue().equals("value2"));
+        metadataList = facade.getMetaDataForTS("tsuidA01");
+        assertTrue((metadataList != null) && (metadataList.size() == 1));
+        assertTrue(metadataList.get(0).getValue().equals("value2"));
 
-            Integer results3 = facade.updateMetaData("tsuidA01", "MDName1", "value2");
+        Integer results3 = facade.updateMetaData("tsuidA01", "MDName1", "value2");
 
-            assertTrue("Error, results3 not updated", results3.intValue() == results1.intValue());
+        assertTrue("Error, results3 not updated", results3.intValue() == results1.intValue());
 
-            metadataList = facade.getMetaDataForTS("tsuidA01");
-            assertTrue((metadataList != null) && (metadataList.size() == 1));
-            assertTrue(metadataList.get(0).getValue().equals("value2"));
+        metadataList = facade.getMetaDataForTS("tsuidA01");
+        assertTrue((metadataList != null) && (metadataList.size() == 1));
+        assertTrue(metadataList.get(0).getValue().equals("value2"));
 
-            System.out.println(facade.getCSVForMetaData(metadataList));
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail();
-        }
     }
 
     /**
+     * @throws IkatsDaoException 
+     * @throws IkatsDaoMissingRessource 
      *
      */
-    @Test
-    public void testUpdateMetadataFailure() {
-        System.out.println("---------- START: testUpdateMetadataFailure -----------");
-        try {
-            MetaDataFacade facade = new MetaDataFacade();
-            try {
-                Integer results4 = facade.updateMetaData("tsuidF01", "MDFailedUpdateWithoutCreate", "value");
-                fail("Expected error: update without any resource created");
-            } catch (IkatsDaoConflictException conflict) {
-                fail("Unexpected conflict error with update (tsuidF01, MDFailedUpdateWithoutCreate )");
-            } catch (IkatsDaoException e) {
-                // Good failure: nothing to do
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail();
-        }
-        System.out.println("---------- END: testUpdateMetadataFailure -----------");
+    @Test(expected = IkatsDaoMissingRessource.class)
+    public void testUpdateMetadataFailure() throws IkatsDaoMissingRessource, IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
+        facade.updateMetaData("tsuidF01", "MDFailedUpdateWithoutCreate", "value");
+        fail("IkatsDaoMissingRessource should be raised");
     }
 
     /**
      * Test the failures of searchs by TSUIDs
+     * @throws IkatsDaoException 
+     * @throws IkatsDaoMissingRessource 
      */
-    @Test
-    public void testSearchByTsuidFailure() {
-
-        System.out.println("---------- START: testSearchByTsuidFailure -----------");
-        try {
-            MetaDataFacade facade = new MetaDataFacade();
-            try {
-                // test failure: non existant tsuid
-                facade.getMetaDataForTS("tsuidM01");
-
-                fail("Expected error: update without any resource created");
-            } catch (IkatsDaoMissingRessource e) {
-                // Good failure: nothing to do
-            } catch (IkatsDaoException conflict) {
-                fail("Unexpected error instead of IkatsDaoMissingRessource");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail();
-        }
-        System.out.println("---------- END: testSearchByTsuidFailure -----------");
-
+    @Test(expected = IkatsDaoMissingRessource.class)
+    public void testSearchByTsuidFailure() throws IkatsDaoMissingRessource, IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
+        // test failure: non existant tsuid
+        facade.getMetaDataForTS("tsuidM01");
     }
 
     /**
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.lang.String)}
      * .
+     * @throws IkatsDaoException 
+     * @throws IkatsDaoConflictException 
      */
     @Test
-    public void testCreateMetaDataDuplicate() {
-        try {
-            MetaDataFacade facade = new MetaDataFacade();
-            Integer results1 = facade.persistMetaData("tsuidBX", "MDName1", "v1");
-            Integer results2 = facade.persistMetaData("tsuidBX", "MDName2", "v1");
-            Integer results3 = facade.persistMetaData("tsuidBY", "MDName1", "v2");
-            assertTrue("Error, results1 not imported", results1 >= 0);
-            assertTrue("Error, results3 not imported", results2 >= 0);
-            assertTrue("Error, results4 not imported", results3 >= 0);
-            System.out.println(facade.getCSVForMetaData(facade.getMetaDataForTS("tsuidBX")));
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail();
-        }
+    public void testCreateMetaDataDuplicate() throws IkatsDaoConflictException, IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
+        Integer results1 = facade.persistMetaData("tsuidBX", "MDName1", "v1");
+        Integer results2 = facade.persistMetaData("tsuidBX", "MDName2", "v1");
+        Integer results3 = facade.persistMetaData("tsuidBY", "MDName1", "v2");
+        assertTrue("Error, results1 not imported", results1 >= 0);
+        assertTrue("Error, results3 not imported", results2 >= 0);
+        assertTrue("Error, results4 not imported", results3 >= 0);
     }
 
     /**
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#removeMetaDataForTS(java.lang.String)}
      * .
+     * @throws IkatsDaoException 
+     * @throws IkatsDaoConflictException 
      */
-    @Test
-    public void testRemoveMetaDataForTS() {
-        try {
-            MetaDataFacade facade = new MetaDataFacade();
+    @Test(expected =  IkatsDaoMissingRessource.class)
+    public void testRemoveMetaDataForTS() throws IkatsDaoConflictException, IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
 
-            facade.persistMetaData("tsuidC3", "MDName1", "value1");
-            facade.persistMetaData("tsuidC3", "MDName2", "value1");
-            facade.persistMetaData("tsuidC4", "MDName1", "value2");
+        facade.persistMetaData("tsuidC3", "MDName1", "value1");
+        facade.persistMetaData("tsuidC3", "MDName2", "value1");
+        facade.persistMetaData("tsuidC4", "MDName1", "value2");
 
-            facade.removeMetaDataForTS("tsuidC4");
-            System.out.println("---------- START failure expected ----------");
-            try {
-                List<MetaData> result = facade.getMetaDataForTS("tsuidC4");
-                fail("Expected error was not raised: IkatsDaoMissingRessource");
-            } catch (IkatsDaoMissingRessource e) {
-                // Good: expected failure
-            } catch (IkatsDaoException e) {
-                fail("Unexpected error instead of IkatsDaoMissingRessource");
-            }
-            System.out.println("---------- END failure expected ----------");
 
-            List<MetaData> result = facade.getMetaDataForTS("tsuidC3");
-            assertEquals(2, result.size());
-            facade.removeMetaDataForTS("tsuidC3", "MDName1");
-            result = facade.getMetaDataForTS("tsuidC3");
-            assertEquals(1, result.size());
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail();
-        }
+        List<MetaData> result = facade.getMetaDataForTS("tsuidC3");
+        assertEquals(2, result.size());
+        facade.removeMetaDataForTS("tsuidC3", "MDName1");
+        result = facade.getMetaDataForTS("tsuidC3");
+        assertEquals(1, result.size());
+        
+        facade.removeMetaDataForTS("tsuidC4");
+        // assert exception 
+        facade.getMetaDataForTS("tsuidC4");
     }
 
     /**
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#getMetaDataForTS(java.lang.String)}
      * .
+     * @throws IkatsDaoException 
+     * @throws IkatsDaoConflictException 
      */
     @Test
-    public void testGetMetaDataForTS() {
-        try {
-            MetaDataFacade facade = new MetaDataFacade();
+    public void testGetMetaDataForTS() throws IkatsDaoConflictException, IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
 
-            facade.persistMetaData("tsuidD5", "MDName1", "value1");
+        facade.persistMetaData("tsuidD5", "MDName1", "value1");
 
-            List<MetaData> result = facade.getMetaDataForTS("tsuidD5");
-            System.out.println(facade.getCSVForMetaData(result));
-            assertEquals(1, result.size());
-            MetaData result0 = result.get(0);
+        List<MetaData> result = facade.getMetaDataForTS("tsuidD5");
+        System.out.println(facade.getCSVForMetaData(result));
+        assertEquals(1, result.size());
+        MetaData result0 = result.get(0);
 
-            assertEquals("MDName1", result0.getName());
-            assertEquals("value1", result0.getValue());
-            assertNotNull(result0.getId());
-        } catch (Exception e) {
-            e.printStackTrace();
-            fail();
-        }
-
+        assertEquals("MDName1", result0.getName());
+        assertEquals("value1", result0.getValue());
+        assertNotNull(result0.getId());
     }
 
     /**
+     * @throws IkatsDaoException 
+     * @throws IkatsDaoConflictException 
      *
      */
     @Test
-    public void testCreateMetaDataFailure() {
+    public void testCreateMetaDataFailure() throws IkatsDaoConflictException, IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
+        facade.persistMetaData("tsG1", "MDName1", "21");
 
-        System.out.println("---------- START: testCreateMetaDataFailure -----------");
+
         try {
-            MetaDataFacade facade = new MetaDataFacade();
-            facade.persistMetaData("tsG1", "MDName1", "21");
-
-
-            try {
-                facade.persistMetaData("tsG1", "MDName1", "12");
-            } catch (IkatsDaoConflictException e) {
-                // Good: expected error
-            } catch (IkatsDaoException e) {
-                fail("Unexpected error instead of IkatsDaoConflictException (case with different values");
-            }
-
-            try {
-                facade.persistMetaData("tsG1", "MDName1", "21");
-            } catch (IkatsDaoConflictException e) {
-                // Good: expected error
-            } catch (IkatsDaoException e) {
-                fail("Unexpected error instead of IkatsDaoConflictException (case with same values");
-            }
-        } catch (Exception e) {
-            fail("Unexpected error");
+            facade.persistMetaData("tsG1", "MDName1", "12");
+        } catch (IkatsDaoConflictException e) {
+            // Good: expected error
         }
-        System.out.println("---------- END: testCreateMetaDataFailure -----------");
+
+        try {
+            facade.persistMetaData("tsG1", "MDName1", "21");
+        } catch (IkatsDaoConflictException e) {
+            // Good: expected error
+        } 
     }
 
     private void addCrit(Group<MetadataCriterion> formula, String critName, String critOperator, String rightOperandValue) {
@@ -370,428 +298,422 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on "in" operator with single item in operand list
+     * @throws IkatsDaoException 
      */
     @Test
-    public void testSearchFuncId_in_single() {
+    public void testSearchFuncId_in_single() throws IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
 
-        try {
-            MetaDataFacade facade = new MetaDataFacade();
+        // Create the test set
+        facade.persistMetaData("TS1", "MD1", "A");
+        facade.persistMetaData("TS2", "MD2", "A");
+        facade.persistMetaData("TS3", "MD1", "A");
+        facade.persistMetaData("TS3", "MD2", "A");
+        facade.persistMetaData("TS4", "MD1", "B");
+        facade.persistMetaData("TS4", "MD2", "A");
+        facade.persistMetaData("TS5", "MD1", "A");
+        facade.persistMetaData("TS5", "MD2", "B");
+        facade.persistMetaData("TS6", "MD1", "B");
+        facade.persistMetaData("TS6", "MD2", "B");
+        facade.persistMetaData("TS7", "MD1", "C");
+        facade.persistMetaData("TS7", "MD2", "B");
+        facade.persistMetaData("TS8", "MD1", "A");
+        facade.persistMetaData("TS8", "MD2", "C");
+        facade.persistMetaData("TS9", "MD2", "A");
 
-            // Create the test set
-            facade.persistMetaData("TS1", "MD1", "A");
-            facade.persistMetaData("TS2", "MD2", "A");
-            facade.persistMetaData("TS3", "MD1", "A");
-            facade.persistMetaData("TS3", "MD2", "A");
-            facade.persistMetaData("TS4", "MD1", "B");
-            facade.persistMetaData("TS4", "MD2", "A");
-            facade.persistMetaData("TS5", "MD1", "A");
-            facade.persistMetaData("TS5", "MD2", "B");
-            facade.persistMetaData("TS6", "MD1", "B");
-            facade.persistMetaData("TS6", "MD2", "B");
-            facade.persistMetaData("TS7", "MD1", "C");
-            facade.persistMetaData("TS7", "MD2", "B");
-            facade.persistMetaData("TS8", "MD1", "A");
-            facade.persistMetaData("TS8", "MD2", "C");
-            facade.persistMetaData("TS9", "MD2", "A");
+        // Create the initial scope
+        List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+        addToScope(scope, "TS1", "FID1");
+        addToScope(scope, "TS2", "FID2");
+        addToScope(scope, "TS3", "FID3");
+        addToScope(scope, "TS4", "FID4");
+        addToScope(scope, "TS5", "FID5");
+        addToScope(scope, "TS6", "FID6");
+        addToScope(scope, "TS7", "FID7");
+        addToScope(scope, "TS8", "FID8");
 
-            // Create the initial scope
-            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
-            addToScope(scope, "TS1", "FID1");
-            addToScope(scope, "TS2", "FID2");
-            addToScope(scope, "TS3", "FID3");
-            addToScope(scope, "TS4", "FID4");
-            addToScope(scope, "TS5", "FID5");
-            addToScope(scope, "TS6", "FID6");
-            addToScope(scope, "TS7", "FID7");
-            addToScope(scope, "TS8", "FID8");
+        // Formula
+        Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+        formula.connector = Expression.ConnectorExpression.AND;
+        formula.terms = new ArrayList<Expression<MetadataCriterion>>();
 
-            // Formula
-            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
-            formula.connector = Expression.ConnectorExpression.AND;
-            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+        ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
 
-            ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+        // Preparing results
+        addCrit(formula, "MD1", "in", "A");
+        addToScope(expected, "TS1", "FID1");
+        addToScope(expected, "TS3", "FID3");
+        addToScope(expected, "TS5", "FID5");
+        addToScope(expected, "TS8", "FID8");
 
-            // Preparing results
-            addCrit(formula, "MD1", "in", "A");
-            addToScope(expected, "TS1", "FID1");
-            addToScope(expected, "TS3", "FID3");
-            addToScope(expected, "TS5", "FID5");
-            addToScope(expected, "TS8", "FID8");
+        // Compute
+        ArrayList<FunctionalIdentifier> obtained =
+                (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
 
-            // Compute
-            ArrayList<FunctionalIdentifier> obtained =
-                    (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
+        // Check results
+        assertTrue(obtained.equals(expected));
 
-            // Check results
-            assertTrue(obtained.equals(expected));
-
-            // Cleanup
-            facade.removeMetaDataForTS("TS1");
-            facade.removeMetaDataForTS("TS2");
-            facade.removeMetaDataForTS("TS3");
-            facade.removeMetaDataForTS("TS4");
-            facade.removeMetaDataForTS("TS5");
-            facade.removeMetaDataForTS("TS6");
-            facade.removeMetaDataForTS("TS7");
-            facade.removeMetaDataForTS("TS8");
-            facade.removeMetaDataForTS("TS9");
-
-
-        } catch (Exception e) {
-            fail("Unexpected error");
-        }
+        // Cleanup
+        facade.removeMetaDataForTS("TS1");
+        facade.removeMetaDataForTS("TS2");
+        facade.removeMetaDataForTS("TS3");
+        facade.removeMetaDataForTS("TS4");
+        facade.removeMetaDataForTS("TS5");
+        facade.removeMetaDataForTS("TS6");
+        facade.removeMetaDataForTS("TS7");
+        facade.removeMetaDataForTS("TS8");
+        facade.removeMetaDataForTS("TS9");
     }
 
     /**
      * Test the metadata filtering based on "in" operator with not right operand for "in"
+     * @throws IkatsDaoException 
      */
     @Test
-    public void testSearchFuncId_in_noOperand() {
+    public void testSearchFuncId_in_noOperand() throws IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
 
-        try {
-            MetaDataFacade facade = new MetaDataFacade();
+        // Create the test set
+        facade.persistMetaData("TS1", "MD1", "A");
+        facade.persistMetaData("TS2", "MD2", "A");
+        facade.persistMetaData("TS3", "MD1", "A");
+        facade.persistMetaData("TS3", "MD2", "A");
+        facade.persistMetaData("TS4", "MD1", "B");
+        facade.persistMetaData("TS4", "MD2", "A");
+        facade.persistMetaData("TS5", "MD1", "A");
+        facade.persistMetaData("TS5", "MD2", "B");
+        facade.persistMetaData("TS6", "MD1", "B");
+        facade.persistMetaData("TS6", "MD2", "B");
+        facade.persistMetaData("TS7", "MD1", "C");
+        facade.persistMetaData("TS7", "MD2", "B");
+        facade.persistMetaData("TS8", "MD1", "A");
+        facade.persistMetaData("TS8", "MD2", "C");
+        facade.persistMetaData("TS9", "MD2", "A");
 
-            // Create the test set
-            facade.persistMetaData("TS1", "MD1", "A");
-            facade.persistMetaData("TS2", "MD2", "A");
-            facade.persistMetaData("TS3", "MD1", "A");
-            facade.persistMetaData("TS3", "MD2", "A");
-            facade.persistMetaData("TS4", "MD1", "B");
-            facade.persistMetaData("TS4", "MD2", "A");
-            facade.persistMetaData("TS5", "MD1", "A");
-            facade.persistMetaData("TS5", "MD2", "B");
-            facade.persistMetaData("TS6", "MD1", "B");
-            facade.persistMetaData("TS6", "MD2", "B");
-            facade.persistMetaData("TS7", "MD1", "C");
-            facade.persistMetaData("TS7", "MD2", "B");
-            facade.persistMetaData("TS8", "MD1", "A");
-            facade.persistMetaData("TS8", "MD2", "C");
-            facade.persistMetaData("TS9", "MD2", "A");
+        // Create the initial scope
+        List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+        addToScope(scope, "TS1", "FID1");
+        addToScope(scope, "TS2", "FID2");
+        addToScope(scope, "TS3", "FID3");
+        addToScope(scope, "TS4", "FID4");
+        addToScope(scope, "TS5", "FID5");
+        addToScope(scope, "TS6", "FID6");
+        addToScope(scope, "TS7", "FID7");
+        addToScope(scope, "TS8", "FID8");
 
-            // Create the initial scope
-            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
-            addToScope(scope, "TS1", "FID1");
-            addToScope(scope, "TS2", "FID2");
-            addToScope(scope, "TS3", "FID3");
-            addToScope(scope, "TS4", "FID4");
-            addToScope(scope, "TS5", "FID5");
-            addToScope(scope, "TS6", "FID6");
-            addToScope(scope, "TS7", "FID7");
-            addToScope(scope, "TS8", "FID8");
+        // Formula
+        Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+        formula.connector = Expression.ConnectorExpression.AND;
+        formula.terms = new ArrayList<Expression<MetadataCriterion>>();
 
-            // Formula
-            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
-            formula.connector = Expression.ConnectorExpression.AND;
-            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+        // Preparing results
+        addCrit(formula, "MD1", "in", "");
 
-            // Preparing results
-            addCrit(formula, "MD1", "in", "");
+        // Compute
+        ArrayList<FunctionalIdentifier> obtained =
+                (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
 
-            // Compute
-            ArrayList<FunctionalIdentifier> obtained =
-                    (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
+        // Check results
+        assertEquals(0, obtained.size());
 
-            // Check results
-            assertEquals(0, obtained.size());
-
-            // Cleanup
-            facade.removeMetaDataForTS("TS1");
-            facade.removeMetaDataForTS("TS2");
-            facade.removeMetaDataForTS("TS3");
-            facade.removeMetaDataForTS("TS4");
-            facade.removeMetaDataForTS("TS5");
-            facade.removeMetaDataForTS("TS6");
-            facade.removeMetaDataForTS("TS7");
-            facade.removeMetaDataForTS("TS8");
-            facade.removeMetaDataForTS("TS9");
-
-
-        } catch (Exception e) {
-            fail("Unexpected error");
-        }
+        // Cleanup
+        facade.removeMetaDataForTS("TS1");
+        facade.removeMetaDataForTS("TS2");
+        facade.removeMetaDataForTS("TS3");
+        facade.removeMetaDataForTS("TS4");
+        facade.removeMetaDataForTS("TS5");
+        facade.removeMetaDataForTS("TS6");
+        facade.removeMetaDataForTS("TS7");
+        facade.removeMetaDataForTS("TS8");
+        facade.removeMetaDataForTS("TS9");
     }
 
     /**
      * Test the metadata filtering based on "in" operator with multiple items in operand list
+     * @throws IkatsDaoException 
      */
     @Test
-    public void testSearchFuncId_in_multiple() {
+    public void testSearchFuncId_in_multiple() throws IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
 
-        try {
-            MetaDataFacade facade = new MetaDataFacade();
+        // Create the test set
+        facade.persistMetaData("TS1", "MD1", "A");
+        facade.persistMetaData("TS2", "MD2", "A");
+        facade.persistMetaData("TS3", "MD1", "A");
+        facade.persistMetaData("TS3", "MD2", "A");
+        facade.persistMetaData("TS4", "MD1", "B");
+        facade.persistMetaData("TS4", "MD2", "A");
+        facade.persistMetaData("TS5", "MD1", "A");
+        facade.persistMetaData("TS5", "MD2", "B");
+        facade.persistMetaData("TS6", "MD1", "B");
+        facade.persistMetaData("TS6", "MD2", "B");
+        facade.persistMetaData("TS7", "MD1", "C");
+        facade.persistMetaData("TS7", "MD2", "B");
+        facade.persistMetaData("TS8", "MD1", "A");
+        facade.persistMetaData("TS8", "MD2", "C");
 
-            // Create the test set
-            facade.persistMetaData("TS1", "MD1", "A");
-            facade.persistMetaData("TS2", "MD2", "A");
-            facade.persistMetaData("TS3", "MD1", "A");
-            facade.persistMetaData("TS3", "MD2", "A");
-            facade.persistMetaData("TS4", "MD1", "B");
-            facade.persistMetaData("TS4", "MD2", "A");
-            facade.persistMetaData("TS5", "MD1", "A");
-            facade.persistMetaData("TS5", "MD2", "B");
-            facade.persistMetaData("TS6", "MD1", "B");
-            facade.persistMetaData("TS6", "MD2", "B");
-            facade.persistMetaData("TS7", "MD1", "C");
-            facade.persistMetaData("TS7", "MD2", "B");
-            facade.persistMetaData("TS8", "MD1", "A");
-            facade.persistMetaData("TS8", "MD2", "C");
+        // Create the initial scope
+        List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+        addToScope(scope, "TS1", "FID1");
+        addToScope(scope, "TS2", "FID2");
+        addToScope(scope, "TS3", "FID3");
+        addToScope(scope, "TS4", "FID4");
+        addToScope(scope, "TS5", "FID5");
+        addToScope(scope, "TS6", "FID6");
+        addToScope(scope, "TS7", "FID7");
+        addToScope(scope, "TS8", "FID8");
 
-            // Create the initial scope
-            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
-            addToScope(scope, "TS1", "FID1");
-            addToScope(scope, "TS2", "FID2");
-            addToScope(scope, "TS3", "FID3");
-            addToScope(scope, "TS4", "FID4");
-            addToScope(scope, "TS5", "FID5");
-            addToScope(scope, "TS6", "FID6");
-            addToScope(scope, "TS7", "FID7");
-            addToScope(scope, "TS8", "FID8");
+        // Formula
+        Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+        formula.connector = Expression.ConnectorExpression.AND;
+        formula.terms = new ArrayList<Expression<MetadataCriterion>>();
 
-            // Formula
-            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
-            formula.connector = Expression.ConnectorExpression.AND;
-            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+        ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
 
-            ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+        // Preparing results
+        addCrit(formula, "MD1", "in", "A;B");
+        addToScope(expected, "TS1", "FID1");
+        addToScope(expected, "TS3", "FID3");
+        addToScope(expected, "TS4", "FID4");
+        addToScope(expected, "TS5", "FID5");
+        addToScope(expected, "TS6", "FID6");
+        addToScope(expected, "TS8", "FID8");
 
-            // Preparing results
-            addCrit(formula, "MD1", "in", "A;B");
-            addToScope(expected, "TS1", "FID1");
-            addToScope(expected, "TS3", "FID3");
-            addToScope(expected, "TS4", "FID4");
-            addToScope(expected, "TS5", "FID5");
-            addToScope(expected, "TS6", "FID6");
-            addToScope(expected, "TS8", "FID8");
+        // Compute
+        ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
 
-            // Compute
-            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
+        // Check results
+        assertTrue(obtained.equals(expected));
 
-            // Check results
-            assertTrue(obtained.equals(expected));
-
-            // Cleanup
-            facade.removeMetaDataForTS("TS1");
-            facade.removeMetaDataForTS("TS2");
-            facade.removeMetaDataForTS("TS3");
-            facade.removeMetaDataForTS("TS4");
-            facade.removeMetaDataForTS("TS5");
-            facade.removeMetaDataForTS("TS6");
-            facade.removeMetaDataForTS("TS7");
-            facade.removeMetaDataForTS("TS8");
-
-        } catch (Exception e) {
-            fail("Unexpected error");
-        }
+        // Cleanup
+        facade.removeMetaDataForTS("TS1");
+        facade.removeMetaDataForTS("TS2");
+        facade.removeMetaDataForTS("TS3");
+        facade.removeMetaDataForTS("TS4");
+        facade.removeMetaDataForTS("TS5");
+        facade.removeMetaDataForTS("TS6");
+        facade.removeMetaDataForTS("TS7");
+        facade.removeMetaDataForTS("TS8");
     }
 
     /**
      * Test the metadata filtering based on "not in" operator with multiple items in operand list
+     * @throws IkatsDaoException 
      */
     @Test
-    public void testSearchFuncId_notin_multiple() {
+    public void testSearchFuncId_notin_multiple() throws IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
 
-        try {
-            MetaDataFacade facade = new MetaDataFacade();
+        // Create the test set
+        facade.persistMetaData("TS1", "MD1", "A");
+        facade.persistMetaData("TS2", "MD2", "A");
+        facade.persistMetaData("TS3", "MD1", "A");
+        facade.persistMetaData("TS3", "MD2", "A");
+        facade.persistMetaData("TS4", "MD1", "B");
+        facade.persistMetaData("TS4", "MD2", "A");
+        facade.persistMetaData("TS5", "MD1", "A");
+        facade.persistMetaData("TS5", "MD2", "B");
+        facade.persistMetaData("TS6", "MD1", "B");
+        facade.persistMetaData("TS6", "MD2", "B");
+        facade.persistMetaData("TS7", "MD1", "C");
+        facade.persistMetaData("TS7", "MD2", "B");
+        facade.persistMetaData("TS8", "MD1", "A");
+        facade.persistMetaData("TS8", "MD2", "C");
 
-            // Create the test set
-            facade.persistMetaData("TS1", "MD1", "A");
-            facade.persistMetaData("TS2", "MD2", "A");
-            facade.persistMetaData("TS3", "MD1", "A");
-            facade.persistMetaData("TS3", "MD2", "A");
-            facade.persistMetaData("TS4", "MD1", "B");
-            facade.persistMetaData("TS4", "MD2", "A");
-            facade.persistMetaData("TS5", "MD1", "A");
-            facade.persistMetaData("TS5", "MD2", "B");
-            facade.persistMetaData("TS6", "MD1", "B");
-            facade.persistMetaData("TS6", "MD2", "B");
-            facade.persistMetaData("TS7", "MD1", "C");
-            facade.persistMetaData("TS7", "MD2", "B");
-            facade.persistMetaData("TS8", "MD1", "A");
-            facade.persistMetaData("TS8", "MD2", "C");
+        // Create the initial scope
+        List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+        addToScope(scope, "TS1", "FID1");
+        addToScope(scope, "TS2", "FID2");
+        addToScope(scope, "TS3", "FID3");
+        addToScope(scope, "TS4", "FID4");
+        addToScope(scope, "TS5", "FID5");
+        addToScope(scope, "TS6", "FID6");
+        addToScope(scope, "TS7", "FID7");
+        addToScope(scope, "TS8", "FID8");
 
-            // Create the initial scope
-            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
-            addToScope(scope, "TS1", "FID1");
-            addToScope(scope, "TS2", "FID2");
-            addToScope(scope, "TS3", "FID3");
-            addToScope(scope, "TS4", "FID4");
-            addToScope(scope, "TS5", "FID5");
-            addToScope(scope, "TS6", "FID6");
-            addToScope(scope, "TS7", "FID7");
-            addToScope(scope, "TS8", "FID8");
+        // Formula
+        Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+        formula.connector = Expression.ConnectorExpression.AND;
+        formula.terms = new ArrayList<Expression<MetadataCriterion>>();
 
-            // Formula
-            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
-            formula.connector = Expression.ConnectorExpression.AND;
-            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+        ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
 
-            ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+        // Preparing results
+        addCrit(formula, "MD2", "not in", "A");
+        addToScope(expected, "TS5", "FID5");
+        addToScope(expected, "TS6", "FID6");
+        addToScope(expected, "TS7", "FID7");
+        addToScope(expected, "TS8", "FID8");
 
-            // Preparing results
-            addCrit(formula, "MD2", "not in", "A");
-            addToScope(expected, "TS5", "FID5");
-            addToScope(expected, "TS6", "FID6");
-            addToScope(expected, "TS7", "FID7");
-            addToScope(expected, "TS8", "FID8");
+        // Compute
+        ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
 
-            // Compute
-            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
+        // Check results
+        assertTrue(obtained.equals(expected));
 
-            // Check results
-            assertTrue(obtained.equals(expected));
-
-            // Cleanup
-            facade.removeMetaDataForTS("TS1");
-            facade.removeMetaDataForTS("TS2");
-            facade.removeMetaDataForTS("TS3");
-            facade.removeMetaDataForTS("TS4");
-            facade.removeMetaDataForTS("TS5");
-            facade.removeMetaDataForTS("TS6");
-            facade.removeMetaDataForTS("TS7");
-            facade.removeMetaDataForTS("TS8");
-
-        } catch (Exception e) {
-            fail("Unexpected error");
-        }
+        // Cleanup
+        facade.removeMetaDataForTS("TS1");
+        facade.removeMetaDataForTS("TS2");
+        facade.removeMetaDataForTS("TS3");
+        facade.removeMetaDataForTS("TS4");
+        facade.removeMetaDataForTS("TS5");
+        facade.removeMetaDataForTS("TS6");
+        facade.removeMetaDataForTS("TS7");
+        facade.removeMetaDataForTS("TS8");
     }
 
     /**
      * Test the metadata filtering based on mixed "in" and "not in" operators with multiple items in operand list
+     * @throws IkatsDaoException 
      */
     @Test
-    public void testSearchFuncId_in_notin_mixed() {
+    public void testSearchFuncId_in_notin_mixed() throws IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
 
-        try {
-            MetaDataFacade facade = new MetaDataFacade();
+        // Create the test set
+        facade.persistMetaData("TS1", "MD1", "A");
+        facade.persistMetaData("TS2", "MD2", "A");
+        facade.persistMetaData("TS3", "MD1", "A");
+        facade.persistMetaData("TS3", "MD2", "A");
+        facade.persistMetaData("TS4", "MD1", "B");
+        facade.persistMetaData("TS4", "MD2", "A");
+        facade.persistMetaData("TS5", "MD1", "A");
+        facade.persistMetaData("TS5", "MD2", "B");
+        facade.persistMetaData("TS6", "MD1", "B");
+        facade.persistMetaData("TS6", "MD2", "B");
+        facade.persistMetaData("TS7", "MD1", "C");
+        facade.persistMetaData("TS7", "MD2", "B");
+        facade.persistMetaData("TS8", "MD1", "A");
+        facade.persistMetaData("TS8", "MD2", "C");
 
-            // Create the test set
-            facade.persistMetaData("TS1", "MD1", "A");
-            facade.persistMetaData("TS2", "MD2", "A");
-            facade.persistMetaData("TS3", "MD1", "A");
-            facade.persistMetaData("TS3", "MD2", "A");
-            facade.persistMetaData("TS4", "MD1", "B");
-            facade.persistMetaData("TS4", "MD2", "A");
-            facade.persistMetaData("TS5", "MD1", "A");
-            facade.persistMetaData("TS5", "MD2", "B");
-            facade.persistMetaData("TS6", "MD1", "B");
-            facade.persistMetaData("TS6", "MD2", "B");
-            facade.persistMetaData("TS7", "MD1", "C");
-            facade.persistMetaData("TS7", "MD2", "B");
-            facade.persistMetaData("TS8", "MD1", "A");
-            facade.persistMetaData("TS8", "MD2", "C");
+        // Create the initial scope
+        List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+        addToScope(scope, "TS1", "FID1");
+        addToScope(scope, "TS2", "FID2");
+        addToScope(scope, "TS3", "FID3");
+        addToScope(scope, "TS4", "FID4");
+        addToScope(scope, "TS5", "FID5");
+        addToScope(scope, "TS6", "FID6");
+        addToScope(scope, "TS7", "FID7");
+        addToScope(scope, "TS8", "FID8");
 
-            // Create the initial scope
-            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
-            addToScope(scope, "TS1", "FID1");
-            addToScope(scope, "TS2", "FID2");
-            addToScope(scope, "TS3", "FID3");
-            addToScope(scope, "TS4", "FID4");
-            addToScope(scope, "TS5", "FID5");
-            addToScope(scope, "TS6", "FID6");
-            addToScope(scope, "TS7", "FID7");
-            addToScope(scope, "TS8", "FID8");
+        // Formula
+        Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+        formula.connector = Expression.ConnectorExpression.AND;
+        formula.terms = new ArrayList<Expression<MetadataCriterion>>();
 
-            // Formula
-            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
-            formula.connector = Expression.ConnectorExpression.AND;
-            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+        ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
 
-            ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+        // Preparing results
+        addCrit(formula, "MD1", "in", "A;B");
+        addCrit(formula, "MD2", "not in", "B;C");
+        addToScope(expected, "TS3", "FID3");
+        addToScope(expected, "TS4", "FID4");
 
-            // Preparing results
-            addCrit(formula, "MD1", "in", "A;B");
-            addCrit(formula, "MD2", "not in", "B;C");
-            addToScope(expected, "TS3", "FID3");
-            addToScope(expected, "TS4", "FID4");
+        // Compute
+        ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
 
-            // Compute
-            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
+        // Check results
+        assertTrue(obtained.equals(expected));
 
-            // Check results
-            assertTrue(obtained.equals(expected));
+        // Cleanup
+        facade.removeMetaDataForTS("TS1");
+        facade.removeMetaDataForTS("TS2");
+        facade.removeMetaDataForTS("TS3");
+        facade.removeMetaDataForTS("TS4");
+        facade.removeMetaDataForTS("TS5");
+        facade.removeMetaDataForTS("TS6");
+        facade.removeMetaDataForTS("TS7");
+        facade.removeMetaDataForTS("TS8");
 
-            // Cleanup
-            facade.removeMetaDataForTS("TS1");
-            facade.removeMetaDataForTS("TS2");
-            facade.removeMetaDataForTS("TS3");
-            facade.removeMetaDataForTS("TS4");
-            facade.removeMetaDataForTS("TS5");
-            facade.removeMetaDataForTS("TS6");
-            facade.removeMetaDataForTS("TS7");
-            facade.removeMetaDataForTS("TS8");
-
-        } catch (Exception e) {
-            fail("Unexpected error");
-        }
     }
 
     /**
      * Test the metadata filtering based on mixed "in" and "not in" operators with multiple items in operand list
+     * @throws IkatsDaoException 
      */
     @Test
-    public void testSearchFuncId_empty_result() {
+    public void testSearchFuncId_empty_result() throws IkatsDaoException {
+        MetaDataFacade facade = new MetaDataFacade();
 
-        try {
-            MetaDataFacade facade = new MetaDataFacade();
+        // Create the test set
+        facade.persistMetaData("TS1", "MD1", "A");
+        facade.persistMetaData("TS2", "MD2", "A");
+        facade.persistMetaData("TS3", "MD1", "A");
+        facade.persistMetaData("TS3", "MD2", "A");
+        facade.persistMetaData("TS4", "MD1", "B");
+        facade.persistMetaData("TS4", "MD2", "A");
+        facade.persistMetaData("TS5", "MD1", "A");
+        facade.persistMetaData("TS5", "MD2", "B");
+        facade.persistMetaData("TS6", "MD1", "B");
+        facade.persistMetaData("TS6", "MD2", "B");
+        facade.persistMetaData("TS7", "MD1", "C");
+        facade.persistMetaData("TS7", "MD2", "B");
+        facade.persistMetaData("TS8", "MD1", "A");
+        facade.persistMetaData("TS8", "MD2", "C");
 
-            // Create the test set
-            facade.persistMetaData("TS1", "MD1", "A");
-            facade.persistMetaData("TS2", "MD2", "A");
-            facade.persistMetaData("TS3", "MD1", "A");
-            facade.persistMetaData("TS3", "MD2", "A");
-            facade.persistMetaData("TS4", "MD1", "B");
-            facade.persistMetaData("TS4", "MD2", "A");
-            facade.persistMetaData("TS5", "MD1", "A");
-            facade.persistMetaData("TS5", "MD2", "B");
-            facade.persistMetaData("TS6", "MD1", "B");
-            facade.persistMetaData("TS6", "MD2", "B");
-            facade.persistMetaData("TS7", "MD1", "C");
-            facade.persistMetaData("TS7", "MD2", "B");
-            facade.persistMetaData("TS8", "MD1", "A");
-            facade.persistMetaData("TS8", "MD2", "C");
+        // Create the initial scope
+        List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
+        addToScope(scope, "TS1", "FID1");
+        addToScope(scope, "TS2", "FID2");
+        addToScope(scope, "TS3", "FID3");
+        addToScope(scope, "TS4", "FID4");
+        addToScope(scope, "TS5", "FID5");
+        addToScope(scope, "TS6", "FID6");
+        addToScope(scope, "TS7", "FID7");
+        addToScope(scope, "TS8", "FID8");
 
-            // Create the initial scope
-            List<FunctionalIdentifier> scope = new ArrayList<FunctionalIdentifier>();
-            addToScope(scope, "TS1", "FID1");
-            addToScope(scope, "TS2", "FID2");
-            addToScope(scope, "TS3", "FID3");
-            addToScope(scope, "TS4", "FID4");
-            addToScope(scope, "TS5", "FID5");
-            addToScope(scope, "TS6", "FID6");
-            addToScope(scope, "TS7", "FID7");
-            addToScope(scope, "TS8", "FID8");
+        // Formula
+        Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+        formula.connector = Expression.ConnectorExpression.AND;
+        formula.terms = new ArrayList<Expression<MetadataCriterion>>();
 
-            // Formula
-            Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
-            formula.connector = Expression.ConnectorExpression.AND;
-            formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+        ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
 
-            ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+        // Preparing results
+        addCrit(formula, "MD1", "in", "F");
 
-            // Preparing results
-            addCrit(formula, "MD1", "in", "F");
+        // Compute
+        ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
 
-            // Compute
-            ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>) facade.searchFuncId(scope, formula);
+        // Check results
+        assertTrue(obtained.equals(expected));
 
-            // Check results
-            assertTrue(obtained.equals(expected));
-
-            // Cleanup
-            facade.removeMetaDataForTS("TS1");
-            facade.removeMetaDataForTS("TS2");
-            facade.removeMetaDataForTS("TS3");
-            facade.removeMetaDataForTS("TS4");
-            facade.removeMetaDataForTS("TS5");
-            facade.removeMetaDataForTS("TS6");
-            facade.removeMetaDataForTS("TS7");
-            facade.removeMetaDataForTS("TS8");
-
-        } catch (Exception e) {
-            fail("Unexpected error");
-        }
+        // Cleanup
+        facade.removeMetaDataForTS("TS1");
+        facade.removeMetaDataForTS("TS2");
+        facade.removeMetaDataForTS("TS3");
+        facade.removeMetaDataForTS("TS4");
+        facade.removeMetaDataForTS("TS5");
+        facade.removeMetaDataForTS("TS6");
+        facade.removeMetaDataForTS("TS7");
+        facade.removeMetaDataForTS("TS8");
     }
 
-
+    /**
+     * Tests that implemented equals, hashcode are exact or/and robust to null values.
+     */
+    @Test
+    public void testRobustness()
+    {
+    	MetaData meta = new MetaData();
+    	meta.hashCode();
+    	assertFalse( meta.equals("toto"));
+    	assertTrue( meta.equals(meta));
+    	MetaData meta2 = new MetaData();
+    	meta.setTsuid("tsuid1");
+    	meta2.setTsuid(meta.getTsuid());
+    	meta.setName("name1");
+    	meta2.setName(meta.getName());
+    	meta.setDType(MetaType.number);
+    	meta.setValue("12");
+    	meta2.setDType(meta.getDType());
+    	meta2.setValue(meta.getValue());
+    	
+    	assertEquals(meta, meta2);
+    	meta.setValue("11");
+    	assertFalse(meta.equals(meta2));
+    	
+    	
+    }
 }

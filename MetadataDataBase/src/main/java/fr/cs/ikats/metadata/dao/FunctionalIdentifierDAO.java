@@ -21,359 +21,354 @@ import org.hibernate.exception.ConstraintViolationException;
 import org.hibernate.transform.Transformers;
 
 /**
- * FunctionalIdentifierDAO is providing CRUD services on the resource FunctionalIdentifier. <br/> Note: replaced
- * org.hibernate.HibernateException by Throwable in catch blocs of services.
+ * FunctionalIdentifierDAO is providing CRUD services on the resource FunctionalIdentifier. <br/>
+ * Note: replaced org.hibernate.HibernateException by Throwable in catch blocs of services.
  */
 public class FunctionalIdentifierDAO extends DataBaseDAO {
 
-    private static final Logger LOGGER = Logger.getLogger(FunctionalIdentifierDAO.class);
+	private static final Logger LOGGER = Logger.getLogger(FunctionalIdentifierDAO.class);
 
-    /**
-     * Maximum limit of the SQL 'IN' clause, that cause JDBC driver to hang. TODO think to move this elsewhere...
-     */
-    private static final int MAX_SQL_IN_CLAUSE_LIMIT = 20000;
+	/**
+	 * Maximum limit of the SQL 'IN' clause, that cause JDBC driver to hang. TODO think to move this elsewhere...
+	 */
+	private static final int MAX_SQL_IN_CLAUSE_LIMIT = 20000;
 
-    /**
-     * persist FunctionalIdentifier into database
-     *
-     * @param fi FunctionalIdentifier
-     *
-     * @return the internal id
-     */
-    public int persist(FunctionalIdentifier fi) throws IkatsDaoConflictException, IkatsDaoException {
-        Session session = getSession();
-        Transaction tx = null;
-        int result = 0;
-        try {
-            tx = session.beginTransaction();
-            session.save(fi);
-            tx.commit();
-            LOGGER.debug("FunctionalIdentifier stored " + fi.getTsuid() + ";" + fi.getFuncId());
-            result++;
-        }
-        catch (ConstraintViolationException e) {
+	/**
+	 * persist FunctionalIdentifier into database
+	 *
+	 * @param fi
+	 *            FunctionalIdentifier
+	 *
+	 * @return the internal id
+	 */
+	public int persist(FunctionalIdentifier fi) throws IkatsDaoConflictException, IkatsDaoException {
 
-            String msg = "Removing FunctionalIdentifier for tsuid=" + fi.getTsuid() + "failed : constraint violation";
-            LOGGER.warn(msg);
+		int result = 0;
 
-            rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
-        }
-        catch (HibernateException e) {
-            String msg = "Removing FunctionalIdentifier for tsuid=" + fi.getTsuid() + "failed : does not exist";
-            LOGGER.error(msg, e);
+		String tsuid= (fi != null) ? fi.getTsuid() : null;
+		String funcId = ( fi != null ) ? fi.getFuncId() : null;
+		
+		Session session = getSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();
+			session.save(fi);
+			tx.commit();
+			LOGGER.debug("FunctionalIdentifier stored " + tsuid + ";" + funcId);
+			result++;
+		} catch (ConstraintViolationException e) {
 
-            rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
-        }
-        catch (Throwable eOther) {
-            if (tx != null) {
-                tx.rollback();
-            }
-            LOGGER.error("Not stored: " + ((fi != null) ? fi.toString() : "FunctionalIdentifier is null"));
-            LOGGER.error(eOther.getClass().getSimpleName() + "Throwable in FunctionalIdentifierDAO::persist", eOther);
-        }
-        finally {
-            session.close();
-        }
-        return result;
-    }
+			String msg = "Writting FunctionalIdentifier for tsuid=" + tsuid + "failed : constraint violation";
+			LOGGER.warn(msg);
 
-    /**
-     * remove FunctionalIdentifier from database.
-     *
-     * @param tsuidList the list of identifiers
-     *
-     * @return number of removals
-     */
-    public int remove(List<String> tsuidList) throws IkatsDaoConflictException, IkatsDaoException {
-        Session session = getSession();
-        Transaction tx = null;
-        int result = 0;
-        String currentTsuid = null;
-        try {
-            tx = session.beginTransaction();
-            for (String tsuid : tsuidList) {
-                currentTsuid = tsuid;
-                String hql = "delete from FunctionalIdentifier where tsuid= :uid";
-                Query query = session.createQuery(hql);
-                query.setString("uid", tsuid);
-                result = query.executeUpdate();
-            }
-            tx.commit();
-        }
-        catch (ConstraintViolationException e) {
+			rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
+		} catch (HibernateException e) {
+			String msg = "Writting FunctionalIdentifier for tsuid=" + tsuid + "failed : does not exist";
+			LOGGER.error(msg, e);
 
-            String msg = "Removing FunctionalIdentifier for tsuid=" + currentTsuid + "failed : constraint violation";
-            LOGGER.warn(msg);
+			rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
+		} catch (RuntimeException e) {
+			if (tx != null)
+				tx.rollback();
+			LOGGER.error("Not stored: " + ((fi != null) ? fi.toString() : "FunctionalIdentifier is null"));
+			LOGGER.error(e.getClass().getSimpleName() + "Throwable in FunctionalIdentifierDAO::persist", e);
+			// Re-raise the original exception
+			throw e;
+		} finally {
+			session.close();
+		}
 
-            rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
-        }
-        catch (HibernateException e) {
-            String msg = "Removing FunctionalIdentifier for tsuid=" + currentTsuid + "failed : does not exist";
-            LOGGER.error(msg, e);
+		return result;
+	}
 
-            rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
-        }
-        catch (Exception anotherError) {
-            String msg = "Removing FunctionalIdentifier for tsuid=" + currentTsuid + "failed : unexpected Exception";
-            LOGGER.error(msg, anotherError);
+	/**
+	 * remove FunctionalIdentifier from database.
+	 *
+	 * @param tsuidList
+	 *            the list of identifiers
+	 *
+	 * @return number of removals
+	 */
+	public int remove(List<String> tsuidList) throws IkatsDaoConflictException, IkatsDaoException {
+		Session session = getSession();
+		Transaction tx = null;
+		int result = 0;
+		String currentTsuid = null;
+		try {
+			tx = session.beginTransaction();
+			for (String tsuid : tsuidList) {
+				currentTsuid = tsuid;
+				String hql = "delete from FunctionalIdentifier where tsuid= :uid";
+				Query query = session.createQuery(hql);
+				query.setString("uid", tsuid);
+				result = query.executeUpdate();
+			}
+			tx.commit();
+		} catch (ConstraintViolationException e) {
+			String msg = "Removing FunctionalIdentifier for tsuid=" + currentTsuid + "failed : constraint violation";
+			LOGGER.warn(msg);
 
-            rollbackAndThrowException(tx, new IkatsDaoException(msg, anotherError));
-        }
-        finally {
-            session.close();
-        }
-        return result;
-    }
+			// Re-raise the original exception
+			rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
+		} catch (HibernateException e) {
+			String msg = "Removing FunctionalIdentifier for tsuid=" + currentTsuid + "failed : does not exist";
+			LOGGER.error(msg, e);
 
-    /**
-     * Get the list of each FunctionalIdentifier matching the tsuids list. See FunctionalIdentifier: stands for a pair
-     * (tsuid, functional ID).
-     *
-     * @param tsuids the criterion list.
-     *
-     * @return null if nothing is found, or error occured.
-     */
-    @SuppressWarnings("unchecked")
-    public List<FunctionalIdentifier> list(List<String> tsuids) {
-        Session session = getSession();
-        List<FunctionalIdentifier> result = new ArrayList<>();
-        List<List<String>> tsuidSublists = new ArrayList<List<String>>();
+			// Re-raise the original exception
+			rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
+		} finally {
+			session.close();
+		}
 
-        if (tsuids == null || tsuids.isEmpty()) {
-            return result;
-        }
+		return result;
+	}
 
-        if (tsuids.size() > MAX_SQL_IN_CLAUSE_LIMIT) {
-            // Limit raised : cut list in sublists
-            int from = 0;
-            // note : upperbound is exclusive for List.subList(from, to)
-            int to = MAX_SQL_IN_CLAUSE_LIMIT;
+	/**
+	 * Get the list of each FunctionalIdentifier matching the tsuids list. See FunctionalIdentifier: stands for a pair
+	 * (tsuid, functional ID).
+	 *
+	 * @param tsuids
+	 *            the criterion list.
+	 *
+	 * @return null if nothing is found, or error occured.
+	 */
+	@SuppressWarnings("unchecked")
+	public List<FunctionalIdentifier> list(List<String> tsuids) {
 
-            while (from < tsuids.size()) {
-                tsuidSublists.add(tsuids.subList(from, to));
+		List<FunctionalIdentifier> result = new ArrayList<>();
+		List<List<String>> tsuidSublists = new ArrayList<List<String>>();
 
-                // set next lower and upper bounds, limited to tsuid list size.
-                from = to;
-                to += MAX_SQL_IN_CLAUSE_LIMIT;
-                if (to > tsuids.size()) {
-                    to = tsuids.size();
-                }
-            }
-        }
-        else {
-            // Limit not raised : add the entire list
-            tsuidSublists.add(tsuids);
-        }
+		if (tsuids == null || tsuids.isEmpty()) {
+			return result;
+		}
 
-        try {
-            for (List<String> tsuidList : tsuidSublists) {
-                // loop over each sublists (if more than one) and concatenate
-                // the result
-                Criteria criteria = session.createCriteria(FunctionalIdentifier.class);
-                criteria.add(Restrictions.in("tsuid", tsuidList));
-                result.addAll(criteria.list());
-            }
-        }
-        catch (Throwable eOther) {
-            LOGGER.error(eOther.getClass().getSimpleName() + " in FunctionalIdentifierDAO::list", eOther);
-        }
-        finally {
-            session.close();
-        }
-        return result;
+		if (tsuids.size() > MAX_SQL_IN_CLAUSE_LIMIT) {
+			// Limit raised : cut list in sublists
+			int from = 0;
+			// note : upperbound is exclusive for List.subList(from, to)
+			int to = MAX_SQL_IN_CLAUSE_LIMIT;
 
-    }
+			while (from < tsuids.size()) {
+				tsuidSublists.add(tsuids.subList(from, to));
 
-    /**
-     * Get the list of each FunctionalIdentifier matching the datasetName. See FunctionalIdentifier: stands for a pair
-     * (tsuid, functional ID).
-     *
-     * @param datasetName the name of the dataset to use.
-     *
-     * @return a list of FunctionalIdentifier, or null if nothing is found
-     */
-    @SuppressWarnings("unchecked")
-    public List<FunctionalIdentifier> listFromDataset(String datasetName) throws IkatsDaoException {
-        List<FunctionalIdentifier> result;
-        Session session = getSession();
-        try {
-            String queryString = "SELECT " +
-                    "tsfunctionalidentifier.tsuid as tsuid, " +
-                    "tsfunctionalidentifier.funcid as FuncId " +
-                    "FROM tsfunctionalidentifier, timeseries_dataset " +
-                    "WHERE tsfunctionalidentifier.tsuid = timeseries_dataset.tsuid AND " +
-                    "timeseries_dataset.dataset_name = '" + datasetName + "'" +
-                    "ORDER BY FuncId";
+				// set next lower and upper bounds, limited to tsuid list size.
+				from = to;
+				to += MAX_SQL_IN_CLAUSE_LIMIT;
+				if (to > tsuids.size()) {
+					to = tsuids.size();
+				}
+			}
+		} else {
+			// Limit not raised : add the entire list
+			tsuidSublists.add(tsuids);
+		}
 
-            Query q = session.createSQLQuery(queryString)
-                    .addScalar("tsuid", Hibernate.STRING)
-                    .addScalar("tsuid", Hibernate.STRING)
-                    .addScalar("FuncId", Hibernate.STRING)
-                    .setResultTransformer(Transformers.aliasToBean(FunctionalIdentifier.class));
+		Session session = getSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();
 
-            result = (List<FunctionalIdentifier>) q.list();
-        }
-        catch (HibernateException e) {
-            throw new IkatsDaoMissingRessource("Hibernate error: listFromDataset " + e, e);
-        }
-        catch (Throwable te) {
-            throw new IkatsDaoException("Unexpected error: listFromDataset", te);
-        }
-        finally {
-            session.close();
-        }
+			for (List<String> tsuidList : tsuidSublists) {
+				// loop over each sublists (if more than one) and concatenate
+				// the result
+				Criteria criteria = session.createCriteria(FunctionalIdentifier.class);
+				criteria.add(Restrictions.in("tsuid", tsuidList));
+				result.addAll(criteria.list());
+			}
 
-        return result;
+			tx.commit();
+		} catch (RuntimeException e) {
+			if (tx != null)
+				tx.rollback();
+			throw e; // or display error message
+		} finally {
+			// end the session
+			session.close();
+		}
 
-    }
+		return result;
+	}
 
-    /**
-     * Get the list of each FunctionalIdentifier matching the funcIds list. See FunctionalIdentifier: stands for a pair
-     * (tsuid, functional ID).
-     *
-     * @param funcIds the criterion list
-     *
-     * @return null if nothing is found, or error occured.
-     */
-    public List<FunctionalIdentifier> listByFuncIds(List<String> funcIds) {
-        Session session = getSession();
-        Transaction tx = null;
-        List<FunctionalIdentifier> result = null;
-        try {
-            tx = session.beginTransaction();
-            Criteria criteria = session.createCriteria(FunctionalIdentifier.class);
-            criteria.add(Restrictions.in("funcId", funcIds));
-            result = criteria.list();
-            tx.commit();
-        }
-        // catch (HibernateException e) {
-        // if (tx != null) {
-        // tx.rollback();
-        // }
-        // LOGGER.error("FunctionalIdentifierDAO::listByFuncIds", e);
-        // }
-        catch (Throwable eOther) {
-            try {
-                if (tx != null) {
-                    tx.rollback();
-                }
-            }
-            catch (Throwable e) {
+	/**
+	 * Get the list of each FunctionalIdentifier matching the datasetName. See FunctionalIdentifier: stands for a pair
+	 * (tsuid, functional ID).
+	 *
+	 * @param datasetName
+	 *            the name of the dataset to use.
+	 *
+	 * @return a list of FunctionalIdentifier, or null if nothing is found
+	 */
+	@SuppressWarnings("unchecked")
+	public List<FunctionalIdentifier> listFromDataset(String datasetName) throws IkatsDaoException {
+		List<FunctionalIdentifier> result;
 
-                LOGGER.error(this.getClass().getSimpleName() + "::listByFuncIds : failed roll-back", e);
-            }
+		Session session = getSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();
 
-            LOGGER.error(eOther.getClass().getSimpleName() + " in FunctionalIdentifierDAO::listByFuncIds", eOther);
-        }
-        finally {
-            session.close();
-        }
-        return result;
+			String queryString = "SELECT " + "tsfunctionalidentifier.tsuid as tsuid, "
+					+ "tsfunctionalidentifier.funcid as FuncId " + "FROM tsfunctionalidentifier, timeseries_dataset "
+					+ "WHERE tsfunctionalidentifier.tsuid = timeseries_dataset.tsuid AND "
+					+ "timeseries_dataset.dataset_name = '" + datasetName + "'" + "ORDER BY FuncId";
 
-    }
+			Query q = session.createSQLQuery(queryString).addScalar("tsuid", Hibernate.STRING)
+					.addScalar("tsuid", Hibernate.STRING).addScalar("FuncId", Hibernate.STRING)
+					.setResultTransformer(Transformers.aliasToBean(FunctionalIdentifier.class));
 
-    /**
-     * Get the list of each FunctionalIdentifier. See FunctionalIdentifier: stands for a pair (tsuid, functional ID).
-     *
-     * @return null if nothing is found, or error occurred.
-     */
-    public List<FunctionalIdentifier> listAll() {
-        Session session = getSession();
-        Transaction tx = null;
-        List<FunctionalIdentifier> result = null;
-        try {
-            tx = session.beginTransaction();
-            // Query q = session.createQuery("FROM FunctionalIdentifier");
-            // result = (List<FunctionalIdentifier>)q.list();
+			result = (List<FunctionalIdentifier>) q.list();
 
-            result = (List<FunctionalIdentifier>) session.createCriteria(FunctionalIdentifier.class).list();
+			tx.commit();
+		} catch (RuntimeException e) {
+			if (tx != null)
+				tx.rollback();
+			throw e; // or display error message
+		} finally {
+			// end the session
+			session.close();
+		}
 
-            tx.commit();
-        }
-        catch (Throwable eOther) {
+		return result;
+	}
 
-            try {
-                if (tx != null) {
-                    tx.rollback();
-                }
-            }
-            catch (Throwable e) {
+	/**
+	 * Get the list of each FunctionalIdentifier matching the funcIds list. See FunctionalIdentifier: stands for a pair
+	 * (tsuid, functional ID).
+	 *
+	 * @param funcIds
+	 *            the criterion list
+	 *
+	 * @return null if nothing is found, or error occured.
+	 */
+	public List<FunctionalIdentifier> listByFuncIds(List<String> funcIds) {
 
-                LOGGER.error(this.getClass().getSimpleName() + "::listall : failed roll-back", e);
-            }
-            LOGGER.error(eOther.getClass().getSimpleName() + " in FunctionalIdentifierDAO::listAll", eOther);
-        }
-        finally {
-            session.close();
-        }
-        return result;
+		List<FunctionalIdentifier> result = null;
 
-    }
+		Session session = getSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();
 
-    /**
-     * Get the FunctionalIdentifier entity from database with the funcId value
-     *
-     * @param funcId the functional identifier to search for.
-     *
-     * @return null if nothing found in database, FunctionalIdentifier else.
-     */
-    public FunctionalIdentifier getFromFuncId(String funcId) throws IkatsDaoMissingRessource, IkatsDaoConflictException, IkatsDaoException {
+			Criteria criteria = session.createCriteria(FunctionalIdentifier.class);
+			criteria.add(Restrictions.in("funcId", funcIds));
+			result = criteria.list();
+			
+			tx.commit();
+		} catch (RuntimeException e) {
+			if (tx != null)
+				tx.rollback();
+			throw e; // or display error message
+		} finally {
 
-        String propertyName = "funcId";
+			// end the session
+			session.close();
+		}
 
-        FunctionalIdentifier result = getByProperty(propertyName, funcId);
-        return result;
-    }
+		return result;
+	}
 
-    /**
-     * Get the FunctionalIdentifier entity from database with the tsuid value
-     *
-     * @param tsuid
-     *
-     * @return
-     *
-     * @throws IkatsDaoMissingRessource
-     * @throws IkatsDaoConflictException
-     * @throws IkatsDaoException
-     */
-    public FunctionalIdentifier getFromTsuid(String tsuid) throws IkatsDaoMissingRessource, IkatsDaoConflictException, IkatsDaoException {
+	/**
+	 * Get the list of each FunctionalIdentifier. See FunctionalIdentifier: stands for a pair (tsuid, functional ID).
+	 *
+	 * @return null if nothing is found, or error occurred.
+	 */
+	public List<FunctionalIdentifier> listAll() {
 
-        String propertyName = "tsuid";
+		List<FunctionalIdentifier> result = null;
 
-        FunctionalIdentifier result = getByProperty(propertyName, tsuid);
-        return result;
-    }
+		Session session = getSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();
 
-    private FunctionalIdentifier getByProperty(String propertyName, String propertyValue) throws IkatsDaoException {
-        Session session = null;
-        FunctionalIdentifier result = null;
-        try {
-            session = getSession();
-            Criteria criteria = session.createCriteria(FunctionalIdentifier.class);
+			result = (List<FunctionalIdentifier>) session.createCriteria(FunctionalIdentifier.class).list();
+			
+			tx.commit();
+		} catch (RuntimeException e) {
+			if (tx != null)
+				tx.rollback();
+			throw e; // or display error message
+		} finally {
+			 
 
-            criteria.add(Restrictions.eq(propertyName, propertyValue));
-            List<FunctionalIdentifier> results = criteria.list();
-            if ((results == null) || (results.size() == 0)) {
-                throw new IkatsDaoMissingRessource("Missing FunctionalIdentifier matching " + propertyName + "=" + propertyValue);
-            }
-            else if ((results != null) && (results.size() > 1)) {
-                throw new IkatsDaoConflictException(
-                        "Unexpected conflict error: several FunctionalIdentifier matching " + propertyName + "=" + propertyValue);
-            }
-            result = (FunctionalIdentifier) results.get(0);
-        }
-        catch (IkatsDaoException de) {
-            throw de;
-        }
-        catch (Throwable e) {
-            IkatsDaoException le = new IkatsDaoException(e.getClass().getSimpleName() + " in FunctionalIdentifierDAO::getByProperty " + propertyName + "=" + propertyValue);
-            throw le;
-        }
-        finally {
-            if (session != null) {
-                session.close();
-            }
-        }
-        return result;
-    }
+			// end the session
+			session.close();
+		}
+
+		return result;
+	}
+
+	/**
+	 * Get the FunctionalIdentifier entity from database with the funcId value
+	 *
+	 * @param funcId
+	 *            the functional identifier to search for.
+	 *
+	 * @return null if nothing found in database, FunctionalIdentifier else.
+	 */
+	public FunctionalIdentifier getFromFuncId(String funcId)
+			throws IkatsDaoMissingRessource, IkatsDaoConflictException, IkatsDaoException {
+
+		String propertyName = "funcId";
+
+		FunctionalIdentifier result = getByProperty(propertyName, funcId);
+		return result;
+	}
+
+	/**
+	 * Get the FunctionalIdentifier entity from database with the tsuid value
+	 *
+	 * @param tsuid
+	 *
+	 * @return
+	 *
+	 * @throws IkatsDaoMissingRessource
+	 * @throws IkatsDaoConflictException
+	 * @throws IkatsDaoException
+	 */
+	public FunctionalIdentifier getFromTsuid(String tsuid)
+			throws IkatsDaoMissingRessource, IkatsDaoConflictException, IkatsDaoException {
+
+		String propertyName = "tsuid";
+
+		FunctionalIdentifier result = getByProperty(propertyName, tsuid);
+		return result;
+	}
+
+	private FunctionalIdentifier getByProperty(String propertyName, String propertyValue) throws IkatsDaoException {
+
+		FunctionalIdentifier result = null;
+
+		Session session = getSession();
+		Transaction tx = null;
+		try {
+			tx = session.beginTransaction();
+
+			Criteria criteria = session.createCriteria(FunctionalIdentifier.class);
+
+			criteria.add(Restrictions.eq(propertyName, propertyValue));
+			List<?> results = criteria.list();
+			if ((results == null) || (results.size() == 0)) {
+				throw new IkatsDaoMissingRessource(
+						"Missing FunctionalIdentifier matching " + propertyName + "=" + propertyValue);
+			} else if ((results != null) && (results.size() > 1)) {
+				throw new IkatsDaoConflictException("Unexpected conflict error: several FunctionalIdentifier matching "
+						+ propertyName + "=" + propertyValue);
+			}
+			result = (FunctionalIdentifier) results.get(0);
+			
+			tx.commit();
+			
+		} catch (RuntimeException e) {
+			if (tx != null)
+				tx.rollback();
+			throw e; // or display error message
+		} finally {
+			
+			// end the session
+			session.close();
+		}
+
+		return result;
+	}
 }
