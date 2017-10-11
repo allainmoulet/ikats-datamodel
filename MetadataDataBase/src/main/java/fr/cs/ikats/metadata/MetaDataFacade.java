@@ -248,10 +248,9 @@ public class MetaDataFacade {
      *
      * @return the MetaData or null if not exists
      *
-     * @throws IkatsDaoConflictException error raised when multiple metadata are found
-     * @throws IkatsDaoException         any other exceptions
+     * @throws IkatsDaoConflictException error raised when multiple metadata are found.
      */
-    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoConflictException, IkatsDaoException {
+    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoConflictException {
         return dao.getMD(tsuid, name);
     }
 

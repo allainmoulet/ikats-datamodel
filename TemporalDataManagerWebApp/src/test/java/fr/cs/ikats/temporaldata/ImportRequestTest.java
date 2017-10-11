@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import javax.validation.constraints.AssertTrue;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.Response;
@@ -15,6 +16,8 @@ import javax.ws.rs.core.Response;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
@@ -24,6 +27,7 @@ import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
  * @author ikats
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class ImportRequestTest extends AbstractRequestTest {
 
 	@BeforeClass
@@ -84,8 +88,9 @@ public class ImportRequestTest extends AbstractRequestTest {
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric";
 			String url = getAPIURL() + "/ts/put/" + metric;
-			utils.doImport(file, url, true, 200);
-
+			// utils.doImport(file, url, true, 200);
+			ImportResult result = utils.doImportStubbedOpenTSDB(file, url, testCaseName, true, 200, true);
+			
 			endNominal(testCaseName);
 		} catch (Throwable e) {
 			endWithFailure(testCaseName, e);
@@ -119,8 +124,8 @@ public class ImportRequestTest extends AbstractRequestTest {
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric";
 			String url = getAPIURL() + "/ts/put/" + metric;
-			ImportResult retour = utils.doImport(file, url, true, 200);
-
+			ImportResult retour = utils.doImportStubbedOpenTSDB(file, url, testCaseName, true, 200, true);
+			
 			/*
 			 * retrieval of the tsuid, start_date and end_date from import task
 			 */
@@ -217,8 +222,9 @@ public class ImportRequestTest extends AbstractRequestTest {
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric2";
 			String url = getAPIURL() + "/ts/put/" + metric;
-			utils.doImport(file, url, false, 200);
-
+			 
+			ImportResult result = utils.doImportStubbedOpenTSDB(file, url, testCaseName, false, 200, true);
+			
 			endNominal(testCaseName);
 		} catch (Throwable e) {
 			endWithFailure(testCaseName, e);
@@ -246,8 +252,9 @@ public class ImportRequestTest extends AbstractRequestTest {
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric3";
 			String url = getAPIURL() + "/ts/put/" + metric;
-			utils.doImport(file, url, true, 200);
-
+			// utils.doImport(file, url, true, 200);
+			ImportResult result = utils.doImportStubbedOpenTSDB(file, url, testCaseName, true, 200, true);
+			
 			endNominal(testCaseName);
 		} catch (Throwable e) {
 			endWithFailure(testCaseName, e);
@@ -276,8 +283,9 @@ public class ImportRequestTest extends AbstractRequestTest {
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric4";
 			String url = getAPIURL() + "/ts/put/" + metric;
-			utils.doImport(file, url, false, 200);
-
+			// utils.doImport(file, url, false, 200);
+			ImportResult result = utils.doImportStubbedOpenTSDB(file, url, testCaseName, false, 200, true);
+			
 			endNominal(testCaseName);
 		} catch (Throwable e) {
 			endWithFailure(testCaseName, e);
@@ -288,11 +296,11 @@ public class ImportRequestTest extends AbstractRequestTest {
 	}
 
 	/**
-	 * Test import of a TS without functional identifier. must fail with a 500
+	 * Test import of a TS without functional identifier. must fail with a 400
 	 * error code.
 	 */
 	@Test
-	public void importTSWithoutFuncId() {
+	public void importTSWithoutFuncId() throws IOException {
 		
 		String testCaseName = "importTSWithoutFuncId";
 		boolean isNominal = true;
@@ -300,17 +308,15 @@ public class ImportRequestTest extends AbstractRequestTest {
 			start(testCaseName, isNominal);
 		
 			Resource resource = new ClassPathResource("/data/test_import.csv");
-			File file = null;
-			try {
-				file = resource.getFile();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
+			File file = resource.getFile();
+			
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric4";
 			String url = getAPIURL() + "/ts/put/" + metric;
-			utils.doImport(file, url, false, 400, false);
-
+			// utils.doImport(file, url, false, 400, false);
+			ImportResult result = utils.doImportStubbedOpenTSDB(file, url, testCaseName, false, 400, false);
+			
+			
 			endNominal(testCaseName);
 		} catch (Throwable e) {
 			endWithFailure(testCaseName, e);
