@@ -341,7 +341,7 @@ public class TemporalDataManager {
     }
 
     /**
-     * get the TS from database.
+     * loop up the TS from database.
      * 
      * @param metrique
      *            metrcic name
@@ -357,7 +357,8 @@ public class TemporalDataManager {
      */
     public String getTS(String metrique, MultivaluedMap<String, String> queryParams)
             throws UnsupportedEncodingException, IkatsWebClientException, ResourceNotFoundException {
-        String url;
+    	// FIXME 163211: TBC: suppress dead code getAllTS() and getTemporalDataManager().getTS() ...
+    	String url;
         Response response;
         url = "http://" + getHost() + getURLDbApiBase() + urlBuilder.generateLookupRequest(metrique, queryParams);
         logger.debug(url);
@@ -369,7 +370,7 @@ public class TemporalDataManager {
     }
 
     /**
-     * get the metadata for a tsuid
+     * get the opentsdb metadata for a tsuid
      * 
      * @param tsuid
      *            the tsuid

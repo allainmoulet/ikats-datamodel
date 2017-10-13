@@ -87,6 +87,7 @@ public class TimeSerieResource extends AbstractResource {
 	@Produces(MediaType.APPLICATION_JSON)
 	public String getTS(@PathParam("metrique") String metrique, @Context UriInfo uriInfo)
 			throws ResourceNotFoundException {
+		// FIXME 163211: TBC: suppress dead code getTS() and getTemporalDataManager().getTS() ...
 		String response = null;
 		MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters(true);
 		try {
@@ -126,6 +127,7 @@ public class TimeSerieResource extends AbstractResource {
 	@Path("/tsuid/{tsuid}")
 	@Produces(MediaType.APPLICATION_JSON)
 	public TSInfo getTSInfo(@PathParam("tsuid") String tsuid) throws ResourceNotFoundException, IkatsException {
+		// FIXME 163211: TBC:  suppress dead code getTSInfo() and getTemporalDataManager().getTS() ...
 		String response = null;
 		try {
 			response = getTemporalDataManager().getMetaData(tsuid);
@@ -173,6 +175,7 @@ public class TimeSerieResource extends AbstractResource {
 	@Path("tsuid")
 	@Produces(MediaType.APPLICATION_JSON)
 	public List<TSInfo> getAllTS() throws ResourceNotFoundException, IkatsException {
+		// FIXME 163211: TBC: suppress dead code getAllTS() and getTemporalDataManager().getTS() ...
 		String response = null;
 		try {
 			response = getTemporalDataManager().getTS("*", null);
@@ -354,11 +357,13 @@ public class TimeSerieResource extends AbstractResource {
 				getMetadataManager().deleteMetaData(tsuid);
 				// delete associated functional identifier
 				FunctionalIdentifier func_id = getMetadataManager().getFunctionalIdentifierByTsuid(tsuid);
-				logger.info("Functional Identifier :" + func_id.toString());
+				
 				if (func_id != null) {
 					getMetadataManager().deleteFunctionalIdentifier(tsuid);
+					logger.info("Functional Identifier deleted:" + func_id);
 				}
-				return Response.status(Status.NO_CONTENT).entity(response.readEntity(String.class)).build();
+				String msg = response.getEntity().toString();
+				return Response.status(Status.NO_CONTENT).entity(msg).build();
 			} else {
 				return Response.status(Status.CONFLICT).build();
 			}

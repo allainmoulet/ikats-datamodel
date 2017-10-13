@@ -6,25 +6,47 @@ package fr.cs.ikats.temporaldata;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
 
 import org.apache.log4j.Logger;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
+import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.datamanager.client.opentsdb.QueryMetaResult;
 import fr.cs.ikats.datamanager.client.opentsdb.ResponseParser;
 import fr.cs.ikats.temporaldata.business.TSInfo;
+import fr.cs.ikats.temporaldata.business.TemporalDataManager;
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
+import fr.cs.ikats.temporaldata.resource.TimeSerieResource;
 
 /**
  * 
  * @author ikats
  *
  */
+@RunWith(MockitoJUnitRunner.class)
 public class SearchRequestTest extends AbstractRequestTest {
 
 	@BeforeClass
@@ -37,177 +59,62 @@ public class SearchRequestTest extends AbstractRequestTest {
 		AbstractRequestTest.tearDownAfterClass(SearchRequestTest.class.getSimpleName());
 	}
 
-	@Test
-	public void testGetMeta() {
-
-		String testCaseName = "testGetMeta";
-		boolean isNominal = true;
-		try {
-			start(testCaseName, isNominal);
-
-			String url = getAPIURL() + "/ts/tsuid/" + "0000110000030003F20000040003F1";
-
-			Response response = utils.sendGETRequest(MediaType.APPLICATION_JSON, utils.getClientWithJSONFeature(), url,
-					"172.28.0.56");
-			getLogger().info(response.readEntity(String.class));
-
-			// TSInfo tsInfo = response.readEntity(TSInfo.class);
-			// assertEquals("0000110000030003F20000040003F1",tsInfo.getTsuid());
-			// assertEquals("A320001_1_WS1",tsInfo.getfuncId());
-			// assertEquals(2,tsInfo.getTags().keySet().size());
-			// assertEquals("1",tsInfo.getTags().get("flightIdentifier"));
-			// assertEquals("A320001",tsInfo.getTags().get("aircraftIdentifier"));
-			// assertEquals("WS1",tsInfo.getMetric());
-			// getLogger().info("TSInfo : "+tsInfo);
-
-			endNominal(testCaseName);
-		} catch (Throwable e) {
-			endWithFailure(testCaseName, e);
-		}
-
-	}
-
-	@Test
-	public void testLookup() {
-		
-		String testCaseName = "testLookup";
-		boolean isNominal = true;
-		try {
-			start(testCaseName, isNominal);
-			
-			String url = getAPIURL() + "/ts/lookup/poc3.arctan?numero=00001&numero=00002";
-			sendRequest(url);
-
-			url = getAPIURL() + "/ts/lookup/poc3.arctan?numero=00001";
-			sendRequest(url);
-
-			url = getAPIURL() + "/ts/lookup/poc3.arctan?*=00001";
-			sendRequest(url);
-
-			url = getAPIURL() + "/ts/lookup/poc3.arctan?numero=*";
-			sendRequest(url);
-
-			url = getAPIURL() + "/ts/lookup/*?numero=00001";
-			sendRequest(url);
-
-
-			endNominal(testCaseName);
-		} catch (Throwable e) {
-			endWithFailure(testCaseName, e);
-		}
-	}
-
-	@Test
-	public void testLookup_DG1() {
-		
-		String testCaseName = "testLookup_DG1";
-		boolean isNominal = false;
-		try {
-			start(testCaseName, isNominal);
-			String url = getAPIURL() + "/ts/lookup/poc3.arctan?tot=00001&numero=00002";
-			sendRequest(url);
-			endWithFailure(testCaseName, new Exception( "Missing error for " + url) );
-		} catch (IkatsWebClientException eOk) {
-			getLogger().info( "Ok: expected error IkatsWebClientException is raised: " + eOk.getMessage() );
-			endNominal(testCaseName);
-		} catch (Throwable e) {
-			endWithFailure(testCaseName, e);
-		}
- 
-	}
-
-	@Test
-	public void testLookup_DG2() {
-		
-		String testCaseName = "testLookup_DG2";
-		boolean isNominal = false;
-		try {
-			start(testCaseName, isNominal);
-			String url = getAPIURL() + "/ts/lookup/poc3.arctan?at=00001";
-			sendRequest(url);
-			endWithFailure(testCaseName, new Exception( "Missing error for " + url) );
-		} catch (IkatsWebClientException eOk) {
-			getLogger().info( "Ok: expected error IkatsWebClientException is raised: " + eOk.getMessage() );
-			endNominal(testCaseName);
-		} catch (Throwable e) {
-			endWithFailure(testCaseName, e);
-		} 
-	}
-
-	@Test
-	public void testLookup_DG3() {
-		
-		String testCaseName = "testLookup_DG3";
-		boolean isNominal = false;
-		try {
-			start(testCaseName, isNominal);
-			String url = getAPIURL() + "/ts/lookup/poc3.arct?*=00001";
-			sendRequest(url);
-			endWithFailure(testCaseName, new Exception( "Missing error for " + url) );
-		} catch (IkatsWebClientException eOk) {
-			getLogger().info( "Ok: expected error IkatsWebClientException is raised: " + eOk.getMessage() );
-			endNominal(testCaseName);
-		} catch (Throwable e) {
-			endWithFailure(testCaseName, e);
-		}  
-	}
-
-	@Test
-	public void testLookup_DG4() {
-		
-		String testCaseName = "testLookup_DG4";
-		boolean isNominal = false;
-		try {
-			start(testCaseName, isNominal);
-			String url = getAPIURL() + "/ts/lookup/poc3.*";
-			sendRequest(url);
-			endWithFailure(testCaseName, new Exception( "Missing error for " + url) );
-		} catch (IkatsWebClientException eOk) {
-			getLogger().info( "Ok: expected error IkatsWebClientException is raised: " + eOk.getMessage() );
-			endNominal(testCaseName);
-		} catch (Throwable e) {
-			endWithFailure(testCaseName, e);
-		}
-	}
 
 	/**
-	 * @param url
-	 * @throws IkatsWebClientException
+	 * checks that lookup service is returning the response from opentsdb service.
+	 * @throws ResourceNotFoundException 
+	 * @throws IkatsWebClientException 
+	 * @throws UnsupportedEncodingException 
 	 */
-	protected void sendRequest(String url) throws IkatsWebClientException {
-		getLogger().info(url);
-		Response reponse = null;
-		for (int i = 0; i < 10; i++) {
-			reponse = utils.sendGetRequest(url, "172.28.0.56");
-			if (reponse.getStatus() <= 200) {
-				QueryMetaResult result = ResponseParser.parseLookupReponse(reponse);
-				getLogger().info(result.getTsuids());
-			} else {
-				throw new IkatsWebClientException();
-			}
-		}
+	@Test
+	public void testLookup() throws UnsupportedEncodingException, IkatsWebClientException, ResourceNotFoundException {
+        // FIXME 163211 IF DEAD CODE => remove lookup + test ?
+		//
+		String testCaseName = "testLookup";
+		boolean isNominal = true;
+
+		TemporalDataManager mockedTdm = Mockito.spy(TemporalDataManager.class);
+
+		String expectedJsonResponse = "{ 'test_stubbed': 'any JSON content from opentsbdb'}";
+		Mockito.doReturn(expectedJsonResponse).when(mockedTdm).getTS(Mockito.anyString(), Mockito.any());
+
+		// TODO 163211 or later: inject mocledTdm into tested wepapp
+		// and then call the client ... and read String from Response
+		// ... temporary solution: call the service directly
+		TimeSerieResource services = new TimeSerieResource();
+		services.setTemporalDataManager(mockedTdm);
+		UriInfo mockedUriInfo = Mockito.mock(UriInfo.class);
+		String metric = "searchedMetric";
+		String result = services.getTS(metric, mockedUriInfo);
+
+		assertTrue(result.equals(expectedJsonResponse));
 	}
 
 	@Test
-	public void testTSLookup_DG() {
+	public void testLookupNotFound() throws UnsupportedEncodingException, IkatsWebClientException {
 		
-		String testCaseName = "testTSLookup_DG";
-		boolean isNominal = false;
+		// FIXME 163211 IF DEAD CODE => remove lookup + test ? => remove this whole file SearchRequestTest
+		ResourceNotFoundException expectedException = new ResourceNotFoundException(
+				"Stubbed error: resource not found");
 		try {
-			start(testCaseName, isNominal);
-			
-			String url = getAPIURL() + "/ts/lookup/ts/test";
-			sendRequest(url);
-			// TODO ??? bizarre ce test avec 2 requete => 2 TU ???
-			url = getAPIURL() + "/ts/lookup/ts/test_ex";
-			sendRequest(url);
-			
-			endWithFailure(testCaseName, new Exception( "Missing error for " + url) );
-		} catch (IkatsWebClientException eOk) {
-			getLogger().info( "Ok: expected error IkatsWebClientException is raised: " + eOk.getMessage() );
-			endNominal(testCaseName);
-		} catch (Throwable e) {
-			endWithFailure(testCaseName, e);
-		} 
+
+			TemporalDataManager mockedTdm = Mockito.spy(TemporalDataManager.class);
+			Mockito.doThrow(expectedException).when(mockedTdm).getTS(Mockito.anyString(), Mockito.any());
+
+			// TODO 163211 or later: inject mocledTdm into tested wepapp
+			// and then call the client ... and read String from Response
+			// ... temporary solution: call the service directly
+			TimeSerieResource services = new TimeSerieResource();
+			services.setTemporalDataManager(mockedTdm);
+			UriInfo mockedUriInfo = Mockito.mock(UriInfo.class);
+			String metric = "searchedMetric";
+			String result = services.getTS(metric, mockedUriInfo);
+
+		} catch (ResourceNotFoundException notFoundError) {
+			assertTrue(notFoundError.getMessage().equals(expectedException.getMessage())
+					|| notFoundError.getCause().getMessage().equals(expectedException.getMessage()));
+
+		}
+
 	}
 }

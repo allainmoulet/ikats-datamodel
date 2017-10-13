@@ -2,25 +2,24 @@ package fr.cs.ikats.temporaldata;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.FieldPosition;
+import java.text.ParsePosition;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.concurrent.ExecutionException;
-import java.text.DateFormat;
-import java.text.FieldPosition;
-import java.text.ParsePosition;
-import java.text.SimpleDateFormat;
 
-import javax.validation.constraints.AssertTrue;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Entity;
@@ -29,8 +28,6 @@ import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 
 import org.apache.log4j.Logger;
-import org.glassfish.hk2.api.Factory;
-import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.client.JerseyClient;
 import org.glassfish.jersey.client.JerseyClientBuilder;
@@ -42,10 +39,10 @@ import org.glassfish.jersey.media.multipart.FormDataContentDisposition.FormDataC
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
-import org.glassfish.jersey.server.ResourceConfig;
 import org.json.simple.JSONObject;
 import org.mockito.Mockito;
-import org.mockito.internal.stubbing.answers.DoesNothing;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
 
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
@@ -56,20 +53,11 @@ import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.datamanager.client.opentsdb.QueryResult;
 import fr.cs.ikats.datamanager.client.opentsdb.ResponseParser;
-import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.TemporalDataManager;
-import fr.cs.ikats.temporaldata.exception.ApplicationExceptionHandler;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.ImportException;
 import fr.cs.ikats.temporaldata.exception.ImportExceptionHandler;
-import fr.cs.ikats.temporaldata.resource.AbstractResource;
-import fr.cs.ikats.temporaldata.resource.DataSetResource;
 import fr.cs.ikats.temporaldata.resource.TimeSerieResource;
-
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 public class TestUtils {
 
@@ -150,6 +138,26 @@ public class TestUtils {
 			result = metriquesInt[idx];
 		}
 		return result;
+	}
+	
+	/**
+	 * Prepare File instance for a test case.
+	 * @param testCaseName name of the test case needing the resource (used in cas of error)
+	 * @param resourcePath path of test file
+	 * @return
+	 * @throws IOException error getting the resource
+	 */
+	public File getTestFile(String testCaseName, String resourcePath) throws IOException {
+		Resource resource = new ClassPathResource(resourcePath);
+		File file = null;
+		try {
+			file = resource.getFile();
+		} catch (IOException e1) {
+			LOGGER.error("Error in: " + testCaseName + ": getting File for resource /data/test_import.csv",
+					e1);
+			throw e1;
+		}
+		return file;
 	}
 
 	public QueryResult launchNewAPISearchRequest(String metrique, String startDate, String endDate, String tags,
@@ -255,25 +263,18 @@ public class TestUtils {
 		JerseyClient client = JerseyClientBuilder.createClient(clientConfig);
 		return client;
 	}
-
-	public Response sendGetRequest(String url, String host) {
-		Client client = ClientBuilder.newBuilder().build();
-		WebTarget target = client.target(url);
-		LOGGER.info("sending url : " + url);
-		Response response = target.request().get();
-		return response;
-	}
-
+ 
 	/**
-	 * send GET request and return JSON format response
-	 * 
+	 * send GET request with specific media-type encoding and specific Client.
+	 * Note: sendGETRequest with default client or/and default media-type are simpler.
+	 * @param mediaType
+	 * @param client
 	 * @param url
-	 * @param host
 	 * @return
 	 * @throws IkatsWebClientException
 	 */
-	public Response sendGETRequest(String mediaType, Client client, String url, String host)
-			throws IkatsWebClientException {
+	public Response sendGETRequest(String mediaType, Client client, String url)
+			throws IkatsWebClientException { 
 		LOGGER.debug("Sending GET request to url : " + url);
 		Response response = null;
 		try {
@@ -289,6 +290,43 @@ public class TestUtils {
 		return response;
 	}
 
+	/**
+	 * Send GET resquest with specific media-type encoding, and default client.
+	 * @param mediaType
+	 * @param url
+	 * @return
+	 * @throws IkatsWebClientException
+	 */
+	public Response sendGETRequest(String mediaType, String url)
+			throws IkatsWebClientException { 
+		Client client = getClientWithJSONFeature();
+		LOGGER.debug("Sending GET request to url : " + url);
+		Response response = null;
+		try {
+			WebTarget target = client.target(url);
+			if (mediaType != null) {
+				response = target.request(mediaType).get();
+			} else {
+				response = target.request().get();
+			}
+		} catch (Exception e) {
+			LOGGER.error("", e);
+		}
+		return response;
+	}
+	
+	/**
+	 * Send GET resquest with  default media-type and default client.
+	 * @param mediaType
+	 * @param url
+	 * @return
+	 * @throws IkatsWebClientException
+	 */
+	public Response sendGETRequest(String url)
+			throws IkatsWebClientException { 	 
+		return sendGETRequest(null, url);
+	}
+	
 	public Response sendDeleteRequest(Client client, String url) throws IkatsWebClientException {
 		LOGGER.debug("Sending DELETE request to url : " + url);
 		Response response = null;
@@ -325,9 +363,7 @@ public class TestUtils {
 		}
 		return response;
 	}
-
-	
-	
+ 
 	/**
 	 * @see TestUtils#doLaunch(File, String, boolean, int, boolean) with addFuncId set to true by default
 	 */
@@ -411,12 +447,6 @@ public class TestUtils {
 			int statusExpected, boolean addFuncId) throws ImportException, DataManagerException, IOException,
 			InterruptedException, ExecutionException, IkatsWebClientException {
 		
-		
-		
-		Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
-				.build();
-		WebTarget target = client.target(url);
-
 		// Purpose of doImportStubbedOpenTSDB is to stub theses 2 lines:
 		//
 		// long[] dates =getTemporalDataManager().launchImportTasks(metric, tsStream, resultats, tags, filename);
@@ -462,16 +492,21 @@ public class TestUtils {
 		// Preparing the request
 		//
 		 
-
 		// TODO 163211 or later: Finally: inject mockedTdm into the TimeSerieResource, 
 		// in the webapp tested by grizzly client (requires extra works setting up the test, injecting the mock ...)
-        //		LOGGER.info("sending url : " + url);
+        //
+		//		Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
+        //		.build();
+        //      WebTarget target = client.target(url);
+		//		LOGGER.info("sending url : " + url);
 		//		Response response = target.request().post(Entity.entity(multipart, multipart.getMediaType()));
 		//		LOGGER.info("parsing response of " + url);
 		//		LOGGER.info(response);
 		//      int status = response.getStatus();
 		//      ImportResult result = response.readEntity(ImportResult.class);
+		//
 		// => done presently: test directly on TimeSerieRessource
+		
 		TimeSerieResource testedResource = new TimeSerieResource();
         testedResource.setTemporalDataManager( mockedTdm );		
         ApiResponse apiResponse = null;

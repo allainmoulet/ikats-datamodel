@@ -10,6 +10,7 @@ import static org.junit.Assert.assertTrue;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,6 +22,7 @@ import javax.ws.rs.client.WebTarget;
 import javax.ws.rs.core.GenericType;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
 
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.client.ClientConfig;
@@ -29,6 +31,7 @@ import org.json.simple.parser.JSONParser;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
@@ -44,6 +47,10 @@ import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.TSInfo;
+import fr.cs.ikats.temporaldata.business.TemporalDataManager;
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundExceptionHandler;
+import fr.cs.ikats.temporaldata.resource.TimeSerieResource;
 
 /**
  * Test on webService timeseries operations.
@@ -63,74 +70,59 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
     }
 
     @Test
-    public void testGetAllTS() {
-
-        String testCaseName = "testGetAllTS";
-        boolean isNominal = true;
-        try {
-            start(testCaseName, isNominal);
-
-            String url = getAPIURL() + "/ts/tsuid";
-            Response response = null;
-            logger.info(url);
-
-            response = utils.sendGetRequest(url, null);
-            if (response.getStatus() <= 200) {
-                GenericType<List<TSInfo>> type = new GenericType<List<TSInfo>>() {
-                };
-                List<TSInfo> result = response.readEntity(type);
-
-                // There should be results
-                assertTrue(result.size() > 0);
-                assertTrue(result.get(0).getTsuid() != "");
-                assertTrue(result.get(0).getMetric() != "");
-
-            }
-            else {
-                throw new IkatsWebClientException();
-            }
-
-            endNominal(testCaseName);
-        }
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
-    }
-
-    @Test
     public void testDeleteTS() {
         String testCaseName = "testDeleteTS";
         boolean isNominal = true;
         try {
             start(testCaseName, isNominal);
 
-            Resource resource = new ClassPathResource("/data/test_import.csv");
-            File file = null;
-            try {
-                file = resource.getFile();
-            }
-            catch (IOException e1) {
-                e1.printStackTrace();
-            }
+            
+            File file = utils.getTestFile(testCaseName, "/data/test_import.csv");
 
-            /* import of a timeseries */
+            // Prepare input: meta + funcId are saved
+            String tsuidStubbed = "stub4" + testCaseName;
             String metric = "testmetric";
             String url = getAPIURL() + "/ts/put/" + metric;
-            ImportResult retour = utils.doImport(file, url, true, 200);
+            ImportResult retour = utils.doImportStubbedOpenTSDB(file, url, tsuidStubbed, true, 200, true);
 
-            /* retrieval of the tsuid from import task */
-            String tsuid = retour.getTsuid();
-
-            url = getAPIURL() + "/ts/" + tsuid;
-            Response response = null;
-            logger.info(url);
-            Client client = utils.getClientWithJSONFeature();
-
-            // delete request for tsuid
-            response = utils.sendDeleteRequest(client, url);
-            assertEquals(204, response.getStatus());
-
-            endNominal(testCaseName);
+            // stub for unknown tsuid
+            String unknownTsuid = "xxx";
+            
+            Response stubbedNotFound = Response.status(Status.NOT_FOUND).entity("Stub for opentsdb answer").build();
+           
+            // status == 200 for delete ts in api opentsdb
+            Response stubbedDeleted = Response.status(Status.OK).entity("Stub for deleted by Opentsdb").build();
+            // status == 204 for delete ts in IKATS
+            Response expectedDeleted = Response.status(Status.NO_CONTENT).entity("Expected ikats response").build();
+             
+            
+            TemporalDataManager mockedTdm = Mockito.spy( new TemporalDataManager() );
+            Mockito.doReturn( stubbedDeleted ).when( mockedTdm).deleteTS( tsuidStubbed );
+			Mockito.doReturn( stubbedNotFound ).when( mockedTdm).deleteTS( unknownTsuid );
+            
+			TimeSerieResource services = new TimeSerieResource();
+			services.setTemporalDataManager( mockedTdm );
+			
+			// Test1: delete TS not found
+			// Note: presently service returns status 204
+			Response resUnknown = services.removeTimeSeries(unknownTsuid);
+			assertTrue( resUnknown.getStatus() == expectedDeleted.getStatus() );
+			
+			// Test2: delete TS
+			Response resDeleted = services.removeTimeSeries(tsuidStubbed);
+			assertTrue( resDeleted.getStatus() == expectedDeleted.getStatus() );
+			
+			// check that metadata are deleted for the deleted TSUID ...
+			url = getAPIURL() + "/metadata/list/json?tsuid=" + tsuidStubbed;
+			Response response = utils.sendGETRequest(MediaType.APPLICATION_JSON, url);
+			assertTrue( response.getStatus() == Status.NOT_FOUND.getStatusCode() );
+			
+			// check that the funcId is deleted
+			String url2 = getAPIURL() + "/metadata/funcId/" + tsuidStubbed;
+			response = utils.sendGETRequest(MediaType.APPLICATION_JSON, url2);
+			assertTrue( response.getStatus() == Status.NOT_FOUND.getStatusCode() );
+			
+			endNominal(testCaseName);
         }
         catch (Throwable e) {
             endWithFailure(testCaseName, e);
@@ -167,7 +159,7 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
             logger.info(url);
 
             String fake_host = "null";
-            response = utils.sendGetRequest(url, fake_host);
+            response = utils.sendGETRequest(url);
             logger.info(response);
             assertEquals(200, response.getStatus());
             assertEquals("[dataSet_11, dataSet_22]", response.readEntity(String.class));
@@ -177,7 +169,7 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
             response = null;
             logger.info(url);
 
-            response = utils.sendGetRequest(url, fake_host);
+            response = utils.sendGETRequest(url);
             assertEquals(response.getStatus(), 200);
             assertEquals(response.readEntity(String.class), "[dataSet_22]");
 
@@ -186,7 +178,7 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
             response = null;
             logger.info(url);
 
-            response = utils.sendGetRequest(url, fake_host);
+            response = utils.sendGETRequest(url);
             assertEquals(response.getStatus(), 204);
 
             // expected code 404 : tsuid not found
@@ -194,7 +186,7 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
             response = null;
             logger.info(url);
 
-            response = utils.sendGetRequest(url, fake_host);
+            response = utils.sendGETRequest(url);
             assertEquals(response.getStatus(), 404);
 
             endNominal(testCaseName);

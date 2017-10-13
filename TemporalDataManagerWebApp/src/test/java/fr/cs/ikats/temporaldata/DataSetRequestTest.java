@@ -384,7 +384,7 @@ public class DataSetRequestTest extends AbstractRequestTest {
 			Response httpResponse = mockedDataSetResource.removeDataSet(dataSetId, true);
 			assertTrue( httpResponse.getStatus() == Status.NO_CONTENT.getStatusCode() );
 			
-			long delay=2500;
+			long delay=500;
 			// Test that delete on links is called ...
 			verify(mockedFacade, timeout(delay)).removeTSFromDataSet(fids[0].getTsuid(), dataSetId);
 			verify(mockedFacade, timeout(delay)).removeTSFromDataSet(fids[1].getTsuid(), dataSetId);
@@ -581,7 +581,8 @@ public class DataSetRequestTest extends AbstractRequestTest {
 		try {
 			Client client = utils.getClientWithJSONFeature();
 
-			Response response = utils.sendGETRequest(mediaType, client, url, "172.28.0.56");
+			// TODO 163211 stub the dataset content ... hard-coded host removed
+			Response response = utils.sendGETRequest(mediaType, client, url);
 			getLogger().info(url + " : response status" + response.getStatus());
 			if (response.getStatus() <= 200) {
 				result = response.readEntity(new GenericType<List<DataSet>>() {
@@ -602,7 +603,9 @@ public class DataSetRequestTest extends AbstractRequestTest {
 		try {
 			Client client = utils.getClientWithJSONFeature();
 
-			Response response = utils.sendGETRequest(mediaType, client, url, "172.28.0.56");
+
+			// TODO 163211 stub the dataset content ... hard-coded host removed
+			Response response = utils.sendGETRequest(mediaType, client, url);
 			getLogger().info(url + " : response status" + response.getStatus());
 			if (response.getStatus() <= 200) {
 				result = response.readEntity(DataSetWithFids.class);

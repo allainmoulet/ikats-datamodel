@@ -50,7 +50,7 @@ public class ImportRequestTest extends AbstractRequestTest {
 		try {
 			start(testCaseName, isNominal);
  
-			File file = getFileMatchingResource(testCaseName, "/data/test_import_bad_format.csv");
+			File file = utils.getTestFile(testCaseName, "/data/test_import_bad_format.csv");
 			 
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric";
@@ -75,20 +75,13 @@ public class ImportRequestTest extends AbstractRequestTest {
 		boolean isNominal = true;
 		try {
 			start(testCaseName, isNominal);
-
-			Resource resource = new ClassPathResource("/data/test_import.csv");
-			File file = null;
-			try {
-				file = resource.getFile();
-			} catch (IOException e1) {
-				getLogger().error("Error in: " + testCaseName + ": getting File for resource /data/test_import.csv",
-						e1);
-				throw e1;
-			}
+ 
+			File file = utils.getTestFile(testCaseName, "/data/test_import.csv");
+			
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric";
 			String url = getAPIURL() + "/ts/put/" + metric;
-			// utils.doImport(file, url, true, 200);
+			
 			ImportResult result = utils.doImportStubbedOpenTSDB(file, url, testCaseName, true, 200, true);
 			
 			endNominal(testCaseName);
@@ -109,31 +102,23 @@ public class ImportRequestTest extends AbstractRequestTest {
 		boolean isNominal = true;
 		try {
 			start(testCaseName, isNominal);
-
-			Resource resource = new ClassPathResource("/data/test_import.csv");
-			File file = null;
-			try {
-				file = resource.getFile();
-			} catch (IOException e1) {
-				getLogger().error("Error in: " + testCaseName + ": getting File for resource /data/test_import.csv",
-						e1);
-				throw e1;
-			}
+ 
+			File file = utils.getTestFile(testCaseName, "/data/test_import.csv");
 
 			/* import of the timeseries */
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric";
 			String url = getAPIURL() + "/ts/put/" + metric;
-			ImportResult retour = utils.doImportStubbedOpenTSDB(file, url, testCaseName, true, 200, true);
+			ImportResult resImport = utils.doImportStubbedOpenTSDB(file, url, testCaseName, true, 200, true);
 			
 			/*
 			 * retrieval of the tsuid, start_date and end_date from import task
 			 */
-			String tsuid = retour.getTsuid();
+			String tsuid = resImport.getTsuid();
 			getLogger().info("tsuid = " + tsuid);
-			String startDateImport = Long.toString(retour.getStartDate());
+			String startDateImport = Long.toString(resImport.getStartDate());
 			getLogger().info("start date from import = " + startDateImport);
-			String endDateImport = Long.toString(retour.getEndDate());
+			String endDateImport = Long.toString(resImport.getEndDate());
 			getLogger().info("end date from import = " + endDateImport);
 
 			/* getting the metadata of the tsuid in database */
@@ -200,7 +185,7 @@ public class ImportRequestTest extends AbstractRequestTest {
 		}
 
 	}
-
+ 
 	/**
 	 * Test import of a TS from a csv simple file
 	 */
@@ -212,13 +197,8 @@ public class ImportRequestTest extends AbstractRequestTest {
 		try {
 			start(testCaseName, isNominal);
 
-			Resource resource = new ClassPathResource("/data/test_import.csv");
-			File file = null;
-			try {
-				file = resource.getFile();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
+			File file = utils.getTestFile(testCaseName, "/data/test_import.csv");
+			
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric2";
 			String url = getAPIURL() + "/ts/put/" + metric;
@@ -242,17 +222,12 @@ public class ImportRequestTest extends AbstractRequestTest {
 		try {
 			start(testCaseName, isNominal);
 
-			Resource resource = new ClassPathResource("/data/test_import.csv");
-			File file = null;
-			try {
-				file = resource.getFile();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
+			File file = utils.getTestFile(testCaseName, "/data/test_import.csv");
+			
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric3";
 			String url = getAPIURL() + "/ts/put/" + metric;
-			// utils.doImport(file, url, true, 200);
+			
 			ImportResult result = utils.doImportStubbedOpenTSDB(file, url, testCaseName, true, 200, true);
 			
 			endNominal(testCaseName);
@@ -272,14 +247,8 @@ public class ImportRequestTest extends AbstractRequestTest {
 		boolean isNominal = true;
 		try {
 			start(testCaseName, isNominal);
-			
-			Resource resource = new ClassPathResource("/data/test_import.csv");
-			File file = null;
-			try {
-				file = resource.getFile();
-			} catch (IOException e1) {
-				e1.printStackTrace();
-			}
+			File file = utils.getTestFile(testCaseName, "/data/test_import.csv");
+			 
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric4";
 			String url = getAPIURL() + "/ts/put/" + metric;
@@ -307,8 +276,7 @@ public class ImportRequestTest extends AbstractRequestTest {
 		try {
 			start(testCaseName, isNominal);
 		
-			Resource resource = new ClassPathResource("/data/test_import.csv");
-			File file = resource.getFile();
+			File file = utils.getTestFile(testCaseName, "/data/test_import.csv");
 			
 			getLogger().info("CSV input file : " + file.getAbsolutePath());
 			String metric = "testmetric4";
