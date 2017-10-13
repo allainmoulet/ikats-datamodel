@@ -83,7 +83,7 @@ public class TemporalDataManager {
      * 
      * @return the host of TS DB
      */
-    protected String getHost() {
+    public String getHost() {
         return getConfig().getStringValue(ApplicationConfiguration.HOST_DB_API);
     }
 
@@ -341,8 +341,8 @@ public class TemporalDataManager {
     }
 
     /**
-     * loop up the TS from database.
-     * 
+     * Loop up the TS from database: based on look-up service of openTSDB server.
+     *
      * @param metrique
      *            metrcic name
      * @param queryParams
@@ -358,6 +358,8 @@ public class TemporalDataManager {
     public String getTS(String metrique, MultivaluedMap<String, String> queryParams)
             throws UnsupportedEncodingException, IkatsWebClientException, ResourceNotFoundException {
     	// FIXME 163211: TBC: suppress dead code getAllTS() and getTemporalDataManager().getTS() ...
+    	// or else FIXME ugly name confusing with another method (getTS)  completely different 
+    	// !!! different semantic => different name !!!
     	String url;
         Response response;
         url = "http://" + getHost() + getURLDbApiBase() + urlBuilder.generateLookupRequest(metrique, queryParams);
@@ -547,8 +549,7 @@ public class TemporalDataManager {
                     downSamplerPeriod, startDate, endDate, urlOptions);
         }
         logger.debug(url);
-        Response webResponse = RequestSender.sendGETRequest(url, host);
-
-        return webResponse;
+        
+        return RequestSender.sendGETRequest(url, host);
     }
 }

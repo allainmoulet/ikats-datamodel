@@ -31,7 +31,9 @@ import org.json.simple.parser.JSONParser;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.mockito.Mockito;
+import org.mockito.runners.MockitoJUnitRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
@@ -55,6 +57,7 @@ import fr.cs.ikats.temporaldata.resource.TimeSerieResource;
 /**
  * Test on webService timeseries operations.
  */
+@RunWith(MockitoJUnitRunner.class)
 public class TimeSerieRequestTest extends AbstractRequestTest {
 
     private static Logger logger = Logger.getLogger(TimeSerieRequestTest.class);

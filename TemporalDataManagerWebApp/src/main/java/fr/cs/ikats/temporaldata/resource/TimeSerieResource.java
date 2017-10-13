@@ -239,6 +239,7 @@ public class TimeSerieResource extends AbstractResource {
 			@QueryParam("ag") String aggregationMethod, @QueryParam("ds") String downSampler,
 			@QueryParam("dp") String downSamplerPeriod,
 			@QueryParam("di") @DefaultValue("false") boolean downSamplingAdditionalInformation) {
+		// FIXME 163211 or later: To be confirmed: dead code ??? now ikats directly uses the opentsdb service.
 		Chronometer chrono = new Chronometer("QueryResource:getTS", true);
 		String response;
 		try {
@@ -280,6 +281,7 @@ public class TimeSerieResource extends AbstractResource {
 			@QueryParam("ed") String endDate, @QueryParam("o") String urlOptions,
 			@QueryParam("ag") String aggregationMethod, @QueryParam("ds") String downSampler,
 			@QueryParam("dp") String downSamplerPeriod) throws Exception {
+		// FIXME 163211 or later: To be confirmed: dead code ??? now ikats directly uses the opentsdb service.
 		Chronometer chrono = new Chronometer("QueryResource:getTS", true);
 		String response;
 		try {

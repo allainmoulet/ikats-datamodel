@@ -112,12 +112,12 @@ public class MacroOpResourceTest extends AbstractRequestTest {
 
     @BeforeClass
     public static void setUpBeforClass() {
-        AbstractRequestTest.setUpBeforClass(QueryRequestTest.class.getSimpleName());
+        AbstractRequestTest.setUpBeforClass(MacroOpResourceTest.class.getSimpleName());
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        AbstractRequestTest.tearDownAfterClass(QueryRequestTest.class.getSimpleName());
+        AbstractRequestTest.tearDownAfterClass(MacroOpResourceTest.class.getSimpleName());
     }
 
     /**

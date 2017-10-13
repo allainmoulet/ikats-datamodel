@@ -93,12 +93,12 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
     @BeforeClass
     public static void setUpBeforClass() {
-        AbstractRequestTest.setUpBeforClass(QueryRequestTest.class.getSimpleName());
+        AbstractRequestTest.setUpBeforClass(WorkflowResourceTest.class.getSimpleName());
     }
 
     @AfterClass
     public static void tearDownAfterClass() throws Exception {
-        AbstractRequestTest.tearDownAfterClass(QueryRequestTest.class.getSimpleName());
+        AbstractRequestTest.tearDownAfterClass(WorkflowResourceTest.class.getSimpleName());
     }
 
     /**
