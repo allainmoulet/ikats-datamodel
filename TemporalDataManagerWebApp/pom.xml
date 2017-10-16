@@ -34,7 +34,7 @@
 				<artifactId>tomcat7-maven-plugin</artifactId>
 				<version>2.2</version>
 				<configuration>
-					<url>http://${server.url}/manager/text</url>
+					<url>{TOMCAT_URL}</url>
 					<server>${server.name}</server>
 					<path>/TemporalDataManagerWebApp</path>
 					<warFile>target/${target}/TemporalDataManagerWebApp.war</warFile>
@@ -189,6 +189,33 @@
 							<goal>war</goal>
 						</goals>
 					</execution>
+
+					<execution>
+						<id>template</id>
+						<configuration>
+							<outputDirectory>target/template</outputDirectory>
+							<webResources>
+								<resource>
+									<directory>src/main/template/resources</directory>
+									<targetPath>WEB-INF/classes</targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>src/main/template/webapp</directory>
+									<targetPath></targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+							</webResources>
+						</configuration>
+						<goals>
+							<goal>war</goal>
+						</goals>
+					</execution>
+
 
 					<execution>
 						<id>local</id>
