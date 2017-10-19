@@ -9,6 +9,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.Test;
+
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
@@ -16,8 +18,6 @@ import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import junit.framework.TestCase;
-import org.junit.Ignore;
-import org.junit.Test;
 
 /**
  * TableManagerTest tests the TableManager and its end-user services.
@@ -277,7 +277,6 @@ public class TableManagerTest extends TestCase {
 
             Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
 
-            List<Table> result;
             double repartitionRate = 0.56;
             tableManager.trainTestSplitTable(tableIn, "WrongTarget", repartitionRate);
 
@@ -1379,7 +1378,6 @@ public class TableManagerTest extends TestCase {
      * Tests the List all Tables service with no result
      */
 
-    @Ignore("[#161602] - Derogation, test KO only with in-memory database")
     @Test
     public void testListTablesEmpty() throws Exception {
 
@@ -1394,7 +1392,6 @@ public class TableManagerTest extends TestCase {
     /**
      * Tests the List all Table service with result
      */
-    @Ignore("[#161602] - Derogation, test KO only with in-memory database")
     @Test
     public void testListTablesNotEmpty() throws Exception {
 
@@ -1439,7 +1436,6 @@ public class TableManagerTest extends TestCase {
      * Tests the Delete a table service with result
      */
 
-    @Ignore("[#161602] - Derogation, test KO only with in-memory database")
     @Test
     public void testDeleteTable() throws Exception {
 

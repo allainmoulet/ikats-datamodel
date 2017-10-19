@@ -148,7 +148,7 @@ public class ProcessDataDAO extends DataBaseDAO {
         try {
         	tx = session.beginTransaction();
             Criteria criteria = session.createCriteria(ProcessData.class);
-            criteria.add(Restrictions.sqlRestriction("processid ~ '[a-zA-Z]'"));
+            criteria.add(Restrictions.sqlRestriction("regexp_matches(processid, '[a-zA-Z0-9_-]+')"));
             // Table are handled in ProcessData so as CorrelationDataset results.
             // This restriction prevents from having too much non-table data.
             // This temporary patch will be fixed once we switch to JHipster to generate "table" part
