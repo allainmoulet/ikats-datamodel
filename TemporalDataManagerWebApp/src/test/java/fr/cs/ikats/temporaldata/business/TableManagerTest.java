@@ -1,5 +1,10 @@
 package fr.cs.ikats.temporaldata.business;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -17,12 +22,11 @@ import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
-import junit.framework.TestCase;
 
 /**
  * TableManagerTest tests the TableManager and its end-user services.
  */
-public class TableManagerTest extends TestCase {
+public class TableManagerTest {
 
     /**
      * verbose == true enables more logs (to sysout), for instance in DEV environment, debugging the JUnit tests.
@@ -253,7 +257,6 @@ public class TableManagerTest extends TestCase {
 
         double repartitionRate = 0.56;
         tableManager.trainTestSplitTable(tableIn, "WrongTarget", repartitionRate);
-
     }
 
     /**
@@ -377,6 +380,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetFirstColumnFromTable() throws Exception {
 
         TableManager mng = new TableManager();
@@ -406,6 +410,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetOtherColumnsFromTable() throws Exception {
 
         TableManager mng = new TableManager();
@@ -442,7 +447,7 @@ public class TableManagerTest extends TestCase {
             System.out.println(otherDecimal);
 
         assertEquals(refOtherDecimal, otherDecimal);
-        assertEquals(-50.0, otherDecimal.get(0));
+        assertEquals(-50.0d, otherDecimal.get(0).doubleValue(), 0.0d);
 
         // Testing untyped case: Object
         //
@@ -461,6 +466,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetColumnFromHeaderName() throws Exception {
 
         TableManager mng = new TableManager();
@@ -500,6 +506,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetRowFromTable() throws Exception {
 
         TableManager mng = new TableManager();
@@ -538,6 +545,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInitTableSimple() throws Exception {
 
         TableManager mng = new TableManager();
@@ -581,6 +589,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInitTableWithRowsHeader() throws Exception {
 
         TableManager mng = new TableManager();
@@ -641,6 +650,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInitTableWithRowsHeaderWithLinks() throws Exception {
 
         TableManager mng = new TableManager();
@@ -767,6 +777,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testAppendRowWithoutLinks() throws Exception {
 
         TableManager mng = new TableManager();
@@ -812,6 +823,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetColumn() throws Exception {
 
         TableManager mng = new TableManager();
@@ -851,6 +863,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetRow() throws Exception {
 
         TableManager mng = new TableManager();
@@ -894,6 +907,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetRowsHeaderItems() throws Exception {
 
         TableManager mng = new TableManager();
@@ -926,6 +940,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetColumnsHeaderItems() throws Exception {
 
         TableManager mng = new TableManager();
@@ -972,6 +987,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testSortRowswithoutHeaders() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1007,6 +1023,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testSortRowsWithColHeader() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1046,6 +1063,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testSortRowsWithAllHeaders() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1093,6 +1111,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInsertColumnWithAllHeaders() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1129,6 +1148,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInsertColumnWithColHeader() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1164,6 +1184,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInsertColumnWithoutHeader() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1195,6 +1216,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInsertRowWithoutHeader() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1227,6 +1249,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInsertRowWithAllHeaders() throws Exception {
 
         TableManager mng = new TableManager();
