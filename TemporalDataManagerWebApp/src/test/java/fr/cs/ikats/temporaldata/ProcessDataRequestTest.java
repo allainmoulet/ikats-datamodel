@@ -1,7 +1,6 @@
 package fr.cs.ikats.temporaldata;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -29,12 +28,16 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.process.data.model.ProcessData;
+import fr.cs.ikats.temporaldata.business.ProcessDataManager;
 
 /**
  *
  */
 public class ProcessDataRequestTest extends AbstractRequestTest {
+
+    private ProcessDataManager processDataManager = new ProcessDataManager();
 
 	@BeforeClass
 	public static void setUpBeforClass() {
@@ -47,78 +50,52 @@ public class ProcessDataRequestTest extends AbstractRequestTest {
 	}
 
 	@Test
-	public void testImportCSVFile() {
+	public void testImportCSVFile() throws IOException, IkatsDaoException {
 
 		String testCaseName = "testImportCSVFile";
-		boolean isNominal = true;
-		try {
-			start(testCaseName, isNominal);
-
-			File file = getFileMatchingResource(testCaseName, "/data/matrice_distance.csv");
-			
-			getLogger().info("CSV process Data file : " + file.getAbsolutePath());
-			String processId = "execId2";
-			String url = getAPIURL() + "/processdata/" + processId;
-			doImport(url, file, "CSV", 200);
-
-			endNominal(testCaseName);
-		} catch (Throwable e) {
-			endWithFailure(testCaseName, e);
-		}
+		File file = getFileMatchingResource(testCaseName, "/data/matrice_distance.csv");
+		
+		getLogger().info("CSV process Data file : " + file.getAbsolutePath());
+		String processId = "execId2";
+		String url = getAPIURL() + "/processdata/" + processId;
+		doImport(url, file, "CSV", 200);
+		
+		// clean data
+		processDataManager.removeProcessData(processId);
 	}
  
 	@Test
-	public void testGetData() {
+	public void testGetData() throws IOException, IkatsDaoException {
 
 		String testCaseName = "testGetData";
-		boolean isNominal = true;
-		try {
-			start(testCaseName, isNominal);
-
 			
-			File file = getFileMatchingResource(testCaseName, "/data/test_import.csv" );
-			 
-			getLogger().info("CSV process Data file : " + file.getAbsolutePath());
-			String processId = "execId2";
-			String url = getAPIURL() + "/processdata/" + processId;
-			String id = doImport(url, file, "CSV", 200);
+		File file = getFileMatchingResource(testCaseName, "/data/test_import.csv" );
+		 
+		getLogger().info("CSV process Data file : " + file.getAbsolutePath());
+		String processId = "execId2";
+		String url = getAPIURL() + "/processdata/" + processId;
+		String id = doImport(url, file, "CSV", 200);
 
-			try {
-				File resultFile = doGetData(id);
-				assertEquals(file.length(), resultFile.length());
-
-			} catch (IOException e) {
-				getLogger().error("Error reading Input Stream", e);
-				throw e;
-			}
-
-			endNominal(testCaseName);
-		} catch (Throwable e) {
-			endWithFailure(testCaseName, e);
-		}
-
+		File resultFile = doGetData(id);
+		assertEquals(file.length(), resultFile.length());
+		
+        // clean data
+        processDataManager.removeProcessData(processId);
 	}
 
 	@Test
-	public void testImportJSON() {
+	public void testImportJSON() throws IOException, IkatsDaoException {
 		
-		String testCaseName = "testImportJSON";
-		boolean isNominal = true;
-		try {
-			start(testCaseName, isNominal);
-			
-			String json = "{ \"input1\":\"valeur1\";\"input2\":\"valeur2\"}";
-			String processId = "execIdJSON";
-			String url = getAPIURL() + "/processdata/" + processId + "/JSON";
-			String id = doImport(url, "jsondata", json, 200);
-			
-			String result = doGetDataJson(id);
-			getLogger().info("Result : " + result);
-			
-			endNominal(testCaseName);
-		} catch (Throwable e) {
-			endWithFailure(testCaseName, e);
-		} 
+		String json = "{ \"input1\":\"valeur1\";\"input2\":\"valeur2\"}";
+		String processId = "execIdJSON";
+		String url = getAPIURL() + "/processdata/" + processId + "/JSON";
+		String id = doImport(url, "jsondata", json, 200);
+		
+		String result = doGetDataJson(id);
+		getLogger().info("Result : " + result);
+		
+        // clean data
+        processDataManager.removeProcessData(processId);
 	}
 
 	/**
@@ -160,12 +137,6 @@ public class ProcessDataRequestTest extends AbstractRequestTest {
 		Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
 				.build();
 		WebTarget target = client.target(url);
-		// build form param
-		final FormDataMultiPart multipart = new FormDataMultiPart();
-
-		multipart.field("json", json);
-		multipart.field("name", name);
-		multipart.field("size", Integer.toString(json.length()));
 
 		MultivaluedMap<String, String> formData = new MultivaluedStringMap();
 		formData.add("json", json);
@@ -183,6 +154,7 @@ public class ProcessDataRequestTest extends AbstractRequestTest {
 		getLogger().info(result);
 		// check status 204 - all data points stored successfully
 		assertEquals(statusExpected, status);
+		
 		return result;
 	}
 
@@ -240,8 +212,7 @@ public class ProcessDataRequestTest extends AbstractRequestTest {
 
 				try {
 					byte[] buff = new byte[1];
-					int read = 0;
-					while ((read = is.read(buff)) != -1) {
+					while ((is.read(buff)) != -1) {
 						fos.write(new String(buff, Charset.defaultCharset()));
 					}
 				} finally {
@@ -259,10 +230,9 @@ public class ProcessDataRequestTest extends AbstractRequestTest {
 
 	protected String getInputStreamResult(InputStream inS) throws IOException {
 		byte[] buff = new byte[512];
-		int read = 0;
 		StringBuffer strBuff = new StringBuffer();
 
-		while ((read = inS.read(buff)) != -1) {
+		while ((inS.read(buff)) != -1) {
 			strBuff.append(new String(buff, Charset.defaultCharset()));
 		}
 		return strBuff.toString().trim();
