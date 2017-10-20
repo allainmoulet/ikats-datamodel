@@ -319,17 +319,6 @@ public class TableManager {
     }
 
     /**
-     * Delete a table in database
-     *
-     * @param tableName the name of the Table to delete
-     *
-     * @throws IkatsDaoException if error occurs in database
-     */
-    public void removeTable(String tableName) throws IkatsDaoException {
-        processDataManager.removeTable(tableName);
-    }
-
-    /**
 	 * Creates a new Table in database:
 	 * <ul>
 	 * <li>checks the table+name consistency</li>

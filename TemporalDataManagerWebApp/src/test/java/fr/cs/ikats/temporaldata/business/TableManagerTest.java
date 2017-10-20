@@ -1474,7 +1474,7 @@ public class TableManagerTest extends TestCase {
         List<ProcessData> resultBefore = mng.listTables();
         assertNotNull(resultBefore);
 
-        mng.removeTable(tableName);
+        mng.deleteFromDatabase(tableName);
 
         List<ProcessData> resultAfter = mng.listTables();
         assertNotNull(resultAfter);
