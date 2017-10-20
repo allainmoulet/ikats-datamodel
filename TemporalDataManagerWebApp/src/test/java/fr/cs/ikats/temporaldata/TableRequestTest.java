@@ -1,5 +1,7 @@
 package fr.cs.ikats.temporaldata;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableManager;
@@ -8,6 +10,8 @@ import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import javax.ws.rs.client.Client;
@@ -25,7 +29,23 @@ import static org.junit.Assert.assertEquals;
  * JUNit class testing TableResource services.
  */
 public class TableRequestTest extends AbstractRequestTest {
-
+    
+    /**
+     * Remove all data before and after running each test. 
+     * (avoids to change the current tests and ensure that there will be no remaining data at the last test)
+     * 
+     * @throws IkatsDaoException
+     */
+    @Before
+    @After
+    public void setUpAndTearDownTest() throws IkatsDaoException {
+        TableManager tableManager = new TableManager();
+        List<ProcessData> procDataTables = tableManager.listTables();
+        
+        for (ProcessData procDataTable : procDataTables) {
+            tableManager.deleteFromDatabase(procDataTable.getProcessId());
+        }
+    }
 
     /**
      * test of table ts2feature use case
@@ -104,7 +124,7 @@ public class TableRequestTest extends AbstractRequestTest {
 
             // Checking only size of result as tables can not be accessed by rid
             assertEquals(2, ridList.size());
-
+            
             endNominal(testCaseName);
         } catch (Throwable e) {
             endWithFailure(testCaseName, e);

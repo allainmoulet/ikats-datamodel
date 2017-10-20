@@ -235,6 +235,9 @@ public class TablesMergeTest {
         // Expect that the table persisted to lower layer is the same than expected
         assertEquals(expectedTableJson, resultTableJson);
         
+        // Clean
+        tableManager.deleteFromDatabase(outputTableName);
+        
     }
 
     /**

@@ -1430,6 +1430,10 @@ public class TableManagerTest extends TestCase {
 
         assertNotNull(result);
         assertEquals(1, result.size());
+        
+        // clean
+        mng.deleteFromDatabase("TEST_TABLE");
+        
     }
 
     /**
@@ -1474,6 +1478,7 @@ public class TableManagerTest extends TestCase {
         List<ProcessData> resultBefore = mng.listTables();
         assertNotNull(resultBefore);
 
+        // clean
         mng.deleteFromDatabase(tableName);
 
         List<ProcessData> resultAfter = mng.listTables();
