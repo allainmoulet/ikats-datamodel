@@ -1390,7 +1390,7 @@ public class TableManagerTest {
         tableHBis.appendRow(Arrays.asList(row3));
 
         tableH.checkConsistency();
-        mng.createInDatabase("TEST_TABLE", tableH);
+        mng.createInDatabase("TestTable", tableH);
 
         List<ProcessData> result = mng.listTables();
 
@@ -1398,7 +1398,7 @@ public class TableManagerTest {
         assertEquals(1, result.size());
         
         // clean
-        mng.deleteFromDatabase("TEST_TABLE");
+        mng.deleteFromDatabase("TestTable");
         
     }
 
@@ -1438,7 +1438,7 @@ public class TableManagerTest {
         tableHBis.appendRow(Arrays.asList(row3));
 
         tableH.checkConsistency();
-        String tableName = "TEST_TABLE_to_delete";
+        String tableName = "TestTableToDelete";
         mng.createInDatabase(tableName, tableH);
 
         List<ProcessData> resultBefore = mng.listTables();
