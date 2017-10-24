@@ -13,6 +13,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
 import org.apache.commons.configuration.CompositeConfiguration;
+import org.apache.commons.configuration.ConfigurationException;
 import org.apache.commons.configuration.PropertiesConfiguration;
 import org.apache.commons.configuration.SystemConfiguration;
 import org.apache.log4j.Level;
@@ -64,8 +65,6 @@ public abstract class AbstractRequestTest extends CommonTest {
     protected static ApplicationConfiguration config;
     protected static CompositeConfiguration testConfig;
 
-    private static boolean useGrizzlyServer = false;
-
     /**
      * 
      * @return
@@ -97,53 +96,42 @@ public abstract class AbstractRequestTest extends CommonTest {
     /**
      * The implementation manages the test.properties, and the start of grizzly
      * server
+     * @throws ConfigurationException 
+     * @throws IkatsWebClientException 
      */
-    protected static void implSetupBeforClass() throws Exception {
+    protected static void implSetupBeforClass() throws ConfigurationException, IkatsWebClientException {
         // init test configuration
         String propertiesFile = "test.properties";
 
         // This part is shared by all the tests
         if (testConfig == null) {
 
-            try {
-                testConfig = new CompositeConfiguration();
-                testConfig.addConfiguration(new SystemConfiguration());
-                testConfig.addConfiguration(new PropertiesConfiguration(propertiesFile));
-                useGrizzlyServer = testConfig.getBoolean("useGrizzlyServer");
-            }
-            catch (Throwable e) {
-                testConfig = null;
-                throw new IkatsWebClientException("JUnit failure: AbstractRequestTest: Error loading properties file: " + propertiesFile, e);
-            }
+            testConfig = new CompositeConfiguration();
+            testConfig.addConfiguration(new SystemConfiguration());
+            testConfig.addConfiguration(new PropertiesConfiguration(propertiesFile));
         }
 
         utils = new TestUtils();
 
-        if (useGrizzlyServer) {
-            if (serverState == ServerStatus.STOPPED) {
-                try {
-                    server = ServerMain.startServer(testConfig.getString("grizlyServerURL"));
-                    STATIC_LOGGER.info(String.format("Jersey app started with WADL available at " + "%sapplication.wadl\nHit enter to stop it...",
-                            testConfig.getString("grizlyServerURL")));
+        if (serverState == ServerStatus.STOPPED) {
+            try {
+                server = ServerMain.startServer(testConfig.getString("grizlyServerURL"));
+                STATIC_LOGGER.info(String.format("Jersey app started with WADL available at " + "%sapplication.wadl\nHit enter to stop it...",
+                        testConfig.getString("grizlyServerURL")));
 
-                    serverState = ServerStatus.LAUNCHED;
-                }
-                catch (Throwable e) {
-
-                    serverState = ServerStatus.ERROR;
-                    throw new Exception("Failed to lauch Grizzly server => set serverState to ERROR");
-                }
+                serverState = ServerStatus.LAUNCHED;
             }
-            else {
-                String prevState = serverState.toString();
+            catch (Throwable e) {
+
                 serverState = ServerStatus.ERROR;
-                throw new Exception(
-                        "Unexpected server state " + prevState + " just before trying to launch Grizzly server => set serverState to ERROR");
+                throw new IkatsWebClientException("Failed to lauch Grizzly server => set serverState to ERROR");
             }
-
         }
         else {
-            STATIC_LOGGER.info("Using server at " + getAPIURL());
+            String prevState = serverState.toString();
+            serverState = ServerStatus.ERROR;
+            throw new IkatsWebClientException(
+                    "Unexpected server state " + prevState + " just before trying to launch Grizzly server => set serverState to ERROR");
         }
 
         config = new ApplicationConfiguration();
@@ -157,55 +145,38 @@ public abstract class AbstractRequestTest extends CommonTest {
      * Static ending of the JUnit class: calls implTearDownAfterClass() and logs
      * 
      * @param junitClassInfo
-     * @throws Exception
+     * @throws IkatsWebClientException 
      */
-    public static void tearDownAfterClass(String junitClassInfo) throws Exception {
+    public static void tearDownAfterClass(String junitClassInfo) throws IkatsWebClientException {
 
-        try {
-            STATIC_LOGGER.setLevel(Level.INFO);
-            STATIC_LOGGER.info(DECO_JUNIT_CLASS_LINE + " tearDownAfterClass: " + junitClassInfo + " " + DECO_JUNIT_CLASS_LINE);
-            implTearDownAfterClass();
-        }
-        catch (Exception e) {
-            STATIC_LOGGER.error(DECO_JUNIT_CLASS_LINE + " Failure of tearDownAfterClass: " + junitClassInfo + " " + DECO_JUNIT_CLASS_LINE, e);
-        }
+        STATIC_LOGGER.setLevel(Level.INFO);
+        STATIC_LOGGER.info(DECO_JUNIT_CLASS_LINE + " tearDownAfterClass: " + junitClassInfo + " " + DECO_JUNIT_CLASS_LINE);
+        implTearDownAfterClass();
     }
 
     /**
      * Stops the grizzly server if needed
+     * @throws IkatsWebClientException 
      * 
-     * @throws Exception
      */
-    protected static void implTearDownAfterClass() throws Exception {
+    protected static void implTearDownAfterClass() throws IkatsWebClientException {
 
-        try {
-            if (useGrizzlyServer) {
-                if (serverState == ServerStatus.LAUNCHED) {
-                    try {
-                        ServerMain.stopServer(server);
-                        serverState = ServerStatus.STOPPED;
-                    }
-                    catch (Throwable e) {
+        if (serverState == ServerStatus.LAUNCHED) {
+            try {
+                ServerMain.stopServer(server);
+                serverState = ServerStatus.STOPPED;
+            }
+            catch (Throwable e) {
 
-                        serverState = ServerStatus.ERROR;
-                        throw new IkatsWebClientException("JUnit failure: Failed to stop the Grizzly server => set serverState to ERROR");
-                    }
-                }
-                else {
-                    String prevState = serverState.toString();
-                    serverState = ServerStatus.ERROR;
-                    throw new IkatsWebClientException("JUnit failure: Unexpected server state " + prevState
-                            + " just before trying to stop Grizzly server => set serverState to ERROR");
-                }
-
+                serverState = ServerStatus.ERROR;
+                throw new IkatsWebClientException("JUnit failure: Failed to stop the Grizzly server => set serverState to ERROR");
             }
         }
-        catch (IkatsWebClientException wce) {
-            throw wce;
-
-        }
-        catch (Throwable e) {
-            throw new IkatsWebClientException("JUnit failure: AbstractRequestTest: Error ServerMain.stopServer(server): ", e);
+        else {
+            String prevState = serverState.toString();
+            serverState = ServerStatus.ERROR;
+            throw new IkatsWebClientException("JUnit failure: Unexpected server state " + prevState
+                    + " just before trying to stop Grizzly server => set serverState to ERROR");
         }
     }
 
@@ -413,7 +384,7 @@ public abstract class AbstractRequestTest extends CommonTest {
     @Override
     protected void start(String testCaseName, boolean isNominal) {
         super.start(testCaseName, isNominal);
-        if (useGrizzlyServer && (serverState != ServerStatus.LAUNCHED)) {
+        if (serverState != ServerStatus.LAUNCHED) {
             // There is an unexpected
             throw new RuntimeException("Using Grizzly server: unexpected state=" + serverState.toString() + " instead of LAUNCHED !");
         }
