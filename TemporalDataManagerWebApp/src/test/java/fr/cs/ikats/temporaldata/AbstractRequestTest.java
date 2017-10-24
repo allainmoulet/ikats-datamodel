@@ -25,7 +25,6 @@ import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.temporaldata.application.ApplicationConfiguration;
-import org.junit.BeforeClass;
 
 /**
  * This superclass is designed for the junit tests of IKATS web services: it
@@ -93,25 +92,6 @@ public abstract class AbstractRequestTest extends CommonTest {
             STATIC_LOGGER.error(DECO_JUNIT_CLASS_LINE + "Failure on setUpBeforeClass: " + junitClassInfo + " " + DECO_JUNIT_CLASS_LINE, e);
         }
 
-    }
-
-    /**
-     * Static initialization of the JUnit class: calls implSetupBeforClass() and
-     * logs
-     * 
-     * @deprecated use setUpBeforClass(String) instead
-     */
-    @BeforeClass
-    public static void setUpBeforClass() {
-
-        try {
-            STATIC_LOGGER.setLevel(Level.INFO);
-            STATIC_LOGGER.info(DECO_JUNIT_CLASS_LINE + " setUpBeforeClass() " + DECO_JUNIT_CLASS_LINE);
-            implSetupBeforClass();
-        }
-        catch (Throwable e) {
-            STATIC_LOGGER.error(DECO_JUNIT_CLASS_LINE + " Failure on setUpBeforClass() " + DECO_JUNIT_CLASS_LINE, e);
-        }
     }
 
     /**
@@ -188,24 +168,6 @@ public abstract class AbstractRequestTest extends CommonTest {
         }
         catch (Exception e) {
             STATIC_LOGGER.error(DECO_JUNIT_CLASS_LINE + " Failure of tearDownAfterClass: " + junitClassInfo + " " + DECO_JUNIT_CLASS_LINE, e);
-        }
-    }
-
-    /**
-     * Static ending of the JUnit class: calls implTearDownAfterClass() and logs
-     * 
-     * @throws java.lang.Exception
-     * @deprecated use tearDownAfterClass(String) instead
-     */
-    public static void tearDownAfterClass() throws Exception {
-
-        try {
-            STATIC_LOGGER.setLevel(Level.INFO);
-            STATIC_LOGGER.info(DECO_JUNIT_CLASS_LINE + " tearDownAfterClass() " + DECO_JUNIT_CLASS_LINE);
-            implTearDownAfterClass();
-        }
-        catch (Exception e) {
-            STATIC_LOGGER.error(DECO_JUNIT_CLASS_LINE + " Failure of tearDownAfterClass() " + DECO_JUNIT_CLASS_LINE, e);
         }
     }
 

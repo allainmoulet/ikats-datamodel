@@ -11,7 +11,9 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.media.multipart.file.FileDataBodyPart;
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import javax.ws.rs.client.Client;
@@ -31,6 +33,16 @@ import static org.junit.Assert.assertEquals;
  */
 public class TableRequestTest extends AbstractRequestTest {
     
+    @BeforeClass
+    public static void setUpBeforClass() {
+        AbstractRequestTest.setUpBeforClass(ImportRequestTest.class.getSimpleName());
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        AbstractRequestTest.tearDownAfterClass(ImportRequestTest.class.getSimpleName());
+    }
+
     /**
      * Remove all data before and after running each test. 
      * (avoids to change the current tests and ensure that there will be no remaining data at the last test)
