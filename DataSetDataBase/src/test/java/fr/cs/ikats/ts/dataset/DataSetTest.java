@@ -107,6 +107,9 @@ public class DataSetTest extends CommonTest {
         String results = facade.persistDataSet(datasetNameTested, "Description courte du dataset cree depuis des string tsuid", tsuids);
 
         assertEquals(datasetNameTested, results);
+
+        facade.removeDataSet(datasetNameTested);
+
     }
 
     /**
@@ -129,6 +132,11 @@ public class DataSetTest extends CommonTest {
         facade.persistDataSet(datasetNameTested, "Description courte du dataset cree depuis des string tsuid", tsuids);
     }
 
+    /**
+     * Test error when dataset already exist in database
+     *
+     * @throws IkatsDaoConflictException
+     */
     @Test(expected = IkatsDaoConflictException.class)
     public void testPersistExistingDataSet_DG() throws IkatsDaoException {
 
