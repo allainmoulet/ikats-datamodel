@@ -78,7 +78,7 @@ public class SearchRequestTest extends AbstractRequestTest {
 		String expectedJsonResponse = "{ 'test_stubbed': 'any JSON content from opentsbdb'}";
 		Mockito.doReturn(expectedJsonResponse).when(mockedTdm).getTS(Mockito.anyString(), Mockito.any());
 
-		// TODO 163211 or later: inject mocledTdm into tested wepapp
+		// TODO 163211 or later: inject mockedTdm into tested wepapp
 		// and then call the client ... and read String from Response
 		// ... temporary solution: call the service directly
 		TimeSerieResource services = new TimeSerieResource();
