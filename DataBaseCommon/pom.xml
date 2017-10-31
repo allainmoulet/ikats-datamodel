@@ -69,7 +69,8 @@
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.10</version>
-			<scope>test</scope>
+			<!--  No test scope due to the share of CommonTest.java -->
+			<!-- <scope>test</scope> -->
 		</dependency>
 
 		<dependency>
