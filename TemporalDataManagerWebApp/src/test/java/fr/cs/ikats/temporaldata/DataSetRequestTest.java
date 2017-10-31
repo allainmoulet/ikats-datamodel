@@ -395,8 +395,6 @@ public class DataSetRequestTest extends AbstractRequestTest {
 			// Test if service deleting the TS, its meta and its funcId is called
 			verify(mockedTS, timeout(delay)).removeTimeSeries(fids[0].getTsuid());
 			verify(mockedTS, timeout(delay)).removeTimeSeries(fids[1].getTsuid());
-
-			assertTrue(true);
 		} catch (Throwable e) {
 			endWithFailure(testCaseName, e);
 		}

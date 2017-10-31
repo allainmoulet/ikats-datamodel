@@ -418,7 +418,7 @@ public class TestUtils {
         int status = -1;
         ImportResult result = null;
         try {
-        	if ( url.indexOf("ts/put" ) >= 0 )
+        	if (url.contains("ts/put"))
      		{
         		// build form param
         		final FormDataMultiPart multipart = new FormDataMultiPart();
