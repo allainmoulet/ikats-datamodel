@@ -89,8 +89,6 @@ public class FunctionalIdentifierTest extends CommonTest {
 		List<String> tsuids = new ArrayList<String>();
 		tsuids.add("tsuid3");
 		facade.removeFunctionalIdentifier(tsuids);
-		added = facade.persistFunctionalIdentifier(values);
-		assertEquals(1, added);
 
 		// clean the data to avoid tests collision
 		facade.removeFunctionalIdentifier(new ArrayList<String>(values.keySet()));

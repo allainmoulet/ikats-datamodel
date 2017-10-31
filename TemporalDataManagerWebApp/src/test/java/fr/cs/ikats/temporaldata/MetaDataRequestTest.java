@@ -1,6 +1,3 @@
-/**
- * $Id$
- */
 package fr.cs.ikats.temporaldata;
 
 import static org.junit.Assert.assertEquals;
@@ -34,6 +31,9 @@ import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.datamanager.client.RequestSender;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
@@ -64,47 +64,29 @@ public class MetaDataRequestTest extends AbstractRequestTest {
      * Test Import of metaData
      * 
      * Since [#142998] corrected codes: 204 => 409
+     * @throws Exception 
      */
     @Test
-    public void testImportMetaData() {
+    public void testImportMetaData() throws Exception {
 
-        String testCaseName = "testImportMetaData";
-        boolean isNominal = true;
-        try {
-            start(testCaseName, isNominal);
+        // Meta data imported
+        assertEquals(200, launchMetaDataImport("09Q99AJJZJALAA0098AZFJAANABABAB", "meta1", "value1"));
+        // Can't import same meta again (already exist)
+        assertEquals(409, launchMetaDataImport("09Q99AJJZJALAA0098AZFJAANABABAB", "meta1", "value2"));
+        // New meta imported
+        assertEquals(200, launchMetaDataImport("09Q99AJJZJALAA0098AZFJAANABABAB", "meta2", "value1"));
+        // Can't import same meta again (already exist)
+        assertEquals(409, launchMetaDataImport("09Q99AJJZJALAA0098AZFJAANABABAB", "meta2", "value2"));
+        // New meta imported
+        assertEquals(200, launchMetaDataImport("09Q99AJJZJALAA0098AZFJAANABABAB", "meta3", "value3"));
+        // Can't import same meta again (already exist)
+        assertEquals(409, launchMetaDataImport("09Q99AJJZJALAA0098AZFJAANABABAB", "meta3", "value3"));
 
-            // Http codes: see javax.ws.rs.core.Response.Status
-
-            // Meta data imported
-            assertEquals(200, launchMetaDataImport("09Q99AJJZJALAA0098AZFJAANABABAB", "meta1", "value1"));
-
-            // Can't import same meta again (already exist)
-            assertEquals(409, launchMetaDataImport("09Q99AJJZJALAA0098AZFJAANABABAB", "meta1", "value2"));
-
-            // New meta imported
-            assertEquals(200, launchMetaDataImport("09Q99AJJZJALAA0098AZFJAANABABAB", "meta2", "value1"));
-
-            // Can't import same meta again (already exist)
-            assertEquals(409, launchMetaDataImport("09Q99AJJZJALAA0098AZFJAANABABAB", "meta2", "value2"));
-
-            // New meta imported
-            assertEquals(200, launchMetaDataImport("09Q99AJJZJALAA0098AZFJAANABABAB", "meta3", "value3"));
-
-            // Can't import same meta again (already exist)
-            assertEquals(409, launchMetaDataImport("09Q99AJJZJALAA0098AZFJAANABABAB", "meta3", "value3"));
-
-            listMetaData("09Q99AJJZJALAA0098AZFJAANABABAB", true);
-            listMetaData("*", true);
-            listMetaData("%2A", true);
-            launchDeleteMetaData("09Q99AJJZJALAA0098AZFJAANABABAB", null, 3);
-            listMetaData("09Q99AJJZJALAA0098AZFJAANABABAB", false);
-
-            endNominal(testCaseName);
-        }
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
-
+        listMetaData("09Q99AJJZJALAA0098AZFJAANABABAB", true);
+        listMetaData("*", true);
+        listMetaData("%2A", true);
+        launchDeleteMetaData("09Q99AJJZJALAA0098AZFJAANABABAB", null, 3);
+        listMetaData("09Q99AJJZJALAA0098AZFJAANABABAB", false);
     }
 
     /**
@@ -115,143 +97,87 @@ public class MetaDataRequestTest extends AbstractRequestTest {
     @Test
     public void testUpdateMetaData() {
 
-        String testCaseName = "testUpdateMetaData";
-        boolean isNominal = true;
-        try {
-            start(testCaseName, isNominal);
-
-            // Http codes: see javax.ws.rs.core.Response.Status
-
-            // New meta imported
-            assertEquals(200, launchMetaDataImport("Z09Q99AJJZJALAA0098AZFJAANABABAB", "meta1", "value1"));
-            // Status.Conflict: Can't import same meta again (already exist)
-            assertEquals(409, launchMetaDataImport("Z09Q99AJJZJALAA0098AZFJAANABABAB", "meta1", "value2"));
-            // New meta imported
-            assertEquals(200, launchMetaDataImport("Z09Q99AJJZJALAA0098AZFJAANABABAB", "meta2", "value2"));
-            // Update 1st meta
-            assertEquals(200, launchMetaDataUpdate("Z09Q99AJJZJALAA0098AZFJAANABABAB", "meta1", "value2"));
-            // Update 1st meta with same value
-            assertEquals(200, launchMetaDataUpdate("Z09Q99AJJZJALAA0098AZFJAANABABAB", "meta1", "value2"));
-            // Status.NOT_KNOWN : Update failed: unknown resource for metadata
-            // name
-            assertEquals(404, launchMetaDataUpdate("Z09Q99AJJZJALAA0098AZFJAANABABAB", "unknown meta", "value2"));
-            // Status.NOT_KNOWN : Update failed: unknown resource for TSUID
-            assertEquals(404, launchMetaDataUpdate("unknownTSUID", "meta1", "value2"));
-
-            endNominal(testCaseName);
-        }
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
-
+        // New meta imported
+        assertEquals(200, launchMetaDataImport("Z09Q99AJJZJALAA0098AZFJAANABABAB", "meta1", "value1"));
+        // Status.Conflict: Can't import same meta again (already exist)
+        assertEquals(409, launchMetaDataImport("Z09Q99AJJZJALAA0098AZFJAANABABAB", "meta1", "value2"));
+        // New meta imported
+        assertEquals(200, launchMetaDataImport("Z09Q99AJJZJALAA0098AZFJAANABABAB", "meta2", "value2"));
+        // Update 1st meta
+        assertEquals(200, launchMetaDataUpdate("Z09Q99AJJZJALAA0098AZFJAANABABAB", "meta1", "value2"));
+        // Update 1st meta with same value
+        assertEquals(200, launchMetaDataUpdate("Z09Q99AJJZJALAA0098AZFJAANABABAB", "meta1", "value2"));
+        // Status.NOT_KNOWN : Update failed: unknown resource for metadata
+        // name
+        assertEquals(404, launchMetaDataUpdate("Z09Q99AJJZJALAA0098AZFJAANABABAB", "unknown meta", "value2"));
+        // Status.NOT_KNOWN : Update failed: unknown resource for TSUID
+        assertEquals(404, launchMetaDataUpdate("unknownTSUID", "meta1", "value2"));
     }
     /**
      * testExportMetaDataCSVSynthetic tests the CSV synthetic format 
+     * @throws Exception 
      */
     @Test
-    public void testExportMetaDataCSVSynthetic() {
+    public void testExportMetaDataCSVSynthetic() throws Exception {
 
-        String testCaseName = "testExportMetaDataCSVSynthetic";
-        boolean isNominal = true;
-        try {
-            start(testCaseName, isNominal);
+        assertEquals(200, launchMetaDataImport("ts1_1", "meta1", "value1"));
+        assertEquals(200, launchMetaDataImport("ts1_2", "meta1", "value2"));
+        assertEquals(200, launchMetaDataImport("ts1_3", "meta1", "value3"));
+        assertEquals(200, launchMetaDataImport("ts1_1", "meta2", "value2"));
+        assertEquals(200, launchMetaDataImport("ts1_4", "meta2", "value1"));
+        doFuncIdImport("ts1_1", "FunctionalIdTs1", true, 1L);
+        String response = listMetaData("ts1_2,ts1_1,ts1_3,ts1_4", true);
 
-            assertEquals(200, launchMetaDataImport("ts1_1", "meta1", "value1"));
-            assertEquals(200, launchMetaDataImport("ts1_2", "meta1", "value2"));
-            assertEquals(200, launchMetaDataImport("ts1_3", "meta1", "value3"));
-            assertEquals(200, launchMetaDataImport("ts1_1", "meta2", "value2"));
-            assertEquals(200, launchMetaDataImport("ts1_4", "meta2", "value1"));
-            doFuncIdImport("ts1_1", "FunctionalIdTs1", true, 1L);
-            String response = listMetaData("ts1_2,ts1_1,ts1_3,ts1_4", true);
-
-            assertTrue(response.contains(";meta2;meta1"));
-            assertTrue(response.contains("\nNO_FUNC_ID_ts1_2;;value2"));
-            assertTrue(response.contains("\nNO_FUNC_ID_ts1_3;;value3"));
-            assertTrue(response.contains("\nNO_FUNC_ID_ts1_4;value1;"));
-            assertTrue(response.contains("\nFunctionalIdTs1;value2;value1"));
-
-            endNominal(testCaseName);
-        }
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
+        assertTrue(response.contains(";meta2;meta1"));
+        assertTrue(response.contains("\nNO_FUNC_ID_ts1_2;;value2"));
+        assertTrue(response.contains("\nNO_FUNC_ID_ts1_3;;value3"));
+        assertTrue(response.contains("\nNO_FUNC_ID_ts1_4;value1;"));
+        assertTrue(response.contains("\nFunctionalIdTs1;value2;value1"));
     }
     
     /**
      * testReadMetaData tests the CSV format based on the following requests
      * "ts1,ts2,ts3" "*" "ts1,ts1"
+     * @throws Exception 
      */
     @Test
-    public void testReadMetaData() {
+    public void testReadMetaData() throws Exception {
 
-        String testCaseName = "testReadMetaData";
-        boolean isNominal = true;
-        try {
-            start(testCaseName, isNominal);
-
-            assertEquals(200, launchMetaDataImport("ts1", "meta1", "value1"));
-            assertEquals(200, launchMetaDataImport("ts2", "meta1", "value2"));
-            assertEquals(200, launchMetaDataImport("ts3", "meta1", "value3"));
-            assertEquals(200, launchMetaDataImport("ts1", "meta2", "value2"));
-            assertEquals(200, launchMetaDataImport("ts4", "meta1", "value1"));
-            listMetaData("ts2,ts1,ts3", true);
-            listMetaData("*", true, "json");
-            listMetaData("ts1,ts1", true);
-            listMetaData("notDefinedTS", false);
-            launchDeleteMetaData("ts1", "meta1", 1L);
-            listMetaData("ts1", true);
-            launchDeleteMetaData("ts1", "meta2", 1L);
-            listMetaData("ts1", false);
-            launchDeleteMetaData("ts2", null, 1L);
-            launchDeleteMetaData("ts3", null, 1L);
-            launchDeleteMetaData("ts4", null, 1L);
-
-            endNominal(testCaseName);
-        }
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
+        assertEquals(200, launchMetaDataImport("ts1", "meta1", "value1"));
+        assertEquals(200, launchMetaDataImport("ts2", "meta1", "value2"));
+        assertEquals(200, launchMetaDataImport("ts3", "meta1", "value3"));
+        assertEquals(200, launchMetaDataImport("ts1", "meta2", "value2"));
+        assertEquals(200, launchMetaDataImport("ts4", "meta1", "value1"));
+        listMetaData("ts2,ts1,ts3", true);
+        listMetaData("*", true, "json");
+        listMetaData("ts1,ts1", true);
+        listMetaData("notDefinedTS", false);
+        launchDeleteMetaData("ts1", "meta1", 1L);
+        listMetaData("ts1", true);
+        launchDeleteMetaData("ts1", "meta2", 1L);
+        listMetaData("ts1", false);
+        launchDeleteMetaData("ts2", null, 1L);
+        launchDeleteMetaData("ts3", null, 1L);
+        launchDeleteMetaData("ts4", null, 1L);
     }
 
     /**
      * tests READ services on /metadata/funcId/: consuming Form input
      */
     @Test
-    public void testReadFunctionalIdentifiersForm() {
+    public void testReadFunctionalIdentifiersForm() throws Exception {
 
-        String testCaseName = "testReadFunctionalIdentifiersForm";
-        boolean isNominal = true;
-        try {
-            start(testCaseName, isNominal);
-
-            launchReadFunctionalIdentifiers(false, new String[] { "tsuidM", "tsuidN", "tsuidO" }, new String[] { "funcM", "funcN", "funcO" });
-
-            endNominal(testCaseName);
-        }
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
-
+        launchReadFunctionalIdentifiers(false, new String[] { "tsuidM", "tsuidN", "tsuidO" }, new String[] { "funcM", "funcN", "funcO" });
     }
 
     /**
      * tests READ services on /metadata/funcId/ : consuming Json input
+     * @throws Exception 
      */
     @Test
-    public void testReadFunctionalIdentifiersJson() {
+    public void testReadFunctionalIdentifiersJson() throws Exception {
 
-        String testCaseName = "testReadFunctionalIdentifiersJson";
-        boolean isNominal = true;
-        try {
-            start(testCaseName, isNominal);
-
-            launchReadFunctionalIdentifiers(true, new String[] { "tsuidA", "tsuidB", "tsuidC" }, new String[] { "funcA", "funcB", "funcC" });
-
-            endNominal(testCaseName);
-        }
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
+        launchReadFunctionalIdentifiers(true, new String[] { "tsuidA", "tsuidB", "tsuidC" }, new String[] { "funcA", "funcB", "funcC" });
     }
 
     /**
@@ -442,36 +368,16 @@ public class MetaDataRequestTest extends AbstractRequestTest {
 
     }
 
-    private void launchDeleteFunctionalIdentifier(String tsuid) throws Exception {
-        String url = getAPIURL() + "/metadata/funcId/" + tsuid;
-        try {
-            Response response = RequestSender.sendDELETERequest(url);
-            assertEquals(200, response.getStatus());
-            ImportResult result = response.readEntity(ImportResult.class);
-            assertEquals(1L, result.getNumberOfSuccess());
-
-            getLogger().info(response.getStatus());
-        }
-        catch (Throwable e) {
-            throw new Exception("Failure: " + url, e);
-        }
-    }
-
     private void launchDeleteMetaData(String tsuid, String name, long expected) throws Exception {
+
         String url = getAPIURL() + "/metadata/" + tsuid;
         if (name != null) {
             url = url + "/" + name;
         }
-        try {
-            Response response = RequestSender.sendDELETERequest(url);
-            ImportResult result = response.readEntity(ImportResult.class);
-            assertEquals(expected, result.getNumberOfSuccess());
-
-            getLogger().info(response.getStatus());
-        }
-        catch (Throwable e) {
-            throw new Exception("Failure: " + url, e);
-        }
+        
+        Response response = RequestSender.sendDELETERequest(url);
+        ImportResult result = response.readEntity(ImportResult.class);
+        assertEquals(expected, result.getNumberOfSuccess());
     }
 
     /**
@@ -480,272 +386,210 @@ public class MetaDataRequestTest extends AbstractRequestTest {
     @Test
     public void testImportFunctionalIdentifier_DG() {
 
-        String testCaseName = "testImportFunctionalIdentifier_DG";
-        boolean isNominal = true;
-        try {
-            start(testCaseName, isNominal);
+        Response response = doFuncIdImport("tsuid1_func", "_$ùùùùù", true, 1L);
+        assertEquals(Status.NOT_ACCEPTABLE.getStatusCode(), response.getStatus());
+        getLogger().info(response);
 
-            Response response = doFuncIdImport("tsuid1_func", "_$ùùùùù", true, 1L);
-            assertEquals(Status.NOT_ACCEPTABLE.getStatusCode(), response.getStatus());
-            getLogger().info(response);
-            // getLogger().error("",
-            // response.readEntity(InvalidValueException.class));
-
-            response = doFuncIdImport("tsuid1_func", "toto", true, 1L);
-            response = doFuncIdImport("tsuid1_func", "toto", true, 0L);
-
-            endNominal(testCaseName);
-        }
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
+        response = doFuncIdImport("tsuid1_func", "toto", true, 1L);
+        response = doFuncIdImport("tsuid1_func", "toto", true, 0L);
     }
 
     /**
      * Test the import of meta data from a bad formatted CSV file
      * without update option => no meta created
+     * @throws IkatsDaoMissingRessource 
      */
     @Test
-    public void testImportMetaDataCSVWithErrorsinCSV() {
+    public void testImportMetaDataCSVWithErrorsinCSV() throws IkatsDaoMissingRessource {
 
         String testCaseName = "testImportMetaDataCSVWithErrorsinCSV";
-        boolean isNominal = true;
-        try {
-            start(testCaseName, isNominal);
 
-            // Fill in some functional Ids to allow the import
-            doFuncIdImport(testCaseName + "tsuid1", "MAM1", false, 1L);
-            doFuncIdImport(testCaseName + "tsuid2", "MAM2", false, 1L);
-            doFuncIdImport(testCaseName + "tsuid3", "MAM3", false, 1L);
+        // Fill in some functional Ids to allow the import
+        doFuncIdImport(testCaseName + "tsuid1", "MAM1", false, 1L);
+        doFuncIdImport(testCaseName + "tsuid2", "MAM2", false, 1L);
+        doFuncIdImport(testCaseName + "tsuid3", "MAM3", false, 1L);
 
-            // Test with errors in csv => no metadata imported
-            checkImportMetadataFromCsv("/data/metadata_import.csv", 0, false);
-
-            endNominal(testCaseName);
-        }
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
-
+        // Test with errors in csv => no metadata imported
+        checkImportMetadataFromCsv("/data/metadata_import.csv", 0, false);
     }
     
     /**
      * Test the import of meta data from a CSV file
      * with update option => meta are created
+     * @throws IkatsDaoMissingRessource 
+     * @throws IkatsDaoConflictException 
      */
     @Test
-    public void testImportMetaDataCSVWithUpdate() {
+    public void testImportMetaDataCSVWithUpdate() throws IkatsDaoMissingRessource, IkatsDaoConflictException {
 
         String testCaseName = "testImportMetaDataCSVWithUpdate";
-        boolean isNominal = true;
+
         MetaDataFacade facade = new MetaDataFacade();
-        try {
-            start(testCaseName, isNominal);
 
-            // Test without functional ids :=> no metadata imported
-            checkImportMetadataFromCsv("/data/metadata_import_update.csv", 0, true);
+        // Test without functional ids :=> no metadata imported
+        checkImportMetadataFromCsv("/data/metadata_import_update.csv", 0, true);
 
-            // Fill in some functional Ids to allow the import
-            String tsuid1 = testCaseName + "tsuid1";
-            String funcId1 = testCaseName + "MAM1";
-           
-            String tsuid2 = testCaseName + "tsuid2";
-            String funcId2 = testCaseName + "MAM2";
-           
-            String tsuid3 = testCaseName + "tsuid3";
-            String funcId3 = testCaseName + "MAM3";
-            
-            doFuncIdImport(tsuid1, funcId1, false, 1L);
-            doFuncIdImport(tsuid2, funcId2, false, 1L);
-            doFuncIdImport(tsuid3, funcId3, false, 1L);
-            
-            assertEquals(200, launchMetaDataImport(tsuid1, "cycle", "aterrissage"));
+        // Fill in some functional Ids to allow the import
+        String tsuid1 = testCaseName + "tsuid1";
+        String funcId1 = testCaseName + "MAM1";
+       
+        String tsuid2 = testCaseName + "tsuid2";
+        String funcId2 = testCaseName + "MAM2";
+       
+        String tsuid3 = testCaseName + "tsuid3";
+        String funcId3 = testCaseName + "MAM3";
+        
+        doFuncIdImport(tsuid1, funcId1, false, 1L);
+        doFuncIdImport(tsuid2, funcId2, false, 1L);
+        doFuncIdImport(tsuid3, funcId3, false, 1L);
+        
+        assertEquals(200, launchMetaDataImport(tsuid1, "cycle", "aterrissage"));
 
-            // Test with update : 6 metadata created + 1 metadata updated
-            checkImportMetadataFromCsv("/data/metadata_import_update.csv", 7, true);
-            
-            // check update of md
-            String metaVal = facade.getMetaData(tsuid1, "cycle").getValue();
-            assertEquals("decollage", metaVal);
-
-            endNominal(testCaseName);
-        }
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
-
+        // Test with update : 6 metadata created + 1 metadata updated
+        checkImportMetadataFromCsv("/data/metadata_import_update.csv", 7, true);
+        
+        // check update of md
+        String metaVal = facade.getMetaData(tsuid1, "cycle").getValue();
+        assertEquals("decollage", metaVal);
     }
 
     /**
      * Test the import of meta data from a CSV file
      * without update option => no meta are imported
+     * @throws IkatsDaoException 
      */
     @Test
-    public void testImportMetaDataCSVWithoutUpdate() {
+    public void testImportMetaDataCSVWithoutUpdate() throws IkatsDaoException {
 
         String testCaseName = "testImportMetaDataCSVWithoutUpdate";
-        boolean isNominal = true;
+
         MetaDataFacade facade = new MetaDataFacade();
+        
+        // Fill in some functional Ids to allow the import
+        String tsuid1 = testCaseName + "tsuid1";
+        String funcId1 = testCaseName + "MAM1";
+       
+        String tsuid2 = testCaseName + "tsuid2";
+        String funcId2 = testCaseName + "MAM2";
+       
+        String tsuid3 = testCaseName + "tsuid3";
+        String funcId3 = testCaseName + "MAM3";
+        
+        doFuncIdImport(tsuid1, funcId1, false, 1L);
+        doFuncIdImport(tsuid2, funcId2, false, 1L);
+        doFuncIdImport(tsuid3, funcId3, false, 1L);
+        
+        assertEquals(200, launchMetaDataImport(tsuid1, "cycle", "aterrissage"));
+
+        // Test without update : one metadata already exists => no metadata imported
+        checkImportMetadataFromCsv("/data/metadata_import_no_update.csv", 0, false);
+        
         try {
-            start(testCaseName, isNominal);
-
-            // Fill in some functional Ids to allow the import
-            String tsuid1 = testCaseName + "tsuid1";
-            String funcId1 = testCaseName + "MAM1";
-           
-            String tsuid2 = testCaseName + "tsuid2";
-            String funcId2 = testCaseName + "MAM2";
-           
-            String tsuid3 = testCaseName + "tsuid3";
-            String funcId3 = testCaseName + "MAM3";
-            
-            doFuncIdImport(tsuid1, funcId1, false, 1L);
-            doFuncIdImport(tsuid2, funcId2, false, 1L);
-            doFuncIdImport(tsuid3, funcId3, false, 1L);
-            
-            assertEquals(200, launchMetaDataImport(tsuid1, "cycle", "aterrissage"));
-
-            // Test without update : one metadata already exists => no metadata imported
-            checkImportMetadataFromCsv("/data/metadata_import_no_update.csv", 0, false);
-            
-            try {
-                // check NON-import of md from file
-                List<MetaData> metaList = facade.getMetaDataForTS(tsuid1);
-                // check NON-update of md
-                assertEquals("aterrissage", metaList.get(0).getValue());
-            }
-            catch (IkatsDaoMissingRessource e) {
-                getLogger().error("Exception catched : no metadata found => NOK");
-                fail();
-            }
-            
-            try {
-                // check NON-import of md from file
-                List metaList = facade.getMetaDataForTS(tsuid2);
-                fail();
-            }
-            catch (IkatsDaoMissingRessource e) {
-                // ok no metadata found
-                getLogger().info("Exception catched : no metadata found => OK");
-            }
-            
-            try {
-                // check NON-import of md from file
-                List metaList = facade.getMetaDataForTS(tsuid3);
-                fail();
-            }
-            catch (IkatsDaoMissingRessource e) {
-                // ok no metadata found
-                getLogger().info("Exception catched : no metadata found => OK");
-            }
-            
-            endNominal(testCaseName);
+            // check NON-import of md from file
+            List<MetaData> metaList = facade.getMetaDataForTS(tsuid1);
+            // check NON-update of md
+            assertEquals("aterrissage", metaList.get(0).getValue());
         }
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
+        catch (IkatsDaoMissingRessource e) {
+            getLogger().error("Exception catched : no metadata found => NOK");
+            fail();
         }
-
+        
+        try {
+            // check NON-import of md from file
+            List metaList = facade.getMetaDataForTS(tsuid2);
+            fail();
+        }
+        catch (IkatsDaoMissingRessource e) {
+            // ok no metadata found
+            getLogger().info("Exception catched : no metadata found => OK");
+        }
+        
+        try {
+            // check NON-import of md from file
+            List metaList = facade.getMetaDataForTS(tsuid3);
+            fail();
+        }
+        catch (IkatsDaoMissingRessource e) {
+            // ok no metadata found
+            getLogger().info("Exception catched : no metadata found => OK");
+        }
     }
 
     /**
      * Test the import of meta data from a CSV file
      * containing metric without update option => meta are imported
+     * @throws IkatsDaoException 
      */
     @Test
-    public void testImportMetaDataCSVWithMetric() {
+    public void testImportMetaDataCSVWithMetric() throws IkatsDaoException {
 
         String testCaseName = "testImportMetaDataCSVWithMetric";
-        boolean isNominal = true;
         MetaDataFacade facade = new MetaDataFacade();
-        try {
-            start(testCaseName, isNominal);
 
-            // Fill in some functional Ids to allow the import
-            String tsuid1 = testCaseName + "tsuid1";
-            String funcId1 = testCaseName + "MAM1";
-           
-            String tsuid2 = testCaseName + "tsuid2";
-            String funcId2 = testCaseName + "MAM2";
-           
-            String tsuid3 = testCaseName + "tsuid3";
-            String funcId3 = testCaseName + "MAM3";
-            
-            doFuncIdImport(tsuid1, funcId1, false, 1L);
-            doFuncIdImport(tsuid2, funcId2, false, 1L);
-            doFuncIdImport(tsuid3, funcId3, false, 1L);
+        // Fill in some functional Ids to allow the import
+        String tsuid1 = testCaseName + "tsuid1";
+        String funcId1 = testCaseName + "MAM1";
+       
+        String tsuid2 = testCaseName + "tsuid2";
+        String funcId2 = testCaseName + "MAM2";
+       
+        String tsuid3 = testCaseName + "tsuid3";
+        String funcId3 = testCaseName + "MAM3";
+        
+        doFuncIdImport(tsuid1, funcId1, false, 1L);
+        doFuncIdImport(tsuid2, funcId2, false, 1L);
+        doFuncIdImport(tsuid3, funcId3, false, 1L);
 
-            assertEquals(200, launchMetaDataImport(tsuid1, "metric", "METRICTEST"));
-            assertEquals(200, launchMetaDataImport(tsuid3, "metric", "METRICTEST"));
+        assertEquals(200, launchMetaDataImport(tsuid1, "metric", "METRICTEST"));
+        assertEquals(200, launchMetaDataImport(tsuid3, "metric", "METRICTEST"));
 
-            // check import of metadata by metric :
-            // 1 metric of 2 ts x 2 meta => 4 metadata 
-            // + 1 funcid x 2 meta 
-            // = 8 metadata imported (cf. csv file)
-            checkImportMetadataFromCsv("/data/metadata_import_metric.csv", 6, false);
-            
-            // check update of md for each tsuid
-            List<MetaData> metaList = facade.getMetaDataForTS(tsuid1);
-            assertEquals(3, metaList.size());
-            List<MetaData> metaList2 = facade.getMetaDataForTS(tsuid2);
-            assertEquals(2, metaList2.size());
-            List<MetaData> metaList3 = facade.getMetaDataForTS(tsuid3);
-            assertEquals(3, metaList3.size());
-                        
-            endNominal(testCaseName);
-        }
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
-
+        // check import of metadata by metric :
+        // 1 metric of 2 ts x 2 meta => 4 metadata 
+        // + 1 funcid x 2 meta 
+        // = 8 metadata imported (cf. csv file)
+        checkImportMetadataFromCsv("/data/metadata_import_metric.csv", 6, false);
+        
+        // check update of md for each tsuid
+        List<MetaData> metaList = facade.getMetaDataForTS(tsuid1);
+        assertEquals(3, metaList.size());
+        List<MetaData> metaList2 = facade.getMetaDataForTS(tsuid2);
+        assertEquals(2, metaList2.size());
+        List<MetaData> metaList3 = facade.getMetaDataForTS(tsuid3);
+        assertEquals(3, metaList3.size());
     }
     
     /**
      * tests READ services on /metadata/types/
+     * @throws IkatsWebClientException 
+     * @throws IkatsDaoException 
+     * @throws IkatsDaoInvalidValueException 
+     * @throws IkatsDaoConflictException 
      */
     @Test
-    public void testReadMetadataTypes() {
+    public void testReadMetadataTypes() throws IkatsWebClientException, IkatsDaoConflictException, IkatsDaoInvalidValueException, IkatsDaoException {
 
-        String testCaseName = "testReadMetadataTypes";
-        boolean isNominal = true;
-        try {
-            start(testCaseName, isNominal);
+        String url = getAPIURL() + "/metadata/types/";
 
-            String url = getAPIURL() + "/metadata/types/";
-
-            try {
-
-                MetaDataFacade facade = new MetaDataFacade();
-                facade.persistMetaData("tsuidA01", "thatsastring", "blabla","string");
-                facade.persistMetaData("tsuidA02", "thatsanumber", "12","number");
-                
-                Response response = RequestSender.sendGETRequest(url, null);
-
-                
-                
-                getLogger().info(response.getStatus());
-                
-                // 200
-                assertEquals(Status.OK.getStatusCode(), response.getStatus());
-               
-                Map<String,String> res = response.readEntity(new GenericType<Map<String,String>>() {
-                });
-                
-                assertTrue(res.containsKey("thatsastring"));
-                assertEquals("string",res.get("thatsastring"));
-                
-                assertTrue(res.containsKey("thatsanumber"));
-                assertEquals("number",res.get("thatsanumber"));
-            }
-            catch (IkatsWebClientException e) {
-                throw new Exception("Failure: get types for metadata - ", e);
-
-            }
-            endNominal(testCaseName);
-        }
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
-
+        MetaDataFacade facade = new MetaDataFacade();
+        facade.persistMetaData("tsuidA01", "thatsastring", "blabla","string");
+        facade.persistMetaData("tsuidA02", "thatsanumber", "12","number");
+        
+        Response response = RequestSender.sendGETRequest(url, null);
+        
+        getLogger().info(response.getStatus());
+        
+        // 200
+        assertEquals(Status.OK.getStatusCode(), response.getStatus());
+       
+        Map<String,String> res = response.readEntity(new GenericType<Map<String,String>>() {
+        });
+        
+        assertTrue(res.containsKey("thatsastring"));
+        assertEquals("string",res.get("thatsastring"));
+        
+        assertTrue(res.containsKey("thatsanumber"));
+        assertEquals("number",res.get("thatsanumber"));
     }
     
     /**

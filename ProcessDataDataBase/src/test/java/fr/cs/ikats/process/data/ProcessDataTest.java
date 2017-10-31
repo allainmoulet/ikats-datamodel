@@ -1,20 +1,25 @@
 package fr.cs.ikats.process.data;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.process.data.model.ProcessData;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.List;
+
 import org.junit.Test;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 
-import java.io.*;
-import java.nio.charset.Charset;
-import java.security.SecureRandom;
-import java.sql.Blob;
-import java.sql.SQLException;
-import java.util.Arrays;
-import java.util.List;
-
-import static org.junit.Assert.*;
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.process.data.model.ProcessData;
 
 public class ProcessDataTest {
 
@@ -65,7 +70,7 @@ public class ProcessDataTest {
         assertEquals(1, result.size());
         assertEquals("ANY", result.get(0).getDataType());
 
-        byte[] resultData = getRawDataFromResult(result.get(0));
+        byte[] resultData = result.get(0).getData();
         assertNotNull(resultData);
         assertTrue(Arrays.equals(dataToInsert, resultData));
         facade.removeProcessData("execId1");
@@ -76,43 +81,8 @@ public class ProcessDataTest {
      * @return
      */
     private String getDataFromResult(ProcessData processData) {
-//        String resultData = null;
-//        InputStream inS;
-//        try {
-//            inS = processData.getData().getBinaryStream();
-//            byte[] buff = new byte[512];
-//            StringBuffer strBuff = new StringBuffer();
-//
-//            while (inS.read(buff) != -1) {
-//                strBuff.append(new String(buff, Charset.defaultCharset()));
-//            }
-//            resultData = strBuff.toString().trim();
-//        } catch (SQLException | IOException e1) {
-//            e1.printStackTrace();
-//            fail();
-//        }
-//        return resultData;
-//        
         return new String(processData.getData(), Charset.defaultCharset());
     }
-
-    /**
-     * @param processData
-     * @return
-     */
-    private byte[] getRawDataFromResult(ProcessData processData) {
-//        Blob data = processData.getData();
-//        byte[] result = null;
-//        try {
-//            result = data.getBytes(1, (int) data.length());
-//        } catch (SQLException e1) {
-//            e1.printStackTrace();
-//            fail();
-//        }
-//        return result;
-        return processData.getData();
-    }
-
 
     @Test
     public void testGetForProcessId() throws IOException, IkatsDaoException {
@@ -141,32 +111,19 @@ public class ProcessDataTest {
     }
 
     @Test
-    public void testGetWithFileContent() {
-    	//
-    	// TODO  [#163211] correct this test or delete it
-    	//
+    public void testGetWithFileContent() throws IOException, IkatsDaoException {
         ProcessDataFacade facade = new ProcessDataFacade();
         Resource resource = new ClassPathResource("/data/matrice_distance.csv");
-        File file = null;
-        try {
-            file = resource.getFile();
-            FileInputStream stream = new FileInputStream(file);
-            ProcessData data = new ProcessData("execId1", "CSV", "matrice_distance.csv");
-            facade.importProcessData(data, stream, -1);
-            List<ProcessData> result = facade.getProcessData("execId1");
-            System.out.println(getDataFromResult(result.get(0)));
-            int dataId = result.get(0).getId();
-            ProcessData result1 = facade.getProcessPieceOfData(dataId);
-            System.out.println(getDataFromResult(result1));
-            facade.removeProcessData("execId1");
-
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
-        catch (IkatsDaoException e) {
-            e.printStackTrace();
-        }
-
+        File file = resource.getFile();
+        FileInputStream stream = new FileInputStream(file);
+        ProcessData data = new ProcessData("execId1", "CSV", "matrice_distance.csv");
+        facade.importProcessData(data, stream, -1);
+        List<ProcessData> result = facade.getProcessData("execId1");
+        System.out.println(getDataFromResult(result.get(0)));
+        int dataId = result.get(0).getId();
+        ProcessData result1 = facade.getProcessPieceOfData(dataId);
+        System.out.println(getDataFromResult(result1));
+        facade.removeProcessData("execId1");
     }
 
     @Test

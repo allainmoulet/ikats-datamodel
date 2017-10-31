@@ -378,19 +378,6 @@ public abstract class AbstractRequestTest extends CommonTest {
     }
 
     /**
-     * Calls superclass start method, and check the pre-condition that
-     * serverState == ServerStatus.LAUNCHED in case of use of Grizzly server.
-     */
-    @Override
-    protected void start(String testCaseName, boolean isNominal) {
-        super.start(testCaseName, isNominal);
-        if (serverState != ServerStatus.LAUNCHED) {
-            // There is an unexpected
-            throw new RuntimeException("Using Grizzly server: unexpected state=" + serverState.toString() + " instead of LAUNCHED !");
-        }
-    }
-
-    /**
      * Retrieve File matching the resource, or die ...
      * 
      * @param testCaseName
