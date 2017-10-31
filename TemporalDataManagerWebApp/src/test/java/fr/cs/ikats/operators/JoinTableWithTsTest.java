@@ -151,74 +151,66 @@ public class JoinTableWithTsTest extends CommonTest {
 	@Test
 	public void testApplyNominal() throws Exception {
 
+		// Prepare a row header with unique keys, different from those from
+		// theIdColumnName
+		// (this should not perturb the result !)
+		List<String> anotherIdList = new ArrayList<>(TABLE_FLIGHT_IDS);
+		Collections.shuffle(anotherIdList);
+		String theIdColumnName = "ID";
+		String testedInputJoinColName = "ID";
+		String testedInputJoinMetaName = "flightId";
+		String theTargetColumnName = "Target";
+		String testedMetrics = SELECTED_METRICS_ALL_MATCHING;
+
+		Table selectedTable = tableManager.initEmptyTable(true, true);
+
+		selectedTable.getColumnsHeader().addItems(theIdColumnName, "One", "Two", theTargetColumnName);
+		selectedTable.getRowsHeader().addItem(null).addItems(TABLE_FLIGHT_IDS.toArray());
+
+		selectedTable.appendRow(Arrays.asList(1.1, true, "A"));
+		selectedTable.appendRow(Arrays.asList(1.2, false, "A"));
+		selectedTable.appendRow(Arrays.asList(133, false, "A"));
+		selectedTable.appendRow(Arrays.asList(40, true, "B"));
+		selectedTable.appendRow(Arrays.asList(500, true, "C"));
+
+		selectedTable.checkConsistency();
+
+		String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
+
+		JoinTableWithTs testedOperator = new JoinTableWithTs();
+		String resId = testedOperator.apply(selectedJson, testedMetrics, SELECTED_DATASET_NAME,
+				testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName, OUTPUT_TABLE_NAME);
+
+		// Temporary DAO for Table:
+		// DB-table processdata
+		// - name => name of the Table
+		// - id => rid
+		// - desc => desc of table for quick searches
+		Integer intRid = -1;
 		try {
-			start("testApplyNominal", true);
-
-			// Prepare a row header with unique keys, different from those from
-			// theIdColumnName
-			// (this should not perturb the result !)
-			List<String> anotherIdList = new ArrayList<>(TABLE_FLIGHT_IDS);
-			Collections.shuffle(anotherIdList);
-			String theIdColumnName = "ID";
-			String testedInputJoinColName = "ID";
-			String testedInputJoinMetaName = "flightId";
-			String theTargetColumnName = "Target";
-			String testedMetrics = SELECTED_METRICS_ALL_MATCHING;
-
-			Table selectedTable = tableManager.initEmptyTable(true, true);
-
-			selectedTable.getColumnsHeader().addItems(theIdColumnName, "One", "Two", theTargetColumnName);
-			selectedTable.getRowsHeader().addItem(null).addItems(TABLE_FLIGHT_IDS.toArray());
-
-			selectedTable.appendRow(Arrays.asList(1.1, true, "A"));
-			selectedTable.appendRow(Arrays.asList(1.2, false, "A"));
-			selectedTable.appendRow(Arrays.asList(133, false, "A"));
-			selectedTable.appendRow(Arrays.asList(40, true, "B"));
-			selectedTable.appendRow(Arrays.asList(500, true, "C"));
-
-			selectedTable.checkConsistency();
-
-			String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
-
-			JoinTableWithTs testedOperator = new JoinTableWithTs();
-			String resId = testedOperator.apply(selectedJson, testedMetrics, SELECTED_DATASET_NAME,
-					testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName, OUTPUT_TABLE_NAME);
-
-			// Temporary DAO for Table:
-			// DB-table processdata
-			// - name => name of the Table
-			// - id => rid
-			// - desc => desc of table for quick searches
-			Integer intRid = -1;
-			try {
-				intRid = Integer.parseInt(resId);
-				ProcessData writtenData = processDataManager.getProcessPieceOfData(intRid);
-
-				assertEquals(writtenData.getProcessId(), OUTPUT_TABLE_NAME);
-
-				TableInfo tableJson = tableManager.readFromDatabase(OUTPUT_TABLE_NAME);
-				Table testedOutput = tableManager.initTable(tableJson, false);
-
-				assertEquals(3, testedOutput.getIndexColumnHeader("WS1"));
-				assertEquals(4, testedOutput.getIndexColumnHeader("WS3"));
-				assertEquals(5, testedOutput.getIndexColumnHeader(theTargetColumnName));
-
-				// selected dataset contains IDs= 1, 2, 50, 51
-				// selected table contains IDs= 1, 10, 11, 50, 51
-				// => join IDs = 1, 50, 51
-				//
-				assertEquals(Arrays.asList("funcId_1_WS1", null, null, "funcId_50_WS1", "funcId_51_WS1"),
-						testedOutput.getColumn("WS1", Object.class));
-
-				// full test on the links applied in anothor use case: testComputeTableNominalWithTarget
-
-				endNominal("testApplyNominal");
-
-			} catch (NumberFormatException e) {
-				fail("testApplyNominal: unexpected rid: should be a parsable int: rid=" + resId);
-			}
-		} finally {
-			processDataManager.removeProcessData(OUTPUT_TABLE_NAME);
+    		intRid = Integer.parseInt(resId);
+    		ProcessData writtenData = processDataManager.getProcessPieceOfData(intRid);
+    
+    		assertEquals(writtenData.getProcessId(), OUTPUT_TABLE_NAME);
+    
+    		TableInfo tableJson = tableManager.readFromDatabase(OUTPUT_TABLE_NAME);
+    		Table testedOutput = tableManager.initTable(tableJson, false);
+    
+    		assertEquals(3, testedOutput.getIndexColumnHeader("WS1"));
+    		assertEquals(4, testedOutput.getIndexColumnHeader("WS3"));
+    		assertEquals(5, testedOutput.getIndexColumnHeader(theTargetColumnName));
+    
+    		// selected dataset contains IDs= 1, 2, 50, 51
+    		// selected table contains IDs= 1, 10, 11, 50, 51
+    		// => join IDs = 1, 50, 51
+    		//
+    		assertEquals(Arrays.asList("funcId_1_WS1", null, null, "funcId_50_WS1", "funcId_51_WS1"),
+    				testedOutput.getColumn("WS1", Object.class));
+    
+    		// full test on the links applied in anothor use case: testComputeTableNominalWithTarget
+		} 
+		finally {
+		    processDataManager.removeProcessData(OUTPUT_TABLE_NAME);
 		}
 	}
 
@@ -242,8 +234,6 @@ public class JoinTableWithTsTest extends CommonTest {
 		configsTest.add(Arrays.asList("ID", "", "flightId", "Target"));
 		configsTest.add(Arrays.asList("flightId", "", "", "Target"));
 		configsTest.add(Arrays.asList("flightId", "flightId", "", "Target"));
-
-		start("testComputeTableNominalWithTarget", true);
 
 		for (List<String> config : configsTest) {
 			getLogger().info("--> testing config= " + config);
@@ -304,10 +294,7 @@ public class JoinTableWithTsTest extends CommonTest {
 			for (DataLink dataLink : links) {
 				getLogger().info(MessageFormat.format(" - WS1 link={0}", dataLink));
 			}
-
 		}
-
-		endNominal("testComputeTableNominalWithTarget");
 	}
 
 	/**
@@ -333,8 +320,6 @@ public class JoinTableWithTsTest extends CommonTest {
 		// configsTest.add(Arrays.asList("ID", "", "flightId", ""));
 		// not tested here because the ID column is not the first one with this test:
 		// configsTest.add(Arrays.asList("flightId", "", "", ""));
-
-		start("testComputeTableNominalWithoutTarget", true);
 
 		// Prepare a row header with unique keys, different from those from
 		// theIdColumnName
@@ -403,8 +388,6 @@ public class JoinTableWithTsTest extends CommonTest {
 			assertLinkPointsToTsuid(links.get(1), "funcId_50_WS1", "tsuid_50_WS1");
 			assertLinkPointsToTsuid(links.get(2), "funcId_51_WS1", "tsuid_51_WS1");
 		}
-
-		endNominal("testComputeTableNominalWithoutTarget");
 	}
 
 	/**
@@ -420,31 +403,30 @@ public class JoinTableWithTsTest extends CommonTest {
 		// joinMetaName> | <input TargetColName>
 		// ---------------------------------------------------------------------------------------------------
 
+		String theIdColumnName = "ID";
+		String theTargetColumnName = "Target";
+
+		String testedInputJoinColName = "ID";
+		String testedInputJoinMetaName = "flightId";
+
+		Table selectedTable = tableManager.initEmptyTable(true, true);
+
+		selectedTable.getColumnsHeader().addItems(theIdColumnName, "One", "Two", theTargetColumnName);
+		selectedTable.getRowsHeader().addItem(null).addItems(TABLE_FLIGHT_IDS.toArray());
+
+		selectedTable.appendRow(Arrays.asList(1.1, true, "A"));
+		selectedTable.appendRow(Arrays.asList(1.2, false, "A"));
+		selectedTable.appendRow(Arrays.asList(133, false, "A"));
+		selectedTable.appendRow(Arrays.asList(40, true, "B"));
+		selectedTable.appendRow(Arrays.asList(500, true, "C"));
+
+		selectedTable.checkConsistency();
+
+		String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
+
+		JoinTableWithTs testedOperator = new JoinTableWithTs();
 		try {
-			start("testComputeTableNoMetrics", true);
-
-			String theIdColumnName = "ID";
-			String theTargetColumnName = "Target";
-
-			String testedInputJoinColName = "ID";
-			String testedInputJoinMetaName = "flightId";
-
-			Table selectedTable = tableManager.initEmptyTable(true, true);
-
-			selectedTable.getColumnsHeader().addItems(theIdColumnName, "One", "Two", theTargetColumnName);
-			selectedTable.getRowsHeader().addItem(null).addItems(TABLE_FLIGHT_IDS.toArray());
-
-			selectedTable.appendRow(Arrays.asList(1.1, true, "A"));
-			selectedTable.appendRow(Arrays.asList(1.2, false, "A"));
-			selectedTable.appendRow(Arrays.asList(133, false, "A"));
-			selectedTable.appendRow(Arrays.asList(40, true, "B"));
-			selectedTable.appendRow(Arrays.asList(500, true, "C"));
-
-			selectedTable.checkConsistency();
-
-			String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
-
-			JoinTableWithTs testedOperator = new JoinTableWithTs();
+		    // the test shall raise a ResourceNotFoundException
 			testedOperator.computeTable(selectedJson, "X;Y", SELECTED_DATASET_NAME, testedInputJoinColName,
 					testedInputJoinMetaName, theTargetColumnName, "TestedOutput");
 
@@ -454,8 +436,6 @@ public class JoinTableWithTsTest extends CommonTest {
 			assertTrue(e.getCause() instanceof ResourceNotFoundException);
 			assertTrue(e.getCause().toString()
 					.indexOf(JoinTableWithTs.MSG_ERROR_SELECTED_DATASET_WITHOUT_SELECTED_METRICS) >= 0);
-			endOkDegraded("testComputeTableNoMetrics", e);
-
 		}
 	}
 
@@ -471,8 +451,6 @@ public class JoinTableWithTsTest extends CommonTest {
 		// <column ID in prepared table> | <input joinVColName> | <input
 		// joinMetaName> | <input TargetColName>
 		// ---------------------------------------------------------------------------------------------------
-
-		start("testComputeTablePartialMetrics", true);
 
 		String theIdColumnName = "ID";
 		String theTargetColumnName = "Target";
@@ -510,9 +488,6 @@ public class JoinTableWithTsTest extends CommonTest {
 		//
 		assertEquals(Arrays.asList("funcId_1_WS1", null, null, "funcId_50_WS1", "funcId_51_WS1"),
 				computedTable.getColumn("WS1", Object.class));
-
-		endNominal("testComputeTablePartialMetrics");
-
 	}
 
 	/**
