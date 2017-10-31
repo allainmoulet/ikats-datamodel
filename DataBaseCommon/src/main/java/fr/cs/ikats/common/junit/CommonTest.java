@@ -2,7 +2,6 @@ package fr.cs.ikats.common.junit;
 
 import java.util.HashMap;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 import org.junit.Rule;
 import org.junit.rules.TestRule;
@@ -35,7 +34,21 @@ abstract public class CommonTest {
      * Log of the unit test which inherits from this class: initialized by
      * initLogger()
      */
-    private Logger logger = null;
+    private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+
+    @Rule
+    public TestRule watcher = new TestWatcher() {
+
+         @Override
+         protected void starting(Description description) {
+             logger.info(DECO_JUNIT_LINE + " Starting test: " + description.getMethodName() + DECO_JUNIT_LINE);
+         }
+
+         @Override
+         protected void finished(Description description) {
+             logger.info(DECO_JUNIT_LINE + " End of test: " + description.getMethodName() + DECO_JUNIT_LINE);
+         }
+    };    
     
     /**
      * Test case shall provide its own logger, supplying this implementation.
@@ -43,11 +56,11 @@ abstract public class CommonTest {
      * @return
      */
     final protected Logger getLogger() {
-        if (logger == null) {
-            // Init
-            logger = Logger.getLogger(this.getClass().getSimpleName());
-            logger.setLevel(Level.INFO);
-        }
+//        if (logger == null) {
+//            // Init
+//            logger = Logger.getLogger(this.getClass().getSimpleName());
+//            logger.setLevel(Level.INFO);
+//        }
         return logger;
     }
 
