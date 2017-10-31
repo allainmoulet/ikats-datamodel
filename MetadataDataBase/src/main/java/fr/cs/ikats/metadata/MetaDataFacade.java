@@ -600,8 +600,9 @@ public class MetaDataFacade {
      * @param ids the map.
      *
      * @return the number of funcId actually stored in database
+     * @throws IkatsDaoException 
      */
-    public int persistFunctionalIdentifier(Map<String, String> ids) {
+    public int persistFunctionalIdentifier(Map<String, String> ids) throws IkatsDaoException {
         int count = 0;
         for (String tsuid : ids.keySet()) {
             FunctionalIdentifier id = new FunctionalIdentifier();
@@ -613,6 +614,7 @@ public class MetaDataFacade {
             }
             catch (Exception e) {
                 LOGGER.error("Unable to insert functional identifier " + id.getFuncId(), e);
+                throw new IkatsDaoException(e);
             }
         }
         return count;

@@ -232,22 +232,16 @@ public class DataSetTest extends CommonTest {
         DataSetFacade facade = getDatasetFacade();
 
         HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid1", "MAM", "toto"}, testCaseName);
-
+        HashMap<String, String> map2TsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid2", "hello", "titi", "bye"}, testCaseName);
         HashMap<String, String> expectedMapTsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid1", "MAM", "toto", "tsuid2", "hello", "titi", "bye"}, testCaseName);
 
-        HashMap<String, String> map2TsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid2", "hello", "toto", "titi", "bye"}, testCaseName);
-
-        HashMap<String, String> map3TsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid3", "hello2", "toto", "titi"}, testCaseName);
-        
         List<String> tsuids = new ArrayList<String>(mapTsuidToFuncId.keySet());
         List<String> tsuids2 = new ArrayList<String>(map2TsuidToFuncId.keySet());
-        List<String> tsuids3 = new ArrayList<String>(map3TsuidToFuncId.keySet());
         List<String> expectedTsuid = new ArrayList<String>(expectedMapTsuidToFuncId.keySet());
 
         // pre-condition : tsuids exist with functional ids
         saveFuncIds(mapTsuidToFuncId, tsuids);
         saveFuncIds(map2TsuidToFuncId, tsuids2);
-        saveFuncIds(map2TsuidToFuncId, tsuids3);
 
         String dsname = encodeDatasetName("dataSet_a_updater", testCaseName);
         String description = "Description courte du dataset";
@@ -293,15 +287,10 @@ public class DataSetTest extends CommonTest {
         DataSetFacade facade = getDatasetFacade();
 
         HashMap<String, String> map2TsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid2", "hello", "toto", "titi", "bye"}, testCaseName);
-
-        HashMap<String, String> map3TsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid3", "hello2", "toto", "titi"}, testCaseName);
-
         List<String> tsuids2 = new ArrayList<String>(map2TsuidToFuncId.keySet());
-        List<String> tsuids3 = new ArrayList<String>(map3TsuidToFuncId.keySet());
 
         // pre-condition : tsuids exist with functional ids
         saveFuncIds(map2TsuidToFuncId, tsuids2);
-        saveFuncIds(map2TsuidToFuncId, tsuids3);
 
         String dsname = encodeDatasetName("dataset_with_removed_ts", testCaseName);
         String description = "Description courte du dataset";
@@ -313,7 +302,10 @@ public class DataSetTest extends CommonTest {
         assertEquals(description, datasetToUpdate.getDescription());
 
         // Tested service:
-        facade.removeTsLinks(dsname, tsuids3);
+        List<String> tsuidsToRemove = new ArrayList<String>();
+        tsuids2.forEach(tsuid -> {if (tsuid.startsWith("toto") || tsuid.startsWith("titi")) tsuidsToRemove.add(tsuid);  } ); 
+        
+        facade.removeTsLinks(dsname, tsuidsToRemove);
 
         DataSet updatedDataset = facade.getDataSet(dsname);
         List<String> updatedTsuidLinks = updatedDataset.getTsuidsAsString();
@@ -562,7 +554,7 @@ public class DataSetTest extends CommonTest {
         return metadataFacade;
     }
 
-    protected ArrayList<FunctionalIdentifier> saveFuncIds(HashMap<String, String> mapTsuidToFuncId, List<String> tsuids) {
+    protected ArrayList<FunctionalIdentifier> saveFuncIds(HashMap<String, String> mapTsuidToFuncId, List<String> tsuids) throws IkatsDaoException {
         MetaDataFacade facadeFuncId = getMetadataFacade();
         facadeFuncId.persistFunctionalIdentifier(mapTsuidToFuncId);
         ArrayList<FunctionalIdentifier> fidEntities = new ArrayList<FunctionalIdentifier>();
@@ -599,7 +591,7 @@ public class DataSetTest extends CommonTest {
         public HashMap<String, String> mapByTsuidTheFuncId;
         public List<String> tsuids;
 
-        public PreparedTsReferences(String[] tsuidPrefixes, String testCaseName, boolean saveFunctionalIdentifiers) {
+        public PreparedTsReferences(String[] tsuidPrefixes, String testCaseName, boolean saveFunctionalIdentifiers) throws IkatsDaoException {
 
             this.testCaseName = testCaseName;
             mapByTsuidTheFuncId = getTestedTsuidFidMap(tsuidPrefixes, testCaseName);
