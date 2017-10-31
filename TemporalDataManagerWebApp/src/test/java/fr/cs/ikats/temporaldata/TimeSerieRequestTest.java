@@ -8,9 +8,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -26,32 +24,21 @@ import javax.ws.rs.core.Response.Status;
 
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.client.ClientConfig;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.Resource;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.expr.SingleValueComparator;
-import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
-import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
-import fr.cs.ikats.temporaldata.business.TSInfo;
 import fr.cs.ikats.temporaldata.business.TemporalDataManager;
-import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
-import fr.cs.ikats.temporaldata.exception.ResourceNotFoundExceptionHandler;
 import fr.cs.ikats.temporaldata.resource.TimeSerieResource;
 
 /**
@@ -86,7 +73,7 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
             String tsuidStubbed = "stub4" + testCaseName;
             String metric = "testmetric";
             String url = getAPIURL() + "/ts/put/" + metric;
-            ImportResult retour = utils.doImportStubbedOpenTSDB(file, url, tsuidStubbed, true, 200, true);
+            utils.doImportStubbedOpenTSDB(file, url, tsuidStubbed, true, 200, true);
 
             // stub for unknown tsuid
             String unknownTsuid = "xxx";
@@ -161,7 +148,6 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
             Response response = null;
             logger.info(url);
 
-            String fake_host = "null";
             response = utils.sendGETRequest(url);
             logger.info(response);
             assertEquals(200, response.getStatus());
@@ -200,43 +186,6 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
 
     }
     
-    @Test
-    public void testUtilsGetTSFromFile() throws IkatsDaoConflictException, IkatsDaoException {
-
-        String testCaseName = "testUtilsGetTSFromFile";
-        boolean isNominal = true; // does not throw exception
-
-        try {
-            start(testCaseName, isNominal);
-
-            File file = getFileMatchingResource(testCaseName, "/data/test_import.csv");
-
-            logger.info("CSV input file : " + file.getAbsolutePath());
-                        
-            String startDate = "0";
-            String endDate = "1463490182112";
-            String metric = "testmetric";
-            String reponse = utils.getTSFromFile(file.toString(), startDate, endDate, metric);
-
-            JSONParser parser = new JSONParser();
-            JSONObject resultObject =  (JSONObject) ((ArrayList) parser.parse(reponse)).get(0);
-            JSONObject data = (JSONObject) resultObject.get("dps");
-            String metricResult = (String) resultObject.get("metric");
-
-            assertEquals(metric, metricResult);
-            assertEquals(25, data.size());
-            
-            //logger.info(reponse.readEntity(String.class));
-
-            endNominal(testCaseName);
-
-        } 
-        catch (Throwable e) {
-            endWithFailure(testCaseName, e);
-        }
-
-    }
-
     @Test
     public void testSearchTsMatchingMetadataCriteria() {
         String testCaseName = "testSearchTsMatchingMetadataCriteria";
