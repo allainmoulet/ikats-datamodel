@@ -14,7 +14,6 @@ import java.text.FieldPosition;
 import java.text.ParsePosition;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 import java.util.StringTokenizer;
@@ -47,12 +46,9 @@ import org.springframework.core.io.Resource;
 import com.fasterxml.jackson.databind.util.ISO8601DateFormat;
 
 import fr.cs.ikats.datamanager.DataManagerException;
-import fr.cs.ikats.datamanager.client.RequestSender;
 import fr.cs.ikats.datamanager.client.opentsdb.ApiResponse;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
-import fr.cs.ikats.datamanager.client.opentsdb.QueryResult;
-import fr.cs.ikats.datamanager.client.opentsdb.ResponseParser;
 import fr.cs.ikats.temporaldata.business.TemporalDataManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.ImportException;
@@ -65,8 +61,6 @@ public class TestUtils {
 	final public static DateFormat AIRBUS_RAW_CSV_DATA_FORMAT = getDateFormat();
 	static String metriquesInt[] = { "poc3.arctan", "poc3.cosinus", "poc3.sinusoide" };
 	static String metriquesDev[] = { "poc.cosinus.lineaire", "poc3.cosinus", "poc3.sinusoide" };
-	static String HOST_DEV = "172.28.0.56";
-	static String HOST_INT = "172.28.15.81";
 
 	static String TAG1_K = "tag1";
 	static String TAG1_V = "val1";
@@ -119,27 +113,6 @@ public class TestUtils {
 		myRandom = new Random();
 	}
 
-	public String getRandomMetric(String host) {
-		String result = "poc.sinusoide";
-		if (host.equals(HOST_DEV)) {
-			result = metriquesDev[myRandom.nextInt(metriquesDev.length - 1)];
-		} else if (host.equals(HOST_INT)) {
-			result = metriquesInt[myRandom.nextInt(metriquesInt.length - 1)];
-		}
-		return result;
-
-	}
-
-	public String getMetric(String host, int idx) {
-		String result = "poc.sinusoide";
-		if (host.equals(HOST_DEV)) {
-			result = metriquesDev[idx];
-		} else if (host.equals(HOST_INT)) {
-			result = metriquesInt[idx];
-		}
-		return result;
-	}
-	
 	/**
 	 * Prepare File instance for a test case.
 	 * @param testCaseName name of the test case needing the resource (used in cas of error)
