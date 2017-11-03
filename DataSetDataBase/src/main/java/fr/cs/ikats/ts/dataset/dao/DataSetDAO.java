@@ -41,11 +41,9 @@ public class DataSetDAO extends DataBaseDAO {
         String name = "null";
         try {
             name = ds.getName();
-
             tx = session.beginTransaction();
             for (LinkDatasetTimeSeries ts : ds.getLinksToTimeSeries()) {
                 ts.setDataset(ds);
-                session.save(ts);
             }
             mdId = (String) session.save(ds);
             session.flush();

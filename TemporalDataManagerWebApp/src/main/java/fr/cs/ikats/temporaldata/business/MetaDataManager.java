@@ -124,13 +124,11 @@ public class MetaDataManager {
      * @param tsuid the tsuid criterion value
      * @param name  the name criterion value
      *
-     * @return MetaData
+     * @return found MetaData or else null.
      *
-     * @throws IkatsDaoMissingRessource  error raised when no metadata is matching the tsuid+name criteria
      * @throws IkatsDaoConflictException error raised when multiple metadata are found
-     * @throws IkatsDaoException         any other exceptions
      */
-    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoConflictException, IkatsDaoMissingRessource, IkatsDaoException {
+    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoConflictException {
 
         MetaData metadata = getMetaDataFacade().getMetaData(tsuid, name);
 

@@ -603,7 +603,7 @@ public class TableResource extends AbstractResource {
     @Path("/{tableName}")
     public Response removeTable(@PathParam("tableName") String tableName) {
         try {
-            tableManager.removeTable(tableName);
+            tableManager.deleteFromDatabase(tableName);
         }
         catch (IkatsDaoException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();

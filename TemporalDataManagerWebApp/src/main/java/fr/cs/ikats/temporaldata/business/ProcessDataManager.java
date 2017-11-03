@@ -122,18 +122,6 @@ public class ProcessDataManager {
         return getProcessDataFacade().listTables();
     }
 
-
-    /**
-     * remove a Table from processData
-     *
-     * @param tableName the name of the table.
-     *
-     * @throws IkatsDaoException if error occurs in database
-     */
-    public void removeTable(String tableName) throws IkatsDaoException {
-        getProcessDataFacade().removeProcessData(tableName);
-    }
-
     /**
      * remove all processResults for a processId.
      *

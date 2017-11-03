@@ -1,13 +1,12 @@
 package fr.cs.ikats.common.junit;
 
-import static org.junit.Assert.fail;
-
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 
-import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
+import org.junit.Rule;
+import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 
 /**
  * This abstract superclass provides basic JUnit test management for IKATS ...
@@ -35,47 +34,34 @@ abstract public class CommonTest {
      * Log of the unit test which inherits from this class: initialized by
      * initLogger()
      */
-    private Logger logger = null;
+    private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 
+    @Rule
+    public TestRule watcher = new TestWatcher() {
+
+         @Override
+         protected void starting(Description description) {
+             logger.info(DECO_JUNIT_LINE + " Starting test: " + description.getMethodName() + DECO_JUNIT_LINE);
+         }
+
+         @Override
+         protected void finished(Description description) {
+             logger.info(DECO_JUNIT_LINE + " End of test: " + description.getMethodName() + DECO_JUNIT_LINE);
+         }
+    };    
+    
     /**
      * Test case shall provide its own logger, supplying this implementation.
      * 
      * @return
      */
     final protected Logger getLogger() {
-        if (logger == null) {
-            // Init
-            logger = Logger.getLogger(this.getClass().getSimpleName());
-            logger.setLevel(Level.INFO);
-        }
+//        if (logger == null) {
+//            // Init
+//            logger = Logger.getLogger(this.getClass().getSimpleName());
+//            logger.setLevel(Level.INFO);
+//        }
         return logger;
-    }
-
-    /**
-     * Recurrent need: build location of test case
-     * 
-     * @param testCaseName
-     * @return
-     */
-    protected String getTestLocation(String testCaseName) {
-        String testLocation = this.getClass().getSimpleName() + ": " + testCaseName;
-        return testLocation;
-    }
-
-    /**
-     * Data builder for tests: build unique ts identifiers prefixed by each
-     * tsuidPrefixes and suffixed by testCaseName
-     * 
-     * @param tsuidPrefixes
-     * @param testCaseName
-     * @return
-     */
-    protected ArrayList<String> getTestedTsuids(String[] tsuidPrefixes, String testCaseName) {
-        ArrayList<String> list = new ArrayList<String>();
-        for (int i = 0; i < tsuidPrefixes.length; i++) {
-            list.add(tsuidPrefixes[i] + "_" + testCaseName);
-        }
-        return list;
     }
 
     /**
@@ -99,92 +85,7 @@ abstract public class CommonTest {
         }
         return map;
     }
-    
-    /**
-     * Method to be called on test case failure: logs the failure
-     * 
-     * @param testCaseName
-     * @param e
-     */
-    protected void endWithFailure(String testCaseName, Throwable e) {
 
-        String testLocation = getTestLocation(testCaseName);
-
-        if (e instanceof AssertionError) {
-            AssertionError ae = (AssertionError) e;
-            getLogger().error("Failure got Assertion in " + testLocation, ae);
-            getLogger().error("Failure Assertion::getMessage: " + ae.getMessage());
-            getLogger().error("Failure Assertion::getLocalizedMessage: " + ae.getLocalizedMessage());
-        }
-        else {
-            getLogger().error("Failure got error: " + testLocation, e);
-        }
-
-        // error may be long ... surrounded by test location
-        getLogger().info(junitLine("Ended JUnit case: Failed: " + testLocation));
-        String failMessage = testLocation + ": [";
-        if ((e != null) && (e.getMessage() != null)) {
-            failMessage += e.getMessage() + "]";
-        }
-        else {
-            failMessage += "null]";
-        }
-
-        fail(failMessage);
-    }
-
-    /**
-     * Method to be called, at the beginning of the test case: writes logs
-     * 
-     * @param testCaseName
-     * @param isNominal
-     */
-    protected void start(String testCaseName, boolean isNominal) {
-        String nominalInfo = isNominal ? "NOMINAL" : "DEGRADED";
-        getLogger().info(junitLine("Started JUnit case: " + getTestLocation(testCaseName)));
-        getLogger().info(junitLine("tested context is" + nominalInfo + " ... "));
-    }
-
-    /**
-     * Method to be called, on nominal ending of the test case: writes logs
-     * 
-     * @param testCaseName
-     * @param isNominal
-     */
-    protected void endNominal(String testCaseName) {
-        getLogger().info(junitLine("Ended JUnit case: " + getTestLocation(testCaseName)));
-    }
-    
-    /**
-     * success on degraded test: when expected error is received
-     * @param testCaseName
-     * @param te
-     */
-    protected void endOkDegraded(String testCaseName, Throwable te) {
-        getLogger().info("DG Test is OK, got expected error:", te);
-        getLogger().info(junitLine("Ended JUnit case: " + getTestLocation(testCaseName)));
-    }
-
-    /**
-     * Encode a JUNIT line wrapped with DECO_JUNIT_LINE
-     * 
-     * @param content
-     *            the content of the line
-     * @return wrapped JUNIT line for IKATS
-     */
-    final protected String junitLine(String content) {
-        StringBuilder lBuff = new StringBuilder(DECO_JUNIT_LINE);
-        if (!content.startsWith(" ")) {
-            lBuff.append(" ");
-        }
-        lBuff.append(content);
-        if (!content.endsWith(" ")) {
-            lBuff.append(" ");
-        }
-        lBuff.append(DECO_JUNIT_LINE);
-        return lBuff.toString();
-    }
-    
     /**
      * Encode tsuid value according to ikats TU naming convention
      * @param tsuidRawValue readable value of tsuid: actually a prefix

@@ -399,12 +399,11 @@ public class MetaDataDAO extends DataBaseDAO {
      *
      * @param tsuid the ts identifier
      * @param name  the name of the metadata
-     * @return the list if any result found.
+     * @return the list if any result found, null otherwise.
      * 
      * @throws IkatsDaoConflictException error raised when multiple metadata are found
-     * @throws IkatsDaoException         any other exceptions
      */
-    public MetaData getMD(String tsuid, String name) throws IkatsDaoConflictException, IkatsDaoException {
+    public MetaData getMD(String tsuid, String name) throws IkatsDaoConflictException {
 
         MetaData result = null;
         String pairCriteria = "null";

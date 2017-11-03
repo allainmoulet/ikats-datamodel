@@ -1,5 +1,10 @@
 package fr.cs.ikats.temporaldata.business;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -9,20 +14,19 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import org.junit.Test;
+
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
-import junit.framework.TestCase;
-import org.junit.Ignore;
-import org.junit.Test;
 
 /**
  * TableManagerTest tests the TableManager and its end-user services.
  */
-public class TableManagerTest extends TestCase {
+public class TableManagerTest {
 
     /**
      * verbose == true enables more logs (to sysout), for instance in DEV environment, debugging the JUnit tests.
@@ -44,54 +48,47 @@ public class TableManagerTest extends TestCase {
      * - 4 classes
      */
     @Test
-    public void testTrainTestSplitTableNominal() {
-        try {
+    public void testTrainTestSplitTableNominal() throws Exception {
 
-            TableManager tableManager = new TableManager();
-            String tableContent = "MainId;Target\n"
-                    + "125;A\n"
-                    + "1;A\n"
-                    + "2;A\n"
-                    + "2;A\n"
-                    + "3;B\n"
-                    + "4;B\n"
-                    + "42;C\n"
-                    + "6;D\n"
-                    + "7;D\n"
-                    + "8;D\n";
+        TableManager tableManager = new TableManager();
+        String tableContent = "MainId;Target\n"
+                + "125;A\n"
+                + "1;A\n"
+                + "2;A\n"
+                + "2;A\n"
+                + "3;B\n"
+                + "4;B\n"
+                + "42;C\n"
+                + "6;D\n"
+                + "7;D\n"
+                + "8;D\n";
 
-            Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
+        Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
 
-            List<Table> result;
-            double repartitionRate = 0.56;
-            result = tableManager.trainTestSplitTable(tableIn, "Target", repartitionRate);
+        List<Table> result;
+        double repartitionRate = 0.56;
+        result = tableManager.trainTestSplitTable(tableIn, "Target", repartitionRate);
 
-            // Collect all classes of each table result to check repartition rate
-            List<Object> classList1 = new ArrayList<>();
-            List<Object> classList2 = new ArrayList<>();
-            for (int i = 0; i < result.get(0).getContentData().size(); i++) {
-                classList1.add(result.get(0).getContentData().get(i).get(1));
-            }
-            // checking repartition rate of each class in result
-            assertEquals(2, Collections.frequency(classList1, "A"));
-            assertEquals(1, Collections.frequency(classList1, "B"));
-            assertEquals(1, Collections.frequency(classList1, "C"));
-            assertEquals(2, Collections.frequency(classList1, "D"));
-
-            for (int i = 0; i < result.get(1).getContentData().size(); i++) {
-                classList2.add(result.get(1).getContentData().get(i).get(1));
-            }
-            // checking repartition rate of each class in result
-            assertEquals(2, Collections.frequency(classList2, "A"));
-            assertEquals(1, Collections.frequency(classList2, "B"));
-            assertEquals(0, Collections.frequency(classList2, "C"));
-            assertEquals(1, Collections.frequency(classList2, "D"));
-
+        // Collect all classes of each table result to check repartition rate
+        List<Object> classList1 = new ArrayList<>();
+        List<Object> classList2 = new ArrayList<>();
+        for (int i = 0; i < result.get(0).getContentData().size(); i++) {
+            classList1.add(result.get(0).getContentData().get(i).get(1));
         }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail("Test got unexpected error");
+        // checking repartition rate of each class in result
+        assertEquals(2, Collections.frequency(classList1, "A"));
+        assertEquals(1, Collections.frequency(classList1, "B"));
+        assertEquals(1, Collections.frequency(classList1, "C"));
+        assertEquals(2, Collections.frequency(classList1, "D"));
+
+        for (int i = 0; i < result.get(1).getContentData().size(); i++) {
+            classList2.add(result.get(1).getContentData().get(i).get(1));
         }
+        // checking repartition rate of each class in result
+        assertEquals(2, Collections.frequency(classList2, "A"));
+        assertEquals(1, Collections.frequency(classList2, "B"));
+        assertEquals(0, Collections.frequency(classList2, "C"));
+        assertEquals(1, Collections.frequency(classList2, "D"));
     }
 
     /**
@@ -103,47 +100,41 @@ public class TableManagerTest extends TestCase {
      * - 4 classes
      */
     @Test
-    public void testTrainTestSplitTableSingleClass() {
-        try {
+    public void testTrainTestSplitTableSingleClass() throws Exception {
 
-            TableManager tableManager = new TableManager();
-            String tableContent = "MainId;Target\n"
-                    + "125;A\n"
-                    + "1;A\n"
-                    + "2;A\n"
-                    + "2;A\n"
-                    + "3;A\n"
-                    + "4;A\n"
-                    + "42;A\n"
-                    + "6;A\n"
-                    + "7;A\n";
+        TableManager tableManager = new TableManager();
+        String tableContent = "MainId;Target\n"
+                + "125;A\n"
+                + "1;A\n"
+                + "2;A\n"
+                + "2;A\n"
+                + "3;A\n"
+                + "4;A\n"
+                + "42;A\n"
+                + "6;A\n"
+                + "7;A\n";
 
-            Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
+        Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
 
-            List<Table> result;
-            double repartitionRate = 0.24;
-            result = tableManager.trainTestSplitTable(tableIn, "Target", repartitionRate);
+        List<Table> result;
+        double repartitionRate = 0.24;
+        result = tableManager.trainTestSplitTable(tableIn, "Target", repartitionRate);
 
-            // Collect all classes of each table result to check repartition rate
-            List<Object> classList1 = new ArrayList<>();
-            List<Object> classList2 = new ArrayList<>();
-            for (int i = 0; i < result.get(0).getContentData().size(); i++) {
-                classList1.add(result.get(0).getContentData().get(i).get(1));
-            }
-            // checking repartition rate of each class in result
-            assertEquals(2, Collections.frequency(classList1, "A"));
-
-            for (int i = 0; i < result.get(1).getContentData().size(); i++) {
-                classList2.add(result.get(1).getContentData().get(i).get(1));
-            }
-            // checking repartition rate of each class in result
-            assertEquals(7, Collections.frequency(classList2, "A"));
-
+        // Collect all classes of each table result to check repartition rate
+        List<Object> classList1 = new ArrayList<>();
+        List<Object> classList2 = new ArrayList<>();
+        for (int i = 0; i < result.get(0).getContentData().size(); i++) {
+            classList1.add(result.get(0).getContentData().get(i).get(1));
         }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail("Test got unexpected error");
+        // checking repartition rate of each class in result
+        assertEquals(2, Collections.frequency(classList1, "A"));
+
+        for (int i = 0; i < result.get(1).getContentData().size(); i++) {
+            classList2.add(result.get(1).getContentData().get(i).get(1));
         }
+        // checking repartition rate of each class in result
+        assertEquals(7, Collections.frequency(classList2, "A"));
+
     }
 
     /**
@@ -155,47 +146,41 @@ public class TableManagerTest extends TestCase {
      * - 4 classes
      */
     @Test
-    public void testTrainTestSplitTableTooHighRepartition() {
-        try {
+    public void testTrainTestSplitTableTooHighRepartition() throws Exception {
 
-            TableManager tableManager = new TableManager();
-            String tableContent = "MainId;Target\n"
-                    + "125;A\n"
-                    + "1;A\n"
-                    + "2;A\n"
-                    + "2;A\n"
-                    + "3;A\n"
-                    + "4;A\n"
-                    + "42;A\n"
-                    + "6;A\n"
-                    + "7;A\n";
+        TableManager tableManager = new TableManager();
+        String tableContent = "MainId;Target\n"
+                + "125;A\n"
+                + "1;A\n"
+                + "2;A\n"
+                + "2;A\n"
+                + "3;A\n"
+                + "4;A\n"
+                + "42;A\n"
+                + "6;A\n"
+                + "7;A\n";
 
-            Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
+        Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
 
-            List<Table> result;
-            double repartitionRate = 1.01;
-            result = tableManager.trainTestSplitTable(tableIn, "Target", repartitionRate);
+        List<Table> result;
+        double repartitionRate = 1.01;
+        result = tableManager.trainTestSplitTable(tableIn, "Target", repartitionRate);
 
-            // Collect all classes of each table result to check repartition rate
-            List<Object> classList1 = new ArrayList<>();
-            List<Object> classList2 = new ArrayList<>();
-            for (int i = 0; i < result.get(0).getContentData().size(); i++) {
-                classList1.add(result.get(0).getContentData().get(i).get(1));
-            }
-            // checking repartition rate of each class in result
-            assertEquals(9, Collections.frequency(classList1, "A"));
-
-            for (int i = 0; i < result.get(1).getContentData().size(); i++) {
-                classList2.add(result.get(1).getContentData().get(i).get(1));
-            }
-            // checking repartition rate of each class in result
-            assertEquals(0, Collections.frequency(classList2, "A"));
-
+        // Collect all classes of each table result to check repartition rate
+        List<Object> classList1 = new ArrayList<>();
+        List<Object> classList2 = new ArrayList<>();
+        for (int i = 0; i < result.get(0).getContentData().size(); i++) {
+            classList1.add(result.get(0).getContentData().get(i).get(1));
         }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail("Test got unexpected error");
+        // checking repartition rate of each class in result
+        assertEquals(9, Collections.frequency(classList1, "A"));
+
+        for (int i = 0; i < result.get(1).getContentData().size(); i++) {
+            classList2.add(result.get(1).getContentData().get(i).get(1));
         }
+        // checking repartition rate of each class in result
+        assertEquals(0, Collections.frequency(classList2, "A"));
+
     }
 
     /**
@@ -207,47 +192,41 @@ public class TableManagerTest extends TestCase {
      * - 4 classes
      */
     @Test
-    public void testTrainTestSplitTableTooLowRepartition() {
-        try {
+    public void testTrainTestSplitTableTooLowRepartition() throws Exception {
 
-            TableManager tableManager = new TableManager();
-            String tableContent = "MainId;Target\n"
-                    + "125;A\n"
-                    + "1;A\n"
-                    + "2;A\n"
-                    + "2;A\n"
-                    + "3;A\n"
-                    + "4;A\n"
-                    + "42;A\n"
-                    + "6;A\n"
-                    + "7;A\n";
+        TableManager tableManager = new TableManager();
+        String tableContent = "MainId;Target\n"
+                + "125;A\n"
+                + "1;A\n"
+                + "2;A\n"
+                + "2;A\n"
+                + "3;A\n"
+                + "4;A\n"
+                + "42;A\n"
+                + "6;A\n"
+                + "7;A\n";
 
-            Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
+        Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
 
-            List<Table> result;
-            double repartitionRate = -0.01;
-            result = tableManager.trainTestSplitTable(tableIn, "Target", repartitionRate);
+        List<Table> result;
+        double repartitionRate = -0.01;
+        result = tableManager.trainTestSplitTable(tableIn, "Target", repartitionRate);
 
-            // Collect all classes of each table result to check repartition rate
-            List<Object> classList1 = new ArrayList<>();
-            List<Object> classList2 = new ArrayList<>();
-            for (int i = 0; i < result.get(0).getContentData().size(); i++) {
-                classList1.add(result.get(0).getContentData().get(i).get(1));
-            }
-            // checking repartition rate of each class in result
-            assertEquals(0, Collections.frequency(classList1, "A"));
-
-            for (int i = 0; i < result.get(1).getContentData().size(); i++) {
-                classList2.add(result.get(1).getContentData().get(i).get(1));
-            }
-            // checking repartition rate of each class in result
-            assertEquals(9, Collections.frequency(classList2, "A"));
-
+        // Collect all classes of each table result to check repartition rate
+        List<Object> classList1 = new ArrayList<>();
+        List<Object> classList2 = new ArrayList<>();
+        for (int i = 0; i < result.get(0).getContentData().size(); i++) {
+            classList1.add(result.get(0).getContentData().get(i).get(1));
         }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail("Test got unexpected error");
+        // checking repartition rate of each class in result
+        assertEquals(0, Collections.frequency(classList1, "A"));
+
+        for (int i = 0; i < result.get(1).getContentData().size(); i++) {
+            classList2.add(result.get(1).getContentData().get(i).get(1));
         }
+        // checking repartition rate of each class in result
+        assertEquals(9, Collections.frequency(classList2, "A"));
+
     }
 
     /**
@@ -258,39 +237,26 @@ public class TableManagerTest extends TestCase {
      * - duplicates ids
      * - 4 classes
      */
-    @Test
-    public void testTrainTestSplitTableWrongTarget() {
-        try {
+    @Test(expected = ResourceNotFoundException.class)
+    public void testTrainTestSplitTableWrongTarget() throws Exception {
 
-            TableManager tableManager = new TableManager();
-            String tableContent = "MainId;Target\n"
-                    + "125;A\n"
-                    + "1;A\n"
-                    + "2;A\n"
-                    + "2;A\n"
-                    + "3;B\n"
-                    + "4;B\n"
-                    + "42;C\n"
-                    + "6;D\n"
-                    + "7;D\n"
-                    + "8;D\n";
+        TableManager tableManager = new TableManager();
+        String tableContent = "MainId;Target\n"
+                + "125;A\n"
+                + "1;A\n"
+                + "2;A\n"
+                + "2;A\n"
+                + "3;B\n"
+                + "4;B\n"
+                + "42;C\n"
+                + "6;D\n"
+                + "7;D\n"
+                + "8;D\n";
 
-            Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
+        Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
 
-            List<Table> result;
-            double repartitionRate = 0.56;
-            tableManager.trainTestSplitTable(tableIn, "WrongTarget", repartitionRate);
-
-            fail("Test should have raised an exception");
-
-        }
-        catch (ResourceNotFoundException e) {
-            // ResourceNotFoundException Expected
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail("Test got unexpected error");
-        }
+        double repartitionRate = 0.56;
+        tableManager.trainTestSplitTable(tableIn, "WrongTarget", repartitionRate);
     }
 
     /**
@@ -300,134 +266,113 @@ public class TableManagerTest extends TestCase {
      * - 2 classes
      */
     @Test
-    public void testTrainTestSplitTableWithRowHeader() {
-        try {
+    public void testTrainTestSplitTableWithRowHeader() throws Exception {
 
-            TableManager tableManager = new TableManager();
-            String tableJson = "{\"table_desc\":" +
-                    "{\"title\":\"max_test_traintestsplit\"," +
-                    "\"desc\":\"population.csv\"}," +
-                    "\"headers\":" +
-                    "{\"col\":" +
-                    "{\"data\":" +
-                    "[\"flight_id\",\"target\"]}," +
-                    "\"row\":" +
-                    "{\"data\":" +
-                    "[null,\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\"]}}," +
-                    "\"content\":" +
-                    "{\"cells\":[[\"1\"],[\"1\"],[\"1\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"]]}}";
+        TableManager tableManager = new TableManager();
+        String tableJson = "{\"table_desc\":" +
+                "{\"title\":\"max_test_traintestsplit\"," +
+                "\"desc\":\"population.csv\"}," +
+                "\"headers\":" +
+                "{\"col\":" +
+                "{\"data\":" +
+                "[\"flight_id\",\"target\"]}," +
+                "\"row\":" +
+                "{\"data\":" +
+                "[null,\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\"]}}," +
+                "\"content\":" +
+                "{\"cells\":[[\"1\"],[\"1\"],[\"1\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"]]}}";
 
-            TableInfo tableInfo = tableManager.loadFromJson(tableJson);
-            Table table = tableManager.initTable(tableInfo, false);
+        TableInfo tableInfo = tableManager.loadFromJson(tableJson);
+        Table table = tableManager.initTable(tableInfo, false);
 
-            List<Table> result;
-            double repartitionRate = 0.56;
-            result = tableManager.trainTestSplitTable(table, "target", repartitionRate);
+        List<Table> result;
+        double repartitionRate = 0.56;
+        result = tableManager.trainTestSplitTable(table, "target", repartitionRate);
 
-            // collect all classes of each table result to check repartition rate
-            List<Object> classList1 = new ArrayList<>();
-            List<Object> classList2 = new ArrayList<>();
-            for (int i = 0; i < result.get(0).getContentData().size(); i++) {
-                classList1.add(result.get(0).getContentData().get(i).get(0));
-            }
-            for (int i = 0; i < result.get(1).getContentData().size(); i++) {
-                classList2.add(result.get(1).getContentData().get(i).get(0));
-            }
-            // checking repartition rate of each class in result
-            assertEquals(4, Collections.frequency(classList1, "0"));
-            assertEquals(2, Collections.frequency(classList1, "1"));
-
-            // checking repartition rate of each class in result
-            assertEquals(3, Collections.frequency(classList2, "0"));
-            assertEquals(1, Collections.frequency(classList2, "1"));
-
+        // collect all classes of each table result to check repartition rate
+        List<Object> classList1 = new ArrayList<>();
+        List<Object> classList2 = new ArrayList<>();
+        for (int i = 0; i < result.get(0).getContentData().size(); i++) {
+            classList1.add(result.get(0).getContentData().get(i).get(0));
         }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail("Test got unexpected error");
+        for (int i = 0; i < result.get(1).getContentData().size(); i++) {
+            classList2.add(result.get(1).getContentData().get(i).get(0));
         }
+        // checking repartition rate of each class in result
+        assertEquals(4, Collections.frequency(classList1, "0"));
+        assertEquals(2, Collections.frequency(classList1, "1"));
+
+        // checking repartition rate of each class in result
+        assertEquals(3, Collections.frequency(classList2, "0"));
+        assertEquals(1, Collections.frequency(classList2, "1"));
+
     }
 
     /**
      * test randomSplitTable case : input table handles only column headers
      */
     @Test
-    public void testRandomSplitTable() {
-        try {
+    public void testRandomSplitTable() throws Exception {
 
-            TableManager tableManager = new TableManager();
-            String tableContent = "MainId;Target\n"
-                    + "125;A\n"
-                    + "1;A\n"
-                    + "2;A\n"
-                    + "2;A\n"
-                    + "3;B\n"
-                    + "4;B\n"
-                    + "42;C\n"
-                    + "6;D\n"
-                    + "7;D\n"
-                    + "8;D\n";
-            double tableContentSize = 10;
+        TableManager tableManager = new TableManager();
+        String tableContent = "MainId;Target\n"
+                + "125;A\n"
+                + "1;A\n"
+                + "2;A\n"
+                + "2;A\n"
+                + "3;B\n"
+                + "4;B\n"
+                + "42;C\n"
+                + "6;D\n"
+                + "7;D\n"
+                + "8;D\n";
+        double tableContentSize = 10;
 
-            Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
+        Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
 
-            List<Table> result;
-            double repartitionRate = 0.56;
-            result = tableManager.randomSplitTable(tableIn, repartitionRate);
+        List<Table> result;
+        double repartitionRate = 0.56;
+        result = tableManager.randomSplitTable(tableIn, repartitionRate);
 
-            // checking repartition rate in result
-            assertEquals(Math.round(tableContentSize * repartitionRate), result.get(0).getRowCount(false));
-            assertEquals(Math.round((tableContentSize * (1 - repartitionRate))), result.get(1).getRowCount(false));
-
-
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail("Test got unexpected error");
-        }
+        // checking repartition rate in result
+        assertEquals(Math.round(tableContentSize * repartitionRate), result.get(0).getRowCount(false));
+        assertEquals(Math.round((tableContentSize * (1 - repartitionRate))), result.get(1).getRowCount(false));
     }
 
     /**
      * test randomSplitTable case : table handels column AND row headers
      */
     @Test
-    public void testRandomSplitTableWithRowHeader() {
-        try {
+    public void testRandomSplitTableWithRowHeader() throws Exception {
 
-            TableManager tableManager = new TableManager();
-            String tableJson = "{\"table_desc\":" +
-                    "{\"title\":\"max_test_traintestsplit\"," +
-                    "\"desc\":\"population.csv\"}," +
-                    "\"headers\":" +
-                    "{\"col\":" +
-                    "{\"data\":" +
-                    "[\"flight_id\",\"target\"]}," +
-                    "\"row\":" +
-                    "{\"data\":" +
-                    "[null,\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\"]}}," +
-                    "\"content\":" +
-                    "{\"cells\":[[\"1\"],[\"1\"],[\"1\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"]]}}";
+        TableManager tableManager = new TableManager();
+        String tableJson = "{\"table_desc\":" +
+                "{\"title\":\"max_test_traintestsplit\"," +
+                "\"desc\":\"population.csv\"}," +
+                "\"headers\":" +
+                "{\"col\":" +
+                "{\"data\":" +
+                "[\"flight_id\",\"target\"]}," +
+                "\"row\":" +
+                "{\"data\":" +
+                "[null,\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\"]}}," +
+                "\"content\":" +
+                "{\"cells\":[[\"1\"],[\"1\"],[\"1\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"]]}}";
 
-            double tableContentSize = 10;
+        double tableContentSize = 10;
 
-            TableInfo tableInfo = tableManager.loadFromJson(tableJson);
-            Table tableIn = tableManager.initTable(tableInfo, false);
-
-
-            List<Table> result;
-            double repartitionRate = 0.6;
-            result = tableManager.randomSplitTable(tableIn, repartitionRate);
-
-            // checking repartition rate in result
-            assertEquals(Math.round(tableContentSize * repartitionRate), result.get(0).getRowCount(false));
-            assertEquals(Math.round((tableContentSize * (1 - repartitionRate))), result.get(1).getRowCount(false));
+        TableInfo tableInfo = tableManager.loadFromJson(tableJson);
+        Table tableIn = tableManager.initTable(tableInfo, false);
 
 
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            fail("Test got unexpected error");
-        }
+        List<Table> result;
+        double repartitionRate = 0.6;
+        result = tableManager.randomSplitTable(tableIn, repartitionRate);
+
+        // checking repartition rate in result
+        assertEquals(Math.round(tableContentSize * repartitionRate), result.get(0).getRowCount(false));
+        assertEquals(Math.round((tableContentSize * (1 - repartitionRate))), result.get(1).getRowCount(false));
+
     }
 
     /**
@@ -435,6 +380,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetFirstColumnFromTable() throws Exception {
 
         TableManager mng = new TableManager();
@@ -464,6 +410,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetOtherColumnsFromTable() throws Exception {
 
         TableManager mng = new TableManager();
@@ -500,7 +447,7 @@ public class TableManagerTest extends TestCase {
             System.out.println(otherDecimal);
 
         assertEquals(refOtherDecimal, otherDecimal);
-        assertEquals(-50.0, otherDecimal.get(0));
+        assertEquals(-50.0d, otherDecimal.get(0).doubleValue(), 0.0d);
 
         // Testing untyped case: Object
         //
@@ -519,6 +466,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetColumnFromHeaderName() throws Exception {
 
         TableManager mng = new TableManager();
@@ -558,6 +506,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetRowFromTable() throws Exception {
 
         TableManager mng = new TableManager();
@@ -596,6 +545,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInitTableSimple() throws Exception {
 
         TableManager mng = new TableManager();
@@ -639,6 +589,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInitTableWithRowsHeader() throws Exception {
 
         TableManager mng = new TableManager();
@@ -699,6 +650,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInitTableWithRowsHeaderWithLinks() throws Exception {
 
         TableManager mng = new TableManager();
@@ -825,6 +777,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testAppendRowWithoutLinks() throws Exception {
 
         TableManager mng = new TableManager();
@@ -870,6 +823,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetColumn() throws Exception {
 
         TableManager mng = new TableManager();
@@ -909,6 +863,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetRow() throws Exception {
 
         TableManager mng = new TableManager();
@@ -952,6 +907,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetRowsHeaderItems() throws Exception {
 
         TableManager mng = new TableManager();
@@ -984,6 +940,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testGetColumnsHeaderItems() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1030,6 +987,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testSortRowswithoutHeaders() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1065,6 +1023,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testSortRowsWithColHeader() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1104,6 +1063,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testSortRowsWithAllHeaders() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1151,6 +1111,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInsertColumnWithAllHeaders() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1187,6 +1148,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInsertColumnWithColHeader() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1222,6 +1184,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInsertColumnWithoutHeader() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1253,6 +1216,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInsertRowWithoutHeader() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1285,6 +1249,7 @@ public class TableManagerTest extends TestCase {
      *
      * @throws Exception
      */
+    @Test
     public void testInsertRowWithAllHeaders() throws Exception {
 
         TableManager mng = new TableManager();
@@ -1379,7 +1344,6 @@ public class TableManagerTest extends TestCase {
      * Tests the List all Tables service with no result
      */
 
-    @Ignore("[#161602] - Derogation, test KO only with in-memory database")
     @Test
     public void testListTablesEmpty() throws Exception {
 
@@ -1394,7 +1358,6 @@ public class TableManagerTest extends TestCase {
     /**
      * Tests the List all Table service with result
      */
-    @Ignore("[#161602] - Derogation, test KO only with in-memory database")
     @Test
     public void testListTablesNotEmpty() throws Exception {
 
@@ -1427,19 +1390,22 @@ public class TableManagerTest extends TestCase {
         tableHBis.appendRow(Arrays.asList(row3));
 
         tableH.checkConsistency();
-        mng.createInDatabase("TEST_TABLE", tableH);
+        mng.createInDatabase("TestTable", tableH);
 
         List<ProcessData> result = mng.listTables();
 
         assertNotNull(result);
         assertEquals(1, result.size());
+        
+        // clean
+        mng.deleteFromDatabase("TestTable");
+        
     }
 
     /**
      * Tests the Delete a table service with result
      */
 
-    @Ignore("[#161602] - Derogation, test KO only with in-memory database")
     @Test
     public void testDeleteTable() throws Exception {
 
@@ -1472,13 +1438,14 @@ public class TableManagerTest extends TestCase {
         tableHBis.appendRow(Arrays.asList(row3));
 
         tableH.checkConsistency();
-        String tableName = "TEST_TABLE_to_delete";
+        String tableName = "TestTableToDelete";
         mng.createInDatabase(tableName, tableH);
 
         List<ProcessData> resultBefore = mng.listTables();
         assertNotNull(resultBefore);
 
-        mng.removeTable(tableName);
+        // clean
+        mng.deleteFromDatabase(tableName);
 
         List<ProcessData> resultAfter = mng.listTables();
         assertNotNull(resultAfter);

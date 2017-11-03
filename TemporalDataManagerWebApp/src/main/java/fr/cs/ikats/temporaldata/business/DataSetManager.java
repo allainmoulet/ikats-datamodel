@@ -46,11 +46,18 @@ public class DataSetManager {
      * 
      * @return
      */
-    private DataSetFacade getDataSetFacade() {
+    public DataSetFacade getDataSetFacade() {
         return TemporalDataApplication.getApplicationConfiguration().getSpringContext().getBean(DataSetFacade.class);
     }
 
-    private MetaDataFacade getMetaDataFacade() {
+    /**
+     * getter on new TimeSerieResource.
+     */
+    public TimeSerieResource getTimeSerieResource() {
+		return new TimeSerieResource();
+	}
+
+	private MetaDataFacade getMetaDataFacade() {
         return TemporalDataApplication.getApplicationConfiguration().getSpringContext().getBean(MetaDataFacade.class);
     }
 
@@ -197,7 +204,7 @@ public class DataSetManager {
             // 2: remove data + metadata for TS having only this dataset as parent
             // --------------------------------------------------------------------
             LOGGER.info(context + "step : remove linked time series and their metadata");
-            TimeSerieResource timeS = new TimeSerieResource();
+            TimeSerieResource timeS = getTimeSerieResource();
 
             for (String tsuid : tsuidsToRemove) {
                 // only one dataset includes this tsuid, so remove all data
@@ -250,7 +257,7 @@ public class DataSetManager {
         return Status.NO_CONTENT;
     }
 
-    /**
+	/**
      * get all the dataSet summary : Name and Description only.
      * 
      * @return a list of dataset, empty if nothin matches

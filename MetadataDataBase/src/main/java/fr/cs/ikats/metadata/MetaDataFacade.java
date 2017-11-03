@@ -248,10 +248,9 @@ public class MetaDataFacade {
      *
      * @return the MetaData or null if not exists
      *
-     * @throws IkatsDaoConflictException error raised when multiple metadata are found
-     * @throws IkatsDaoException         any other exceptions
+     * @throws IkatsDaoConflictException error raised when multiple metadata are found.
      */
-    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoConflictException, IkatsDaoException {
+    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoConflictException {
         return dao.getMD(tsuid, name);
     }
 
@@ -601,8 +600,9 @@ public class MetaDataFacade {
      * @param ids the map.
      *
      * @return the number of funcId actually stored in database
+     * @throws IkatsDaoException 
      */
-    public int persistFunctionalIdentifier(Map<String, String> ids) {
+    public int persistFunctionalIdentifier(Map<String, String> ids) throws IkatsDaoException {
         int count = 0;
         for (String tsuid : ids.keySet()) {
             FunctionalIdentifier id = new FunctionalIdentifier();
@@ -614,6 +614,7 @@ public class MetaDataFacade {
             }
             catch (Exception e) {
                 LOGGER.error("Unable to insert functional identifier " + id.getFuncId(), e);
+                throw new IkatsDaoException(e);
             }
         }
         return count;

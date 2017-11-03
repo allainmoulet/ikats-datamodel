@@ -28,4 +28,36 @@ public abstract class AbstractResource {
         metadataManager = new MetaDataManager();
         temporalDataManager = new TemporalDataManager();
     }
+
+	/**
+	 * Getter
+	 * @return the metadataManager
+	 */
+	public final MetaDataManager getMetadataManager() {
+		return metadataManager;
+	}
+
+	/**
+	 * Getter
+	 * @return the temporalDataManager
+	 */
+	public final TemporalDataManager getTemporalDataManager() {
+		return temporalDataManager;
+	}
+
+	/**
+	 * Setter
+	 * @param metadataManager the metadataManager to set
+	 */
+	public final void setMetadataManager(MetaDataManager metadataManager) {
+		this.metadataManager = metadataManager;
+	}
+
+	/**
+	 * Setter
+	 * @param temporalDataManager the temporalDataManager to set
+	 */
+	public final void setTemporalDataManager(TemporalDataManager temporalDataManager) {
+		this.temporalDataManager = temporalDataManager;
+	}
 }

@@ -38,7 +38,7 @@ public class DataSetResource extends AbstractResource {
     private static Logger logger = Logger.getLogger(DataSetResource.class);
     /**
      * DatSet manager class containing business logic
-     */
+     */ 
     protected DataSetManager dataSetManager;
 
     /**
@@ -49,6 +49,22 @@ public class DataSetResource extends AbstractResource {
     }
 
     /**
+	 * Getter
+	 * @return the dataSetManager
+	 */
+	public final DataSetManager getDataSetManager() {
+		return dataSetManager;
+	}
+
+	/**
+	 * Setter
+	 * @param dataSetManager the dataSetManager to set
+	 */
+	public final void setDataSetManager(DataSetManager dataSetManager) {
+		this.dataSetManager = dataSetManager;
+	}
+
+	/**
      * get a summary of all dataset in database. including number of ts per dataset (optional)
      *
      * @return a json of DataSets (name, description, nb_ts)
@@ -57,7 +73,7 @@ public class DataSetResource extends AbstractResource {
     @Produces({MediaType.APPLICATION_JSON})
     public List<DataSet> getAllDataSetNamesWithNb(@QueryParam("size") @DefaultValue("false") boolean getSize)
             throws IkatsDaoMissingRessource, IkatsDaoException {
-        return dataSetManager.getAllDataSetSummary();
+        return getDataSetManager().getAllDataSetSummary();
     }
 
     /**
@@ -78,7 +94,7 @@ public class DataSetResource extends AbstractResource {
                                   @FormParam("description") String description) throws IkatsDaoException, URISyntaxException {
         logger.info("importing dataset " + datasetId + " with tsuids :" + tsuids);
         List<String> tsuidList = Arrays.asList(tsuids.split(","));
-        String result = dataSetManager.persistDataSet(datasetId, description, tsuidList);
+        String result = getDataSetManager().persistDataSet(datasetId, description, tsuidList);
         String message = "Import sucessful : dataset stored with id " + result;
         logger.info(message);
 
@@ -109,7 +125,7 @@ public class DataSetResource extends AbstractResource {
         logger.info("importing dataset " + datasetId + " with tsuids :" + tsuids);
         List<String> tsuidList = Arrays.asList(tsuids.split(","));
 
-        dataSetManager.updateDataSet(datasetId, description, tsuidList, updateMode);
+        getDataSetManager().updateDataSet(datasetId, description, tsuidList, updateMode);
         String message = "Update sucessful";
         logger.info(message);
     }
@@ -156,7 +172,7 @@ public class DataSetResource extends AbstractResource {
         String context = "Removing dataset=" + datasetId + " : ";
 
         logger.info(context + ": remove the dataset and its links");
-        dataSetManager.removeDataSet(datasetId, deep);
+        getDataSetManager().removeDataSet(datasetId, deep);
 
         return Response.status(Status.NO_CONTENT).build();
     }
@@ -168,7 +184,7 @@ public class DataSetResource extends AbstractResource {
      */
     private DataSetWithFids getDataSetWithFids(String datasetId)
             throws IkatsDaoMissingRessource, IkatsDaoException {
-        DataSet ds = dataSetManager.getDataSetSummary(datasetId);
+        DataSet ds = getDataSetManager().getDataSetSummary(datasetId);
         List<FunctionalIdentifier> fids = metadataManager.getFunctionalIdentifierFromDataset(datasetId);
         DataSetWithFids result = new DataSetWithFids(ds.getName(), ds.getDescription(), fids);
         return result;
