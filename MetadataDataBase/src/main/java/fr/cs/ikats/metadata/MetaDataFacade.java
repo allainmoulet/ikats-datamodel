@@ -12,6 +12,10 @@ import java.util.StringTokenizer;
 
 import javax.annotation.PreDestroy;
 
+import org.apache.log4j.Logger;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
@@ -23,9 +27,6 @@ import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
-import org.apache.log4j.Logger;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
 
 /**
  * Facade to manage MetaData
@@ -635,21 +636,13 @@ public class MetaDataFacade {
 
         int count = 0;
         FunctionalIdentifier id = new FunctionalIdentifier(tsuid, funcid);
-
-        try {
-            count = idDao.persist(id);
-            // TODO error management correction in DAO layer => simplify this
-            // code ...
-            if (count == 0) {
-                throw new IkatsDaoException("Unable to create FunctionalIdentifier tsduid=" + tsuid + " funcId=" + funcid);
-            }
+        count = idDao.persist(id);
+        // TODO error management correction in DAO layer => simplify this
+        // code ...
+        if (count == 0) {
+            throw new IkatsDaoException("Unable to create FunctionalIdentifier tsduid=" + tsuid + " funcId=" + funcid);
         }
-        catch (IkatsDaoException ie) {
-            throw ie;
-        }
-        catch (Throwable e) {
-            throw new IkatsDaoException("Unable to create FunctionalIdentifier tsduid=" + tsuid + " funcId=" + funcid, e);
-        }
+        
         return count;
     }
 

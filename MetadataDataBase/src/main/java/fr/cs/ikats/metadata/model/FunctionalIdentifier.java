@@ -7,12 +7,15 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
+import javax.persistence.UniqueConstraint;
 
 /**
  * model class for FunctionalIdentifier.
  */
 @Entity
-@Table(name = "TSFunctionalIdentifier")
+@Table(name = "TSFunctionalIdentifier", uniqueConstraints = {
+        @UniqueConstraint(columnNames = { "tsuid", "FuncId" })
+})
 public class FunctionalIdentifier {
 
 

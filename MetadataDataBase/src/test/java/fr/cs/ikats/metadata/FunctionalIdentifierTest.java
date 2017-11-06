@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,20 +29,41 @@ import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 public class FunctionalIdentifierTest extends CommonTest {
     
     /**
+     * Remove all data at the end of the tests
+     * 
+     * @throws IkatsDaoConflictException
+     * @throws IkatsDaoException
+     */
+    @AfterClass
+    public static void tearDown() throws IkatsDaoConflictException, IkatsDaoException {
+        resetDB();
+    }
+    
+    /**
      * Remove all data before any test execution
      * 
      * @throws IkatsDaoConflictException
      * @throws IkatsDaoException
      */
     @Before
-    public void resetDB() throws IkatsDaoConflictException, IkatsDaoException {
+    public void setUpTest() throws IkatsDaoConflictException, IkatsDaoException {
+        resetDB();
+    }
+    
+    /**
+     * Remove all funcid data 
+     * 
+     * @throws IkatsDaoConflictException
+     * @throws IkatsDaoException
+     */
+    protected static void resetDB() throws IkatsDaoConflictException, IkatsDaoException {
         MetaDataFacade metaDataFacade = new MetaDataFacade();
         List<FunctionalIdentifier> funcIdList = metaDataFacade.getFunctionalIdentifiersList();
         // get only the tsuids list to be able to call the remove method
         List<String> tsuids = funcIdList.stream().map(FunctionalIdentifier::getTsuid).collect(Collectors.toList());
         metaDataFacade.removeFunctionalIdentifier(tsuids);
     }
-
+    
 	@Test
 	public void testPersist() throws IkatsDaoConflictException, IkatsDaoException {
 
@@ -51,24 +73,18 @@ public class FunctionalIdentifierTest extends CommonTest {
 		values.put("tsuid1", "mon_id_fonctionel1");
 		int added = facade.persistFunctionalIdentifier(values);
 		assertEquals(1, added);
-		List<String> tsuids = new ArrayList<String>();
-		tsuids.add("tsuid1");
-		facade.removeFunctionalIdentifier(tsuids);
 	}
 
-	@Test
+	@Test(expected=IkatsDaoConflictException.class)
 	public void testPersist_DG_Doublon() throws IkatsDaoConflictException, IkatsDaoException {
 
 		MetaDataFacade facade = new MetaDataFacade();
 
-		Map<String, String> values = new HashMap<String, String>();
-		values.put("tsuid1_dg", "mon_id_fonctionel1");
-		values.put("tsuid1_dg", "mon_id_fonctionel2");
-		int added = facade.persistFunctionalIdentifier(values);
+		int added = facade.persistFunctionalIdentifier("tsuid1_dg", "mon_id_fonctionel1");
 		assertEquals(1, added);
-		List<String> tsuids = new ArrayList<String>();
-		tsuids.add("tsuid1_dg");
-		facade.removeFunctionalIdentifier(tsuids);
+		
+		// Will throw the IkatsDaoConflictException
+		added = facade.persistFunctionalIdentifier("tsuid1_dg", "mon_id_fonctionel1");
 	}
 
 	/**
@@ -86,12 +102,6 @@ public class FunctionalIdentifierTest extends CommonTest {
 		values.put("tsuid3", "mon_id_fonctionel3");
 		int added = facade.persistFunctionalIdentifier(values);
 		assertEquals(2, added);
-		List<String> tsuids = new ArrayList<String>();
-		tsuids.add("tsuid3");
-		facade.removeFunctionalIdentifier(tsuids);
-
-		// clean the data to avoid tests collision
-		facade.removeFunctionalIdentifier(new ArrayList<String>(values.keySet()));
 	}
 
 	/**
@@ -128,9 +138,6 @@ public class FunctionalIdentifierTest extends CommonTest {
 		tsuids.add("tsuid9");
 		result = facade.getFunctionalIdentifierByTsuidList(tsuids);
 		assertTrue(result.isEmpty());
-
-		// clean the data to avoid tests collision
-		facade.removeFunctionalIdentifier(new ArrayList<String>(values.keySet()));
 	}
 
 	/**
@@ -157,9 +164,6 @@ public class FunctionalIdentifierTest extends CommonTest {
 		assertEquals("tsuid11", result.getTsuid());
 		result = facade.getFunctionalIdentifierByTsuid("tsuid12");
 		assertEquals("mon_id_fonctionel12", result.getFuncId());
-
-		// clean the data to avoid tests collision
-		facade.removeFunctionalIdentifier(new ArrayList<String>(values.keySet()));
 	}
 
 	@Test(expected = IkatsDaoMissingRessource.class)
@@ -179,9 +183,6 @@ public class FunctionalIdentifierTest extends CommonTest {
 		assertNull(result);
 		result = facade.getFunctionalIdentifierByTsuid("tsuid14");
 		assertNull(result);
-
-		// clean the data to avoid tests collision
-		facade.removeFunctionalIdentifier(new ArrayList<String>(values.keySet()));
 	}
 
 	/**
@@ -206,9 +207,6 @@ public class FunctionalIdentifierTest extends CommonTest {
 
 		result = facade.getFunctionalIdentifiersList();
 		assertEquals(4, result.size());
-
-		// clean the data to avoid tests collision
-		facade.removeFunctionalIdentifier(new ArrayList<String>(values.keySet()));
 	}
 
 	/**
