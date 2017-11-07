@@ -34,7 +34,7 @@
 				<artifactId>tomcat7-maven-plugin</artifactId>
 				<version>2.2</version>
 				<configuration>
-					<url>{TOMCAT_URL}</url>
+					<url>http://${server.url}/manager/text</url>
 					<server>${server.name}</server>
 					<path>/TemporalDataManagerWebApp</path>
 					<warFile>target/${target}/TemporalDataManagerWebApp.war</warFile>

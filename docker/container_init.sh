@@ -103,8 +103,12 @@ function fill_tomcat_parameters {
 
   url="http://$2:$3/manager/text"
 
+  # Replace hardcoded values by templates
+  # This step is required until we can change the source code directly
+  # Otherwise legacy build will break.
   shopt -s globstar
-  sed -i "s|{TOMCAT_URL}|${url}|g" $root_directory/**/pom.xml
+  sed -i "s|http://\${server.url}/manager/text|${url}|g" $root_directory/**/pom.xml
+  sed -i "s|url.db.api.base=.*|url.db.api.base=:{TSDB_PORT}/api|g" $root_directory/**/api.properties
 }
 
 function send_war_to_tomcat {

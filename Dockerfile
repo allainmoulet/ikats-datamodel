@@ -8,15 +8,20 @@ MAINTAINER Germain GAU <germain.gau@c-s.fr>
 #
 #########################################################
 
+ARG HTTP_PROXY_HOST=""
+ARG HTTP_PROXY_PORT=""
+ARG HTTPS_PROXY_HOST=""
+ARG HTTPS_PROXY_PORT=""
+
 ADD . /srcs
 WORKDIR /srcs/ikats-main
 RUN mvn package \
   -Dtarget=template \
   -DskipTests=true \
-  -Dhttp.proxyHost=172.27.128.34 \
-  -Dhttp.proxyPort=3128 \
-  -Dhttps.proxyHost=172.27.128.34 \
-  -Dhttps.proxyPort=3128
+  -Dhttp.proxyHost=$HTTP_PROXY_HOST \
+  -Dhttp.proxyPort=$HTTP_PROXY_PORT \
+  -Dhttps.proxyHost=$HTTPS_PROXY_HOST \
+  -Dhttps.proxyPort=$HTTPS_PROXY_PORT
 
 CMD [ \
   "bash", \
