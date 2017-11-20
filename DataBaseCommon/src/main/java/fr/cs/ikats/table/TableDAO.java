@@ -67,7 +67,7 @@ public class TableDAO extends DataBaseDAO {
      * @throws fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource if there is no Table
      * @throws fr.cs.ikats.common.dao.exception.IkatsDaoException        if any other exception occurs
      */
-    public List<Table> findByName(String pattern, boolean strict) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public List<Table> findByLabel(String pattern, boolean strict) throws IkatsDaoMissingRessource, IkatsDaoException {
         List<Table> result = null;
 
         Session session = getSession();
