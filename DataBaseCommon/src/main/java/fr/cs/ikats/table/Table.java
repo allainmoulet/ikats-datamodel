@@ -1,5 +1,7 @@
 package fr.cs.ikats.table;
 
+import java.util.Date;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -63,6 +65,13 @@ public class Table {
     @Column(name = "rowHeader")
     private boolean rowHeader;
 
+    /**
+     * Creation date of the table
+     */
+    @Column(name = "created")
+    private Date created;
+
+
     public Integer getId() {
         return id;
     }
@@ -86,7 +95,6 @@ public class Table {
     public void setDescription(String description) {
         this.description = description;
     }
-
 
     public byte[] getRawValues() {
         return rawValues;
@@ -118,5 +126,13 @@ public class Table {
 
     public void setRowHeader(boolean rowHeader) {
         this.rowHeader = rowHeader;
+    }
+
+    public Date getCreated() {
+        return created;
+    }
+
+    public void setCreated(Date created) {
+        this.created = created;
     }
 }
