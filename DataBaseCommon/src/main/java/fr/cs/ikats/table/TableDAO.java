@@ -26,18 +26,18 @@ public class TableDAO extends DataBaseDAO {
      *
      * @return the list of all tables
      *
-     * @throws fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource if there is no Table
+     * @throws fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource if there is no TableEntity
      * @throws fr.cs.ikats.common.dao.exception.IkatsDaoException        if any other exception occurs
      */
-    public List<Table> listAll() throws IkatsDaoMissingRessource, IkatsDaoException {
-        List<Table> result = null;
+    public List<TableEntity> listAll() throws IkatsDaoMissingRessource, IkatsDaoException {
+        List<TableEntity> result = null;
 
         Session session = getSession();
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
 
-            Criteria criteria = session.createCriteria(Table.class);
+            Criteria criteria = session.createCriteria(TableEntity.class);
             result = criteria.list();
 
             tx.commit();
@@ -60,30 +60,31 @@ public class TableDAO extends DataBaseDAO {
      * List all Tables matching the pattern
      *
      * @param pattern The pattern to match
-     * @param strict set to True to have a strict match.
-     *               False indicate the pattern shall be contained in the name
+     * @param strict  set to True to have a strict match.
+     *                False indicate the pattern shall be contained in the name
+     *
      * @return the list of all tables
      *
-     * @throws fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource if there is no Table
+     * @throws fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource if there is no TableEntity
      * @throws fr.cs.ikats.common.dao.exception.IkatsDaoException        if any other exception occurs
      */
-    public List<Table> findByLabel(String pattern, boolean strict) throws IkatsDaoMissingRessource, IkatsDaoException {
-        List<Table> result = null;
+    public List<TableEntity> findByName(String pattern, boolean strict) throws IkatsDaoMissingRessource, IkatsDaoException {
+        List<TableEntity> result = null;
 
         Session session = getSession();
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
 
-            Criteria criteria = session.createCriteria(Table.class);
+            Criteria criteria = session.createCriteria(TableEntity.class);
             if (strict) {
                 // Strict match
-                criteria.add(Restrictions.eq("label", pattern));
+                criteria.add(Restrictions.eq("name", pattern));
             }
             else {
                 // The query shall be contained in the Name
                 String query = '%' + pattern.replace('*', '%') + '%';
-                criteria.add(Restrictions.like("label", query));
+                criteria.add(Restrictions.like("name", query));
             }
             result = criteria.list();
 
@@ -104,26 +105,26 @@ public class TableDAO extends DataBaseDAO {
     }
 
     /**
-     * Get a Table by providing its id (which is unique)
+     * Get a TableEntity by providing its id (which is unique)
      *
-     * @param id Id of the Table to get
+     * @param id Id of the TableEntity to get
      *
-     * @return The Table matching this id
+     * @return The TableEntity matching this id
      *
-     * @throws IkatsDaoMissingRessource if there is no Table matching the id
+     * @throws IkatsDaoMissingRessource if there is no TableEntity matching the id
      * @throws IkatsDaoException        if any other exception occurs
      */
-    public Table getById(Integer id) throws IkatsDaoMissingRessource, IkatsDaoException {
-        Table result = null;
+    public TableEntity getById(Integer id) throws IkatsDaoMissingRessource, IkatsDaoException {
+        TableEntity result = null;
 
         Session session = getSession();
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
 
-            Criteria criteria = session.createCriteria(Table.class);
+            Criteria criteria = session.createCriteria(TableEntity.class);
             criteria.add(Restrictions.eq("id", id));
-            List<Table> resultList = criteria.list();
+            List<TableEntity> resultList = criteria.list();
 
             if (resultList == null || (resultList.size() == 0)) {
                 String msg = "Searching workflow from id=" + id + ": no resource found, but should exist.";
@@ -149,16 +150,16 @@ public class TableDAO extends DataBaseDAO {
     }
 
     /**
-     * Save a Table
+     * Save a TableEntity
      *
-     * @param table the Table information to save
+     * @param tableEntity the TableEntity information to save
      *
-     * @return the id of the created Table
+     * @return the id of the created TableEntity
      *
-     * @throws fr.cs.ikats.common.dao.exception.IkatsDaoConflictException if the Table to append already exists
+     * @throws fr.cs.ikats.common.dao.exception.IkatsDaoConflictException if the TableEntity to append already exists
      * @throws IkatsDaoException                                          if any other exception occurs
      */
-    public Integer persist(Table table) throws IkatsDaoConflictException, IkatsDaoException {
+    public Integer persist(TableEntity tableEntity) throws IkatsDaoConflictException, IkatsDaoException {
         Integer tableId = null;
 
         Session session = getSession();
@@ -166,10 +167,10 @@ public class TableDAO extends DataBaseDAO {
         try {
             tx = session.beginTransaction();
 
-            String wfInfo = table.toString();
-            LOGGER.debug("Creating " + wfInfo + " with id=" + table.getId());
+            String wfInfo = tableEntity.toString();
+            LOGGER.debug("Creating " + wfInfo + " with id=" + tableEntity.getId());
 
-            tableId = (Integer) session.save(table);
+            tableId = (Integer) session.save(tableEntity);
             tx.commit();
         }
         catch (RuntimeException e) {
@@ -189,29 +190,29 @@ public class TableDAO extends DataBaseDAO {
     /**
      * Update the workflow/Macro Operator with the defined information
      *
-     * @param table the detailed information about the update
+     * @param tableEntity the detailed information about the update
      *
      * @return true if the workflow/Macro Operator update is successful
      *
      * @throws IkatsDaoConflictException if the workflow/Macro Operator to update does not exist
      * @throws IkatsDaoException         if any other exception occurs
      */
-    public boolean update(Table table) throws IkatsDaoConflictException, IkatsDaoException {
+    public boolean update(TableEntity tableEntity) throws IkatsDaoConflictException, IkatsDaoException {
         boolean updated = false;
 
         Session session = getSession();
         Transaction tx = null;
         try {
-            LOGGER.debug("Updating:" + table.getLabel());
+            LOGGER.debug("Updating:" + tableEntity.getName());
             tx = session.beginTransaction();
 
-            session.update(table);
+            session.update(tableEntity);
             tx.commit();
             updated = true;
         }
         catch (StaleStateException e) {
 
-            String msg = "No match for Table with id:" + table.getId();
+            String msg = "No match for TableEntity with id:" + tableEntity.getId();
             LOGGER.error(msg, e);
             rollbackAndThrowException(tx, new IkatsDaoMissingRessource(msg, e));
         }
@@ -241,12 +242,12 @@ public class TableDAO extends DataBaseDAO {
         Session session = getSession();
         Transaction tx = null;
         try {
-            LOGGER.debug("Deleting Table rows matching id=" + id);
+            LOGGER.debug("Deleting TableEntity rows matching id=" + id);
             tx = session.beginTransaction();
 
-            Table table = new Table();
-            table.setId(id);
-            session.delete(table);
+            TableEntity tableEntity = new TableEntity();
+            tableEntity.setId(id);
+            session.delete(tableEntity);
 
             tx.commit();
         }

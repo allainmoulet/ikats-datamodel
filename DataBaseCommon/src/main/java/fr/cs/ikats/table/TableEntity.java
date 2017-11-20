@@ -2,19 +2,22 @@ package fr.cs.ikats.table;
 
 import java.util.Date;
 
+import javax.persistence.Basic;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 
+
 /**
- * The Table entity
+ * The TableEntity entity
  */
 @Entity
-@javax.persistence.Table(name = "Table")
-public class Table {
+@javax.persistence.Table(name = "TableEntity")
+public class TableEntity {
 
     /**
      * Unique identifier allowing to query any table
@@ -26,10 +29,10 @@ public class Table {
     private Integer id;
 
     /**
-     * User label allowing to identify a table in a working context
+     * Unique name used to identify the TableEntity by user
      */
-    @Column(name = "label")
-    private String label;
+    @Column(name = "name", updatable = false)
+    private String name;
 
     /**
      * Additional user description
@@ -42,6 +45,7 @@ public class Table {
      * Opaque data containing the 2D-array containing the values of the "cells"
      * including headers
      */
+    @Basic(fetch = FetchType.LAZY)
     @Column(name = "rawValues")
     private byte[] rawValues;
 
@@ -50,17 +54,18 @@ public class Table {
      * Opaque data containing the 2D-array containing the links of the "cells"
      * including headers
      */
+    @Basic(fetch = FetchType.LAZY)
     @Column(name = "rawDataLinks")
     private byte[] rawDataLinks;
 
     /**
-     * Boolean indicating if the Table contains columns headers
+     * Boolean indicating if the TableEntity contains columns headers
      */
     @Column(name = "colHeader")
     private boolean colHeader;
 
     /**
-     * Boolean indicating if the Table contains row headers
+     * Boolean indicating if the TableEntity contains row headers
      */
     @Column(name = "rowHeader")
     private boolean rowHeader;
@@ -80,12 +85,12 @@ public class Table {
         this.id = id;
     }
 
-    public String getLabel() {
-        return label;
+    public String getName() {
+        return name;
     }
 
-    public void setLabel(String label) {
-        this.label = label;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getDescription() {
@@ -95,6 +100,7 @@ public class Table {
     public void setDescription(String description) {
         this.description = description;
     }
+
 
     public byte[] getRawValues() {
         return rawValues;
