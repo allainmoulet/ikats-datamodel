@@ -13,7 +13,7 @@ import javax.persistence.SequenceGenerator;
 
 
 /**
- * The TableEntity entity
+ * The Table entity
  */
 @Entity
 @javax.persistence.Table(name = "TableEntity")
@@ -31,7 +31,7 @@ public class TableEntity {
     /**
      * Unique name used to identify the TableEntity by user
      */
-    @Column(name = "name", updatable = false)
+    @Column(name = "name", unique = true)
     private String name;
 
     /**
