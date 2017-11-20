@@ -10,6 +10,10 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
+import javax.persistence.Transient;
+
+import org.hibernate.bytecode.javassist.FieldHandled;
+import org.hibernate.bytecode.javassist.FieldHandler;
 
 
 /**
@@ -17,7 +21,10 @@ import javax.persistence.SequenceGenerator;
  */
 @Entity
 @javax.persistence.Table(name = "TableEntity")
-public class TableEntity {
+public class TableEntity implements FieldHandled {
+
+    @Transient
+    private FieldHandler fieldHandler;
 
     /**
      * Unique identifier allowing to query any table
@@ -40,7 +47,6 @@ public class TableEntity {
     @Column(name = "description")
     private String description;
 
-    //TODO fetch lazy
     /**
      * Opaque data containing the 2D-array containing the values of the "cells"
      * including headers
@@ -49,7 +55,6 @@ public class TableEntity {
     @Column(name = "rawValues")
     private byte[] rawValues;
 
-    //TODO fetch lazy
     /**
      * Opaque data containing the 2D-array containing the links of the "cells"
      * including headers
@@ -103,18 +108,32 @@ public class TableEntity {
 
 
     public byte[] getRawValues() {
+        if (fieldHandler != null) {
+            return (byte[]) fieldHandler.readObject(this, "rawValues", rawValues);
+        }
         return rawValues;
     }
 
     public void setRawValues(byte[] rawValues) {
+        if (fieldHandler != null) {
+            fieldHandler.writeObject(this, "rawValues", this.rawValues, rawValues);
+            return;
+        }
         this.rawValues = rawValues;
     }
 
     public byte[] getRawDataLinks() {
+        if (fieldHandler != null) {
+            return (byte[]) fieldHandler.readObject(this, "rawDataLinks", rawDataLinks);
+        }
         return rawDataLinks;
     }
 
     public void setRawDataLinks(byte[] rawDataLinks) {
+        if (fieldHandler != null) {
+            fieldHandler.writeObject(this, "rawDataLinks", this.rawDataLinks, rawDataLinks);
+            return;
+        }
         this.rawDataLinks = rawDataLinks;
     }
 
@@ -140,5 +159,15 @@ public class TableEntity {
 
     public void setCreated(Date created) {
         this.created = created;
+    }
+
+    @Override
+    public void setFieldHandler(FieldHandler handler) {
+        this.fieldHandler = handler;
+    }
+
+    @Override
+    public FieldHandler getFieldHandler() {
+        return this.fieldHandler;
     }
 }
