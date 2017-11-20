@@ -16,10 +16,10 @@ import org.hibernate.criterion.Restrictions;
 
 public class TableDAO extends DataBaseDAO {
 
-//    /**
-//     * Logger for TableDAO
-//     */
-//    private static final Logger LOGGER = Logger.getLogger(TableDAO.class);
+    /**
+     * Logger for TableDAO
+     */
+    private static final Logger LOGGER = Logger.getLogger(TableDAO.class);
 
     /**
      * List all Tables
@@ -29,7 +29,7 @@ public class TableDAO extends DataBaseDAO {
      * @throws fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource if there is no Table
      * @throws fr.cs.ikats.common.dao.exception.IkatsDaoException        if any other exception occurs
      */
-    List<Table> listAll() throws IkatsDaoMissingRessource, IkatsDaoException {
+    public List<Table> listAll() throws IkatsDaoMissingRessource, IkatsDaoException {
         List<Table> result = null;
 
         Session session = getSession();
@@ -57,11 +57,6 @@ public class TableDAO extends DataBaseDAO {
     }
 
     /**
-     * Logger for TableDAO
-     */
-    private static final Logger LOGGER = Logger.getLogger(TableDAO.class);
-
-    /**
      * List all Tables matching the pattern
      *
      * @param pattern The pattern to match
@@ -72,7 +67,7 @@ public class TableDAO extends DataBaseDAO {
      * @throws fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource if there is no Table
      * @throws fr.cs.ikats.common.dao.exception.IkatsDaoException        if any other exception occurs
      */
-    List<Table> findByName(String pattern, boolean strict) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public List<Table> findByName(String pattern, boolean strict) throws IkatsDaoMissingRessource, IkatsDaoException {
         List<Table> result = null;
 
         Session session = getSession();
@@ -118,7 +113,7 @@ public class TableDAO extends DataBaseDAO {
      * @throws IkatsDaoMissingRessource if there is no Table matching the id
      * @throws IkatsDaoException        if any other exception occurs
      */
-    Table getById(Integer id) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public Table getById(Integer id) throws IkatsDaoMissingRessource, IkatsDaoException {
         Table result = null;
 
         Session session = getSession();
