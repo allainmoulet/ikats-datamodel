@@ -43,7 +43,6 @@ import fr.cs.ikats.temporaldata.business.TableInfo.TableContent;
 import fr.cs.ikats.temporaldata.business.TableInfo.TableHeaders;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
-import jersey.repackaged.com.google.common.collect.Lists;
 
 /**
  * The Table class is the business resource for the 'table' IKATS functional type, it is a wrapper of TableInfo. The
