@@ -142,7 +142,7 @@ public class JoinTableWithTs {
 	 * @throws ResourceNotFoundException
 	 * @throws IkatsException
 	 */
-	public String apply(String tableJson, String metrics, String dataset, String joinColName, String joinMetaName,
+	public Integer apply(String tableJson, String metrics, String dataset, String joinColName, String joinMetaName,
 			String targetColName, String outputTableName)
 			throws IkatsDaoException, InvalidValueException, ResourceNotFoundException, IkatsException {
 		String prefixeChrono = "JoinTableWithTs: init";
@@ -156,7 +156,7 @@ public class JoinTableWithTs {
 
 			processingContext = "creating table in DB";
 			chrono.start(prefixeChrono + processingContext);
-			String rid = tableManager.createInDatabase(outputTableName, processedTable);
+			Integer rid = tableManager.createInDatabase(processedTable);
 			chrono.stop(LOGGER);
 			return rid;
 		} catch (IkatsJsonException jsonError) {

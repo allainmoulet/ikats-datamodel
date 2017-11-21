@@ -31,10 +31,12 @@ package fr.cs.ikats.temporaldata;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.process.data.model.ProcessData;
+import fr.cs.ikats.table.TableEntity;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableManager;
 
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -80,12 +82,12 @@ public class TableRequestTest extends AbstractRequestTest {
      */
     @Before
     @After
-    public void setUpAndTearDownTest() throws IkatsDaoException {
+    public void setUpAndTearDownTest() throws IkatsDaoException, ResourceNotFoundException {
         TableManager tableManager = new TableManager();
-        List<ProcessData> procDataTables = tableManager.listTables();
+        List<TableEntity> procDataTables = tableManager.listTables();
         
-        for (ProcessData procDataTable : procDataTables) {
-            tableManager.deleteFromDatabase(procDataTable.getProcessId());
+        for (TableEntity procDataTable : procDataTables) {
+            tableManager.deleteFromDatabase(procDataTable.getName());
         }
     }
 

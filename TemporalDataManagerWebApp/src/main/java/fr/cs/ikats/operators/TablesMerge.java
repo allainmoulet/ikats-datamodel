@@ -112,15 +112,16 @@ public class TablesMerge {
      * @return the rid of the result Table in ProcessData
      * @throws IkatsOperatorException
      */
-    public String apply() throws IkatsOperatorException {
+    public Integer apply() throws IkatsOperatorException {
         
         // do the job
         Table resultTable = doMerge();
+        resultTable.setName(request.outputTableName);
         
         // then try to save it in the database and get the reference to be returned
-        String rid;
+        Integer rid;
         try {
-            rid = tableManager.createInDatabase(request.outputTableName, resultTable);
+            rid = tableManager.createInDatabase(resultTable);
             logger.info("Table '" + resultTable.getName() + "' by '" + TablesMerge.class.getName() + "' operator, created in database");
         }
         catch (IkatsException | IkatsDaoException | InvalidValueException e) {

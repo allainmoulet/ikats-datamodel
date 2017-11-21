@@ -64,6 +64,7 @@ import fr.cs.ikats.operators.IkatsOperatorException;
 import fr.cs.ikats.operators.JoinTableWithTs;
 import fr.cs.ikats.operators.TablesMerge;
 import fr.cs.ikats.process.data.model.ProcessData;
+import fr.cs.ikats.table.TableEntity;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableInfo;
@@ -119,7 +120,7 @@ public class TableResource extends AbstractResource {
      */
     @GET
     @Path("/{tableName}")
-    public Response downloadTable(@PathParam("tableName") String tableName) throws ResourceNotFoundException, IkatsException, IkatsDaoException, IkatsJsonException {
+    public Response downloadTable(@PathParam("tableName") String tableName) throws ResourceNotFoundException, IkatsException, IkatsDaoException, IkatsJsonException, IOException, ClassNotFoundException {
         // get id of table in processData db
         // assuming there is only one table by tableName
         TableInfo table = tableManager.readFromDatabase(tableName);
@@ -252,7 +253,7 @@ public class TableResource extends AbstractResource {
             outputTable.getRowsHeader().addItems(rowHeaders.toArray());
 
             // store Table
-            String rid = tableManager.createInDatabase(tableName, outputTable);
+            Integer rid = tableManager.createInDatabase(outputTable);
             chrono.stop(logger);
 
             // result id is returned in the body
@@ -335,7 +336,7 @@ public class TableResource extends AbstractResource {
 
         // delegates the work to the operator JoinTableWithTs
         JoinTableWithTs opeJoinTableWithTs = new JoinTableWithTs();
-        String rid = opeJoinTableWithTs.apply(tableJson, metrics, dataset, joinColName, joinMetaName, targetColName, outputTableName);
+        Integer rid = opeJoinTableWithTs.apply(tableJson, metrics, dataset, joinColName, joinMetaName, targetColName, outputTableName);
 
         // Nominal case: result id is returned in the body
         // Note: with DAO Table: should be changed to return the name of Table
@@ -468,7 +469,8 @@ public class TableResource extends AbstractResource {
             outputTable.appendRow(cellsLine);
         }
         // store table in db
-        String rid = tableManager.createInDatabase(outputTableName, outputTable);
+        outputTable.setName(outputTableName);
+        Integer rid = tableManager.createInDatabase(outputTable);
 
         chrono.stop(logger);
 
@@ -505,8 +507,7 @@ public class TableResource extends AbstractResource {
     @GET
     @Path("/json/{name}")
     @Produces(MediaType.APPLICATION_JSON)
-    public TableInfo readTable(@PathParam("name") String name) throws IkatsJsonException, IkatsDaoException, ResourceNotFoundException
-    {
+    public TableInfo readTable(@PathParam("name") String name) throws IkatsException, IkatsDaoException, ResourceNotFoundException, IOException, ClassNotFoundException {
         TableManager tableMgt = new TableManager();
         return tableMgt.readFromDatabase(name);
     }
@@ -556,8 +557,10 @@ public class TableResource extends AbstractResource {
         }
 
         // Store tables in database
-        String rid1 = tableManager.createInDatabase(outputTableName + "_Train", tabListResult.get(0));
-        String rid2 = tableManager.createInDatabase(outputTableName + "_Test", tabListResult.get(1));
+        tabListResult.get(0).setName(outputTableName + "_Train");
+        tabListResult.get(1).setName(outputTableName + "_Test");
+        Integer rid1 = tableManager.createInDatabase(tabListResult.get(0));
+        Integer rid2 = tableManager.createInDatabase(tabListResult.get(1));
 
         chrono.stop(logger);
 
@@ -591,7 +594,7 @@ public class TableResource extends AbstractResource {
 
         try {
             // Do the job and return the RID of the table
-            String rid = tablesMergeOperator.apply();
+            Integer rid = tablesMergeOperator.apply();
             return Response.status(Status.OK).entity(rid).build();
         }
         catch (IkatsOperatorException e) {
@@ -611,7 +614,12 @@ public class TableResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response listTables() {
         // List the tables
-        List<ProcessData> tables = tableManager.listTables();
+        List<TableEntity> tables;
+        try {
+            tables = tableManager.listTables();
+        } catch (IkatsDaoException e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+        }
 
         if (tables == null) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity("Error occurred while reading Table").build();
@@ -631,7 +639,7 @@ public class TableResource extends AbstractResource {
      */
     @DELETE
     @Path("/{tableName}")
-    public Response removeTable(@PathParam("tableName") String tableName) {
+    public Response removeTable(@PathParam("tableName") String tableName) throws ResourceNotFoundException {
         try {
             tableManager.deleteFromDatabase(tableName);
         }

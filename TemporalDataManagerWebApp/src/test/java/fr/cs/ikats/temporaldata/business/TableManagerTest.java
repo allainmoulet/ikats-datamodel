@@ -44,6 +44,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import fr.cs.ikats.table.TableEntity;
 import org.junit.Test;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
@@ -1378,7 +1379,7 @@ public class TableManagerTest {
     public void testListTablesEmpty() throws Exception {
 
         TableManager mng = new TableManager();
-        List<ProcessData> result = mng.listTables();
+        List<TableEntity> result = mng.listTables();
 
         assertNotNull(result);
         assertEquals(0, result.size());
@@ -1420,9 +1421,10 @@ public class TableManagerTest {
         tableHBis.appendRow(Arrays.asList(row3));
 
         tableH.checkConsistency();
-        mng.createInDatabase("TestTable", tableH);
+        tableH.setName("TestTable");
+        mng.createInDatabase(tableH);
 
-        List<ProcessData> result = mng.listTables();
+        List<TableEntity> result = mng.listTables();
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -1469,15 +1471,16 @@ public class TableManagerTest {
 
         tableH.checkConsistency();
         String tableName = "TestTableToDelete";
-        mng.createInDatabase(tableName, tableH);
+        tableH.setName(tableName);
+        mng.createInDatabase(tableH);
 
-        List<ProcessData> resultBefore = mng.listTables();
+        List<TableEntity> resultBefore = mng.listTables();
         assertNotNull(resultBefore);
 
         // clean
         mng.deleteFromDatabase(tableName);
 
-        List<ProcessData> resultAfter = mng.listTables();
+        List<TableEntity> resultAfter = mng.listTables();
         assertNotNull(resultAfter);
         assertEquals(resultBefore.size() - 1, resultAfter.size());
     }

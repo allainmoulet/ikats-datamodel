@@ -206,7 +206,7 @@ public class JoinTableWithTsTest extends CommonTest {
 		String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
 
 		JoinTableWithTs testedOperator = new JoinTableWithTs();
-		String resId = testedOperator.apply(selectedJson, testedMetrics, SELECTED_DATASET_NAME,
+		Integer intRid = testedOperator.apply(selectedJson, testedMetrics, SELECTED_DATASET_NAME,
 				testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName, OUTPUT_TABLE_NAME);
 
 		// Temporary DAO for Table:
@@ -214,9 +214,7 @@ public class JoinTableWithTsTest extends CommonTest {
 		// - name => name of the Table
 		// - id => rid
 		// - desc => desc of table for quick searches
-		Integer intRid = -1;
 		try {
-    		intRid = Integer.parseInt(resId);
     		ProcessData writtenData = processDataManager.getProcessPieceOfData(intRid);
     
     		assertEquals(writtenData.getProcessId(), OUTPUT_TABLE_NAME);

@@ -241,13 +241,11 @@ public class TablesMergeTest {
         TablesMerge tablesMergeOperator = new TablesMerge(tableMergeRequest);
         
         // get the result reference
-        String ridStr = tablesMergeOperator.apply();
+        Integer intRid = tablesMergeOperator.apply();
         
         // Direct connection to the database
         ProcessDataManager processDataManager = new ProcessDataManager();
         
-        Integer intRid = -1;
-        intRid = Integer.parseInt(ridStr);
         ProcessData writtenData = processDataManager.getProcessPieceOfData(intRid);
 
         // Check the record in database

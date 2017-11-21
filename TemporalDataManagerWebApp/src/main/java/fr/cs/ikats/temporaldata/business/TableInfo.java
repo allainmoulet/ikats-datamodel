@@ -36,6 +36,7 @@ import fr.cs.ikats.temporaldata.business.TableInfo.Header;
 import fr.cs.ikats.temporaldata.business.TableInfo.TableContent;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -531,7 +532,7 @@ public class TableInfo {
 	 * DataLink describes how to get linked data, at a deeper level.
 	 */
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	static public class DataLink {
+	static public class DataLink implements Serializable {
 
 		/**
 		 * Functional type of the linked data.

@@ -29,16 +29,12 @@
 
 package fr.cs.ikats.temporaldata.business;
 
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import fr.cs.ikats.table.TableEntity;
+import javafx.scene.control.Tab;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -50,7 +46,6 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.lang.NaturalOrderComparator;
 import fr.cs.ikats.process.data.model.ProcessData;
-import fr.cs.ikats.temporaldata.business.ProcessDataManager.ProcessResultTypeEnum;
 import fr.cs.ikats.temporaldata.business.TableInfo.Header;
 import fr.cs.ikats.temporaldata.business.TableInfo.TableContent;
 import fr.cs.ikats.temporaldata.business.TableInfo.TableDesc;
@@ -110,6 +105,79 @@ public class TableManager {
         jsonObjectMapper.setSerializationInclusion(Include.NON_NULL);
 
         dao = new TableDAO();
+        dao.init("/tableHibernate.cfg.xml");
+        dao.addAnotatedPackage("fr.cs.ikats.workflow");
+        dao.addAnnotatedClass(TableEntity.class);
+        dao.completeConfiguration();
+
+    }
+
+    /**
+     * Dao specific class to store all datalinks of functional type table
+     */
+    private static class DataLinkDao implements Serializable {
+
+        private TableInfo.DataLink cellsDefaultDatalink;
+        private List<List<TableInfo.DataLink>> cellsDatalink;
+
+        private TableInfo.DataLink rowHeaderDefaultDatalink;
+        private List<TableInfo.DataLink> rowHeaderDatalink;
+
+        private TableInfo.DataLink columnHeaderDefaultDatalink;
+        private List<TableInfo.DataLink> columnHeaderDatalink;
+
+        private DataLinkDao() {
+            super();
+        }
+
+        public TableInfo.DataLink getCellsDefaultDatalink() {
+            return cellsDefaultDatalink;
+        }
+
+        public void setCellsDefaultDatalink(TableInfo.DataLink cellsDefaultDatalink) {
+            this.cellsDefaultDatalink = cellsDefaultDatalink;
+        }
+
+        public List<List<TableInfo.DataLink>> getCellsDatalink() {
+            return cellsDatalink;
+        }
+
+        public void setCellsDatalink(List<List<TableInfo.DataLink>> cellsDatalink) {
+            this.cellsDatalink = cellsDatalink;
+        }
+
+        public TableInfo.DataLink getRowHeaderDefaultDatalink() {
+            return rowHeaderDefaultDatalink;
+        }
+
+        public void setRowHeaderDefaultDatalink(TableInfo.DataLink rowHeaderDefaultDatalink) {
+            this.rowHeaderDefaultDatalink = rowHeaderDefaultDatalink;
+        }
+
+        public List<TableInfo.DataLink> getRowHeaderDatalink() {
+            return rowHeaderDatalink;
+        }
+
+        public void setRowHeaderDatalink(List<TableInfo.DataLink> rowHeaderDatalink) {
+            this.rowHeaderDatalink = rowHeaderDatalink;
+        }
+
+        public TableInfo.DataLink getColumnHeaderDefaultDatalink() {
+            return columnHeaderDefaultDatalink;
+        }
+
+        public void setColumnHeaderDefaultDatalink(TableInfo.DataLink columnHeaderDefaultDatalink) {
+            this.columnHeaderDefaultDatalink = columnHeaderDefaultDatalink;
+        }
+
+        public List<TableInfo.DataLink> getColumnHeaderDatalink() {
+            return columnHeaderDatalink;
+        }
+
+        public void setColumnHeaderDatalink(List<TableInfo.DataLink> columnHeaderDatalink) {
+            this.columnHeaderDatalink = columnHeaderDatalink;
+        }
+
     }
 
     /**
@@ -226,12 +294,143 @@ public class TableManager {
         }
     }
 
-    private TableEntity getIdTablebyName(String tableName) throws ResourceNotFoundException, IkatsDaoException {
+    /**
+     * Retrieve dao table resource from database.
+     *
+     * @param tableName the name of the table.
+     * @return TableEntity
+     * @throws IkatsDaoException         unexpected DAO error, from Hibernate, reading the database
+     * @throws ResourceNotFoundException the table name tableName is not matched in the database.
+     */
+    private Integer getIdTablebyName(String tableName) throws ResourceNotFoundException, IkatsDaoException {
         List<TableEntity> dataTables = dao.findByName(tableName, true);
 
         if (dataTables.isEmpty()) {
             throw new ResourceNotFoundException("No result found for table name=" + tableName);
         }
+
+        return dataTables.get(0).getId();
+    }
+
+    @SuppressWarnings("unchecked")
+    private TableInfo tableEntityToTableInfo(TableEntity table) throws ResourceNotFoundException, IkatsDaoException, IkatsException {
+
+        TableInfo destTable = new TableInfo();
+
+        // process general attributes of table object
+        destTable.table_desc.desc = table.getDescription();
+        destTable.table_desc.title = table.getName();
+        destTable.table_desc.name = table.getName();
+
+        // process table raw data
+        List<List<Object>> rawData;
+        ObjectInputStream ois;
+        try {
+            ois = new ObjectInputStream(new ByteArrayInputStream(table.getRawValues()));
+            rawData = (List<List<Object>>) ois.readObject();
+            if (table.hasColHeader()){
+                destTable.headers.col.data = rawData.get(0);
+            }
+            for (int i = 1; i < rawData.size(); i++) {
+                if (table.hasRowHeader()) {
+                    destTable.headers.row.data.add(rawData.get(i).get(0));
+                    destTable.content.cells.add(rawData.get(i).subList(1,rawData.get(i).size()-1));
+                } else {
+                    destTable.content.cells.add(rawData.get(i));
+                }
+            }
+
+        } catch (ClassNotFoundException | IOException e) {
+            throw new IkatsDaoException(e);
+        }
+
+        // process table raw data links
+        DataLinkDao rawDataLinks;
+        try {
+            ois = new ObjectInputStream(new ByteArrayInputStream(table.getRawDataLinks()));
+            rawDataLinks = (DataLinkDao) ois.readObject();
+            destTable.content.default_links = rawDataLinks.getCellsDefaultDatalink();
+            destTable.content.links = rawDataLinks.getCellsDatalink();
+
+            destTable.headers.row.default_links = rawDataLinks.getRowHeaderDefaultDatalink();
+            destTable.headers.row.links = rawDataLinks.getRowHeaderDatalink();
+
+            destTable.headers.col.default_links = rawDataLinks.getColumnHeaderDefaultDatalink();
+            destTable.headers.col.links = rawDataLinks.getColumnHeaderDatalink();
+
+        } catch (ClassNotFoundException | IOException e) {
+            throw new IkatsDaoException(e);
+        }
+
+        return destTable;
+    }
+
+    @SuppressWarnings("unchecked")
+    private TableEntity tableToTableEntity(Table table) throws IkatsDaoException {
+
+        TableEntity destTable = new TableEntity();
+
+        // process general attributes of table object
+        destTable.setDescription(table.getDescription());
+        destTable.setName(table.getName());
+        destTable.setCreated(new Date());
+        destTable.setColHeader(table.isHandlingColumnsHeader());
+        destTable.setRowHeader(table.isHandlingRowsHeader());
+
+
+        // process table raw data
+        // first concatenate table data content
+        List<Object> tableFullContent = new ArrayList<>();
+        if (table.isHandlingColumnsHeader()) {
+            tableFullContent.add(table.getColumnsHeader().data);
+        }
+        for (int i = 0; i < table.getContentData().size(); i++) {
+            List<Object> tempRowData = new ArrayList<>();
+            if (table.isHandlingRowsHeader()) {
+                tempRowData.add(table.getRowsHeader().data.get(i));
+            }
+            tempRowData.addAll(table.getContentData().get(i));
+            tableFullContent.add(tempRowData);
+        }
+
+        ObjectOutputStream oos;
+        ByteArrayOutputStream bos;
+        try {
+            bos = new ByteArrayOutputStream();
+            oos = new ObjectOutputStream(bos);
+            oos.writeObject(tableFullContent);
+            oos.flush();
+            destTable.setRawValues(bos.toByteArray());
+        } catch (IOException e) {
+            throw new IkatsDaoException(e);
+        }
+
+
+        // process table raw data links
+        DataLinkDao dataLinks = new DataLinkDao();
+        if (table.isHandlingColumnsHeader()){
+            dataLinks.setColumnHeaderDefaultDatalink(table.getColumnsHeader().default_links);
+            dataLinks.setColumnHeaderDatalink(table.getColumnsHeader().links);
+        }
+        if (table.isHandlingRowsHeader()){
+            dataLinks.setRowHeaderDefaultDatalink(table.getRowsHeader().default_links);
+            dataLinks.setRowHeaderDatalink(table.getRowsHeader().links);
+        }
+        dataLinks.setCellsDefaultDatalink(table.getContent().default_links);
+        dataLinks.setCellsDatalink(table.getContent().links);
+
+        try {
+            bos = new ByteArrayOutputStream();
+            oos = new ObjectOutputStream(bos);
+            oos.writeObject(dataLinks);
+            oos.flush();
+            destTable.setRawDataLinks(bos.toByteArray());
+
+        } catch (IOException e) {
+            throw new IkatsDaoException(e);
+        }
+
+        return destTable;
     }
 
     /**
@@ -244,92 +443,32 @@ public class TableManager {
      * @throws ResourceNotFoundException the table name tableName is not matched in the database.
      */
     public TableInfo readFromDatabase(String tableName)
-            throws IkatsJsonException, IkatsDaoException, ResourceNotFoundException {
+            throws IkatsException, IkatsDaoException, ResourceNotFoundException {
 
-//		try {
-        TableEntity dataTable = getIdTablebyName(tableName);
+        Integer IdTable = getIdTablebyName(tableName);
 
-
-        ProcessData dataTable = dataTables.get(0);
-
-        // Extract data to json string
-//			String jsonString = new String(dataTable.getData().getBytes(1, (int) dataTable.getData().length()));
-        String jsonString = new String(dataTable.getData(), Charset.defaultCharset());
+        TableEntity dataTable = dao.getById(IdTable);
 
         // Convert to Table type
-        TableInfo table = loadFromJson(jsonString);
+        TableInfo table = tableEntityToTableInfo(dataTable);
 
-        // Adds the name to the table:
-        // the name is not part of written JSON content presently
-        // but it is good to keep it at java level, in order to implement
-        // CRUD with unique identifier.
+        // Add the name to the table
         Table handler = new Table(table);
         handler.setName(tableName);
 
         LOGGER.trace("Table retrieved from db OK : name=" + tableName);
         return table;
-//		} catch (SQLException sqle) {
-//			// Why the catch is not on HibernateException ?
-//			throw new IkatsDaoException(
-//					"Failed to read Table, reading the BLOB of processData with processId=" + tableName, sqle);
-//		}
 
     }
 
-    /**
-     * Creates a new TableInfo in process data database.
-     *
-     * @param tableName    the unique identifier of the Table is its name
-     * @param tableToStore the TableInfo is required to write the content into the database. From Table object, use
-     *                     getTableInfo().
-     * @return ID of created processData storing the table.
-     * @throws IkatsJsonException        error encoding the JSON content
-     * @throws IkatsDaoException         error checking if resource already exists
-     * @throws IkatsDaoConflictException error when a resource with processId=tableName exists
-     * @throws InvalidValueException     consistency error found in the name of the table: see TABLE_NAME_PATTERN
-     * @deprecated instead of this method createInDatabase(String, TableInfo), use createInDatabase(String, Table) which
-     * adds one consistency check
-     */
-    public String createInDatabase(String tableName, TableInfo tableToStore)
-            throws IkatsJsonException, IkatsDaoException, IkatsDaoConflictException, InvalidValueException {
-
-        // Initializing potential big table
-        if (existsInDatabase(tableName))
-            throw new IkatsDaoConflictException("Resource already exists ");
-
-        // Validate the name consistency
-        validateTableName(tableName, "Create Table in database");
-
-        // Removes optional name from the table: it would be redondant with column name of the DB-table
-        // processdata:
-        // - the name is part of JSON content, in the software part (java/javascript...)
-        // - but the name is removed from the JSON in the BLOB in the DB-table
-
-        // ... using Table::setName is safer: initializes correctly the desc section of JSON
-        Table table = initTable(tableToStore, false);
-        table.setName(null);
-
-        byte[] data = serializeToJson(tableToStore).getBytes();
-
-        String rid = processDataManager.importProcessData(tableName, tableToStore.table_desc.desc, data,
-                ProcessResultTypeEnum.JSON);
-        LOGGER.trace("Table stored Ok in db: " + tableName + " with rid: " + rid);
-
-        // and now updates the identifier name for the software part
-        // table.setName() updates the input tableToStore !!!
-        table.setName(tableName);
-
-        // returns RID <=> internal ID of row of DB-table processdata
-        return rid;
-    }
 
     /**
      * Gets the JSON resource TableInfo from process data database.
      *
      * @return list of ProcessData. null returned only in case of server error.
      */
-    public List<ProcessData> listTables() {
-        return processDataManager.listTables();
+    public List<TableEntity> listTables() throws IkatsDaoException {
+        return dao.listAll();
     }
 
     /**
@@ -340,8 +479,7 @@ public class TableManager {
      * </li>
      * </ul>
      *
-     * @param tableName    the unique identifier of the Table is its name
-     * @param tableToStore the Table wrapping the TableInfo required to write the content into the database.
+     * @param table     the Table wrapping the TableInfo required to write the content into the database.
      * @return ID of created processData storing the table.
      * @throws IkatsException            inconsistency error detected in the tableToStore
      * @throws IkatsJsonException        error encoding the JSON content
@@ -349,46 +487,18 @@ public class TableManager {
      * @throws IkatsDaoConflictException error when a resource with processId=tableName exists
      * @throws InvalidValueException     consistency error found in the name of the table: see TABLE_NAME_PATTERN
      */
-    public String createInDatabase(String tableName, Table tableToStore) throws IkatsException, IkatsJsonException,
+    public Integer createInDatabase(Table table) throws IkatsException, IkatsJsonException,
             IkatsDaoException, IkatsDaoConflictException, InvalidValueException {
 
-        tableToStore.checkConsistency();
-
-        // Initializing potential big table
-        if (existsInDatabase(tableName))
-            throw new IkatsDaoConflictException("Resource already exists ");
+        String tableName = table.getTableInfo().table_desc.name;
 
         // Validate the name consistency
         validateTableName(tableName, "Create Table in database");
 
-        // Removes optional name from the table: it would be redundant with column name of the DB-table
-        // processdata:
-        // - the name is part of JSON content, in the software part (java/javascript...)
-        // - but the name is removed from the JSON in the BLOB in the DB-table
+        TableEntity tableToStore = tableToTableEntity(table);
 
-        // ... using Table::setName is safer: initializes correctly the desc section of JSON
-        tableToStore.setName(null);
-
-        TableInfo tableInfo = tableToStore.getTableInfo();
-        byte[] data = serializeToJson(tableInfo).getBytes();
-
-        // create the table in DB-table, whose name is saved separately
-
-        // Note1: before the new DAO for Table:
-        // the desc is limited to 100 char because it is saved in db-column NAME of db-table
-        // PROCESSDATA and NAME is defined as 'character varying(100)'
-        // => need to truncate the desc value passed to importProcessdata
-        //
-        // Note2: we could have chosen title instead of desc, for db-column NAME
-        String desc = tableToStore.getDescription();
-        if (desc == null) {
-            desc = "";
-        } else if (desc.length() >= 100) {
-            desc = desc.substring(0, 95) + " ...";
-        }
-
-        String rid = processDataManager.importProcessData(tableName, desc, data, ProcessResultTypeEnum.JSON);
-        LOGGER.trace("Table stored Ok in db: " + tableName + " with rid: " + rid);
+        Integer rid = dao.persist(tableToStore);
+        LOGGER.trace("Table stored Ok in db: " + table.getTableInfo().table_desc.name + " with rid: " + rid);
 
         // and now updates the identifier name for the software part
         tableToStore.setName(tableName);
@@ -399,15 +509,16 @@ public class TableManager {
     /**
      * Deletes the table from the database.
      *
-     * @param tableName the unique identifier of the Table is its name
+     * @param tableName identifier of the Table is its name
      * @throws IkatsDaoException if error occurs in database
      */
-    public void deleteFromDatabase(String tableName) throws IkatsDaoException {
+    public void deleteFromDatabase(String tableName) throws IkatsDaoException, ResourceNotFoundException {
         // The name of the table is in the processId column of table processData
         // => so, we can use directly the removeProcessData(processId) service.
 
         // No exception raised by this remove
-        processDataManager.removeProcessData(tableName);
+        int idTable = getIdTablebyName(tableName);
+        dao.removeById(idTable);
     }
 
     /**
@@ -420,14 +531,7 @@ public class TableManager {
      * @throws IkatsDaoException unexpected Hibernate error.
      */
     public boolean existsInDatabase(String tableName) throws IkatsDaoException {
-        List<ProcessData> collectionProcessData = processDataManager.getProcessData(tableName);
-
-        // Temporary solution: check that result is not null
-        if (collectionProcessData == null)
-            throw new IkatsDaoException(
-                    "Unexpected Hibernate error: processDataManager.getProcessData(" + tableName + ")");
-
-        return !collectionProcessData.isEmpty();
+        return !dao.findByName(tableName, true).isEmpty();
     }
 
     /**
