@@ -128,7 +128,7 @@ public class TableDAO extends DataBaseDAO {
             List<TableEntity> resultList = criteria.list();
 
             if (resultList == null || (resultList.size() == 0)) {
-                String msg = "Searching workflow from id=" + id + ": no resource found, but should exist.";
+                String msg = "Searching table from id=" + id + ": no resource found, but should exist.";
                 LOGGER.error(msg);
                 rollbackAndThrowException(tx, new IkatsDaoMissingRessource(msg));
             }
@@ -168,13 +168,12 @@ public class TableDAO extends DataBaseDAO {
         try {
             tx = session.beginTransaction();
 
-            String wfInfo = tableEntity.toString();
-            LOGGER.debug("Creating " + wfInfo + " with id=" + tableEntity.getId());
+            LOGGER.debug("Creating " + tableEntity.getName() + " with id=" + tableEntity.getId());
 
             tableId = (Integer) session.save(tableEntity);
             tx.commit();
         }
-        catch (RuntimeException e) {
+        catch (HibernateException e) {
             // try to rollback
             if (tx != null) tx.rollback();
             // Re-raise the original exception
@@ -189,13 +188,13 @@ public class TableDAO extends DataBaseDAO {
     }
 
     /**
-     * Update the workflow/Macro Operator with the defined information
+     * Update the table with the defined information
      *
      * @param tableEntity the detailed information about the update
      *
-     * @return true if the workflow/Macro Operator update is successful
+     * @return true if the table update is successful
      *
-     * @throws IkatsDaoConflictException if the workflow/Macro Operator to update does not exist
+     * @throws IkatsDaoConflictException if the table to update does not exist
      * @throws IkatsDaoException         if any other exception occurs
      */
     public boolean update(TableEntity tableEntity) throws IkatsDaoConflictException, IkatsDaoException {
@@ -232,11 +231,11 @@ public class TableDAO extends DataBaseDAO {
     }
 
     /**
-     * Delete a workflow/Macro Operator identified by its id
+     * Delete a Table identified by its id
      *
-     * @param id identifier of the workflow/Macro Operator
+     * @param id identifier of the table
      *
-     * @throws IkatsDaoException if the workflow/Macro Operator couldn't be removed
+     * @throws IkatsDaoException if the table couldn't be removed
      */
     public void removeById(Integer id) throws IkatsDaoException {
 
