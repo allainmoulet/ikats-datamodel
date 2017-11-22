@@ -9,6 +9,7 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.Lob;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Transient;
 
@@ -51,6 +52,7 @@ public class TableEntity implements FieldHandled {
      * Opaque data containing the 2D-array containing the values of the "cells"
      * including headers
      */
+    @Lob
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "rawValues")
     private byte[] rawValues;
@@ -59,6 +61,7 @@ public class TableEntity implements FieldHandled {
      * Opaque data containing the 2D-array containing the links of the "cells"
      * including headers
      */
+    @Lob
     @Basic(fetch = FetchType.LAZY)
     @Column(name = "rawDataLinks")
     private byte[] rawDataLinks;
