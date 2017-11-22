@@ -27,10 +27,9 @@ public class TableDAO extends DataBaseDAO {
      *
      * @return the list of all tables
      *
-     * @throws fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource if there is no TableEntity
-     * @throws fr.cs.ikats.common.dao.exception.IkatsDaoException        if any other exception occurs
+     * @throws HibernateException if there is no TableEntity
      */
-    public List<TableEntity> listAll() throws IkatsDaoMissingRessource, IkatsDaoException {
+    public List<TableEntity> listAll() throws HibernateException {
         List<TableEntity> result = null;
 
         Session session = getSession();
@@ -43,7 +42,7 @@ public class TableDAO extends DataBaseDAO {
 
             tx.commit();
         }
-        catch (RuntimeException e) {
+        catch (HibernateException e) {
             if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
@@ -61,15 +60,14 @@ public class TableDAO extends DataBaseDAO {
      * List all Tables matching the pattern
      *
      * @param pattern The pattern to match
-     * @param strict  set to True to have a strict match.
-     *                False indicate the pattern shall be contained in the name
+     * @param strict  set to true to have a strict match.
+     *                false indicate the pattern shall be contained in the name
      *
      * @return the list of all tables
      *
-     * @throws fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource if there is no TableEntity
-     * @throws fr.cs.ikats.common.dao.exception.IkatsDaoException        if any other exception occurs
+     * @throws HibernateException if there is no TableEntity matching pattern
      */
-    public List<TableEntity> findByName(String pattern, boolean strict) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public List<TableEntity> findByName(String pattern, boolean strict) throws HibernateException {
         List<TableEntity> result = null;
 
         Session session = getSession();
@@ -91,7 +89,7 @@ public class TableDAO extends DataBaseDAO {
 
             tx.commit();
         }
-        catch (RuntimeException e) {
+        catch (HibernateException e) {
             if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
@@ -151,16 +149,15 @@ public class TableDAO extends DataBaseDAO {
     }
 
     /**
-     * Save a TableEntity
+     * Save a table
      *
-     * @param tableEntity the TableEntity information to save
+     * @param tableEntity the table information to save
      *
-     * @return the id of the created TableEntity
+     * @return the id of the created table
      *
-     * @throws fr.cs.ikats.common.dao.exception.IkatsDaoConflictException if the TableEntity to append already exists
-     * @throws IkatsDaoException                                          if any other exception occurs
+     * @throws HibernateException if the table to append already exists
      */
-    public Integer persist(TableEntity tableEntity) throws IkatsDaoConflictException, IkatsDaoException {
+    public Integer persist(TableEntity tableEntity) throws HibernateException {
         Integer tableId = null;
 
         Session session = getSession();
