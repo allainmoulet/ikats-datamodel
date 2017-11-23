@@ -39,6 +39,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import fr.cs.ikats.table.TableDAO;
+import fr.cs.ikats.table.TableEntity;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -46,10 +48,8 @@ import org.junit.Test;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.junit.CommonTest;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
-import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
-import fr.cs.ikats.temporaldata.business.ProcessDataManager;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableElement;
 import fr.cs.ikats.temporaldata.business.TableInfo;
@@ -105,7 +105,6 @@ public class JoinTableWithTsTest extends CommonTest {
 	private static MetaDataManager metaManager = null;
 	private static DataSetManager dataSetManager = null;
 	private static TableManager tableManager = null;
-	private static ProcessDataManager processDataManager = null;
 
 	// selected metrics
 	// -----------------
@@ -123,7 +122,6 @@ public class JoinTableWithTsTest extends CommonTest {
 		metaManager = new MetaDataManager();
 		dataSetManager = new DataSetManager();
 		tableManager = new TableManager();
-		processDataManager = new ProcessDataManager();
 
 		datasetFuncIds = new ArrayList<>();
 		datasetMetadata = new ArrayList<>();
@@ -209,15 +207,11 @@ public class JoinTableWithTsTest extends CommonTest {
 		Integer intRid = testedOperator.apply(selectedJson, testedMetrics, SELECTED_DATASET_NAME,
 				testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName, OUTPUT_TABLE_NAME);
 
-		// Temporary DAO for Table:
-		// DB-table processdata
-		// - name => name of the Table
-		// - id => rid
-		// - desc => desc of table for quick searches
+		// using DAO for Table:
 		try {
-    		ProcessData writtenData = processDataManager.getProcessPieceOfData(intRid);
+    		TableEntity writtenData = tableManager.dao.getById(intRid);
     
-    		assertEquals(writtenData.getProcessId(), OUTPUT_TABLE_NAME);
+    		assertEquals(writtenData.getName(), OUTPUT_TABLE_NAME);
     
     		TableInfo tableJson = tableManager.readFromDatabase(OUTPUT_TABLE_NAME);
     		Table testedOutput = tableManager.initTable(tableJson, false);
@@ -236,7 +230,7 @@ public class JoinTableWithTsTest extends CommonTest {
     		// full test on the links applied in anothor use case: testComputeTableNominalWithTarget
 		} 
 		finally {
-		    processDataManager.removeProcessData(OUTPUT_TABLE_NAME);
+		    tableManager.deleteFromDatabase(OUTPUT_TABLE_NAME);
 		}
 	}
 
@@ -543,11 +537,6 @@ public class JoinTableWithTsTest extends CommonTest {
 
 	}
 
-	// Review#158227 FTL on a structuré nos test pour utiliser une base en mémoire, pas besoin de nettoyage, code
-	// inutile.
-	// Review#158227 MBD je pense que pour permettre un enchainement de differents JUnit tests c'est plus propre et prudent 
-	// de nettoyer les données afin d'eviter des confits de creation. Je propose de conserver cette methode. Dans le passé
-	// on a deja eu des soucis de conflits en TU.
 	/**
 	 * Ends the junit class: clean the data prepared for the test in the database
 	 * @throws Exception 
@@ -566,7 +555,7 @@ public class JoinTableWithTsTest extends CommonTest {
 		// will be required: delete created tables !
 		dataSetManager = null;
 		metaManager = null;
-		processDataManager = null;
+		tableManager = null;
 	}
 
 }

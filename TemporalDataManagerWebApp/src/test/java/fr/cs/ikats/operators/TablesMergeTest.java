@@ -38,6 +38,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.cs.ikats.table.TableDAO;
+import fr.cs.ikats.table.TableEntity;
 import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -244,15 +246,14 @@ public class TablesMergeTest {
         Integer intRid = tablesMergeOperator.apply();
         
         // Direct connection to the database
-        ProcessDataManager processDataManager = new ProcessDataManager();
-        
-        ProcessData writtenData = processDataManager.getProcessPieceOfData(intRid);
+        TableEntity writtenData = tableManager.dao.getById(intRid);
 
         // Check the record in database
-        assertEquals(writtenData.getProcessId(), outputTableName);
+        assertEquals(writtenData.getName(), outputTableName);
         
         // Prepare the data for checks
         TableInfo tableJson = tableManager.readFromDatabase(outputTableName);
+
         String resultTableJson = tableManager.serializeToJson(tableJson);
         String expectedTableJson = tableManager.serializeToJson(expectedTable.getTableInfo());
         resultTableJson = prettify(resultTableJson);

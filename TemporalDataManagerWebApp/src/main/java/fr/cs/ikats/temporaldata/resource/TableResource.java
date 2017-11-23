@@ -63,7 +63,6 @@ import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.operators.IkatsOperatorException;
 import fr.cs.ikats.operators.JoinTableWithTs;
 import fr.cs.ikats.operators.TablesMerge;
-import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.table.TableEntity;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.Table;
@@ -121,7 +120,7 @@ public class TableResource extends AbstractResource {
     @GET
     @Path("/{tableName}")
     public Response downloadTable(@PathParam("tableName") String tableName) throws ResourceNotFoundException, IkatsException, IkatsDaoException, IkatsJsonException, IOException, ClassNotFoundException {
-        // get id of table in processData db
+        // get id of table in table db
         // assuming there is only one table by tableName
         TableInfo table = tableManager.readFromDatabase(tableName);
         try {

@@ -87,7 +87,7 @@ public class TableManager {
     /**
      * DAO object to access the Workflow storage
      */
-    private TableDAO dao;
+    public TableDAO dao;
 
     /**
      * Default constructor for default configuration of jsonObjectMapper.
@@ -302,7 +302,7 @@ public class TableManager {
      * @throws IkatsDaoException         unexpected DAO error, from Hibernate, reading the database
      * @throws ResourceNotFoundException the table name tableName is not matched in the database.
      */
-    private Integer getIdTablebyName(String tableName) throws ResourceNotFoundException, IkatsDaoException {
+    private Integer getIdTableByName(String tableName) throws ResourceNotFoundException, IkatsDaoException {
         List<TableEntity> dataTables = dao.findByName(tableName, true);
 
         if (dataTables.isEmpty()) {
@@ -316,11 +316,17 @@ public class TableManager {
     private TableInfo tableEntityToTableInfo(TableEntity table) throws ResourceNotFoundException, IkatsDaoException, IkatsException {
 
         TableInfo destTable = new TableInfo();
+        TableDesc destTableDesc = new TableDesc();
+        TableHeaders destTableHeaders = new TableHeaders();
+        destTableHeaders.col = new Header();
+        TableContent destTableContent = new TableContent();
+        destTableContent.cells = new ArrayList<>();
+        destTableContent.default_links = new TableInfo.DataLink();
+        destTableContent.links = new ArrayList<>();
 
         // process general attributes of table object
-        destTable.table_desc.desc = table.getDescription();
-        destTable.table_desc.title = table.getName();
-        destTable.table_desc.name = table.getName();
+        destTableDesc.desc = table.getDescription();
+        destTableDesc.name = table.getName();
 
         // process table raw data
         List<List<Object>> rawData;
@@ -328,15 +334,21 @@ public class TableManager {
         try {
             ois = new ObjectInputStream(new ByteArrayInputStream(table.getRawValues()));
             rawData = (List<List<Object>>) ois.readObject();
-            if (table.hasColHeader()){
-                destTable.headers.col.data = rawData.get(0);
+            if (table.hasColHeader()) {
+                destTableHeaders.col.data = rawData.get(0);
+            }
+            if (table.hasRowHeader()) {
+                // TODO fill right first value of row header
+                destTableHeaders.row = new Header();
+                destTableHeaders.row.data = new ArrayList<>();
+                destTableHeaders.row.data.add(null);
             }
             for (int i = 1; i < rawData.size(); i++) {
                 if (table.hasRowHeader()) {
-                    destTable.headers.row.data.add(rawData.get(i).get(0));
-                    destTable.content.cells.add(rawData.get(i).subList(1,rawData.get(i).size()-1));
+                    destTableHeaders.row.data.add(rawData.get(i).get(0));
+                    destTableContent.cells.add(rawData.get(i).subList(1, rawData.get(i).size()));
                 } else {
-                    destTable.content.cells.add(rawData.get(i));
+                    destTableContent.cells.add(rawData.get(i));
                 }
             }
 
@@ -349,18 +361,26 @@ public class TableManager {
         try {
             ois = new ObjectInputStream(new ByteArrayInputStream(table.getRawDataLinks()));
             rawDataLinks = (DataLinkDao) ois.readObject();
-            destTable.content.default_links = rawDataLinks.getCellsDefaultDatalink();
-            destTable.content.links = rawDataLinks.getCellsDatalink();
+            destTableContent.default_links = rawDataLinks.getCellsDefaultDatalink();
+            destTableContent.links = rawDataLinks.getCellsDatalink();
 
-            destTable.headers.row.default_links = rawDataLinks.getRowHeaderDefaultDatalink();
-            destTable.headers.row.links = rawDataLinks.getRowHeaderDatalink();
+            if (table.hasRowHeader()) {
+                destTableHeaders.row.default_links = rawDataLinks.getRowHeaderDefaultDatalink();
+                destTableHeaders.row.links = rawDataLinks.getRowHeaderDatalink();
+            }
 
-            destTable.headers.col.default_links = rawDataLinks.getColumnHeaderDefaultDatalink();
-            destTable.headers.col.links = rawDataLinks.getColumnHeaderDatalink();
+            if (table.hasColHeader()) {
+                destTableHeaders.col.default_links = rawDataLinks.getColumnHeaderDefaultDatalink();
+                destTableHeaders.col.links = rawDataLinks.getColumnHeaderDatalink();
+            }
 
         } catch (ClassNotFoundException | IOException e) {
             throw new IkatsDaoException(e);
         }
+
+        destTable.content = destTableContent;
+        destTable.headers = destTableHeaders;
+        destTable.table_desc = destTableDesc;
 
         return destTable;
     }
@@ -387,7 +407,7 @@ public class TableManager {
         for (int i = 0; i < table.getContentData().size(); i++) {
             List<Object> tempRowData = new ArrayList<>();
             if (table.isHandlingRowsHeader()) {
-                tempRowData.add(table.getRowsHeader().data.get(i));
+                tempRowData.add(table.getRowsHeader().data.get(i + 1));
             }
             tempRowData.addAll(table.getContentData().get(i));
             tableFullContent.add(tempRowData);
@@ -408,11 +428,11 @@ public class TableManager {
 
         // process table raw data links
         DataLinkDao dataLinks = new DataLinkDao();
-        if (table.isHandlingColumnsHeader()){
+        if (table.isHandlingColumnsHeader()) {
             dataLinks.setColumnHeaderDefaultDatalink(table.getColumnsHeader().default_links);
             dataLinks.setColumnHeaderDatalink(table.getColumnsHeader().links);
         }
-        if (table.isHandlingRowsHeader()){
+        if (table.isHandlingRowsHeader()) {
             dataLinks.setRowHeaderDefaultDatalink(table.getRowsHeader().default_links);
             dataLinks.setRowHeaderDatalink(table.getRowsHeader().links);
         }
@@ -445,16 +465,12 @@ public class TableManager {
     public TableInfo readFromDatabase(String tableName)
             throws IkatsException, IkatsDaoException, ResourceNotFoundException {
 
-        Integer IdTable = getIdTablebyName(tableName);
+        Integer IdTable = getIdTableByName(tableName);
 
         TableEntity dataTable = dao.getById(IdTable);
 
         // Convert to Table type
         TableInfo table = tableEntityToTableInfo(dataTable);
-
-        // Add the name to the table
-        Table handler = new Table(table);
-        handler.setName(tableName);
 
         LOGGER.trace("Table retrieved from db OK : name=" + tableName);
         return table;
@@ -479,7 +495,7 @@ public class TableManager {
      * </li>
      * </ul>
      *
-     * @param table     the Table wrapping the TableInfo required to write the content into the database.
+     * @param table the Table wrapping the TableInfo required to write the content into the database.
      * @return ID of created processData storing the table.
      * @throws IkatsException            inconsistency error detected in the tableToStore
      * @throws IkatsJsonException        error encoding the JSON content
@@ -517,7 +533,7 @@ public class TableManager {
         // => so, we can use directly the removeProcessData(processId) service.
 
         // No exception raised by this remove
-        int idTable = getIdTablebyName(tableName);
+        int idTable = getIdTableByName(tableName);
         dao.removeById(idTable);
     }
 

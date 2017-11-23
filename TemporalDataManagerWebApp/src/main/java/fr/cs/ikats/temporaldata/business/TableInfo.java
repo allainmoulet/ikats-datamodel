@@ -31,9 +31,6 @@ package fr.cs.ikats.temporaldata.business;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
-import fr.cs.ikats.temporaldata.business.TableInfo.Header;
-import fr.cs.ikats.temporaldata.business.TableInfo.TableContent;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 
 import java.io.Serializable;

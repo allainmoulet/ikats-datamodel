@@ -563,9 +563,6 @@ public class MetaDataManagerTest {
             }
         } catch (Exception e) {
             fail("Unexpected error");
-        } finally {
-            // Cleanup
-            deleteTable("TestTable");
         }
     }
 }

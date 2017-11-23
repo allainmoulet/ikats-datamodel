@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ * <p>
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,25 +10,25 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.metadata.model;
 
+import java.io.Serializable;
 import java.util.Objects;
 
 import javax.persistence.Column;
@@ -42,9 +42,9 @@ import javax.persistence.UniqueConstraint;
  */
 @Entity
 @Table(name = "TSFunctionalIdentifier", uniqueConstraints = {
-        @UniqueConstraint(columnNames = { "tsuid", "FuncId" })
+        @UniqueConstraint(columnNames = {"tsuid", "FuncId"})
 })
-public class FunctionalIdentifier {
+public class FunctionalIdentifier implements Serializable {
 
 
     @Id
@@ -133,19 +133,19 @@ public class FunctionalIdentifier {
      */
     @Override
     public boolean equals(Object obj) {
-    	
-    	if ( this == obj) return true;
-    	
-    	if ( ! (obj instanceof FunctionalIdentifier)) return false;
-    	
+
+        if (this == obj) return true;
+
+        if (!(obj instanceof FunctionalIdentifier)) return false;
+
         FunctionalIdentifier otherTsIds = (FunctionalIdentifier) obj;
-		String objTsuid = otherTsIds.getTsuid();
+        String objTsuid = otherTsIds.getTsuid();
         String objFuncId = otherTsIds.getFuncId();
-        
+
         // Avoid null pointer exceptions ...
-		return  Objects.equals(tsuid, objTsuid) && Objects.equals(funcId, objFuncId);
+        return Objects.equals(tsuid, objTsuid) && Objects.equals(funcId, objFuncId);
     }
-    
+
     /**
      * Using Hibernate: advised to implement hashcode: see §13.1.3
      * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
@@ -153,8 +153,8 @@ public class FunctionalIdentifier {
      */
     @Override
     public int hashCode() {
-     
-    	return (""+ tsuid + funcId + "TSIds").hashCode();
+
+        return ("" + tsuid + funcId + "TSIds").hashCode();
     }
 }
 
