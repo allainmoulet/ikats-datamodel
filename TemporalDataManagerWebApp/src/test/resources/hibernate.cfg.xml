@@ -29,7 +29,6 @@
 
 		<!-- Drop and re-create the database schema on startup -->
 		<property name="hibernate.hbm2ddl.auto">update</property>
-		<mapping class="fr.cs.ikats.metadata.model.FunctionalIdentifier" />
 
 	</session-factory>
 </hibernate-configuration>

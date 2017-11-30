@@ -1,3 +1,30 @@
+/**
+ * LICENSE:
+ * --------
+ * Copyright 2017 CS SYSTEMES D'INFORMATION
+ * 
+ * Licensed to CS SYSTEMES D'INFORMATION under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. CS licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ * 
+ * @author Fabien TORTORA <fabien.tortora@c-s.fr>
+ * @author Fabien TORAL <fabien.toral@c-s.fr>
+ * 
+ */
+
 package fr.cs.ikats.table;
 
 import java.util.List;
@@ -5,6 +32,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
 import org.hibernate.HibernateException;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.StaleStateException;
 import org.hibernate.Transaction;
@@ -21,6 +49,20 @@ public class TableDAO extends DataBaseDAO {
      * Logger for TableDAO
      */
     private static final Logger LOGGER = Logger.getLogger(TableDAO.class);
+
+    private DatabaseManager instance;
+    
+    public TableDAO() {
+        instance = DatabaseManager.getInstance();
+    }
+    
+    /* (non-Javadoc)
+     * @see fr.cs.ikats.common.dao.DataBaseDAO#getSession()
+     */
+    @Override
+    public Session getSession() {
+        return instance.getSession();
+    }
 
     /**
      * List all Tables
@@ -106,38 +148,39 @@ public class TableDAO extends DataBaseDAO {
     /**
      * Get a TableEntity by providing its id (which is unique)
      *
-     * @param id Id of the TableEntity to get
+     * @param name unique name of the TableEntity to get
      *
-     * @return The TableEntity matching this id
+     * @return The TableEntity matching this name
      *
      * @throws IkatsDaoMissingRessource if there is no TableEntity matching the id
-     * @throws IkatsDaoException        if any other exception occurs
      */
-    public TableEntity getById(Integer id) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public TableEntity getByName(String name) throws IkatsDaoMissingRessource {
         TableEntity result = null;
 
         Session session = getSession();
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
+            
+            Query query = session.createQuery("from TableEntity fetch all properties where name = :name");
+            query.setParameter("name", name);
+            result = (TableEntity) query.uniqueResult();
 
-            Criteria criteria = session.createCriteria(TableEntity.class);
-            criteria.add(Restrictions.eq("id", id));
-            List<TableEntity> resultList = criteria.list();
-
-            if (resultList == null || (resultList.size() == 0)) {
-                String msg = "Searching table from id=" + id + ": no resource found, but should exist.";
+            if (result == null) {
+                String msg = "Searching table from name=" + name + ": no resource found, but should exist.";
                 LOGGER.error(msg);
-                rollbackAndThrowException(tx, new IkatsDaoMissingRessource(msg));
-            }
+                tx.rollback();
+                throw new IkatsDaoMissingRessource(msg);
+            } 
             else {
-                result = resultList.get(0);
+                tx.commit();
             }
 
-            tx.commit();
         }
         catch (RuntimeException e) {
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             // Re-raise the original exception
             throw e;
         }

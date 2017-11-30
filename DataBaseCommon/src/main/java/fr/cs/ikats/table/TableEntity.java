@@ -1,3 +1,30 @@
+/**
+ * LICENSE:
+ * --------
+ * Copyright 2017 CS SYSTEMES D'INFORMATION
+ * 
+ * Licensed to CS SYSTEMES D'INFORMATION under one
+ * or more contributor license agreements. See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership. CS licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License. You may obtain a copy of the License at
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing,
+ * software distributed under the License is distributed on an
+ * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the
+ * specific language governing permissions and limitations
+ * under the License.
+ * 
+ * @author Fabien TORTORA <fabien.tortora@c-s.fr>
+ * @author Fabien TORAL <fabien.toral@c-s.fr>
+ * 
+ */
+
 package fr.cs.ikats.table;
 
 import java.util.Date;
@@ -11,6 +38,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
 import javax.persistence.Transient;
 
 import org.hibernate.bytecode.javassist.FieldHandled;
@@ -21,7 +49,7 @@ import org.hibernate.bytecode.javassist.FieldHandler;
  * The Table entity
  */
 @Entity
-@javax.persistence.Table(name = "TableEntity")
+@Table(name = "TableEntity")
 public class TableEntity implements FieldHandled {
 
     /**
@@ -37,7 +65,7 @@ public class TableEntity implements FieldHandled {
     @SequenceGenerator(name = "table_id_seq", sequenceName = "table_id_seq", allocationSize = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "table_id_seq")
     @Column(name = "id", updatable = false)
-    private Integer id;
+    private int id;
 
     /**
      * Unique name used to identify the TableEntity by user
@@ -93,7 +121,7 @@ public class TableEntity implements FieldHandled {
      *
      * @return the id to get
      */
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
@@ -102,7 +130,7 @@ public class TableEntity implements FieldHandled {
      *
      * @param id the id to set
      */
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
