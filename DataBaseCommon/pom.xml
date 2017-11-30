@@ -63,7 +63,13 @@
             <artifactId>spring-context</artifactId>
             <version>4.2.0.RELEASE</version>
         </dependency>
-		
+
+		<dependency>
+			<groupId>javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.4.GA</version>
+		</dependency>
+			
 		<!-- Tests -->
 		<dependency>
 			<groupId>junit</groupId>
