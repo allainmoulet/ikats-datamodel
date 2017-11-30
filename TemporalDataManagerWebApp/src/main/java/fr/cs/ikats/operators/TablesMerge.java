@@ -107,7 +107,7 @@ public class TablesMerge {
     }
 
     /**
-     * Apply the operator the {@link Request}, save the result and return the reférence RID.
+     * Apply the operator the {@link Request}, save the result.
      * 
      * @return the rid of the result Table in ProcessData
      * @throws IkatsOperatorException

@@ -29,6 +29,7 @@
 package fr.cs.ikats.temporaldata.business;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
@@ -554,10 +555,10 @@ public class MetaDataManagerTest {
             try {
                 ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>)
                         metaDataManager.filterByMetaWithTsuidList(scope, critList);
-            } catch (ResourceNotFoundException e) {
+            } catch (IkatsDaoMissingRessource e) {
                 // No column matches --> Test is OK
                 e.printStackTrace();
-                assertTrue(e.getMessage().contains("No result found for table"));
+                assertTrue(e.getMessage().contains("no resource found"));
             } catch (Exception e) {
                 fail();
             }

@@ -33,8 +33,8 @@ import java.io.*;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.table.TableEntity;
-import javafx.scene.control.Tab;
 import org.apache.log4j.Logger;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -45,7 +45,6 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.lang.NaturalOrderComparator;
-import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.business.TableInfo.Header;
 import fr.cs.ikats.temporaldata.business.TableInfo.TableContent;
 import fr.cs.ikats.temporaldata.business.TableInfo.TableDesc;
@@ -105,17 +104,12 @@ public class TableManager {
         jsonObjectMapper.setSerializationInclusion(Include.NON_NULL);
 
         dao = new TableDAO();
-        dao.init("/tableHibernate.cfg.xml");
-        dao.addAnotatedPackage("fr.cs.ikats.workflow");
-        dao.addAnnotatedClass(TableEntity.class);
-        dao.completeConfiguration();
-
     }
 
     /**
      * Dao specific class to store all datalinks of functional type table
      */
-    private static class DataLinkDao implements Serializable {
+    private static class DataLink implements Serializable {
 
         private TableInfo.DataLink cellsDefaultDatalink;
         private List<List<TableInfo.DataLink>> cellsDatalink;
@@ -126,7 +120,7 @@ public class TableManager {
         private TableInfo.DataLink columnHeaderDefaultDatalink;
         private List<TableInfo.DataLink> columnHeaderDatalink;
 
-        private DataLinkDao() {
+        private DataLink() {
             super();
         }
 
@@ -294,26 +288,9 @@ public class TableManager {
         }
     }
 
-    /**
-     * Retrieve dao table resource from database.
-     *
-     * @param tableName the name of the table.
-     * @return TableEntity
-     * @throws IkatsDaoException         unexpected DAO error, from Hibernate, reading the database
-     * @throws ResourceNotFoundException the table name tableName is not matched in the database.
-     */
-    private Integer getIdTableByName(String tableName) throws ResourceNotFoundException, IkatsDaoException {
-        List<TableEntity> dataTables = dao.findByName(tableName, true);
-
-        if (dataTables.isEmpty()) {
-            throw new ResourceNotFoundException("No result found for table name=" + tableName);
-        }
-
-        return dataTables.get(0).getId();
-    }
 
     @SuppressWarnings("unchecked")
-    private TableInfo tableEntityToTableInfo(TableEntity table) throws ResourceNotFoundException, IkatsDaoException, IkatsException {
+    private TableInfo tableEntityToTableInfo(TableEntity table) throws ResourceNotFoundException, IkatsException {
 
         TableInfo destTable = new TableInfo();
         TableDesc destTableDesc = new TableDesc();
@@ -353,14 +330,14 @@ public class TableManager {
             }
 
         } catch (ClassNotFoundException | IOException e) {
-            throw new IkatsDaoException(e);
+            throw new IkatsException("Error raised during table deserialization of raw values");
         }
 
         // process table raw data links
-        DataLinkDao rawDataLinks;
+        DataLink rawDataLinks;
         try {
             ois = new ObjectInputStream(new ByteArrayInputStream(table.getRawDataLinks()));
-            rawDataLinks = (DataLinkDao) ois.readObject();
+            rawDataLinks = (DataLink) ois.readObject();
             destTableContent.default_links = rawDataLinks.getCellsDefaultDatalink();
             destTableContent.links = rawDataLinks.getCellsDatalink();
 
@@ -375,7 +352,7 @@ public class TableManager {
             }
 
         } catch (ClassNotFoundException | IOException e) {
-            throw new IkatsDaoException(e);
+            throw new IkatsException("Error raised during table deserialization of raw datalinks");
         }
 
         destTable.content = destTableContent;
@@ -386,7 +363,7 @@ public class TableManager {
     }
 
     @SuppressWarnings("unchecked")
-    private TableEntity tableToTableEntity(Table table) throws IkatsDaoException {
+    private TableEntity tableToTableEntity(Table table) throws IkatsException {
 
         TableEntity destTable = new TableEntity();
 
@@ -422,12 +399,12 @@ public class TableManager {
             oos.flush();
             destTable.setRawValues(bos.toByteArray());
         } catch (IOException e) {
-            throw new IkatsDaoException(e);
+            throw new IkatsException("Error raised during table serialization of raw values");
         }
 
 
         // process table raw data links
-        DataLinkDao dataLinks = new DataLinkDao();
+        DataLink dataLinks = new DataLink();
         if (table.isHandlingColumnsHeader()) {
             dataLinks.setColumnHeaderDefaultDatalink(table.getColumnsHeader().default_links);
             dataLinks.setColumnHeaderDatalink(table.getColumnsHeader().links);
@@ -447,7 +424,7 @@ public class TableManager {
             destTable.setRawDataLinks(bos.toByteArray());
 
         } catch (IOException e) {
-            throw new IkatsDaoException(e);
+            throw new IkatsException("Error raised during table serialization of raw datalinks");
         }
 
         return destTable;
@@ -463,11 +440,9 @@ public class TableManager {
      * @throws ResourceNotFoundException the table name tableName is not matched in the database.
      */
     public TableInfo readFromDatabase(String tableName)
-            throws IkatsException, IkatsDaoException, ResourceNotFoundException {
+            throws IkatsDaoException, IkatsDaoMissingRessource, IkatsException, ResourceNotFoundException {
 
-        Integer IdTable = getIdTableByName(tableName);
-
-        TableEntity dataTable = dao.getById(IdTable);
+        TableEntity dataTable = dao.getByName(tableName);
 
         // Convert to Table type
         TableInfo table = tableEntityToTableInfo(dataTable);
@@ -533,7 +508,7 @@ public class TableManager {
         // => so, we can use directly the removeProcessData(processId) service.
 
         // No exception raised by this remove
-        int idTable = getIdTableByName(tableName);
+        int idTable = dao.getByName(tableName).getId();
         dao.removeById(idTable);
     }
 

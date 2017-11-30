@@ -246,7 +246,7 @@ public class TablesMergeTest {
         Integer intRid = tablesMergeOperator.apply();
         
         // Direct connection to the database
-        TableEntity writtenData = tableManager.dao.getById(intRid);
+        TableEntity writtenData = tableManager.dao.getByName(outputTableName);
 
         // Check the record in database
         assertEquals(writtenData.getName(), outputTableName);
