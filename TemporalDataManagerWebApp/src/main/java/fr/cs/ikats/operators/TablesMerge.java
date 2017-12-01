@@ -121,10 +121,10 @@ public class TablesMerge {
         // then try to save it in the database and get the reference to be returned
         Integer rid;
         try {
-            rid = tableManager.createInDatabase(resultTable);
+            rid = tableManager.createInDatabase(resultTable.getTableInfo());
             logger.info("Table '" + resultTable.getName() + "' by '" + TablesMerge.class.getName() + "' operator, created in database");
         }
-        catch (IkatsException | IkatsDaoException | InvalidValueException e) {
+        catch (IkatsException  | InvalidValueException e) {
             String msgFormat = "The table ''{0}'' could not be saved to database. Error message: ''{1}''";
             String msg = MessageFormat.format(msgFormat, resultTable.getName(), e.getMessage());
             throw new IkatsOperatorException(msg, e);

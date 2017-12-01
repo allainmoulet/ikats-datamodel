@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ * <p>
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,22 +10,21 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
  * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.temporaldata.resource;
@@ -57,6 +56,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.MetaData;
@@ -110,9 +110,7 @@ public class TableResource extends AbstractResource {
      * get the JSON result as an attachement file in the response.
      *
      * @param tableName the name of the table to retrieve
-     *
      * @return a Response with content-type json
-     *
      * @throws ResourceNotFoundException if table not found
      * @throws IkatsDaoException         if hibernate exception raised while storing table in db
      * @throws IkatsException            others unexpected exceptions
@@ -128,10 +126,36 @@ public class TableResource extends AbstractResource {
             String jsonString = tableManager.serializeToJson(table);
 
             return Response.ok(jsonString, MediaType.APPLICATION_JSON_TYPE).build();
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new IkatsException("Failed: service downloadTable() " + tableName + " : caught unexpected Throwable:", e);
         }
+
+    }
+
+    /**
+     * Database (processData table) import of a csv table
+     *
+     * @param tableIn json mapping TableInfo
+     * @return the internal id
+     * @throws IkatsDaoException     error while accessing database to check if table already exists
+     * @throws IkatsException        error when serializing table
+     * @throws InvalidValueException if table name does not match expected pattern
+     */
+    @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createTable(TableInfo tableIn) throws IkatsDaoException, InvalidValueException, IkatsException {
+
+        String tableName = tableIn.table_desc.name;
+
+        // check that tableName does not already exist
+        if (tableManager.existsInDatabase(tableName)) {
+            String context = "Table name already exists : " + tableName;
+            logger.error(context);
+            return Response.status(Response.Status.CONFLICT).entity(context).build();
+        }
+
+        Integer rid = tableManager.createInDatabase(tableIn);
+        return Response.status(Status.OK).entity(rid).build();
 
     }
 
@@ -144,9 +168,7 @@ public class TableResource extends AbstractResource {
      * @param rowName         table row name for unique id
      * @param formData        the form data
      * @param uriInfo         all info on URI
-     *
      * @return the internal id
-     *
      * @throws IOException           error when parsing input csv file
      * @throws IkatsDaoException     error while accessing database to check if table already exists
      * @throws IkatsJsonException    error when mapping imported table to business object Table
@@ -234,8 +256,7 @@ public class TableResource extends AbstractResource {
                 String idRef = items[rowIndexId];
                 if (!keyTableMap.containsKey(idRef)) {
                     keyTableMap.put(idRef, "NA");
-                }
-                else {
+                } else {
                     String context = "Duplicate found in csv file: " + rowName + " = " + idRef;
                     logger.error(context);
                     return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
@@ -252,15 +273,14 @@ public class TableResource extends AbstractResource {
             outputTable.getRowsHeader().addItems(rowHeaders.toArray());
 
             // store Table
-            Integer rid = tableManager.createInDatabase(outputTable);
+            Integer rid = tableManager.createInDatabase(outputTable.getTableInfo());
             chrono.stop(logger);
 
             // result id is returned in the body
             // Note: with DAO Table: should be changed to return the name of Table
             return Response.status(Response.Status.OK).entity(rid).build();
 
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             String contextError = "Unexpected interruption while parsing CSV file : " + fileName;
             throw new IOException(contextError, e);
         }
@@ -287,42 +307,31 @@ public class TableResource extends AbstractResource {
      * <p>
      * Created columns are inserted according to the parameter targetColName.
      *
-     * @param tableJson
-     *            the raw String representing the JSON plain content
-     * @param metrics
-     *            selected metrics separated by ";". Spaces are ignored.
-     * @param dataset
-     *            the dataset name.
-     * @param joinColName
-     *            the name of the table column used by the join. Optional: if
-     *            undefined (""), the first column will be used by the join.
-     * @param joinMetaName
-     *            defines the name of metadata used by the join, useful when the
-     *            column and metadata names are different. Optional default is
-     *            undefined (""): if joinMetaName is undefined, then the
-     *            metadata has the name of the table column used by the join
-     *            (see joinColName), and if both criteria (joinColName +
-     *            joinMetaName) are undefined: it is assumed that the first
-     *            column header provides the expected metadata name.
-     * @param targetColName
-     *            name of the target column. Optional: default is undefined
-     *            (""). When target name is defined, the joined columns are
-     *            inserted before the target column; when undefined, the joined
-     *            columns are appended at the end.
-     * @param outputTableName
-     *            name of the table joined by metric, and created in the
-     *            database. The name ought to be conformed to the pattern:
-     *            {@link TableManager#TABLE_NAME_PATTERN}
+     * @param tableJson       the raw String representing the JSON plain content
+     * @param metrics         selected metrics separated by ";". Spaces are ignored.
+     * @param dataset         the dataset name.
+     * @param joinColName     the name of the table column used by the join. Optional: if
+     *                        undefined (""), the first column will be used by the join.
+     * @param joinMetaName    defines the name of metadata used by the join, useful when the
+     *                        column and metadata names are different. Optional default is
+     *                        undefined (""): if joinMetaName is undefined, then the
+     *                        metadata has the name of the table column used by the join
+     *                        (see joinColName), and if both criteria (joinColName +
+     *                        joinMetaName) are undefined: it is assumed that the first
+     *                        column header provides the expected metadata name.
+     * @param targetColName   name of the target column. Optional: default is undefined
+     *                        (""). When target name is defined, the joined columns are
+     *                        inserted before the target column; when undefined, the joined
+     *                        columns are appended at the end.
+     * @param outputTableName name of the table joined by metric, and created in the
+     *                        database. The name ought to be conformed to the pattern:
+     *                        {@link TableManager#TABLE_NAME_PATTERN}
      * @return
-     * @throws IkatsDaoException
-     *             a database access error occured during the service.
-     * @throws InvalidValueException
-     *             error raised if one of the inputs is invalid.
-     * @throws ResourceNotFoundException
-     *             error raised if one of the resource required by computing is
-     *             not found
-     * @throws IkatsException
-     *             unexpected error occured on the server.
+     * @throws IkatsDaoException         a database access error occured during the service.
+     * @throws InvalidValueException     error raised if one of the inputs is invalid.
+     * @throws ResourceNotFoundException error raised if one of the resource required by computing is
+     *                                   not found
+     * @throws IkatsException            unexpected error occured on the server.
      */
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
@@ -356,9 +365,7 @@ public class TableResource extends AbstractResource {
      * @param outputTableName name of the table generated
      * @param formData        the form data
      * @param uriInfo         all info on URI
-     *
      * @return the internal id
-     *
      * @throws IOException               error when parsing input csv file
      * @throws IkatsDaoException         error while accessing database to check if table already exists
      * @throws ResourceNotFoundException if table not found
@@ -401,8 +408,8 @@ public class TableResource extends AbstractResource {
         Table table = tableManager.initTable(tableInfo, false);
 
         logger.info("Working on table (" + table.getDescription() + ") " +
-                            "with metaName (" + metaName + ") " +
-                            "and with populationId (" + populationId + ")");
+                "with metaName (" + metaName + ") " +
+                "and with populationId (" + populationId + ")");
         logger.info("Output table name is (" + outputTableName + ")");
 
         // retrieve headers
@@ -469,7 +476,7 @@ public class TableResource extends AbstractResource {
         }
         // store table in db
         outputTable.setName(outputTableName);
-        Integer rid = tableManager.createInDatabase(outputTable);
+        Integer rid = tableManager.createInDatabase(outputTable.getTableInfo());
 
         chrono.stop(logger);
 
@@ -496,9 +503,7 @@ public class TableResource extends AbstractResource {
      * (with DAO Table: merge equivalent services readTable <=> downlodTable into one compliant with final solution)
      *
      * @param name unique identifier of the table
-     *
      * @return the table read from database
-     *
      * @throws IkatsJsonException        error parsing the json content from the database
      * @throws IkatsDaoException         database access error
      * @throws ResourceNotFoundException resource not found in the database, for specified name
@@ -521,9 +526,7 @@ public class TableResource extends AbstractResource {
      * @param tableJson the table to convert (json)
      * @param formData  the form data
      * @param uriInfo   all info on URI
-     *
      * @return the internal id
-     *
      * @throws IOException               error when parsing input csv file
      * @throws IkatsDaoException         error while accessing database to check if table already exists
      * @throws InvalidValueException     if table name does not match expected pattern
@@ -550,16 +553,15 @@ public class TableResource extends AbstractResource {
         List<Table> tabListResult;
         if (targetColumnName.equals("")) {
             tabListResult = tableManager.randomSplitTable(table, repartitionRate);
-        }
-        else {
+        } else {
             tabListResult = tableManager.trainTestSplitTable(table, targetColumnName, repartitionRate);
         }
 
         // Store tables in database
         tabListResult.get(0).setName(outputTableName + "_Train");
         tabListResult.get(1).setName(outputTableName + "_Test");
-        Integer rid1 = tableManager.createInDatabase(tabListResult.get(0));
-        Integer rid2 = tableManager.createInDatabase(tabListResult.get(1));
+        Integer rid1 = tableManager.createInDatabase(tabListResult.get(0).getTableInfo());
+        Integer rid2 = tableManager.createInDatabase(tabListResult.get(1).getTableInfo());
 
         chrono.stop(logger);
 
@@ -573,7 +575,6 @@ public class TableResource extends AbstractResource {
      * See {@link TablesMerge.Request} for JSON input specification
      *
      * @param request
-     *
      * @return the HTTP response with the merged table as content
      */
     @POST
@@ -585,8 +586,7 @@ public class TableResource extends AbstractResource {
         try {
             // Try to initialize the operator with the request
             tablesMergeOperator = new TablesMerge(request);
-        }
-        catch (IkatsOperatorException e) {
+        } catch (IkatsOperatorException e) {
             // The request check has failed
             return Response.status(Status.BAD_REQUEST).entity(e).build();
         }
@@ -595,8 +595,7 @@ public class TableResource extends AbstractResource {
             // Do the job and return the RID of the table
             Integer rid = tablesMergeOperator.apply();
             return Response.status(Status.OK).entity(rid).build();
-        }
-        catch (IkatsOperatorException e) {
+        } catch (IkatsOperatorException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
 
@@ -632,8 +631,7 @@ public class TableResource extends AbstractResource {
     /**
      * Delete a Table
      *
-     * @param tableName the name of the table delete
-     * 
+     * @param tableName the name of the table to delete
      * @return the HTTP response: useful in case of error
      */
     @DELETE
@@ -641,8 +639,7 @@ public class TableResource extends AbstractResource {
     public Response removeTable(@PathParam("tableName") String tableName) throws ResourceNotFoundException {
         try {
             tableManager.deleteFromDatabase(tableName);
-        }
-        catch (IkatsDaoException e) {
+        } catch (IkatsDaoException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
         return Response.status(Status.NO_CONTENT).build();

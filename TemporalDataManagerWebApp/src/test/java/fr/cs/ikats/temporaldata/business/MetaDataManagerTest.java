@@ -84,7 +84,7 @@ public class MetaDataManagerTest {
 
             // Save the table into database
             table.setName(name);
-            Integer rid = tableManager.createInDatabase(table);
+            Integer rid = tableManager.createInDatabase(table.getTableInfo());
 
             logger.trace("Table " + name + " saved with RID=" + String.valueOf(rid));
         } catch (Exception e) {

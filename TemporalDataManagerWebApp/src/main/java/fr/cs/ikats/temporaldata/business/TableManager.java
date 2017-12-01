@@ -363,9 +363,10 @@ public class TableManager {
     }
 
     @SuppressWarnings("unchecked")
-    private TableEntity tableToTableEntity(Table table) throws IkatsException {
+    private TableEntity tableInfoToTableEntity(TableInfo tableIn) throws IkatsException {
 
         TableEntity destTable = new TableEntity();
+        Table table = new Table(tableIn);
 
         // process general attributes of table object
         destTable.setDescription(table.getDescription());
@@ -478,18 +479,17 @@ public class TableManager {
      * @throws IkatsDaoConflictException error when a resource with processId=tableName exists
      * @throws InvalidValueException     consistency error found in the name of the table: see TABLE_NAME_PATTERN
      */
-    public Integer createInDatabase(Table table) throws IkatsException, IkatsJsonException,
-            IkatsDaoException, IkatsDaoConflictException, InvalidValueException {
+    public Integer createInDatabase(TableInfo table) throws InvalidValueException, IkatsException {
 
-        String tableName = table.getTableInfo().table_desc.name;
+        String tableName = table.table_desc.name;
 
         // Validate the name consistency
         validateTableName(tableName, "Create Table in database");
 
-        TableEntity tableToStore = tableToTableEntity(table);
+        TableEntity tableToStore = tableInfoToTableEntity(table);
 
         Integer rid = dao.persist(tableToStore);
-        LOGGER.trace("Table stored Ok in db: " + table.getTableInfo().table_desc.name + " with rid: " + rid);
+        LOGGER.trace("Table stored Ok in db: " + tableName + " with rid: " + rid);
 
         // and now updates the identifier name for the software part
         tableToStore.setName(tableName);

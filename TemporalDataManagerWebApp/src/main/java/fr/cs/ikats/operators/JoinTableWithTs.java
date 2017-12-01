@@ -156,7 +156,7 @@ public class JoinTableWithTs {
             processingContext = "creating table in DB";
             chrono.start(prefixeChrono + processingContext);
             processedTable.setName(outputTableName);
-            Integer rid = tableManager.createInDatabase(processedTable);
+            Integer rid = tableManager.createInDatabase(processedTable.getTableInfo());
             chrono.stop(LOGGER);
             return rid;
         } catch (IkatsJsonException jsonError) {

@@ -1422,7 +1422,7 @@ public class TableManagerTest {
 
         tableH.checkConsistency();
         tableH.setName("TestTable");
-        mng.createInDatabase(tableH);
+        mng.createInDatabase(tableH.getTableInfo());
 
         List<TableEntity> result = mng.listTables();
 
@@ -1472,7 +1472,7 @@ public class TableManagerTest {
         tableH.checkConsistency();
         String tableName = "TestTableToDelete";
         tableH.setName(tableName);
-        mng.createInDatabase(tableH);
+        mng.createInDatabase(tableH.getTableInfo());
 
         List<TableEntity> resultBefore = mng.listTables();
         assertNotNull(resultBefore);
