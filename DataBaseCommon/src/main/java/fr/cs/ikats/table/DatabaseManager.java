@@ -21,6 +21,7 @@
  * under the License.
  * 
  * @author Fabien TORAL <fabien.toral@c-s.fr>
+ * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * 
  */
 
@@ -80,3 +81,4 @@ public class DatabaseManager {
         return sessionFactory.openSession();
     }
 }
+

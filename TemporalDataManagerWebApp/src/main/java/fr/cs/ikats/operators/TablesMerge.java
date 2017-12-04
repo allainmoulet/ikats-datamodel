@@ -23,6 +23,7 @@
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
+ * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
  * 
  */
 
