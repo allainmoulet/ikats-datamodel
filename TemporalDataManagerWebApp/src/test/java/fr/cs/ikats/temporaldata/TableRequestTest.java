@@ -30,8 +30,7 @@
 package fr.cs.ikats.temporaldata;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.process.data.model.ProcessData;
-import fr.cs.ikats.table.TableEntity;
+import fr.cs.ikats.table.TableEntitySummary;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableManager;
@@ -84,9 +83,9 @@ public class TableRequestTest extends AbstractRequestTest {
     @After
     public void setUpAndTearDownTest() throws IkatsDaoException, ResourceNotFoundException {
         TableManager tableManager = new TableManager();
-        List<TableEntity> procDataTables = tableManager.listTables();
+        List<TableEntitySummary> procDataTables = tableManager.listTables();
         
-        for (TableEntity procDataTable : procDataTables) {
+        for (TableEntitySummary procDataTable : procDataTables) {
             tableManager.deleteFromDatabase(procDataTable.getName());
         }
     }

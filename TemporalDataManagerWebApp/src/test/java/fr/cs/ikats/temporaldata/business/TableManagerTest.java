@@ -44,11 +44,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import fr.cs.ikats.table.TableEntity;
 import org.junit.Test;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.process.data.model.ProcessData;
+import fr.cs.ikats.table.TableEntitySummary;
 import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
@@ -1379,7 +1378,7 @@ public class TableManagerTest {
     public void testListTablesEmpty() throws Exception {
 
         TableManager mng = new TableManager();
-        List<TableEntity> result = mng.listTables();
+        List<TableEntitySummary> result = mng.listTables();
 
         assertNotNull(result);
         assertEquals(0, result.size());
@@ -1424,7 +1423,7 @@ public class TableManagerTest {
         tableH.setName("TestTable");
         mng.createInDatabase(tableH.getTableInfo());
 
-        List<TableEntity> result = mng.listTables();
+        List<TableEntitySummary> result = mng.listTables();
 
         assertNotNull(result);
         assertEquals(1, result.size());
@@ -1474,13 +1473,13 @@ public class TableManagerTest {
         tableH.setName(tableName);
         mng.createInDatabase(tableH.getTableInfo());
 
-        List<TableEntity> resultBefore = mng.listTables();
+        List<TableEntitySummary> resultBefore = mng.listTables();
         assertNotNull(resultBefore);
 
         // clean
         mng.deleteFromDatabase(tableName);
 
-        List<TableEntity> resultAfter = mng.listTables();
+        List<TableEntitySummary> resultAfter = mng.listTables();
         assertNotNull(resultAfter);
         assertEquals(resultBefore.size() - 1, resultAfter.size());
     }

@@ -62,7 +62,8 @@ public class DatabaseManager {
         
         configuration.addPackage("fr.cs.ikats.table.TableEntity");
         configuration.addAnnotatedClass(TableEntity.class);
-        
+        configuration.addAnnotatedClass(TableEntitySummary.class);
+
         sessionFactory = configuration.buildSessionFactory();
     }
     

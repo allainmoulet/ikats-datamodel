@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- *
+ * 
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,19 +10,19 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- *
+ * 
  *   http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
- * @author Fabien TORTORA <fabien.tortora@c-s.fr>
+ * 
  * @author Fabien TORAL <fabien.toral@c-s.fr>
- *
+ * @author Fabien TORTORA <fabien.tortora@c-s.fr>
+ * 
  */
 
 package fr.cs.ikats.table;
@@ -71,15 +71,15 @@ public class TableDAO extends DataBaseDAO {
      *
      * @throws HibernateException if there is no TableEntity
      */
-    public List<TableEntity> listAll() throws HibernateException {
-        List<TableEntity> result = null;
+    public List<TableEntitySummary> listAll() throws HibernateException {
+        List<TableEntitySummary> result = null;
 
         Session session = getSession();
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
 
-            Criteria criteria = session.createCriteria(TableEntity.class);
+            Criteria criteria = session.createCriteria(TableEntitySummary.class);
             result = criteria.list();
 
             tx.commit();
@@ -109,15 +109,15 @@ public class TableDAO extends DataBaseDAO {
      *
      * @throws HibernateException if there is no TableEntity matching pattern
      */
-    public List<TableEntity> findByName(String pattern, boolean strict) throws HibernateException {
-        List<TableEntity> result = null;
+    public List<TableEntitySummary> findByName(String pattern, boolean strict) throws HibernateException {
+        List<TableEntitySummary> result = null;
 
         Session session = getSession();
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
 
-            Criteria criteria = session.createCriteria(TableEntity.class);
+            Criteria criteria = session.createCriteria(TableEntitySummary.class);
             if (strict) {
                 // Strict match
                 criteria.add(Restrictions.eq("name", pattern));
@@ -324,9 +324,9 @@ public class TableDAO extends DataBaseDAO {
      *
      * @param id identifier of the table
      *
-     * @throws IkatsDaoException if the table couldn't be removed
+     * @throws HibernateException if the table couldn't be removed
      */
-    public void removeById(Integer id) throws IkatsDaoException {
+    public void removeById(Integer id) throws HibernateException {
 
         Session session = getSession();
         Transaction tx = null;
@@ -353,3 +353,4 @@ public class TableDAO extends DataBaseDAO {
 
     }
 }
+
