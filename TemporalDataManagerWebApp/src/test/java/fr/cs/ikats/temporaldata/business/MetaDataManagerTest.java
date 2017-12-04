@@ -557,8 +557,6 @@ public class MetaDataManagerTest {
                         metaDataManager.filterByMetaWithTsuidList(scope, critList);
             } catch (IkatsDaoMissingRessource e) {
                 // No column matches --> Test is OK
-                e.printStackTrace();
-                assertTrue(e.getMessage().contains("no resource found"));
             } catch (Exception e) {
                 fail();
             }
