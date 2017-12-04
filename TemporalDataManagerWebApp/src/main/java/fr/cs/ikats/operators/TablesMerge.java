@@ -35,6 +35,7 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableElement;
@@ -125,7 +126,7 @@ public class TablesMerge {
             rid = tableManager.createInDatabase(resultTable.getTableInfo());
             logger.info("Table '" + resultTable.getName() + "' by '" + TablesMerge.class.getName() + "' operator, created in database");
         }
-        catch (IkatsException  | InvalidValueException e) {
+        catch (IkatsException  | IkatsDaoConflictException | InvalidValueException e) {
             String msgFormat = "The table ''{0}'' could not be saved to database. Error message: ''{1}''";
             String msg = MessageFormat.format(msgFormat, resultTable.getName(), e.getMessage());
             throw new IkatsOperatorException(msg, e);

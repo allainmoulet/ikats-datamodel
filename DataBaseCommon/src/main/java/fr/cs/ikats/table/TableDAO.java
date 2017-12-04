@@ -37,6 +37,7 @@ import org.hibernate.Session;
 import org.hibernate.StaleStateException;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.exception.ConstraintViolationException;
 
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
@@ -249,7 +250,7 @@ public class TableDAO extends DataBaseDAO {
      *
      * @throws HibernateException if the table to append already exists
      */
-    public Integer persist(TableEntity tableEntity) throws HibernateException {
+    public Integer persist(TableEntity tableEntity) throws HibernateException, IkatsDaoConflictException {
         Integer tableId = null;
 
         Session session = getSession();
@@ -261,6 +262,12 @@ public class TableDAO extends DataBaseDAO {
 
             tableId = (Integer) session.save(tableEntity);
             tx.commit();
+        }
+        catch (ConstraintViolationException e) {
+            // try to rollback
+            if (tx != null) tx.rollback();
+            // Re-raise the original exception
+            throw new IkatsDaoConflictException();
         }
         catch (HibernateException e) {
             // try to rollback

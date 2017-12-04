@@ -492,7 +492,7 @@ public class TableManager {
      * @throws IkatsDaoConflictException error when a resource with processId=tableName exists
      * @throws InvalidValueException     consistency error found in the name of the table: see TABLE_NAME_PATTERN
      */
-    public Integer createInDatabase(TableInfo table) throws InvalidValueException, IkatsException {
+    public Integer createInDatabase(TableInfo table) throws InvalidValueException, IkatsException, IkatsDaoConflictException {
 
         String tableName = table.table_desc.name;
 
