@@ -72,7 +72,7 @@ public class TableDAO extends DataBaseDAO {
      *
      * @throws HibernateException if there is no TableEntity
      */
-    public List<TableEntitySummary> listAll() throws HibernateException {
+    public List<TableEntitySummary> listAll() {
         List<TableEntitySummary> result = null;
 
         Session session = getSession();
@@ -165,7 +165,9 @@ public class TableDAO extends DataBaseDAO {
             tx = session.beginTransaction();
 
             Query query = session.createQuery("from TableEntity fetch all properties where id = :id");
-            query.setParameter(id, id);
+            // Review#160900 FTL : correction bug = id était passé en tant que position du paramètre à renseigner dans la requete.  
+            // Review#160900 FTL : utilisation de la position pour remplir le parametre. Il n'y en a qu'un, c'est le plus simple
+            query.setParameter(1, id);
             result = (TableEntity) query.uniqueResult();
 
             if (result == null) {
@@ -212,7 +214,8 @@ public class TableDAO extends DataBaseDAO {
             tx = session.beginTransaction();
 
             Query query = session.createQuery("from TableEntity fetch all properties where name = :name");
-            query.setParameter("name", name);
+            // Review#160900 FTL : utilisation de la position pour remplir le parametre. Il n'y en a qu'un, c'est le plus simple
+            query.setParameter(1, name);
             result = (TableEntity) query.uniqueResult();
 
             if (result == null) {
@@ -248,7 +251,7 @@ public class TableDAO extends DataBaseDAO {
      *
      * @return the id of the created table
      *
-     * @throws HibernateException if the table to append already exists
+     * @throws IkatsDaoConflictException if the table to append already exists
      */
     public Integer persist(TableEntity tableEntity) throws HibernateException, IkatsDaoConflictException {
         Integer tableId = null;
@@ -266,8 +269,9 @@ public class TableDAO extends DataBaseDAO {
         catch (ConstraintViolationException e) {
             // try to rollback
             if (tx != null) tx.rollback();
-            // Re-raise the original exception
-            throw new IkatsDaoConflictException();
+            // Review#160900 changed comment and encapsulate the original exception into the new IKATS one
+            // Raise the exception into a specific IKATS one to allow its handling with IKATS specific handler for HTTP response  
+            throw new IkatsDaoConflictException(e);
         }
         catch (HibernateException e) {
             // try to rollback

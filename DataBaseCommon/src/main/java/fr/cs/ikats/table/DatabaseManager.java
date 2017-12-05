@@ -35,8 +35,9 @@ import org.hibernate.cfg.AnnotationConfiguration;
 
 import fr.cs.ikats.common.dao.DataBaseDAO;
 
+//Review#160900 proposed comments
 /**
- * Creates
+ * Manages the initialization of the database for entities through a singleton
  */
 public class DatabaseManager {
     
@@ -52,6 +53,9 @@ public class DatabaseManager {
         }
     }
 
+    /**
+     * Create a management instance for the Hibernate session factory 
+     */
     private DatabaseManager() {
         try {
             configuration = new AnnotationConfiguration().configure(HIBERNATE_CONFIG_FILE);
@@ -61,13 +65,18 @@ public class DatabaseManager {
             throw new ExceptionInInitializerError(ex);
         }
         
-        configuration.addPackage("fr.cs.ikats.table.TableEntity");
+        //Review#160900 change to put clean package definition. Not sure that the addPackage code is really necessary...  
+        configuration.addPackage("fr.cs.ikats.table");
         configuration.addAnnotatedClass(TableEntity.class);
         configuration.addAnnotatedClass(TableEntitySummary.class);
 
         sessionFactory = configuration.buildSessionFactory();
     }
     
+    /**
+     * Return the unique instance of the manger
+     * @return
+     */
     public static DatabaseManager getInstance() {
         return instance;
     }
