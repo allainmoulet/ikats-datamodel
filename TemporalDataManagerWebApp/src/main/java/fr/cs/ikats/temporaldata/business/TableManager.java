@@ -122,8 +122,15 @@ public class TableManager {
     /**
      * Dao specific class to store all datalinks of functional type table
      */
+    // Review#160900 Je suggère de renommer en DataLinksMatrix cela représente un peu mieux le type de données que gère cet élément.
+    // Review#160900 Et pour commentaire en passant, car trop tard, dans le même principe pour garder une cohérence avec les valeurs, 
+    // Review#160900    il aurait été préférable de gérer une matrice incluant si nécéssaire les row et col headers...
     private static class DataLink implements Serializable {
 
+        // Review#160900 Permet de gérer des expections si on change le format de l'objet... 
+        /** Set version of the object for serialization purposes */
+        private static final long serialVersionUID = 1L;
+        
         private TableInfo.DataLink cellsDefaultDatalink;
         private List<List<TableInfo.DataLink>> cellsDatalink;
 
@@ -328,6 +335,7 @@ public class TableManager {
                 destTableHeaders.col.data = rawData.get(0);
             }
             if (table.hasRowHeader()) {
+                // Review#160900 enlever la balise TODO, si je comprend bien. Le commentaire est valide pour le code, il me semble.
                 // TODO fill right first value of row header
                 destTableHeaders.row = new Header();
                 destTableHeaders.row.data = new ArrayList<>();
