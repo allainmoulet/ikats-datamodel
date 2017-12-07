@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ * <p>
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,21 +10,20 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.operators;
@@ -60,7 +59,7 @@ import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 
 /**
  * Tests the operator JoinTableWithTs
- *
+ * <p>
  * In this test: IDS will obey to specific format describbed below
  */
 public class JoinTableWithTsTest extends CommonTest {
@@ -167,12 +166,13 @@ public class JoinTableWithTsTest extends CommonTest {
     /**
      * Integration Test on apply(): when the user selects an ID not as first column (i.e. row header), and when a target
      * name is chosen.
-     *
+     * <p>
      * This test is complementary to the test testComputeTableNominalWithTarget: - testApplyNominal tests that the
      * computed table is correctly saved in database, not testing all details. - testComputeTableNominalWithTarget is
      * checking produced Table content and testing details.
-     *
+     * <p>
      * The other tests will focus to computeTable() step of apply()
+     *
      * @throws Exception
      */
     @Test
@@ -202,10 +202,8 @@ public class JoinTableWithTsTest extends CommonTest {
 
         selectedTable.checkConsistency();
 
-        String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
-
         JoinTableWithTs testedOperator = new JoinTableWithTs();
-        testedOperator.apply(selectedJson, testedMetrics, SELECTED_DATASET_NAME,
+        testedOperator.apply(selectedTable.getTableInfo(), testedMetrics, SELECTED_DATASET_NAME,
                 testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName, OUTPUT_TABLE_NAME);
 
         // using DAO for Table:
@@ -236,6 +234,7 @@ public class JoinTableWithTsTest extends CommonTest {
 
     /**
      * Tests the JoinTableWithTs operator when user as defined a target
+     *
      * @throws Exception
      */
     @Test
@@ -276,12 +275,10 @@ public class JoinTableWithTsTest extends CommonTest {
 
             selectedTable.checkConsistency();
 
-            String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
-
             JoinTableWithTs testedOperator = new JoinTableWithTs();
-            Table computedTable = testedOperator.computeTable(selectedJson, SELECTED_METRICS_ALL_MATCHING,
-                    SELECTED_DATASET_NAME, testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName,
-                    "TestedOutput");
+            Table computedTable = testedOperator.computeTable(selectedTable.getTableInfo(),
+                    SELECTED_METRICS_ALL_MATCHING, SELECTED_DATASET_NAME, testedInputJoinColName,
+                    testedInputJoinMetaName, theTargetColumnName, "TestedOutput");
 
             assertEquals(3, computedTable.getIndexColumnHeader("WS1"));
             assertEquals(4, computedTable.getIndexColumnHeader("WS3"));
@@ -320,6 +317,7 @@ public class JoinTableWithTsTest extends CommonTest {
     /**
      * Tests the JoinTableWithTs operator when user does not specify a target, and for a table whose join ID column is
      * NOT the first one !
+     *
      * @throws Exception
      */
     @Test
@@ -369,12 +367,10 @@ public class JoinTableWithTsTest extends CommonTest {
 
             selectedTable.checkConsistency();
 
-            String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
-
             JoinTableWithTs testedOperator = new JoinTableWithTs();
-            Table computedTable = testedOperator.computeTable(selectedJson, SELECTED_METRICS_ALL_MATCHING,
-                    SELECTED_DATASET_NAME, testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName,
-                    "TestedOutput");
+            Table computedTable = testedOperator.computeTable(selectedTable.getTableInfo(),
+                    SELECTED_METRICS_ALL_MATCHING, SELECTED_DATASET_NAME, testedInputJoinColName,
+                    testedInputJoinMetaName, theTargetColumnName, "TestedOutput");
 
             assertEquals(0, computedTable.getIndexColumnHeader("AnotherId"));
             assertEquals(1, computedTable.getIndexColumnHeader("IgnoredTarget"));
@@ -413,6 +409,7 @@ public class JoinTableWithTsTest extends CommonTest {
     /**
      * Tests the join when selected metrics are not in the selected dataset: thejoined table is created added metric
      * columns with null values
+     *
      * @throws Exception
      */
     @Test
@@ -442,13 +439,12 @@ public class JoinTableWithTsTest extends CommonTest {
 
         selectedTable.checkConsistency();
 
-        String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
-
         JoinTableWithTs testedOperator = new JoinTableWithTs();
         try {
             // the test shall raise a ResourceNotFoundException
-            testedOperator.computeTable(selectedJson, "X;Y", SELECTED_DATASET_NAME, testedInputJoinColName,
-                    testedInputJoinMetaName, theTargetColumnName, "TestedOutput");
+            testedOperator.computeTable(selectedTable.getTableInfo(), "X;Y", SELECTED_DATASET_NAME,
+                    testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName,
+                    "TestedOutput");
 
             fail("JoinTableWithTs::computeTable() should throw a ResourceNotFoundException");
         } catch (ResourceNotFoundException e) {
@@ -462,6 +458,7 @@ public class JoinTableWithTsTest extends CommonTest {
     /**
      * Tests the join when one part of the selected metrics are not in the selected dataset: the joined table is created
      * with one new column for each metric in the dataset.
+     *
      * @throws Exception
      */
     @Test
@@ -491,11 +488,10 @@ public class JoinTableWithTsTest extends CommonTest {
 
         selectedTable.checkConsistency();
 
-        String selectedJson = tableManager.serializeToJson(selectedTable.getTableInfo());
-
         JoinTableWithTs testedOperator = new JoinTableWithTs();
-        Table computedTable = testedOperator.computeTable(selectedJson, "WS2;X;WS1", SELECTED_DATASET_NAME,
-                testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName, "TestedOutput");
+        Table computedTable = testedOperator.computeTable(selectedTable.getTableInfo(), "WS2;X;WS1",
+                SELECTED_DATASET_NAME, testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName,
+                "TestedOutput");
 
         assertEquals(-1, computedTable.getIndexColumnHeader("X"));
         assertEquals(3, computedTable.getIndexColumnHeader("WS1"));
@@ -539,6 +535,7 @@ public class JoinTableWithTsTest extends CommonTest {
 
     /**
      * Ends the junit class: clean the data prepared for the test in the database
+     *
      * @throws Exception
      */
     @AfterClass

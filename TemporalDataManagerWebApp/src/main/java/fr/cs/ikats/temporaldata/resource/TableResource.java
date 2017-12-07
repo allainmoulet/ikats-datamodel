@@ -289,7 +289,7 @@ public class TableResource extends AbstractResource {
     }
 
     /**
-     * Extends the table defined by the tableJson parameter, by adding one
+     * Extends the table defined by the tableName parameter, by adding one
      * column per selected metric:
      * <ul>
      * <li>Insert column header having the metric name,</li>
@@ -308,7 +308,7 @@ public class TableResource extends AbstractResource {
      * <p>
      * Created columns are inserted according to the parameter targetColName.
      *
-     * @param tableJson       the raw String representing the JSON plain content
+     * @param tableName       table name
      * @param metrics         selected metrics separated by ";". Spaces are ignored.
      * @param dataset         the dataset name.
      * @param joinColName     the name of the table column used by the join. Optional: if
@@ -337,7 +337,7 @@ public class TableResource extends AbstractResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Path("/join/metrics")
-    public Response joinByMetrics(@FormDataParam("tableJson") String tableJson, @FormDataParam("metrics") String metrics,
+    public Response joinByMetrics(@FormDataParam("tableName") String tableName, @FormDataParam("metrics") String metrics,
                                   @FormDataParam("dataset") String dataset, @FormDataParam("joinColName") @DefaultValue("") String joinColName,
                                   @FormDataParam("joinMetaName") @DefaultValue("") String joinMetaName,
                                   @FormDataParam("targetColName") @DefaultValue("") String targetColName, @FormDataParam("outputTableName") String outputTableName)
@@ -345,7 +345,8 @@ public class TableResource extends AbstractResource {
 
         // delegates the work to the operator JoinTableWithTs
         JoinTableWithTs opeJoinTableWithTs = new JoinTableWithTs();
-        Integer rid = opeJoinTableWithTs.apply(tableJson, metrics, dataset, joinColName, joinMetaName, targetColName, outputTableName);
+        TableInfo tableInfo = tableManager.readFromDatabase(tableName);
+        Integer rid = opeJoinTableWithTs.apply(tableInfo, metrics, dataset, joinColName, joinMetaName, targetColName, outputTableName);
 
         // Nominal case: result id is returned in the body
         // Note: with DAO Table: should be changed to return the name of Table
@@ -360,7 +361,7 @@ public class TableResource extends AbstractResource {
      * <p>
      * Input table first column must be time series functional identifiers
      *
-     * @param tableJson       the table to convert (json)
+     * @param tableName       the table to convert (json)
      * @param metaName        name of metadata to concat with agregates ref
      * @param populationId    id of population (which is in fact a metadata name) = key of output table
      * @param outputTableName name of the table generated
@@ -376,7 +377,7 @@ public class TableResource extends AbstractResource {
     @POST
     @Path("/ts2feature")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response ts2Feature(@FormDataParam("tableJson") String tableJson,
+    public Response ts2Feature(@FormDataParam("tableName") String tableName,
                                @FormDataParam("metaName") String metaName,
                                @FormDataParam("populationId") String populationId,
                                @FormDataParam("outputTableName") String outputTableName,
@@ -404,8 +405,8 @@ public class TableResource extends AbstractResource {
 
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
 
-        // convert tableJson to table
-        TableInfo tableInfo = tableManager.loadFromJson(tableJson);
+        // retrieve table tableName from db
+        TableInfo tableInfo = tableManager.readFromDatabase(tableName);
         Table table = tableManager.initTable(tableInfo, false);
 
         logger.info("Working on table (" + table.getDescription() + ") " +
@@ -524,7 +525,7 @@ public class TableResource extends AbstractResource {
      * <p>
      * Input table first column must be time series functional identifiers
      *
-     * @param tableJson the table to convert (json)
+     * @param tableName the table to convert
      * @param formData  the form data
      * @param uriInfo   all info on URI
      * @return the internal id
@@ -537,7 +538,7 @@ public class TableResource extends AbstractResource {
     @POST
     @Path("/traintestsplit")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response trainTestSplit(@FormDataParam("tableJson") String tableJson,
+    public Response trainTestSplit(@FormDataParam("tableName") String tableName,
                                    @FormDataParam("targetColumnName") @DefaultValue("") String targetColumnName,
                                    @FormDataParam("repartitionRate") @DefaultValue("0.5") double repartitionRate,
                                    @FormDataParam("outputTableName") String outputTableName,
@@ -547,8 +548,8 @@ public class TableResource extends AbstractResource {
 
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
 
-        // Convert tableJson to table
-        TableInfo tableInfo = tableManager.loadFromJson(tableJson);
+        // retrieve table tableName from db
+        TableInfo tableInfo = tableManager.readFromDatabase(tableName);
         Table table = tableManager.initTable(tableInfo, false);
 
         List<Table> tabListResult;

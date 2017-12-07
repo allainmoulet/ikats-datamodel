@@ -229,24 +229,24 @@ public class TableManager {
      * @return created Table, ready to be completed.
      */
     public Table initEmptyTable(boolean withColumnsHeader, boolean withRowsHeader) {
-        TableInfo tableJson = new TableInfo();
+        TableInfo tableInfo = new TableInfo();
 
-        tableJson.table_desc = new TableDesc();
-        tableJson.headers = new TableHeaders();
+        tableInfo.table_desc = new TableDesc();
+        tableInfo.headers = new TableHeaders();
 
         if (withRowsHeader) {
-            tableJson.headers.row = new Header();
-            tableJson.headers.row.data = new ArrayList<>();
+            tableInfo.headers.row = new Header();
+            tableInfo.headers.row.data = new ArrayList<>();
         }
         if (withColumnsHeader) {
-            tableJson.headers.col = new Header();
-            tableJson.headers.col.data = new ArrayList<>();
+            tableInfo.headers.col = new Header();
+            tableInfo.headers.col.data = new ArrayList<>();
         }
 
-        tableJson.content = new TableContent();
-        tableJson.content.cells = new ArrayList<>();
+        tableInfo.content = new TableContent();
+        tableInfo.content.cells = new ArrayList<>();
 
-        return new Table(tableJson);
+        return new Table(tableInfo);
     }
 
     /**
