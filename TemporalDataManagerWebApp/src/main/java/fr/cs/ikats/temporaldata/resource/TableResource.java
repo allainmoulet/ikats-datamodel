@@ -57,6 +57,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.MetaData;
@@ -592,11 +593,26 @@ public class TableResource extends AbstractResource {
         }
 
         try {
+            // check tables existence
+            for (String tableName : request.tableNames) {
+                if (!tableManager.existsInDatabase(tableName)) {
+                    String msg = "Table " + tableName + " not found";
+                    return Response.status(Status.BAD_REQUEST).entity(msg).build();
+                }
+            }
+        } catch (IkatsDaoException e) {
+            // Hibernate Exception raised
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+        }
+
+        try {
             // Do the job and return the RID of the table
             Integer rid = tablesMergeOperator.apply();
             return Response.status(Status.OK).entity(rid).build();
-        } catch (IkatsOperatorException e) {
+        } catch (IkatsOperatorException | IkatsException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+        } catch (IkatsDaoConflictException e) {
+            return Response.status(Status.CONFLICT).entity(e).build();
         }
 
     }

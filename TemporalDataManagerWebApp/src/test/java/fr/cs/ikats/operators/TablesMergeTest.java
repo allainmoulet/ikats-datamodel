@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ * <p>
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,21 +10,21 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ * <p>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p>
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
- * 
+ *
  */
 
 package fr.cs.ikats.operators;
@@ -39,17 +39,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.cs.ikats.table.TableDAO;
 import fr.cs.ikats.table.TableEntity;
 import org.apache.log4j.Logger;
+import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.cs.ikats.operators.TablesMerge.Request;
-import fr.cs.ikats.process.data.model.ProcessData;
-import fr.cs.ikats.temporaldata.business.ProcessDataManager;
 import fr.cs.ikats.temporaldata.business.Table;
 import fr.cs.ikats.temporaldata.business.TableInfo;
 import fr.cs.ikats.temporaldata.business.TableManager;
@@ -145,18 +143,40 @@ public class TablesMergeTest {
     private static Table table4 = null;
     private static Table table5 = null;
     private static TableManager tableManager = new TableManager();
+    private static ArrayList<Table> tablesList = new ArrayList();
+
 
     @BeforeClass
     public static void setUpBeforClass() throws Exception {
         table1 = buildTableFromCSVString("table1", TABLE1_CSV, true, false);
-        table1WithRow = buildTableFromCSVString("table1", TABLE1_CSV, true, true);
+        tablesList.add(table1);
+        table1WithRow = buildTableFromCSVString("table1WithRow", TABLE1_CSV, true, true);
+        tablesList.add(table1WithRow);
         table2 = buildTableFromCSVString("table2", TABLE2_CSV, true, false);
-        table2WithRow = buildTableFromCSVString("table2", TABLE2_CSV, true, true);
+        tablesList.add(table2);
+        table2WithRow = buildTableFromCSVString("table2WithRow", TABLE2_CSV, true, true);
+        tablesList.add(table2WithRow);
         table1Smaller = buildTableFromCSVString("table1Smaller", TABLE1_SMALLER_CSV, true, false);
+        tablesList.add(table1Smaller);
         table2Smaller = buildTableFromCSVString("table2Smaller", TABLE2_SMALLER_CSV, true, false);
+        tablesList.add(table2Smaller);
         table3 = buildTableFromCSVString("table3", TABLE3_CSV, false, false);
+        tablesList.add(table3);
         table4 = buildTableFromCSVString("table4", TABLE4_CSV, false, false);
+        tablesList.add(table4);
         table5 = buildTableFromCSVString("table5", TABLE5_CSV, true, false);
+        tablesList.add(table5);
+
+        for (Table table : tablesList) {
+            tableManager.createInDatabase(table.getTableInfo());
+        }
+    }
+
+    @AfterClass
+    public static void tearDownAfterClass() throws Exception {
+        for (Table table : tablesList) {
+            tableManager.deleteFromDatabase(table.getName());
+        }
     }
 
     /**
@@ -169,13 +189,12 @@ public class TablesMergeTest {
         Request tableMergeRequest = new Request();
         tableMergeRequest.joinOn = "join_key";
         tableMergeRequest.outputTableName = "output_table_name";
-        tableMergeRequest.tables = new TableInfo[]{table1.getTableInfo(), table2.getTableInfo()};
+        tableMergeRequest.tableNames = new String[]{table1.getName(), table2.getName()};
 
         try {
             // Pass it to the constructor
             new TablesMerge(tableMergeRequest);
-        }
-        catch (IkatsOperatorException e) {
+        } catch (IkatsOperatorException e) {
             fail("Error initializing TablesMerge operator");
         }
     }
@@ -190,7 +209,7 @@ public class TablesMergeTest {
         tableMergeRequest.joinOn = "join_key";
         tableMergeRequest.outputTableName = "output_table_name";
         // Will raise the exception because at least 2 tables are expected
-        tableMergeRequest.tables = new TableInfo[]{table1.getTableInfo()};
+        tableMergeRequest.tableNames = new String[]{table1.getName()};
 
         new TablesMerge(tableMergeRequest);
     }
@@ -205,7 +224,7 @@ public class TablesMergeTest {
         tableMergeRequest.joinOn = "join_key";
         tableMergeRequest.outputTableName = "output_table_name";
         // Will raise the exception because at least 2 tables are expected
-        tableMergeRequest.tables = null;
+        tableMergeRequest.tableNames = null;
 
         new TablesMerge(tableMergeRequest);
     }
@@ -213,11 +232,12 @@ public class TablesMergeTest {
     /**
      * Integration test<br>
      * Test that the output table is available after being saved.
-     * @throws IkatsOperatorException 
+     *
+     * @throws IkatsOperatorException
      */
     @Test
     public final void testApplyNominal() throws IkatsOperatorException, Exception {
-        
+
         String outputTableName = "output_table_name";
 
         // Build the reference
@@ -233,25 +253,25 @@ public class TablesMergeTest {
                 + "C;three;03;3;0011;9,42;0;12,57;C\n"
                 + "B;two;02;2;0010;9,42;12,57;6,28;B\n";
         Table expectedTable = prepareExpectedTable(outputTableName, expected_merge, true, false);
-        
+
         // Build the nominal request
         Request tableMergeRequest = new Request();
         tableMergeRequest.joinOn = "H1-2";
         tableMergeRequest.outputTableName = outputTableName;
-        tableMergeRequest.tables = new TableInfo[] { table1.getTableInfo(), table2.getTableInfo() };
-        
+        tableMergeRequest.tableNames = new String[]{table1.getName(), table2.getName()};
+
         // pass it to the constructor
         TablesMerge tablesMergeOperator = new TablesMerge(tableMergeRequest);
-        
+
         // get the result reference
         Integer intRid = tablesMergeOperator.apply();
-        
+
         // Direct connection to the database
         TableEntity writtenData = tableManager.dao.getByName(outputTableName);
 
         // Check the record in database
         assertEquals(writtenData.getName(), outputTableName);
-        
+
         // Prepare the data for checks
         TableInfo tableJson = tableManager.readFromDatabase(outputTableName);
 
@@ -259,13 +279,13 @@ public class TablesMergeTest {
         String expectedTableJson = tableManager.serializeToJson(expectedTable.getTableInfo());
         resultTableJson = prettify(resultTableJson);
         expectedTableJson = prettify(expectedTableJson);
-        
+
         // Expect that the table persisted to lower layer is the same than expected
         assertEquals(expectedTableJson, resultTableJson);
-        
+
         // Clean
         tableManager.deleteFromDatabase(outputTableName);
-        
+
     }
 
     /**
@@ -531,9 +551,7 @@ public class TablesMergeTest {
      * @param name              Name of the Table to build
      * @param content           Data to write into table, CSV formatted
      * @param withColumnsHeader Flag indicating if the table contains headers (true) or not (false)
-     *
      * @return the created Table
-     *
      * @throws IOException
      * @throws IkatsException
      */
@@ -555,8 +573,7 @@ public class TablesMergeTest {
             // Replace empty strings with null (that's what do the operator when adding empty headers)
             headersTitle.replaceAll(ht -> ht.isEmpty() ? null : ht);
             table = tableManager.initTable(headersTitle, withRowsHeader);
-        }
-        else {
+        } else {
             table = tableManager.initEmptyTable(false, withRowsHeader);
         }
 
@@ -566,8 +583,7 @@ public class TablesMergeTest {
             if (withRowsHeader) {
                 // First item considered as row Header
                 table.appendRow(items.remove(0), items);
-            }
-            else {
+            } else {
                 table.appendRow(items);
             }
         }
@@ -589,7 +605,6 @@ public class TablesMergeTest {
      * @param joinOn          join criteria (null for no criteria)
      * @param outputTableName Name of the output
      * @param expected_merge  CSV corresponding to the expected result
-     *
      * @throws IOException
      * @throws IkatsException
      * @throws IkatsJsonException
@@ -610,7 +625,7 @@ public class TablesMergeTest {
         Request tableMergeRequest = new Request();
         tableMergeRequest.joinOn = joinOn;
         tableMergeRequest.outputTableName = outputTableName;
-        tableMergeRequest.tables = new TableInfo[]{firstTable.getTableInfo(), secondTable.getTableInfo()};
+        tableMergeRequest.tableNames = new String[]{firstTable.getName(), secondTable.getName()};
 
         // Instantiate the operator and do the job
         TablesMerge tablesMerge = new TablesMerge(tableMergeRequest);
@@ -632,7 +647,7 @@ public class TablesMergeTest {
 
     /**
      * Prepare the expected {@link Table} as result of the merge
-     * 
+     *
      * @param outputTableName
      * @param expected_merge
      * @param resultTableWithColumnHeader
@@ -650,12 +665,11 @@ public class TablesMergeTest {
         expectedResult.setDescription(null);
         return expectedResult;
     }
-    
+
     /**
      * Format the JSON for pretty print. Usefull to debug tests with Eclipse compare feature.
      *
      * @param tableInfoJSON
-     *
      * @return the prettified JSON String, or the same string if parse error occurs
      */
     private String prettify(String tableInfoJSON) {
@@ -663,8 +677,7 @@ public class TablesMergeTest {
             ObjectMapper mapper = new ObjectMapper();
             Object readValue = mapper.readValue(tableInfoJSON, Object.class);
             tableInfoJSON = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(readValue);
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             logger.error("JSON Parsing", e);
         }
 

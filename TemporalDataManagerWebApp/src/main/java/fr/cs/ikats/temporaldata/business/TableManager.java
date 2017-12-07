@@ -303,12 +303,11 @@ public class TableManager {
 
 
     @SuppressWarnings("unchecked")
-    private TableInfo tableEntityToTableInfo(TableEntity table) throws ResourceNotFoundException, IkatsException {
+    private TableInfo tableEntityToTableInfo(TableEntity table) throws IkatsException {
 
         TableInfo destTable = new TableInfo();
         TableDesc destTableDesc = new TableDesc();
         TableHeaders destTableHeaders = new TableHeaders();
-        destTableHeaders.col = new Header();
         TableContent destTableContent = new TableContent();
         destTableContent.cells = new ArrayList<>();
         destTableContent.default_links = new TableInfo.DataLink();
@@ -325,7 +324,11 @@ public class TableManager {
             ois = new ObjectInputStream(new ByteArrayInputStream(table.getRawValues()));
             rawData = (List<List<Object>>) ois.readObject();
             if (table.hasColHeader()) {
+                destTableHeaders.col = new Header();
                 destTableHeaders.col.data = rawData.get(0);
+            }
+            else {
+                destTableContent.cells.add(rawData.get(0));
             }
             if (table.hasRowHeader()) {
                 // TODO fill right first value of row header
@@ -451,10 +454,10 @@ public class TableManager {
      * @return read resource TableInfo.
      * @throws IkatsJsonException        failed to read consistent JSON format into TableInfo structure.
      * @throws IkatsDaoException         unexpected DAO error, from Hibernate, reading the database
-     * @throws ResourceNotFoundException the table name tableName is not matched in the database.
+     * @throws IkatsDaoMissingRessource the table name tableName is not matched in the database.
      */
     public TableInfo readFromDatabase(String tableName)
-            throws IkatsDaoException, IkatsDaoMissingRessource, IkatsException, ResourceNotFoundException {
+            throws IkatsDaoMissingRessource, IkatsException {
 
         TableEntity dataTable = dao.getByName(tableName);
 
