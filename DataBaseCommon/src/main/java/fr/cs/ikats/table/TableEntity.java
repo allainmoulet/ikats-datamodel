@@ -33,7 +33,6 @@ import javax.persistence.Lob;
 import javax.persistence.Table;
 
 
-// Review#160900 proposed comment
 /**
  * The full table entity with raw properties 
  */

@@ -165,8 +165,6 @@ public class TableDAO extends DataBaseDAO {
             tx = session.beginTransaction();
 
             Query query = session.createQuery("from TableEntity fetch all properties where id = :id");
-            // Review#160900 FTL : correction bug = id était passé en tant que position du paramètre à renseigner dans la requete.  
-            // Review#160900 FTL : utilisation de la position pour remplir le parametre. Il n'y en a qu'un, c'est le plus simple
             query.setParameter(1, id);
             result = (TableEntity) query.uniqueResult();
 
@@ -214,7 +212,6 @@ public class TableDAO extends DataBaseDAO {
             tx = session.beginTransaction();
 
             Query query = session.createQuery("from TableEntity fetch all properties where name = :name");
-            // Review#160900 FTL : utilisation de la position pour remplir le parametre. Il n'y en a qu'un, c'est le plus simple
             query.setParameter(1, name);
             result = (TableEntity) query.uniqueResult();
 

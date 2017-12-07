@@ -35,9 +35,8 @@ import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.SequenceGenerator;
 
-//Review#160900 proposed comment
 /**
- * Superclass allowing to get a ligth {@link TableEntitySummary} and a full entity {@link TableEntity}
+ * Superclass allowing to get a light {@link TableEntitySummary} and a full entity {@link TableEntity}
  */
 @MappedSuperclass
 public abstract class AbstractTableEntity  {

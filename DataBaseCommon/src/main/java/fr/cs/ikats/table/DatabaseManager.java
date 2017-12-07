@@ -35,7 +35,6 @@ import org.hibernate.cfg.AnnotationConfiguration;
 
 import fr.cs.ikats.common.dao.DataBaseDAO;
 
-//Review#160900 proposed comments
 /**
  * Manages the initialization of the database for entities through a singleton
  */
@@ -65,7 +64,6 @@ public class DatabaseManager {
             throw new ExceptionInInitializerError(ex);
         }
         
-        //Review#160900 change to put clean package definition. Not sure that the addPackage code is really necessary...  
         configuration.addPackage("fr.cs.ikats.table");
         configuration.addAnnotatedClass(TableEntity.class);
         configuration.addAnnotatedClass(TableEntitySummary.class);
