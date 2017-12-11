@@ -264,7 +264,7 @@ public class TablesMergeTest {
         TablesMerge tablesMergeOperator = new TablesMerge(tableMergeRequest);
 
         // get the result reference
-        Integer intRid = tablesMergeOperator.apply();
+        tablesMergeOperator.apply();
 
         // Direct connection to the database
         TableEntity writtenData = tableManager.dao.getByName(outputTableName);

@@ -137,7 +137,7 @@ public class JoinTableWithTs {
      * @throws ResourceNotFoundException
      * @throws IkatsException
      */
-    public Integer apply(TableInfo tableInfo, String metrics, String dataset, String joinColName, String joinMetaName,
+    public void apply(TableInfo tableInfo, String metrics, String dataset, String joinColName, String joinMetaName,
                          String targetColName, String outputTableName)
             throws IkatsDaoException, InvalidValueException, ResourceNotFoundException, IkatsException {
         String prefixeChrono = "JoinTableWithTs: init";
@@ -152,9 +152,8 @@ public class JoinTableWithTs {
             processingContext = "creating table in DB";
             chrono.start(prefixeChrono + processingContext);
             processedTable.setName(outputTableName);
-            Integer rid = tableManager.createInDatabase(processedTable.getTableInfo());
+            tableManager.createInDatabase(processedTable.getTableInfo());
             chrono.stop(LOGGER);
-            return rid;
         } catch (IkatsJsonException jsonError) {
             chrono.stop(LOGGER);
             String msg = MessageFormat.format(MSG_INVALID_TABLE_FOR_JOIN_BY_METRICS, getContext(), dataset, metrics);
@@ -173,7 +172,7 @@ public class JoinTableWithTs {
     /**
      * The main step computing the table with added metric columns
      *
-     * @param tableIn
+     * @param tableInfo
      * @param metrics
      * @param dataset
      * @param joinColName

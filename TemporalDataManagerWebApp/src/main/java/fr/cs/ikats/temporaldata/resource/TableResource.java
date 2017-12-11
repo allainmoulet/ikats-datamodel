@@ -10,22 +10,21 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
  * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.temporaldata.resource;
@@ -155,8 +154,8 @@ public class TableResource extends AbstractResource {
             return Response.status(Response.Status.CONFLICT).entity(context).build();
         }
 
-        Integer rid = tableManager.createInDatabase(tableIn);
-        return Response.status(Status.OK).entity(rid).build();
+        tableManager.createInDatabase(tableIn);
+        return Response.status(Status.OK).entity(tableName).build();
 
     }
 
@@ -274,12 +273,11 @@ public class TableResource extends AbstractResource {
             outputTable.getRowsHeader().addItems(rowHeaders.toArray());
 
             // store Table
-            Integer rid = tableManager.createInDatabase(outputTable.getTableInfo());
+            tableManager.createInDatabase(outputTable.getTableInfo());
             chrono.stop(logger);
 
-            // result id is returned in the body
-            // Note: with DAO Table: should be changed to return the name of Table
-            return Response.status(Response.Status.OK).entity(rid).build();
+            // table name is returned in the body
+            return Response.status(Response.Status.OK).entity(tableName).build();
 
         } catch (IOException e) {
             String contextError = "Unexpected interruption while parsing CSV file : " + fileName;
@@ -346,11 +344,10 @@ public class TableResource extends AbstractResource {
         // delegates the work to the operator JoinTableWithTs
         JoinTableWithTs opeJoinTableWithTs = new JoinTableWithTs();
         TableInfo tableInfo = tableManager.readFromDatabase(tableName);
-        Integer rid = opeJoinTableWithTs.apply(tableInfo, metrics, dataset, joinColName, joinMetaName, targetColName, outputTableName);
+        opeJoinTableWithTs.apply(tableInfo, metrics, dataset, joinColName, joinMetaName, targetColName, outputTableName);
 
-        // Nominal case: result id is returned in the body
-        // Note: with DAO Table: should be changed to return the name of Table
-        return Response.status(Response.Status.OK).entity(rid).build();
+        // table name is returned in the body
+        return Response.status(Response.Status.OK).entity(outputTableName).build();
 
     }
 
@@ -478,13 +475,12 @@ public class TableResource extends AbstractResource {
         }
         // store table in db
         outputTable.setName(outputTableName);
-        Integer rid = tableManager.createInDatabase(outputTable.getTableInfo());
+        tableManager.createInDatabase(outputTable.getTableInfo());
 
         chrono.stop(logger);
 
-        // result id is returned in the body
-        // Note: with DAO Table: should be changed to return the name of Table
-        return Response.status(Response.Status.OK).entity(rid).build();
+        // table name is returned in the body
+        return Response.status(Response.Status.OK).entity(outputTableName).build();
     }
 
     /**
@@ -562,13 +558,14 @@ public class TableResource extends AbstractResource {
         // Store tables in database
         tabListResult.get(0).setName(outputTableName + "_Train");
         tabListResult.get(1).setName(outputTableName + "_Test");
-        Integer rid1 = tableManager.createInDatabase(tabListResult.get(0).getTableInfo());
-        Integer rid2 = tableManager.createInDatabase(tabListResult.get(1).getTableInfo());
+        tableManager.createInDatabase(tabListResult.get(0).getTableInfo());
+        tableManager.createInDatabase(tabListResult.get(1).getTableInfo());
 
         chrono.stop(logger);
 
-        // Result id is returned in the body
-        return Response.status(Response.Status.OK).entity(rid1 + "," + rid2).build();
+        // tables names are returned in the body
+        return Response.status(Response.Status.OK).entity(
+                outputTableName + "_Train" + "," + outputTableName + "_Test").build();
     }
 
 
@@ -582,7 +579,6 @@ public class TableResource extends AbstractResource {
     @POST
     @Path("/merge")
     @Consumes(MediaType.APPLICATION_JSON)
-    @Produces(MediaType.APPLICATION_JSON)
     public Response mergeTables(TablesMerge.Request request) {
         TablesMerge tablesMergeOperator;
         try {
@@ -607,9 +603,9 @@ public class TableResource extends AbstractResource {
         }
 
         try {
-            // Do the job and return the RID of the table
-            Integer rid = tablesMergeOperator.apply();
-            return Response.status(Status.OK).entity(rid).build();
+            // Do the job and return the name of the table
+            tablesMergeOperator.apply();
+            return Response.status(Status.OK).entity(request.outputTableName).build();
         } catch (IkatsOperatorException | IkatsException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         } catch (IkatsDaoConflictException e) {

@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,22 +10,21 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
  * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.temporaldata.business;
@@ -137,51 +136,51 @@ public class TableManager {
             super();
         }
 
-        public TableInfo.DataLink getCellsDefaultDatalink() {
+        private TableInfo.DataLink getCellsDefaultDatalink() {
             return cellsDefaultDatalink;
         }
 
-        public void setCellsDefaultDatalink(TableInfo.DataLink cellsDefaultDatalink) {
+        private void setCellsDefaultDatalink(TableInfo.DataLink cellsDefaultDatalink) {
             this.cellsDefaultDatalink = cellsDefaultDatalink;
         }
 
-        public List<List<TableInfo.DataLink>> getCellsDatalink() {
+        private List<List<TableInfo.DataLink>> getCellsDatalink() {
             return cellsDatalink;
         }
 
-        public void setCellsDatalink(List<List<TableInfo.DataLink>> cellsDatalink) {
+        private void setCellsDatalink(List<List<TableInfo.DataLink>> cellsDatalink) {
             this.cellsDatalink = cellsDatalink;
         }
 
-        public TableInfo.DataLink getRowHeaderDefaultDatalink() {
+        private TableInfo.DataLink getRowHeaderDefaultDatalink() {
             return rowHeaderDefaultDatalink;
         }
 
-        public void setRowHeaderDefaultDatalink(TableInfo.DataLink rowHeaderDefaultDatalink) {
+        private void setRowHeaderDefaultDatalink(TableInfo.DataLink rowHeaderDefaultDatalink) {
             this.rowHeaderDefaultDatalink = rowHeaderDefaultDatalink;
         }
 
-        public List<TableInfo.DataLink> getRowHeaderDatalink() {
+        private List<TableInfo.DataLink> getRowHeaderDatalink() {
             return rowHeaderDatalink;
         }
 
-        public void setRowHeaderDatalink(List<TableInfo.DataLink> rowHeaderDatalink) {
+        private void setRowHeaderDatalink(List<TableInfo.DataLink> rowHeaderDatalink) {
             this.rowHeaderDatalink = rowHeaderDatalink;
         }
 
-        public TableInfo.DataLink getColumnHeaderDefaultDatalink() {
+        private TableInfo.DataLink getColumnHeaderDefaultDatalink() {
             return columnHeaderDefaultDatalink;
         }
 
-        public void setColumnHeaderDefaultDatalink(TableInfo.DataLink columnHeaderDefaultDatalink) {
+        private void setColumnHeaderDefaultDatalink(TableInfo.DataLink columnHeaderDefaultDatalink) {
             this.columnHeaderDefaultDatalink = columnHeaderDefaultDatalink;
         }
 
-        public List<TableInfo.DataLink> getColumnHeaderDatalink() {
+        private List<TableInfo.DataLink> getColumnHeaderDatalink() {
             return columnHeaderDatalink;
         }
 
-        public void setColumnHeaderDatalink(List<TableInfo.DataLink> columnHeaderDatalink) {
+        private void setColumnHeaderDatalink(List<TableInfo.DataLink> columnHeaderDatalink) {
             this.columnHeaderDatalink = columnHeaderDatalink;
         }
 
@@ -302,6 +301,12 @@ public class TableManager {
     }
 
 
+    /**
+     * Convert a TableEntity table to TableInfo table
+     *
+     * @param table the table entity to convert
+     * @return the table entity converted to table info
+     */
     @SuppressWarnings("unchecked")
     private TableInfo tableEntityToTableInfo(TableEntity table) throws IkatsException {
 
@@ -326,8 +331,7 @@ public class TableManager {
             if (table.hasColHeader()) {
                 destTableHeaders.col = new Header();
                 destTableHeaders.col.data = rawData.get(0);
-            }
-            else {
+            } else {
                 destTableContent.cells.add(rawData.get(0));
             }
             if (table.hasRowHeader()) {
@@ -378,6 +382,12 @@ public class TableManager {
         return destTable;
     }
 
+    /**
+     * Convert a TableInfo table to TableEntity table
+     *
+     * @param tableIn the table info to convert
+     * @return the table info converted to table entity
+     */
     @SuppressWarnings("unchecked")
     private TableEntity tableInfoToTableEntity(TableInfo tableIn) throws IkatsException {
 
@@ -452,8 +462,7 @@ public class TableManager {
      *
      * @param tableName the name of the table is its unique identifier
      * @return read resource TableInfo.
-     * @throws IkatsJsonException        failed to read consistent JSON format into TableInfo structure.
-     * @throws IkatsDaoException         unexpected DAO error, from Hibernate, reading the database
+     * @throws IkatsJsonException       failed to read consistent JSON format into TableInfo structure.
      * @throws IkatsDaoMissingRessource the table name tableName is not matched in the database.
      */
     public TableInfo readFromDatabase(String tableName)
@@ -491,7 +500,6 @@ public class TableManager {
      * @return ID of created processData storing the table.
      * @throws IkatsException            inconsistency error detected in the tableToStore
      * @throws IkatsJsonException        error encoding the JSON content
-     * @throws IkatsDaoException         error checking if resource already exists
      * @throws IkatsDaoConflictException error when a resource with processId=tableName exists
      * @throws InvalidValueException     consistency error found in the name of the table: see TABLE_NAME_PATTERN
      */
@@ -520,9 +528,6 @@ public class TableManager {
      * @throws IkatsDaoException if error occurs in database
      */
     public void deleteFromDatabase(String tableName) throws IkatsDaoException, ResourceNotFoundException {
-        // The name of the table is in the processId column of table processData
-        // => so, we can use directly the removeProcessData(processId) service.
-
         // No exception raised by this remove
         int idTable = dao.getByName(tableName).getId();
         dao.removeById(idTable);
@@ -583,7 +588,7 @@ public class TableManager {
      * @param context information to provide in order to improve error log.
      * @throws InvalidValueException
      */
-    public final void validateTableName(String name, String context) throws InvalidValueException {
+    private final void validateTableName(String name, String context) throws InvalidValueException {
         String nameStr = name == null ? "null" : name;
         if ((name == null) || !TableManager.TABLE_NAME_PATTERN.matcher(name).matches()) {
             String msg = context + ": invalid name of table resource: " + nameStr;
@@ -603,7 +608,6 @@ public class TableManager {
      *
      * @param indexList       list of table indexes
      * @param repartitionRate repartition rate between two output indexes lists
-     * @throws
      */
     private List<List<Integer>> randomSplitTableIndexes(List<Integer> indexList, double repartitionRate) {
 

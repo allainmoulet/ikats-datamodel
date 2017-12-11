@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * <p>
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,9 +10,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * <p>
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -109,27 +109,23 @@ public class TablesMerge {
     /**
      * Apply the operator the {@link Request}, save the result.
      *
-     * @return the rid of the result Table in ProcessData
      * @throws IkatsOperatorException
      */
-    public Integer apply() throws IkatsOperatorException, IkatsException, IkatsDaoConflictException {
+    public void apply() throws IkatsOperatorException, IkatsException, IkatsDaoConflictException {
 
         // do the job
         Table resultTable = doMerge();
         resultTable.setName(request.outputTableName);
 
-        // then try to save it in the database and get the reference to be returned
-        Integer rid;
+        // then try to store it in the database
         try {
-            rid = tableManager.createInDatabase(resultTable.getTableInfo());
+            tableManager.createInDatabase(resultTable.getTableInfo());
             logger.info("Table '" + resultTable.getName() + "' by '" + TablesMerge.class.getName() + "' operator, created in database");
         } catch (IkatsException | InvalidValueException e) {
             String msgFormat = "The table ''{0}'' could not be saved to database. Error message: ''{1}''";
             String msg = MessageFormat.format(msgFormat, resultTable.getName(), e.getMessage());
             throw new IkatsOperatorException(msg, e);
         }
-
-        return rid;
     }
 
     /**
