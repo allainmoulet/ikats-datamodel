@@ -121,7 +121,12 @@ public class TableManager {
     /**
      * Dao specific class to store all datalinks of functional type table
      */
-    private static class DataLink implements Serializable {
+    private static class DataLinksMatrix implements Serializable {
+
+        /**
+         * Set version of the object for serialization purposes
+         */
+        private static final long serialVersionUID = 1L;
 
         private TableInfo.DataLink cellsDefaultDatalink;
         private List<List<TableInfo.DataLink>> cellsDatalink;
@@ -132,55 +137,55 @@ public class TableManager {
         private TableInfo.DataLink columnHeaderDefaultDatalink;
         private List<TableInfo.DataLink> columnHeaderDatalink;
 
-        private DataLink() {
+        private DataLinksMatrix() {
             super();
         }
 
-        private TableInfo.DataLink getCellsDefaultDatalink() {
+        public TableInfo.DataLink getCellsDefaultDatalink() {
             return cellsDefaultDatalink;
         }
 
-        private void setCellsDefaultDatalink(TableInfo.DataLink cellsDefaultDatalink) {
+        public void setCellsDefaultDatalink(TableInfo.DataLink cellsDefaultDatalink) {
             this.cellsDefaultDatalink = cellsDefaultDatalink;
         }
 
-        private List<List<TableInfo.DataLink>> getCellsDatalink() {
+        public List<List<TableInfo.DataLink>> getCellsDatalink() {
             return cellsDatalink;
         }
 
-        private void setCellsDatalink(List<List<TableInfo.DataLink>> cellsDatalink) {
+        public void setCellsDatalink(List<List<TableInfo.DataLink>> cellsDatalink) {
             this.cellsDatalink = cellsDatalink;
         }
 
-        private TableInfo.DataLink getRowHeaderDefaultDatalink() {
+        public TableInfo.DataLink getRowHeaderDefaultDatalink() {
             return rowHeaderDefaultDatalink;
         }
 
-        private void setRowHeaderDefaultDatalink(TableInfo.DataLink rowHeaderDefaultDatalink) {
+        public void setRowHeaderDefaultDatalink(TableInfo.DataLink rowHeaderDefaultDatalink) {
             this.rowHeaderDefaultDatalink = rowHeaderDefaultDatalink;
         }
 
-        private List<TableInfo.DataLink> getRowHeaderDatalink() {
+        public List<TableInfo.DataLink> getRowHeaderDatalink() {
             return rowHeaderDatalink;
         }
 
-        private void setRowHeaderDatalink(List<TableInfo.DataLink> rowHeaderDatalink) {
+        public void setRowHeaderDatalink(List<TableInfo.DataLink> rowHeaderDatalink) {
             this.rowHeaderDatalink = rowHeaderDatalink;
         }
 
-        private TableInfo.DataLink getColumnHeaderDefaultDatalink() {
+        public TableInfo.DataLink getColumnHeaderDefaultDatalink() {
             return columnHeaderDefaultDatalink;
         }
 
-        private void setColumnHeaderDefaultDatalink(TableInfo.DataLink columnHeaderDefaultDatalink) {
+        public void setColumnHeaderDefaultDatalink(TableInfo.DataLink columnHeaderDefaultDatalink) {
             this.columnHeaderDefaultDatalink = columnHeaderDefaultDatalink;
         }
 
-        private List<TableInfo.DataLink> getColumnHeaderDatalink() {
+        public List<TableInfo.DataLink> getColumnHeaderDatalink() {
             return columnHeaderDatalink;
         }
 
-        private void setColumnHeaderDatalink(List<TableInfo.DataLink> columnHeaderDatalink) {
+        public void setColumnHeaderDatalink(List<TableInfo.DataLink> columnHeaderDatalink) {
             this.columnHeaderDatalink = columnHeaderDatalink;
         }
 
@@ -335,7 +340,6 @@ public class TableManager {
                 destTableContent.cells.add(rawData.get(0));
             }
             if (table.hasRowHeader()) {
-                // TODO fill right first value of row header
                 destTableHeaders.row = new Header();
                 destTableHeaders.row.data = new ArrayList<>();
                 destTableHeaders.row.data.add(null);
@@ -348,16 +352,24 @@ public class TableManager {
                     destTableContent.cells.add(rawData.get(i));
                 }
             }
+            // filling headers by splitting top corner left of table in case of row and column headers
+            if (table.hasColHeader() && table.hasRowHeader()) {
+                String[] topCornerLeftValues = rawData.get(0).get(0).toString().split("\\|");
+                destTableHeaders.col.data.set(0, topCornerLeftValues[0]);
+                if (topCornerLeftValues.length > 1) {
+                    destTableHeaders.row.data.set(0, rawData.get(0).toString().split("\\|")[1]);
+                }
+            }
 
         } catch (ClassNotFoundException | IOException e) {
             throw new IkatsException("Error raised during table deserialization of raw values");
         }
 
         // process table raw data links
-        DataLink rawDataLinks;
+        DataLinksMatrix rawDataLinks;
         try {
             ois = new ObjectInputStream(new ByteArrayInputStream(table.getRawDataLinks()));
-            rawDataLinks = (DataLink) ois.readObject();
+            rawDataLinks = (DataLinksMatrix) ois.readObject();
             destTableContent.default_links = rawDataLinks.getCellsDefaultDatalink();
             destTableContent.links = rawDataLinks.getCellsDatalink();
 
@@ -403,10 +415,23 @@ public class TableManager {
 
 
         // process table raw data
-        // first concatenate table data content
-        List<Object> tableFullContent = new ArrayList<>();
-        if (table.isHandlingColumnsHeader()) {
+        // first concatenate table data content + headers in a single matrix
+        List<List<Object>> tableFullContent = new ArrayList<>();
+        String topCornerLeft;
+        if (table.isHandlingColumnsHeader() && table.isHandlingRowsHeader()) {
+            // case : top corner left including 2 headers value separated by "|"
             tableFullContent.add(table.getColumnsHeader().data);
+            topCornerLeft = table.getColumnsHeader().data.get(0).toString();
+            if (table.getRowsHeader().data.get(0) != null) {
+                topCornerLeft = topCornerLeft + "|" + table.getRowsHeader().data.get(0);
+            } else {
+                topCornerLeft = topCornerLeft + "|";
+            }
+            tableFullContent.get(0).set(0, topCornerLeft);
+        } else {
+            if (table.isHandlingColumnsHeader()) {
+                tableFullContent.add(table.getColumnsHeader().data);
+            }
         }
         for (int i = 0; i < table.getContentData().size(); i++) {
             List<Object> tempRowData = new ArrayList<>();
@@ -430,8 +455,8 @@ public class TableManager {
         }
 
 
-        // process table raw data links
-        DataLink dataLinks = new DataLink();
+        // then process table raw data links
+        DataLinksMatrix dataLinks = new DataLinksMatrix();
         if (table.isHandlingColumnsHeader()) {
             dataLinks.setColumnHeaderDefaultDatalink(table.getColumnsHeader().default_links);
             dataLinks.setColumnHeaderDatalink(table.getColumnsHeader().links);
