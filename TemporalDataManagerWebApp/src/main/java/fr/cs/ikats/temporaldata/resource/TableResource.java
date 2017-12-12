@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -118,8 +118,8 @@ public class TableResource extends AbstractResource {
     @GET
     @Path("/{tableName}")
     public Response downloadTable(@PathParam("tableName") String tableName) throws ResourceNotFoundException, IkatsException, IkatsDaoException, IkatsJsonException, IOException, ClassNotFoundException {
-        // get id of table in table db
-        // assuming there is only one table by tableName
+
+        // get table in db by name
         TableInfo table = tableManager.readFromDatabase(tableName);
         try {
 
@@ -181,6 +181,9 @@ public class TableResource extends AbstractResource {
                                        @FormDataParam("file") FormDataContentDisposition fileDisposition,
                                        @FormDataParam("rowName") String rowName, FormDataMultiPart formData,
                                        @Context UriInfo uriInfo) throws IkatsException, IOException, IkatsDaoException, InvalidValueException {
+
+        // check output table name validity
+        tableManager.validateTableName(tableName, "importTableFromCSV");
 
         // check that tableName does not already exist
         if (tableManager.existsInDatabase(tableName)) {
@@ -335,11 +338,25 @@ public class TableResource extends AbstractResource {
     @POST
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Path("/join/metrics")
-    public Response joinByMetrics(@FormDataParam("tableName") String tableName, @FormDataParam("metrics") String metrics,
-                                  @FormDataParam("dataset") String dataset, @FormDataParam("joinColName") @DefaultValue("") String joinColName,
+    public Response joinByMetrics(@FormDataParam("tableName") String tableName,
+                                  @FormDataParam("metrics") String metrics,
+                                  @FormDataParam("dataset") String dataset,
+                                  @FormDataParam("joinColName") @DefaultValue("") String joinColName,
                                   @FormDataParam("joinMetaName") @DefaultValue("") String joinMetaName,
-                                  @FormDataParam("targetColName") @DefaultValue("") String targetColName, @FormDataParam("outputTableName") String outputTableName)
-            throws IkatsDaoException, InvalidValueException, ResourceNotFoundException, IkatsException {
+                                  @FormDataParam("targetColName") @DefaultValue("") String targetColName,
+                                  @FormDataParam("outputTableName") String outputTableName)
+            throws ResourceNotFoundException, IkatsException,
+            IkatsDaoException, InvalidValueException {
+
+        // check output table name validity
+        tableManager.validateTableName(outputTableName, "joinByMetrics");
+
+        // check that tableName does not already exist
+        if (tableManager.existsInDatabase(outputTableName)) {
+            String context = "Table name already exists : " + outputTableName;
+            logger.error(context);
+            return Response.status(Response.Status.CONFLICT).entity(context).build();
+        }
 
         // delegates the work to the operator JoinTableWithTs
         JoinTableWithTs opeJoinTableWithTs = new JoinTableWithTs();
@@ -542,6 +559,15 @@ public class TableResource extends AbstractResource {
                                    @Context UriInfo uriInfo) throws IOException, IkatsDaoException, IkatsException, InvalidValueException, ResourceNotFoundException {
 
 
+        // check output table name validity
+        tableManager.validateTableName(outputTableName, "trainTestSplit");
+
+        // check that outputTableName does not already exist
+        if (tableManager.existsInDatabase(outputTableName)) {
+            String context = "Table name already exists : " + outputTableName;
+            logger.error(context);
+            return Response.status(Response.Status.CONFLICT).entity(context).build();
+        }
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
 
         // retrieve table tableName from db
@@ -579,7 +605,17 @@ public class TableResource extends AbstractResource {
     @POST
     @Path("/merge")
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response mergeTables(TablesMerge.Request request) {
+    public Response mergeTables(TablesMerge.Request request) throws InvalidValueException, IkatsDaoException {
+
+        // check output table name validity
+        tableManager.validateTableName(request.outputTableName, "mergeTables");
+
+        // check that outputTableName does not already exist
+        if (tableManager.existsInDatabase(request.outputTableName)) {
+            String context = "Table name already exists : " + request.outputTableName;
+            logger.error(context);
+            return Response.status(Response.Status.CONFLICT).entity(context).build();
+        }
         TablesMerge tablesMergeOperator;
         try {
             // Try to initialize the operator with the request

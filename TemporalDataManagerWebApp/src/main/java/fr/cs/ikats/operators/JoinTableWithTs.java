@@ -40,10 +40,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.temporaldata.business.*;
 import org.apache.log4j.Logger;
 
-//Review#158227 FTL CTRL + SHIFT + o -> réorganise les imports, en enlevant les inutiles.
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.expr.SingleValueComparator;
 import fr.cs.ikats.lang.NaturalOrderComparator;
@@ -138,8 +138,9 @@ public class JoinTableWithTs {
      * @throws IkatsException
      */
     public void apply(TableInfo tableInfo, String metrics, String dataset, String joinColName, String joinMetaName,
-                         String targetColName, String outputTableName)
-            throws IkatsDaoException, InvalidValueException, ResourceNotFoundException, IkatsException {
+                      String targetColName, String outputTableName)
+            throws InvalidValueException, ResourceNotFoundException, IkatsException, IkatsDaoException,
+            IkatsDaoConflictException {
         String prefixeChrono = "JoinTableWithTs: init";
         Chronometer chrono = new Chronometer(prefixeChrono, true);
         try {
@@ -158,6 +159,9 @@ public class JoinTableWithTs {
             chrono.stop(LOGGER);
             String msg = MessageFormat.format(MSG_INVALID_TABLE_FOR_JOIN_BY_METRICS, getContext(), dataset, metrics);
             throw new InvalidValueException(msg, jsonError);
+        } catch (IkatsDaoConflictException daoConflict) {
+            // dao conflict exception is kept and throwed
+            throw daoConflict;
         } catch (IkatsDaoException daoError) {
             chrono.stop(LOGGER);
             String msg = MessageFormat.format(MSG_DAO_KO_JOIN_BY_METRICS, dataset, metrics, getContext());
@@ -404,7 +408,6 @@ public class JoinTableWithTs {
     }
 
     /**
-     *
      * @return information about the operator context: processing context and processed table
      */
     public String getContext() {

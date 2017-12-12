@@ -559,9 +559,8 @@ public class TableManager {
     }
 
     /**
-     * Basically checks if tableName exists as processId in the database.
+     * Basically checks if tableName exists in the database.
      * <p>
-     * Note: presently the name of the table is saved in Postgres table process_data in column processId.
      *
      * @param tableName the name is the identifier of the Table.
      * @return true if table name already exists in database.
@@ -613,7 +612,7 @@ public class TableManager {
      * @param context information to provide in order to improve error log.
      * @throws InvalidValueException
      */
-    private final void validateTableName(String name, String context) throws InvalidValueException {
+    public final void validateTableName(String name, String context) throws InvalidValueException {
         String nameStr = name == null ? "null" : name;
         if ((name == null) || !TableManager.TABLE_NAME_PATTERN.matcher(name).matches()) {
             String msg = context + ": invalid name of table resource: " + nameStr;
