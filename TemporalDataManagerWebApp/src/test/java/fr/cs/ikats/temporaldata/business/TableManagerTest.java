@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,22 +10,22 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
  * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
- * 
+ *
  */
 
 package fr.cs.ikats.temporaldata.business;
@@ -1427,10 +1427,10 @@ public class TableManagerTest {
 
         assertNotNull(result);
         assertEquals(1, result.size());
-        
+
         // clean
         mng.deleteFromDatabase("TestTable");
-        
+
     }
 
     /**
@@ -1482,6 +1482,72 @@ public class TableManagerTest {
         List<TableEntitySummary> resultAfter = mng.listTables();
         assertNotNull(resultAfter);
         assertEquals(resultBefore.size() - 1, resultAfter.size());
+    }
+
+    /**
+     * Tests creation and retrieval of a table in db
+     */
+    @Test
+    public void testCreateTable() throws Exception {
+
+        TableManager mng = new TableManager();
+
+        TableInfo table = new TableInfo();
+        Table tableH = mng.initTable(table, false);
+
+        String tableName = "TestTable";
+        String tableDesc = "TestDescription";
+        String tableTitle = "TestTitle";
+
+        tableH.setName(tableName);
+        tableH.setDescription(tableDesc);
+        tableH.setTitle(tableTitle);
+
+        // Deprecated for end-user
+        tableH.initColumnsHeader(true, null, new ArrayList<>(), null)
+                .addItem("Columns", null)
+                .addItem("C_One", null)
+                .addItem("C_Two", null)
+                .addItem("C_Three", null);
+        tableH.initRowsHeader(true, null, new ArrayList<>(), null)
+                .addItem("Rows", null)
+                .addItem("R_One", null)
+                .addItem("R_Two", null)
+                .addItem("R_Three", null);
+        tableH.initContent(false, null);
+
+        // Simple initializer
+        Table tableHBis = mng.initTable(Arrays.asList("One", "Two", "Three"), false);
+
+        Object[] row1 = new Object[]{1, 2, 3};
+        Object[] row2 = new Object[]{4, 5, 5};
+        Object[] row3 = new Object[]{7, 8, 9};
+
+        tableH.appendRow(Arrays.asList(row1));
+        tableH.appendRow(Arrays.asList(row2));
+        tableH.appendRow(Arrays.asList(row3));
+        tableHBis.appendRow(Arrays.asList(row1));
+        tableHBis.appendRow(Arrays.asList(row2));
+        tableHBis.appendRow(Arrays.asList(row3));
+
+        mng.createInDatabase(tableH.getTableInfo());
+
+        TableInfo result = mng.readFromDatabase("TestTable");
+        Table resultTable = mng.initTable(result, false);
+
+        assertEquals(Arrays.asList("Rows", "R_One", "R_Two", "R_Three"), resultTable.getRowsHeader().getItems());
+        assertEquals(Arrays.asList("Columns", "C_One", "C_Two", "C_Three"), resultTable.getColumnsHeader().getItems());
+        assertEquals(Arrays.asList(row1), resultTable.getRow("R_One", Object.class));
+        assertEquals(Arrays.asList(row2), resultTable.getRow("R_Two", Object.class));
+        assertEquals(Arrays.asList(row3), resultTable.getRow("R_Three", Object.class));
+
+        assertEquals(tableName, resultTable.getName());
+        assertEquals(tableDesc, resultTable.getDescription());
+        assertEquals(tableTitle, resultTable.getTitle());
+
+        // clean
+        mng.deleteFromDatabase("TestTable");
+
     }
 }
 

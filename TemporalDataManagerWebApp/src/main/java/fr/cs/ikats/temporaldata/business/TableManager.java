@@ -357,7 +357,7 @@ public class TableManager {
                 String[] topCornerLeftValues = rawData.get(0).get(0).toString().split("\\|");
                 destTableHeaders.col.data.set(0, topCornerLeftValues[0]);
                 if (topCornerLeftValues.length > 1) {
-                    destTableHeaders.row.data.set(0, rawData.get(0).toString().split("\\|")[1]);
+                    destTableHeaders.row.data.set(0, topCornerLeftValues[1]);
                 }
             }
 
@@ -532,16 +532,17 @@ public class TableManager {
 
         String tableName = table.table_desc.name;
 
-        // Validate the name consistency
+        // Validate that table name match pattern
         validateTableName(tableName, "Create Table in database");
 
+        // Check the table consistency
+        new Table(table).checkConsistency();
+
+        // convert table info to dao table entity
         TableEntity tableToStore = tableInfoToTableEntity(table);
 
         Integer rid = dao.persist(tableToStore);
         LOGGER.trace("Table stored Ok in db: " + tableName + " with rid: " + rid);
-
-        // and now updates the identifier name for the software part
-        tableToStore.setName(tableName);
 
         return rid;
     }
