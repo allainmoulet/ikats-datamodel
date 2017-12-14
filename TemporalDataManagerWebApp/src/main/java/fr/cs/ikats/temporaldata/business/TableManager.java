@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- *
+ * 
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,21 +10,22 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
+ * 
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
  * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
+ * 
  */
 
 package fr.cs.ikats.temporaldata.business;
@@ -121,13 +122,15 @@ public class TableManager {
     /**
      * Dao specific class to store all datalinks of functional type table
      */
-    private static class DataLinksMatrix implements Serializable {
+    // Review#160900 Je suggère de renommer en DataLinksMatrix cela représente un peu mieux le type de données que gère cet élément.
+    // Review#160900 Et pour commentaire en passant, car trop tard, dans le même principe pour garder une cohérence avec les valeurs, 
+    // Review#160900    il aurait été préférable de gérer une matrice incluant si nécéssaire les row et col headers...
+    private static class DataLink implements Serializable {
 
-        /**
-         * Set version of the object for serialization purposes
-         */
+        // Review#160900 Permet de gérer des expections si on change le format de l'objet... 
+        /** Set version of the object for serialization purposes */
         private static final long serialVersionUID = 1L;
-
+        
         private TableInfo.DataLink cellsDefaultDatalink;
         private List<List<TableInfo.DataLink>> cellsDatalink;
 
@@ -137,7 +140,7 @@ public class TableManager {
         private TableInfo.DataLink columnHeaderDefaultDatalink;
         private List<TableInfo.DataLink> columnHeaderDatalink;
 
-        private DataLinksMatrix() {
+        private DataLink() {
             super();
         }
 
@@ -307,11 +310,12 @@ public class TableManager {
 
 
     @SuppressWarnings("unchecked")
-    private TableInfo tableEntityToTableInfo(TableEntity table) throws IkatsException {
+    private TableInfo tableEntityToTableInfo(TableEntity table) throws ResourceNotFoundException, IkatsException {
 
         TableInfo destTable = new TableInfo();
         TableDesc destTableDesc = new TableDesc();
         TableHeaders destTableHeaders = new TableHeaders();
+        destTableHeaders.col = new Header();
         TableContent destTableContent = new TableContent();
         destTableContent.cells = new ArrayList<>();
         destTableContent.default_links = new TableInfo.DataLink();
@@ -328,12 +332,11 @@ public class TableManager {
             ois = new ObjectInputStream(new ByteArrayInputStream(table.getRawValues()));
             rawData = (List<List<Object>>) ois.readObject();
             if (table.hasColHeader()) {
-                destTableHeaders.col = new Header();
                 destTableHeaders.col.data = rawData.get(0);
-            } else {
-                destTableContent.cells.add(rawData.get(0));
             }
             if (table.hasRowHeader()) {
+                // Review#160900 enlever la balise TODO, si je comprend bien. Le commentaire est valide pour le code, il me semble.
+                // TODO fill right first value of row header
                 destTableHeaders.row = new Header();
                 destTableHeaders.row.data = new ArrayList<>();
                 destTableHeaders.row.data.add(null);
@@ -346,24 +349,16 @@ public class TableManager {
                     destTableContent.cells.add(rawData.get(i));
                 }
             }
-            // filling headers by splitting top corner left of table in case of row and column headers
-            if (table.hasColHeader() && table.hasRowHeader()) {
-                String[] topCornerLeftValues = rawData.get(0).get(0).toString().split("\\|");
-                destTableHeaders.col.data.set(0, topCornerLeftValues[0]);
-                if (topCornerLeftValues.length > 1) {
-                    destTableHeaders.row.data.set(0, rawData.get(0).toString().split("\\|")[1]);
-                }
-            }
 
         } catch (ClassNotFoundException | IOException e) {
             throw new IkatsException("Error raised during table deserialization of raw values");
         }
 
         // process table raw data links
-        DataLinksMatrix rawDataLinks;
+        DataLink rawDataLinks;
         try {
             ois = new ObjectInputStream(new ByteArrayInputStream(table.getRawDataLinks()));
-            rawDataLinks = (DataLinksMatrix) ois.readObject();
+            rawDataLinks = (DataLink) ois.readObject();
             destTableContent.default_links = rawDataLinks.getCellsDefaultDatalink();
             destTableContent.links = rawDataLinks.getCellsDatalink();
 
@@ -401,30 +396,16 @@ public class TableManager {
         destTable.setColHeader(table.isHandlingColumnsHeader());
         destTable.setRowHeader(table.isHandlingRowsHeader());
 
+
         // process table raw data
-        // first concatenate table data content + headers in a single matrix
-        List<List<Object>> tableFullContent = new ArrayList<>();
-        String topCornerLeft = "";
-        if (table.isHandlingColumnsHeader() && table.isHandlingRowsHeader()) {
-            // case : top corner left including 2 headers value separated by "|"
+        // first concatenate table data content
+        List<Object> tableFullContent = new ArrayList<>();
+        if (table.isHandlingColumnsHeader()) {
             tableFullContent.add(table.getColumnsHeader().data);
-            topCornerLeft = table.getColumnsHeader().data.get(0).toString();
-            if (table.getRowsHeader().data.get(0) != null) {
-                topCornerLeft = topCornerLeft + "|" + table.getRowsHeader().data.get(0);
-            } else {
-                topCornerLeft = topCornerLeft + "|";
-            }
-            tableFullContent.get(0).set(0,topCornerLeft);
-        } else {
-            if (table.isHandlingColumnsHeader()) {
-                // case : only column headers handled
-                tableFullContent.add(table.getColumnsHeader().data);
-            }
         }
         for (int i = 0; i < table.getContentData().size(); i++) {
             List<Object> tempRowData = new ArrayList<>();
             if (table.isHandlingRowsHeader()) {
-                // case : row headers handled
                 tempRowData.add(table.getRowsHeader().data.get(i + 1));
             }
             tempRowData.addAll(table.getContentData().get(i));
@@ -444,8 +425,8 @@ public class TableManager {
         }
 
 
-        // then process table raw data links
-        DataLinksMatrix dataLinks = new DataLinksMatrix();
+        // process table raw data links
+        DataLink dataLinks = new DataLink();
         if (table.isHandlingColumnsHeader()) {
             dataLinks.setColumnHeaderDefaultDatalink(table.getColumnsHeader().default_links);
             dataLinks.setColumnHeaderDatalink(table.getColumnsHeader().links);
@@ -470,7 +451,6 @@ public class TableManager {
 
         return destTable;
     }
-
 
     /**
      * Gets the JSON resource TableInfo from process data database.
