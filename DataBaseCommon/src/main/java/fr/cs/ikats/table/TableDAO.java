@@ -164,8 +164,8 @@ public class TableDAO extends DataBaseDAO {
         try {
             tx = session.beginTransaction();
 
-            Query query = session.createQuery("from TableEntity fetch all properties where id = :id");
-            query.setParameter(1, id);
+            Query query = session.createQuery("from TableEntity fetch all properties where id = ?");
+            query.setParameter(0, id);
             result = (TableEntity) query.uniqueResult();
 
             if (result == null) {
@@ -211,8 +211,8 @@ public class TableDAO extends DataBaseDAO {
         try {
             tx = session.beginTransaction();
 
-            Query query = session.createQuery("from TableEntity fetch all properties where name = :name");
-            query.setParameter(1, name);
+            Query query = session.createQuery("from TableEntity fetch all properties where name = ?");
+            query.setString(0, name);
             result = (TableEntity) query.uniqueResult();
 
             if (result == null) {
@@ -266,7 +266,6 @@ public class TableDAO extends DataBaseDAO {
         catch (ConstraintViolationException e) {
             // try to rollback
             if (tx != null) tx.rollback();
-            // Review#160900 changed comment and encapsulate the original exception into the new IKATS one
             // Raise the exception into a specific IKATS one to allow its handling with IKATS specific handler for HTTP response  
             throw new IkatsDaoConflictException(e);
         }
