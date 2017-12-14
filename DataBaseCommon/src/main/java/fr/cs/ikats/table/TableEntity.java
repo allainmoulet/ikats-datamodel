@@ -34,7 +34,7 @@ import javax.persistence.Table;
 
 
 /**
- * The Table entity abstract
+ * The full table entity with raw properties 
  */
 @Entity
 @Table(name = "TableEntity")

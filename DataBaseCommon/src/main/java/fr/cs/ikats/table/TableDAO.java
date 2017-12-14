@@ -72,7 +72,7 @@ public class TableDAO extends DataBaseDAO {
      *
      * @throws HibernateException if there is no TableEntity
      */
-    public List<TableEntitySummary> listAll() throws HibernateException {
+    public List<TableEntitySummary> listAll() {
         List<TableEntitySummary> result = null;
 
         Session session = getSession();
@@ -164,8 +164,8 @@ public class TableDAO extends DataBaseDAO {
         try {
             tx = session.beginTransaction();
 
-            Query query = session.createQuery("from TableEntity fetch all properties where id = :id");
-            query.setParameter(id, id);
+            Query query = session.createQuery("from TableEntity fetch all properties where id = ?");
+            query.setParameter(0, id);
             result = (TableEntity) query.uniqueResult();
 
             if (result == null) {
@@ -211,8 +211,8 @@ public class TableDAO extends DataBaseDAO {
         try {
             tx = session.beginTransaction();
 
-            Query query = session.createQuery("from TableEntity fetch all properties where name = :name");
-            query.setParameter("name", name);
+            Query query = session.createQuery("from TableEntity fetch all properties where name = ?");
+            query.setString(0, name);
             result = (TableEntity) query.uniqueResult();
 
             if (result == null) {
@@ -248,7 +248,7 @@ public class TableDAO extends DataBaseDAO {
      *
      * @return the id of the created table
      *
-     * @throws HibernateException if the table to append already exists
+     * @throws IkatsDaoConflictException if the table to append already exists
      */
     public Integer persist(TableEntity tableEntity) throws HibernateException, IkatsDaoConflictException {
         Integer tableId = null;
@@ -266,8 +266,8 @@ public class TableDAO extends DataBaseDAO {
         catch (ConstraintViolationException e) {
             // try to rollback
             if (tx != null) tx.rollback();
-            // Re-raise the original exception
-            throw new IkatsDaoConflictException();
+            // Raise the exception into a specific IKATS one to allow its handling with IKATS specific handler for HTTP response  
+            throw new IkatsDaoConflictException(e);
         }
         catch (HibernateException e) {
             // try to rollback

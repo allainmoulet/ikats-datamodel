@@ -362,7 +362,7 @@ public class TableManager {
             }
 
         } catch (ClassNotFoundException | IOException e) {
-            throw new IkatsException("Error raised during table deserialization of raw values");
+            throw new IkatsException("Error raised during table deserialization of raw values. Message: " + e.getMessage(), e);
         }
 
         // process table raw data links
@@ -384,7 +384,7 @@ public class TableManager {
             }
 
         } catch (ClassNotFoundException | IOException e) {
-            throw new IkatsException("Error raised during table deserialization of raw datalinks");
+            throw new IkatsException("Error raised during table deserialization of raw datalinks. Message: " + e.getMessage(), e);
         }
 
         destTable.content = destTableContent;
@@ -400,7 +400,6 @@ public class TableManager {
      * @param tableIn the table info to convert
      * @return the table info converted to table entity
      */
-    @SuppressWarnings("unchecked")
     private TableEntity tableInfoToTableEntity(TableInfo tableIn) throws IkatsException {
 
         TableEntity destTable = new TableEntity();
@@ -451,7 +450,7 @@ public class TableManager {
             oos.flush();
             destTable.setRawValues(bos.toByteArray());
         } catch (IOException e) {
-            throw new IkatsException("Error raised during table serialization of raw values");
+            throw new IkatsException("Error raised during table serialization of raw values. Message: " + e.getMessage(), e);
         }
 
 
@@ -476,7 +475,7 @@ public class TableManager {
             destTable.setRawDataLinks(bos.toByteArray());
 
         } catch (IOException e) {
-            throw new IkatsException("Error raised during table serialization of raw datalinks");
+            throw new IkatsException("Error raised during table serialization of raw datalinks. Message: " + e.getMessage(), e);
         }
 
         return destTable;
@@ -898,7 +897,7 @@ public class TableManager {
     static Comparator<Integer> getIndexComparator(Map<Integer, String> mapIndexToSortingValue, boolean reverse) {
         // magic comparator: reorder the indexes according to the order of
         // sorting values
-        Comparator internalComparator = new NaturalOrderComparator();
+        Comparator<String> internalComparator = new NaturalOrderComparator();
 
         return new Comparator<Integer>() {
 

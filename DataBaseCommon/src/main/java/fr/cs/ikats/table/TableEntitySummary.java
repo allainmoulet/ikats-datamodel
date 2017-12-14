@@ -30,6 +30,10 @@ package fr.cs.ikats.table;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 
+/**
+ * Entity that gets only summary properties from {@link AbstractTableEntity}.
+ * The raw data properties are available through {@link TableEntity}
+ */
 @Entity
 @Table(name = "TableEntity")
 public class TableEntitySummary extends AbstractTableEntity {
