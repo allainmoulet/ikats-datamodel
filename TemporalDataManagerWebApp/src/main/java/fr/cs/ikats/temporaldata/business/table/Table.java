@@ -611,7 +611,7 @@ public class Table {
 	 * 
 	 * @return this.tableInfo.content.cells or null if undefined
 	 */
-	List<List<Object>> getContentData() {
+	public List<List<Object>> getContentData() {
 		if (this.tableInfo.content == null)
 			return null;
 

@@ -735,7 +735,7 @@ public class TableInfo {
 		 *
 		 * @return
 		 */
-		List<Object> getData() {
+		public List<Object> getData() {
 			return this.data;
 		}
 
