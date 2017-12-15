@@ -326,6 +326,7 @@ public class TableManager {
         // process general attributes of table object
         destTableDesc.desc = table.getDescription();
         destTableDesc.name = table.getName();
+        destTableDesc.title = table.getTitle();
 
         // process table raw data
         List<List<Object>> rawData;
@@ -408,6 +409,7 @@ public class TableManager {
         // process general attributes of table object
         destTable.setDescription(table.getDescription());
         destTable.setName(table.getName());
+        destTable.setTitle(table.getTitle());
         destTable.setCreated(new Date());
         destTable.setColHeader(table.isHandlingColumnsHeader());
         destTable.setRowHeader(table.isHandlingRowsHeader());

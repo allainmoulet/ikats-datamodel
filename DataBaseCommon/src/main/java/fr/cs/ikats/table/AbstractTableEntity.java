@@ -55,6 +55,13 @@ public abstract class AbstractTableEntity  {
      */
     @Column(name = "name", unique = true)
     private String name;
+    
+    /**
+     * Give an optional title of the
+     */
+    @Column(name = "title")
+    private String title;
+    
 
     /**
      * Additional user description for the Table
@@ -115,6 +122,26 @@ public abstract class AbstractTableEntity  {
      */
     public void setName(String name) {
         this.name = name;
+    }
+
+    
+    /**
+     * Getter for the table title
+     * 
+     * @return the title
+     */
+    public String getTitle() {
+        return title;
+    }
+
+    
+    /**
+     * Setter for the table title
+     * 
+     * @param title the title to set
+     */
+    public void setTitle(String title) {
+        this.title = title;
     }
 
     /**
