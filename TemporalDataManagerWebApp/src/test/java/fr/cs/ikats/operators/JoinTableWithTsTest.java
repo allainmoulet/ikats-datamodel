@@ -54,7 +54,6 @@ import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableElement;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
 import fr.cs.ikats.temporaldata.business.table.TableManager;
-import fr.cs.ikats.temporaldata.business.table.TableUtils;
 import fr.cs.ikats.temporaldata.business.table.TableInfo.DataLink;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 
@@ -190,7 +189,7 @@ public class JoinTableWithTsTest extends CommonTest {
         String theTargetColumnName = "Target";
         String testedMetrics = SELECTED_METRICS_ALL_MATCHING;
 
-        Table selectedTable = TableUtils.initEmptyTable(true, true);
+        Table selectedTable = TableManager.initEmptyTable(true, true);
 
         selectedTable.getColumnsHeader().addItems(theIdColumnName, "One", "Two", theTargetColumnName);
         selectedTable.getRowsHeader().addItem(null).addItems(TABLE_FLIGHT_IDS.toArray());
@@ -263,7 +262,7 @@ public class JoinTableWithTsTest extends CommonTest {
             String testedInputJoinColName = config.get(1);
             String testedInputJoinMetaName = config.get(2);
 
-            Table selectedTable = TableUtils.initEmptyTable(true, true);
+            Table selectedTable = TableManager.initEmptyTable(true, true);
 
             selectedTable.getColumnsHeader().addItems(theIdColumnName, "One", "Two", theTargetColumnName);
             selectedTable.getRowsHeader().addItem(null).addItems(TABLE_FLIGHT_IDS.toArray());
@@ -354,7 +353,7 @@ public class JoinTableWithTsTest extends CommonTest {
             String testedInputJoinMetaName = config.get(2);
             String theTargetColumnName = config.get(3);
 
-            Table selectedTable = TableUtils.initEmptyTable(true, true);
+            Table selectedTable = TableManager.initEmptyTable(true, true);
 
             selectedTable.getColumnsHeader().addItems("AnotherId", "IgnoredTarget", theIdColumnName, "One", "Two");
 
@@ -427,7 +426,7 @@ public class JoinTableWithTsTest extends CommonTest {
         String testedInputJoinColName = "ID";
         String testedInputJoinMetaName = "flightId";
 
-        Table selectedTable = TableUtils.initEmptyTable(true, true);
+        Table selectedTable = TableManager.initEmptyTable(true, true);
 
         selectedTable.getColumnsHeader().addItems(theIdColumnName, "One", "Two", theTargetColumnName);
         selectedTable.getRowsHeader().addItem(null).addItems(TABLE_FLIGHT_IDS.toArray());
@@ -476,7 +475,7 @@ public class JoinTableWithTsTest extends CommonTest {
         String testedInputJoinColName = "ID";
         String testedInputJoinMetaName = "flightId";
 
-        Table selectedTable = TableUtils.initEmptyTable(true, true);
+        Table selectedTable = TableManager.initEmptyTable(true, true);
 
         selectedTable.getColumnsHeader().addItems(theIdColumnName, "One", "Two", theTargetColumnName);
         selectedTable.getRowsHeader().addItem(null).addItems(TABLE_FLIGHT_IDS.toArray());

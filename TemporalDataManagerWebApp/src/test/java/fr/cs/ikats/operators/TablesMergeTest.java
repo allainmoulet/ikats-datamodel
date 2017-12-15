@@ -51,7 +51,6 @@ import fr.cs.ikats.operators.TablesMerge.Request;
 import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
 import fr.cs.ikats.temporaldata.business.table.TableManager;
-import fr.cs.ikats.temporaldata.business.table.TableUtils;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
@@ -558,7 +557,7 @@ public class TablesMergeTest {
             headersTitle.replaceAll(ht -> ht.isEmpty() ? null : ht);
             table = tableManager.initTable(headersTitle, withRowsHeader);
         } else {
-            table = TableUtils.initEmptyTable(false, withRowsHeader);
+            table = TableManager.initEmptyTable(false, withRowsHeader);
         }
 
         // Other lines contain data

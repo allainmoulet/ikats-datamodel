@@ -554,7 +554,7 @@ public class TableManagerTest {
     @Test
     public void testGetRow() throws Exception {
 
-        Table myT = TableUtils.initEmptyTable(true, true);
+        Table myT = TableManager.initEmptyTable(true, true);
         myT.getColumnsHeader().addItem("One").addItem("Two").addItem("Three");
         for (int i = 0; i < 10; i++) {
             myT.appendRow("row" + i, Arrays.asList(i, i + 2));
@@ -597,7 +597,7 @@ public class TableManagerTest {
     @Test
     public void testGetRowsHeaderItems() throws Exception {
 
-        Table myT = TableUtils.initEmptyTable(false, true);
+        Table myT = TableManager.initEmptyTable(false, true);
 
         myT.getRowsHeader().addItems("0", "1", "2", "3", "4");
         for (int i = 0; i < 10; i++) {
@@ -629,7 +629,7 @@ public class TableManagerTest {
     @Test
     public void testGetColumnsHeaderItems() throws Exception {
 
-        Table myT = TableUtils.initEmptyTable(true, false);
+        Table myT = TableManager.initEmptyTable(true, false);
 
         // unusual case: handling Integer -instead of String- in header data ... why not ...
         myT.getColumnsHeader().addItems(0, 1, 2, 3, 8);
@@ -651,7 +651,7 @@ public class TableManagerTest {
             System.out.println(myT.getColumn("0"));
 
         // usual case: handling Strings in header data
-        Table myUsualT = TableUtils.initEmptyTable(true, false);
+        Table myUsualT = TableManager.initEmptyTable(true, false);
         myUsualT.getColumnsHeader().addItems("10", "1", "2", "3", "8");
         for (int i = 0; i < 10; i++) {
             myUsualT.appendRow(Arrays.asList("a" + i, "b" + i, "c" + i, "d" + i, "e" + i));
@@ -675,7 +675,7 @@ public class TableManagerTest {
     @Test
     public void testSortRowswithoutHeaders() throws Exception {
 
-        Table myTWithoutRowHeader = TableUtils.initEmptyTable(false, false);
+        Table myTWithoutRowHeader = TableManager.initEmptyTable(false, false);
 
         myTWithoutRowHeader.appendRow(Arrays.asList("bla3", "BLAH3", 3.5));
         myTWithoutRowHeader.appendRow(Arrays.asList("bla2", "BLAH2", 2.0));
@@ -710,7 +710,7 @@ public class TableManagerTest {
     @Test
     public void testSortRowsWithColHeader() throws Exception {
 
-        Table myTWithoutRowHeader = TableUtils.initEmptyTable(true, false);
+        Table myTWithoutRowHeader = TableManager.initEmptyTable(true, false);
 
         // unusual case: handling Integer -instead of String- in header data ... why not ...
         myTWithoutRowHeader.getColumnsHeader().addItems("First", "Blabla", "Order");
@@ -749,7 +749,7 @@ public class TableManagerTest {
     @Test
     public void testSortRowsWithAllHeaders() throws Exception {
 
-        Table myTWithoutRowHeader = TableUtils.initEmptyTable(true, true);
+        Table myTWithoutRowHeader = TableManager.initEmptyTable(true, true);
 
         // unusual case: handling Integer -instead of String- in header data ... why not ...
         myTWithoutRowHeader.getColumnsHeader().addItems("TopLeft", "First", "Blabla", "Order");
@@ -797,7 +797,7 @@ public class TableManagerTest {
     public void testInsertColumnWithAllHeaders() throws Exception {
 
         // both headers are managed
-        Table myTable = TableUtils.initEmptyTable(true, true);
+        Table myTable = TableManager.initEmptyTable(true, true);
 
         // unusual case: handling Integer -instead of String- in header data ... why not ...
         myTable.getColumnsHeader().addItems("TopLeft", "First", "Blabla", "Order");
@@ -831,7 +831,7 @@ public class TableManagerTest {
     @Test
     public void testInsertColumnWithColHeader() throws Exception {
 
-        Table myTWithColHeader = TableUtils.initEmptyTable(true, false);
+        Table myTWithColHeader = TableManager.initEmptyTable(true, false);
 
         // unusual case: handling Integer -instead of String- in header data ... why not ...
         myTWithColHeader.getColumnsHeader().addItems("First", "Blabla", "Order");
@@ -867,7 +867,7 @@ public class TableManagerTest {
     public void testInsertColumnWithoutHeader() throws Exception {
 
         // no headers
-        Table myTable = TableUtils.initEmptyTable(false, false);
+        Table myTable = TableManager.initEmptyTable(false, false);
 
         myTable.appendRow(Arrays.asList("bla3", "BLAH3", 3));
         myTable.appendRow(Arrays.asList("bla2", "BLAH2", 2));
@@ -897,7 +897,7 @@ public class TableManagerTest {
     public void testInsertRowWithoutHeader() throws Exception {
 
         // no headers
-        Table myTable = TableUtils.initEmptyTable(false, false);
+        Table myTable = TableManager.initEmptyTable(false, false);
 
         myTable.appendRow(Arrays.asList("bla3", "BLAH3", 3));
         myTable.appendRow(Arrays.asList("bla2", "BLAH2", 2));
@@ -927,7 +927,7 @@ public class TableManagerTest {
     @Test
     public void testInsertRowWithAllHeaders() throws Exception {
 
-        Table myTable = TableUtils.initEmptyTable(true, true);
+        Table myTable = TableManager.initEmptyTable(true, true);
 
         // unusual case: handling Integer -instead of String- in header data ... why not ...
         myTable.getColumnsHeader().addItems("TopLeft", "First", "Blabla", "Order");

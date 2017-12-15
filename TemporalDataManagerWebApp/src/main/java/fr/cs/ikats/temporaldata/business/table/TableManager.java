@@ -592,6 +592,38 @@ public class TableManager {
 
 
     /**
+     * Creates and initializes the structure of an empty Table,
+     * <ul>
+     * <li>with columns header enabled when parameter withColumnsHeader is true ,</li>
+     * <li>with rows header enabled when parameter withColumnsHeader is true ,</li>
+     * </ul>
+     * This Table is initialized without links managed: see how to configure links management with enablesLinks()
+     * method.
+     *
+     * @return created Table, ready to be completed.
+     */
+    public static Table initEmptyTable(boolean withColumnsHeader, boolean withRowsHeader) {
+        TableInfo tableInfo = new TableInfo();
+    
+        tableInfo.table_desc = new TableDesc();
+        tableInfo.headers = new TableHeaders();
+    
+        if (withRowsHeader) {
+            tableInfo.headers.row = new Header();
+            tableInfo.headers.row.data = new ArrayList<>();
+        }
+        if (withColumnsHeader) {
+            tableInfo.headers.col = new Header();
+            tableInfo.headers.col.data = new ArrayList<>();
+        }
+    
+        tableInfo.content = new TableContent();
+        tableInfo.content.cells = new ArrayList<>();
+    
+        return new Table(tableInfo);
+    }
+
+    /**
      * Internal use: convert a collection of Object data into a collection of type T. For each item from originalList:
      * if type T is String, item is replaced by item.toString() in the new collection else: objects are casted to the
      * expected type T, using castingClass.

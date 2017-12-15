@@ -35,7 +35,6 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
 import fr.cs.ikats.temporaldata.business.table.TableManager;
-import fr.cs.ikats.temporaldata.business.table.TableUtils;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
@@ -156,8 +155,8 @@ public class TrainTestSplitTable {
         indexListOutput = randomSplitTableIndexes(indexListInput, repartitionRate);
     
         // Result initialization
-        Table table1 = TableUtils.initEmptyTable(withColHeaders, withRowHeaders);
-        Table table2 = TableUtils.initEmptyTable(withColHeaders, withRowHeaders);
+        Table table1 = TableManager.initEmptyTable(withColHeaders, withRowHeaders);
+        Table table2 = TableManager.initEmptyTable(withColHeaders, withRowHeaders);
         List<Table> result = new ArrayList<>();
         result.add(table1);
         result.add(table2);
@@ -281,8 +280,8 @@ public class TrainTestSplitTable {
         }
     
         // Result initialization
-        Table table1 = TableUtils.initEmptyTable(withColHeaders, withRowHeaders);
-        Table table2 = TableUtils.initEmptyTable(withColHeaders, withRowHeaders);
+        Table table1 = TableManager.initEmptyTable(withColHeaders, withRowHeaders);
+        Table table2 = TableManager.initEmptyTable(withColHeaders, withRowHeaders);
         List<Table> result = new ArrayList<>();
         result.add(table1);
         result.add(table2);

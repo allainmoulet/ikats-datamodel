@@ -71,7 +71,6 @@ import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
 import fr.cs.ikats.temporaldata.business.table.TableManager;
-import fr.cs.ikats.temporaldata.business.table.TableUtils;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
@@ -229,7 +228,7 @@ public class TableResource extends AbstractResource {
             rowHeaders.add(null);
 
             // init output table with both columns/rows header
-            Table outputTable = TableUtils.initEmptyTable(true, true);
+            Table outputTable = TableManager.initEmptyTable(true, true);
 
             // parse csv content to :
             // 1. retrieve data to build json table structure to store
@@ -464,7 +463,7 @@ public class TableResource extends AbstractResource {
         Collections.sort(listMetaTs);
 
         // init empty table managing rows/columns headers
-        Table outputTable = TableUtils.initEmptyTable(true, true);
+        Table outputTable = TableManager.initEmptyTable(true, true);
         outputTable.getColumnsHeader().addItem(populationId);
         for (String metaTs : listMetaTs) {
             for (int i = 1; i < colHeaders.size(); i++) {
