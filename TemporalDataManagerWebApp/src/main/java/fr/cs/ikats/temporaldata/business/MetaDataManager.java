@@ -54,6 +54,7 @@ import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
 import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
+import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import org.apache.log4j.Logger;

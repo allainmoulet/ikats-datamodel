@@ -27,7 +27,7 @@
  * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
  */
 
-package fr.cs.ikats.temporaldata.business;
+package fr.cs.ikats.temporaldata.business.table;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -58,10 +58,10 @@ import fr.cs.ikats.lang.NaturalOrderComparator;
 import fr.cs.ikats.table.TableDAO;
 import fr.cs.ikats.table.TableEntity;
 import fr.cs.ikats.table.TableEntitySummary;
-import fr.cs.ikats.temporaldata.business.TableInfo.Header;
-import fr.cs.ikats.temporaldata.business.TableInfo.TableContent;
-import fr.cs.ikats.temporaldata.business.TableInfo.TableDesc;
-import fr.cs.ikats.temporaldata.business.TableInfo.TableHeaders;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.Header;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.TableContent;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.TableDesc;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.TableHeaders;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;

@@ -36,12 +36,12 @@ import org.apache.log4j.Logger;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
-import fr.cs.ikats.temporaldata.business.Table;
-import fr.cs.ikats.temporaldata.business.TableElement;
-import fr.cs.ikats.temporaldata.business.TableInfo;
-import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
-import fr.cs.ikats.temporaldata.business.TableInfo.Header;
-import fr.cs.ikats.temporaldata.business.TableManager;
+import fr.cs.ikats.temporaldata.business.table.Table;
+import fr.cs.ikats.temporaldata.business.table.TableElement;
+import fr.cs.ikats.temporaldata.business.table.TableInfo;
+import fr.cs.ikats.temporaldata.business.table.TableManager;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.DataLink;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.Header;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
@@ -108,9 +108,9 @@ public class TablesMerge {
 
     /**
      * Package private method to be used in tests
-     */    
+     */
     TablesMerge() {
-        this.tableManager = new TableManager();        
+        this.tableManager = new TableManager();
     }
 
     /**

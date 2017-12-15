@@ -27,7 +27,7 @@
  * 
  */
 
-package fr.cs.ikats.temporaldata.business;
+package fr.cs.ikats.temporaldata.business.table;
 
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -37,10 +37,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
-import fr.cs.ikats.temporaldata.business.TableInfo.Header;
-import fr.cs.ikats.temporaldata.business.TableInfo.TableContent;
-import fr.cs.ikats.temporaldata.business.TableInfo.TableHeaders;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.DataLink;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.Header;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.TableContent;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.TableHeaders;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 
