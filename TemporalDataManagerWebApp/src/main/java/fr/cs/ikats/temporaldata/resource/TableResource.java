@@ -58,11 +58,14 @@ import javax.ws.rs.core.UriInfo;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.operators.IkatsOperatorException;
 import fr.cs.ikats.operators.JoinTableWithTs;
 import fr.cs.ikats.operators.TablesMerge;
+import fr.cs.ikats.operators.TrainTestSplitTable;
+import fr.cs.ikats.operators.TrainTestSplitTable.Request;
 import fr.cs.ikats.table.TableEntitySummary;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.table.Table;
@@ -569,30 +572,26 @@ public class TableResource extends AbstractResource {
             logger.error(context);
             return Response.status(Response.Status.CONFLICT).entity(context).build();
         }
+        
+        // Creates the request to the operator. Should be replaced in a future version by the JAXRS JSON transformation
+        // from the HTTP request. See mergeTables(Request)
+        TrainTestSplitTable.Request request = new TrainTestSplitTable.Request();
+        request.tableName = tableName;
+        request.targetColumnName = targetColumnName;
+        request.repartitionRate = repartitionRate;
+        request.outputTableName = outputTableName;
+        
+        // Try to initialize the operator with the request
+        TrainTestSplitTable trainTestSplitTable = new TrainTestSplitTable(request);
+        
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
-
-        // retrieve table tableName from db
-        TableInfo tableInfo = tableManager.readFromDatabase(tableName);
-        Table table = tableManager.initTable(tableInfo, false);
-
-        List<Table> tabListResult;
-        if (targetColumnName.equals("")) {
-            tabListResult = TableUtils.randomSplitTable(table, repartitionRate);
-        } else {
-            tabListResult = TableUtils.trainTestSplitTable(table, targetColumnName, repartitionRate);
-        }
-
-        // Store tables in database
-        tabListResult.get(0).setName(outputTableName + "_Train");
-        tabListResult.get(1).setName(outputTableName + "_Test");
-        tableManager.createInDatabase(tabListResult.get(0).getTableInfo());
-        tableManager.createInDatabase(tabListResult.get(1).getTableInfo());
-
+        trainTestSplitTable.apply();
         chrono.stop(logger);
-
+        
         // tables names are returned in the body
         return Response.status(Response.Status.OK).entity(
                 outputTableName + "_Train" + "," + outputTableName + "_Test").build();
+
     }
 
 
