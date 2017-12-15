@@ -84,7 +84,6 @@ public class TableManagerTest {
     @Test
     public void testTrainTestSplitTableNominal() throws Exception {
 
-        TableManager tableManager = new TableManager();
         String tableContent = "MainId;Target\n"
                 + "125;A\n"
                 + "1;A\n"
@@ -101,7 +100,7 @@ public class TableManagerTest {
 
         List<Table> result;
         double repartitionRate = 0.56;
-        result = tableManager.trainTestSplitTable(tableIn, "Target", repartitionRate);
+        result = TableUtils.trainTestSplitTable(tableIn, "Target", repartitionRate);
 
         // Collect all classes of each table result to check repartition rate
         List<Object> classList1 = new ArrayList<>();
@@ -136,7 +135,6 @@ public class TableManagerTest {
     @Test
     public void testTrainTestSplitTableSingleClass() throws Exception {
 
-        TableManager tableManager = new TableManager();
         String tableContent = "MainId;Target\n"
                 + "125;A\n"
                 + "1;A\n"
@@ -152,7 +150,7 @@ public class TableManagerTest {
 
         List<Table> result;
         double repartitionRate = 0.24;
-        result = tableManager.trainTestSplitTable(tableIn, "Target", repartitionRate);
+        result = TableUtils.trainTestSplitTable(tableIn, "Target", repartitionRate);
 
         // Collect all classes of each table result to check repartition rate
         List<Object> classList1 = new ArrayList<>();
@@ -182,7 +180,6 @@ public class TableManagerTest {
     @Test
     public void testTrainTestSplitTableTooHighRepartition() throws Exception {
 
-        TableManager tableManager = new TableManager();
         String tableContent = "MainId;Target\n"
                 + "125;A\n"
                 + "1;A\n"
@@ -198,7 +195,7 @@ public class TableManagerTest {
 
         List<Table> result;
         double repartitionRate = 1.01;
-        result = tableManager.trainTestSplitTable(tableIn, "Target", repartitionRate);
+        result = TableUtils.trainTestSplitTable(tableIn, "Target", repartitionRate);
 
         // Collect all classes of each table result to check repartition rate
         List<Object> classList1 = new ArrayList<>();
@@ -228,7 +225,6 @@ public class TableManagerTest {
     @Test
     public void testTrainTestSplitTableTooLowRepartition() throws Exception {
 
-        TableManager tableManager = new TableManager();
         String tableContent = "MainId;Target\n"
                 + "125;A\n"
                 + "1;A\n"
@@ -244,7 +240,7 @@ public class TableManagerTest {
 
         List<Table> result;
         double repartitionRate = -0.01;
-        result = tableManager.trainTestSplitTable(tableIn, "Target", repartitionRate);
+        result = TableUtils.trainTestSplitTable(tableIn, "Target", repartitionRate);
 
         // Collect all classes of each table result to check repartition rate
         List<Object> classList1 = new ArrayList<>();
@@ -274,7 +270,6 @@ public class TableManagerTest {
     @Test(expected = ResourceNotFoundException.class)
     public void testTrainTestSplitTableWrongTarget() throws Exception {
 
-        TableManager tableManager = new TableManager();
         String tableContent = "MainId;Target\n"
                 + "125;A\n"
                 + "1;A\n"
@@ -290,7 +285,7 @@ public class TableManagerTest {
         Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
 
         double repartitionRate = 0.56;
-        tableManager.trainTestSplitTable(tableIn, "WrongTarget", repartitionRate);
+        TableUtils.trainTestSplitTable(tableIn, "WrongTarget", repartitionRate);
     }
 
     /**
@@ -321,7 +316,7 @@ public class TableManagerTest {
 
         List<Table> result;
         double repartitionRate = 0.56;
-        result = tableManager.trainTestSplitTable(table, "target", repartitionRate);
+        result = TableUtils.trainTestSplitTable(table, "target", repartitionRate);
 
         // collect all classes of each table result to check repartition rate
         List<Object> classList1 = new ArrayList<>();
@@ -348,7 +343,6 @@ public class TableManagerTest {
     @Test
     public void testRandomSplitTable() throws Exception {
 
-        TableManager tableManager = new TableManager();
         String tableContent = "MainId;Target\n"
                 + "125;A\n"
                 + "1;A\n"
@@ -366,7 +360,7 @@ public class TableManagerTest {
 
         List<Table> result;
         double repartitionRate = 0.56;
-        result = tableManager.randomSplitTable(tableIn, repartitionRate);
+        result = TableUtils.randomSplitTable(tableIn, repartitionRate);
 
         // checking repartition rate in result
         assertEquals(Math.round(tableContentSize * repartitionRate), result.get(0).getRowCount(false));
@@ -401,7 +395,7 @@ public class TableManagerTest {
 
         List<Table> result;
         double repartitionRate = 0.6;
-        result = tableManager.randomSplitTable(tableIn, repartitionRate);
+        result = TableUtils.randomSplitTable(tableIn, repartitionRate);
 
         // checking repartition rate in result
         assertEquals(Math.round(tableContentSize * repartitionRate), result.get(0).getRowCount(false));
@@ -900,8 +894,7 @@ public class TableManagerTest {
     @Test
     public void testGetRow() throws Exception {
 
-        TableManager mng = new TableManager();
-        Table myT = mng.initEmptyTable(true, true);
+        Table myT = TableUtils.initEmptyTable(true, true);
         myT.getColumnsHeader().addItem("One").addItem("Two").addItem("Three");
         for (int i = 0; i < 10; i++) {
             myT.appendRow("row" + i, Arrays.asList(i, i + 2));
@@ -944,8 +937,7 @@ public class TableManagerTest {
     @Test
     public void testGetRowsHeaderItems() throws Exception {
 
-        TableManager mng = new TableManager();
-        Table myT = mng.initEmptyTable(false, true);
+        Table myT = TableUtils.initEmptyTable(false, true);
 
         myT.getRowsHeader().addItems("0", "1", "2", "3", "4");
         for (int i = 0; i < 10; i++) {
@@ -977,8 +969,7 @@ public class TableManagerTest {
     @Test
     public void testGetColumnsHeaderItems() throws Exception {
 
-        TableManager mng = new TableManager();
-        Table myT = mng.initEmptyTable(true, false);
+        Table myT = TableUtils.initEmptyTable(true, false);
 
         // unusual case: handling Integer -instead of String- in header data ... why not ...
         myT.getColumnsHeader().addItems(0, 1, 2, 3, 8);
@@ -1000,7 +991,7 @@ public class TableManagerTest {
             System.out.println(myT.getColumn("0"));
 
         // usual case: handling Strings in header data
-        Table myUsualT = mng.initEmptyTable(true, false);
+        Table myUsualT = TableUtils.initEmptyTable(true, false);
         myUsualT.getColumnsHeader().addItems("10", "1", "2", "3", "8");
         for (int i = 0; i < 10; i++) {
             myUsualT.appendRow(Arrays.asList("a" + i, "b" + i, "c" + i, "d" + i, "e" + i));
@@ -1024,8 +1015,7 @@ public class TableManagerTest {
     @Test
     public void testSortRowswithoutHeaders() throws Exception {
 
-        TableManager mng = new TableManager();
-        Table myTWithoutRowHeader = mng.initEmptyTable(false, false);
+        Table myTWithoutRowHeader = TableUtils.initEmptyTable(false, false);
 
         myTWithoutRowHeader.appendRow(Arrays.asList("bla3", "BLAH3", 3.5));
         myTWithoutRowHeader.appendRow(Arrays.asList("bla2", "BLAH2", 2.0));
@@ -1060,8 +1050,7 @@ public class TableManagerTest {
     @Test
     public void testSortRowsWithColHeader() throws Exception {
 
-        TableManager mng = new TableManager();
-        Table myTWithoutRowHeader = mng.initEmptyTable(true, false);
+        Table myTWithoutRowHeader = TableUtils.initEmptyTable(true, false);
 
         // unusual case: handling Integer -instead of String- in header data ... why not ...
         myTWithoutRowHeader.getColumnsHeader().addItems("First", "Blabla", "Order");
@@ -1100,8 +1089,7 @@ public class TableManagerTest {
     @Test
     public void testSortRowsWithAllHeaders() throws Exception {
 
-        TableManager mng = new TableManager();
-        Table myTWithoutRowHeader = mng.initEmptyTable(true, true);
+        Table myTWithoutRowHeader = TableUtils.initEmptyTable(true, true);
 
         // unusual case: handling Integer -instead of String- in header data ... why not ...
         myTWithoutRowHeader.getColumnsHeader().addItems("TopLeft", "First", "Blabla", "Order");
@@ -1148,10 +1136,8 @@ public class TableManagerTest {
     @Test
     public void testInsertColumnWithAllHeaders() throws Exception {
 
-        TableManager mng = new TableManager();
-
         // both headers are managed
-        Table myTable = mng.initEmptyTable(true, true);
+        Table myTable = TableUtils.initEmptyTable(true, true);
 
         // unusual case: handling Integer -instead of String- in header data ... why not ...
         myTable.getColumnsHeader().addItems("TopLeft", "First", "Blabla", "Order");
@@ -1185,8 +1171,7 @@ public class TableManagerTest {
     @Test
     public void testInsertColumnWithColHeader() throws Exception {
 
-        TableManager mng = new TableManager();
-        Table myTWithColHeader = mng.initEmptyTable(true, false);
+        Table myTWithColHeader = TableUtils.initEmptyTable(true, false);
 
         // unusual case: handling Integer -instead of String- in header data ... why not ...
         myTWithColHeader.getColumnsHeader().addItems("First", "Blabla", "Order");
@@ -1221,10 +1206,8 @@ public class TableManagerTest {
     @Test
     public void testInsertColumnWithoutHeader() throws Exception {
 
-        TableManager mng = new TableManager();
-
         // no headers
-        Table myTable = mng.initEmptyTable(false, false);
+        Table myTable = TableUtils.initEmptyTable(false, false);
 
         myTable.appendRow(Arrays.asList("bla3", "BLAH3", 3));
         myTable.appendRow(Arrays.asList("bla2", "BLAH2", 2));
@@ -1253,10 +1236,8 @@ public class TableManagerTest {
     @Test
     public void testInsertRowWithoutHeader() throws Exception {
 
-        TableManager mng = new TableManager();
-
         // no headers
-        Table myTable = mng.initEmptyTable(false, false);
+        Table myTable = TableUtils.initEmptyTable(false, false);
 
         myTable.appendRow(Arrays.asList("bla3", "BLAH3", 3));
         myTable.appendRow(Arrays.asList("bla2", "BLAH2", 2));
@@ -1286,8 +1267,7 @@ public class TableManagerTest {
     @Test
     public void testInsertRowWithAllHeaders() throws Exception {
 
-        TableManager mng = new TableManager();
-        Table myTable = mng.initEmptyTable(true, true);
+        Table myTable = TableUtils.initEmptyTable(true, true);
 
         // unusual case: handling Integer -instead of String- in header data ... why not ...
         myTable.getColumnsHeader().addItems("TopLeft", "First", "Blabla", "Order");
