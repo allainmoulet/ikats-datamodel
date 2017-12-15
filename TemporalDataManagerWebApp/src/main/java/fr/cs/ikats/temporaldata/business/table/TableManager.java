@@ -593,14 +593,14 @@ public class TableManager {
      * @throws ResourceNotFoundException either the resource Table named tableName is not found in the database, or the column is not found in
      *                                   the table.
      */
-    public <T> List<T> getColumnFromTable(String tableName, String columnName)
+    public List<String> getColumnFromTable(String tableName, String columnName)
             throws IkatsException, IkatsDaoException, ResourceNotFoundException {
 
         TableInfo table = readFromDatabase(tableName);
 
         Table tableH = initTable(table, false);
 
-        List<T> column = tableH.getColumn(columnName);
+        List<String> column = tableH.getColumn(columnName);
 
         LOGGER.trace("Column " + columnName + " retrieved from table : " + tableName);
 
@@ -769,7 +769,7 @@ public class TableManager {
         table.sortRowsByColumnValues(targetColumnName, false);
 
         // Extract classes column
-        List<Object> classColumnContent = table.getColumn(targetColumnName);
+        List<String> classColumnContent = table.getColumn(targetColumnName);
 
         // Building list of indexes where classes change
         List<Integer> indexList = new ArrayList<>();

@@ -246,21 +246,6 @@ public class Table {
 	}
 
 	/**
-	 * Gets the header size. Internal use only.
-	 *
-	 * @param theHeader
-	 *            Header object to get the size for
-	 * @return size of the theHeader.data, if defined, otherwise -1
-	 */
-	private int getHeaderSize(Header theHeader) {
-
-		if (theHeader == null || theHeader.data == null)
-			return -1;
-
-		return theHeader.data.size();
-	}
-
-	/**
 	 * Retrieves the index position of a header name in the header container (theHeader).
 	 * <p>
 	 * Note: the value is compared to theHeader.data.get(x).toString(): this enables to manage also header data types
@@ -304,9 +289,9 @@ public class Table {
 	 * @throws IkatsException
 	 *             unexpected error occured: for exemple ClassCastException error.
 	 */
-	public <T> List<T> getColumn(String columnName) throws IkatsException, ResourceNotFoundException {
+	public List<String> getColumn(String columnName) throws IkatsException, ResourceNotFoundException {
 
-		return (List<T>) getColumn(columnName, String.class);
+		return getColumn(columnName, String.class);
 	}
 
 	/**
@@ -315,6 +300,7 @@ public class Table {
 	 * Note: new possibility: in order to read the data+link parts of each cell: pass TableElement.class as
 	 * castingClass.
 	 * 
+	 * @param <T> Type of the castingClass parameter
 	 * @param columnName
 	 *            name of the selected column: this criteria is in the column header.
 	 * @param castingClass
@@ -350,6 +336,7 @@ public class Table {
 	 * Note: new possibility: in order to read the data+link parts of each cell: pass TableElement.class as
 	 * castingClass.
 	 * 
+	 * @param <T> Type of the castingClass parameter 
 	 * @param index
 	 *            of selected column. Note: index relative to the global table. If rows header exists: 0 points to rows
 	 *            header; otherwise 0 points to first column of this.getContent().
@@ -363,7 +350,7 @@ public class Table {
 	 * @throws ResourceNotFoundException
 	 *             when the column is not found
 	 */
-	public <T> List<T> getColumn(int index, Class<T> castingClass) throws IkatsException, ResourceNotFoundException {
+    public <T> List<T> getColumn(int index, Class<T> castingClass) throws IkatsException, ResourceNotFoundException {
 
 		try {
 			if (index < 0) {
@@ -632,18 +619,6 @@ public class Table {
 	}
 
 	/**
-	 * Internal getter of this.tableInfo.content.links
-	 * 
-	 * @return this.tableInfo.content.links or null if undefined
-	 */
-	private List<List<DataLink>> getContentDataLinks() {
-		if (this.tableInfo.content == null)
-			return null;
-
-		return this.tableInfo.content.links;
-	}
-
-	/**
 	 * Checks the consistency of this table, regarding the headers/content dimensions of defined data and links.
 	 * 
 	 * @throws IkatsException
@@ -715,7 +690,6 @@ public class Table {
 	private void internalChecks(int sizeColHeaderData, int sizeColHeaderLinks, int sizeRowHeaderData,
 			int sizeRowHeaderLinks, int nbContentColumnsData, int nbContentRowsData, int nbContentColumnsLinks,
 			int nbContentRowsLinks) throws IkatsException {
-		String msg = null;
 
 		// Always satisfied: inside content ...
 		// -------------------------------------
@@ -1348,9 +1322,9 @@ public class Table {
 				if (myContent.cells == null)
 					myContent.cells = new ArrayList<>();
 
-				for (Object colDataItem : colData) {
-					myContent.cells.add(new ArrayList<>());
-				}
+				for (int i = 0; i < colData.size(); i++) {
+				    myContent.cells.add(new ArrayList<>());
+                }
 			}
 			myContent.addColumn(TableElement.encodeElements(colData));
 		}

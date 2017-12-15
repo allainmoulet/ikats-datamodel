@@ -670,7 +670,7 @@ public class TableManagerTest {
 
         assertEquals(columnnTwo, Arrays.asList(new Object[]{2.0, 2.2, false}));
 
-        List<Object> columnnOfRowHeaders = tableH.getColumn("Above row header");
+        List<String> columnnOfRowHeaders = tableH.getColumn("Above row header");
         if (verbose)
             System.out.println(columnnOfRowHeaders);
 
@@ -768,7 +768,7 @@ public class TableManagerTest {
         // assertEquals( tableH.cells.links.get(1).get(1).type,
         // tableHBis.getColumnFromTable("Two") );
 
-        List<Object> columnnOfRowHeaders = tableH.getColumn("Above row header");
+        List<String> columnnOfRowHeaders = tableH.getColumn("Above row header");
         if (verbose)
             System.out.println(columnnOfRowHeaders);
 
