@@ -63,11 +63,12 @@ import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.operators.IkatsOperatorException;
 import fr.cs.ikats.operators.JoinTableWithTs;
 import fr.cs.ikats.operators.TablesMerge;
+import fr.cs.ikats.operators.TrainTestSplitTable;
 import fr.cs.ikats.table.TableEntitySummary;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
-import fr.cs.ikats.temporaldata.business.Table;
-import fr.cs.ikats.temporaldata.business.TableInfo;
-import fr.cs.ikats.temporaldata.business.TableManager;
+import fr.cs.ikats.temporaldata.business.table.Table;
+import fr.cs.ikats.temporaldata.business.table.TableInfo;
+import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
@@ -225,7 +226,7 @@ public class TableResource extends AbstractResource {
             rowHeaders.add(null);
 
             // init output table with both columns/rows header
-            Table outputTable = tableManager.initEmptyTable(true, true);
+            Table outputTable = TableManager.initEmptyTable(true, true);
 
             // parse csv content to :
             // 1. retrieve data to build json table structure to store
@@ -460,7 +461,7 @@ public class TableResource extends AbstractResource {
         Collections.sort(listMetaTs);
 
         // init empty table managing rows/columns headers
-        Table outputTable = tableManager.initEmptyTable(true, true);
+        Table outputTable = TableManager.initEmptyTable(true, true);
         outputTable.getColumnsHeader().addItem(populationId);
         for (String metaTs : listMetaTs) {
             for (int i = 1; i < colHeaders.size(); i++) {
@@ -568,30 +569,26 @@ public class TableResource extends AbstractResource {
             logger.error(context);
             return Response.status(Response.Status.CONFLICT).entity(context).build();
         }
+        
+        // Creates the request to the operator. Should be replaced in a future version by the JAXRS JSON transformation
+        // from the HTTP request. See mergeTables(Request)
+        TrainTestSplitTable.Request request = new TrainTestSplitTable.Request();
+        request.tableName = tableName;
+        request.targetColumnName = targetColumnName;
+        request.repartitionRate = repartitionRate;
+        request.outputTableName = outputTableName;
+        
+        // Try to initialize the operator with the request
+        TrainTestSplitTable trainTestSplitTable = new TrainTestSplitTable(request);
+        
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
-
-        // retrieve table tableName from db
-        TableInfo tableInfo = tableManager.readFromDatabase(tableName);
-        Table table = tableManager.initTable(tableInfo, false);
-
-        List<Table> tabListResult;
-        if (targetColumnName.equals("")) {
-            tabListResult = tableManager.randomSplitTable(table, repartitionRate);
-        } else {
-            tabListResult = tableManager.trainTestSplitTable(table, targetColumnName, repartitionRate);
-        }
-
-        // Store tables in database
-        tabListResult.get(0).setName(outputTableName + "_Train");
-        tabListResult.get(1).setName(outputTableName + "_Test");
-        tableManager.createInDatabase(tabListResult.get(0).getTableInfo());
-        tableManager.createInDatabase(tabListResult.get(1).getTableInfo());
-
+        trainTestSplitTable.apply();
         chrono.stop(logger);
-
+        
         // tables names are returned in the body
         return Response.status(Response.Status.OK).entity(
                 outputTableName + "_Train" + "," + outputTableName + "_Test").build();
+
     }
 
 

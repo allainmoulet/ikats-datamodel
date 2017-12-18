@@ -32,10 +32,9 @@ package fr.cs.ikats.temporaldata;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.table.TableEntitySummary;
-import fr.cs.ikats.temporaldata.business.Table;
-import fr.cs.ikats.temporaldata.business.TableInfo;
-import fr.cs.ikats.temporaldata.business.TableManager;
-
+import fr.cs.ikats.temporaldata.business.table.Table;
+import fr.cs.ikats.temporaldata.business.table.TableInfo;
+import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;

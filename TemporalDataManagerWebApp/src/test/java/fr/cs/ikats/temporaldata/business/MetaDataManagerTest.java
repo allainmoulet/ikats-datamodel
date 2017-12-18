@@ -33,6 +33,8 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
+import fr.cs.ikats.temporaldata.business.table.Table;
+import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import org.apache.log4j.Logger;
 import org.junit.Test;

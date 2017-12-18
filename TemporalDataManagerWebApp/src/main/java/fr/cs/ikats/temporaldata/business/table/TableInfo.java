@@ -27,7 +27,7 @@
  * 
  */
 
-package fr.cs.ikats.temporaldata.business;
+package fr.cs.ikats.temporaldata.business.table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -735,7 +735,7 @@ public class TableInfo {
 		 *
 		 * @return
 		 */
-		List<Object> getData() {
+		public List<Object> getData() {
 			return this.data;
 		}
 
