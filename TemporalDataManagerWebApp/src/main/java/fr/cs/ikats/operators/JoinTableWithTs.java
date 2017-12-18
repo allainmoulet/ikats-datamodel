@@ -41,7 +41,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
-import fr.cs.ikats.temporaldata.business.*;
+import fr.cs.ikats.temporaldata.business.DataSetManager;
+import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
+import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableElement;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;

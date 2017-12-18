@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,7 +10,7 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
@@ -55,7 +55,7 @@ public class TrainTestSplitTable {
         public String outputTableName;
 
         public Request() {
-            ; // default constructor
+            // default constructor
         }
     }
 
@@ -72,58 +72,54 @@ public class TrainTestSplitTable {
         this.request = request;
         this.tableManager = new TableManager();
     }
-    
+
     /**
      * Package private method to be used in tests
      */
     TrainTestSplitTable() {
         this.tableManager = new TableManager();
     }
-    
+
     /**
      * Apply the operator to the {@link Request}, save the result.
-     * @throws ResourceNotFoundException 
-     * @throws IkatsException 
-     * @throws IkatsDaoMissingRessource 
-     * @throws InvalidValueException 
-     * @throws IkatsDaoConflictException 
+     * @throws ResourceNotFoundException
+     * @throws IkatsException
+     * @throws IkatsDaoMissingRessource
+     * @throws InvalidValueException
+     * @throws IkatsDaoConflictException
      *
      * @throws IkatsOperatorException
      */
     public void apply() throws IkatsDaoMissingRessource, IkatsException, ResourceNotFoundException, IkatsDaoConflictException, InvalidValueException {
-        
+
         // do the job
         List<Table> tabListResult = doCompute();
-        
+
         // Store tables in database
         tabListResult.get(0).setName(request.outputTableName + "_Train");
         tabListResult.get(1).setName(request.outputTableName + "_Test");
         tableManager.createInDatabase(tabListResult.get(0).getTableInfo());
         tableManager.createInDatabase(tabListResult.get(1).getTableInfo());
     }
-    
+
     /**
-     * @param tableName
-     * @param targetColumnName
-     * @param repartitionRate
-     * @param outputTableName
-     * @throws IkatsException 
-     * @throws IkatsDaoMissingRessource 
-     * @throws ResourceNotFoundException 
+     * @throws IkatsException
+     * @throws IkatsDaoMissingRessource
+     * @throws ResourceNotFoundException
      */
     public List<Table> doCompute() throws IkatsDaoMissingRessource, IkatsException, ResourceNotFoundException {
-        
+
         // retrieve table tableName from db
         TableInfo tableInfo = tableManager.readFromDatabase(request.tableName);
         Table table = tableManager.initTable(tableInfo, false);
-    
+
         List<Table> tabListResult;
         if ("".equals(request.targetColumnName)) {
             tabListResult = randomSplitTable(table, request.repartitionRate);
         } else {
             tabListResult = trainTestSplitTable(table, request.targetColumnName, request.repartitionRate);
         }
-    
+
         return tabListResult;
     }
 
@@ -140,27 +136,27 @@ public class TrainTestSplitTable {
      * @throws ResourceNotFoundException row from original table is not found
      */
     List<Table> randomSplitTable(Table table, double repartitionRate) throws ResourceNotFoundException, IkatsException {
-    
+
         List<Integer> indexListInput = new ArrayList<>();
         List<List<Integer>> indexListOutput;
         boolean withColHeaders = table.isHandlingColumnsHeader();
         boolean withRowHeaders = table.isHandlingRowsHeader();
-    
+
         // Generate list of row indexes of input table
         for (int i = 0; i < table.getRowCount(false); i++) {
             indexListInput.add(i);
         }
-    
+
         // Randomly split indexes list
         indexListOutput = randomSplitTableIndexes(indexListInput, repartitionRate);
-    
+
         // Result initialization
         Table table1 = TableManager.initEmptyTable(withColHeaders, withRowHeaders);
         Table table2 = TableManager.initEmptyTable(withColHeaders, withRowHeaders);
         List<Table> result = new ArrayList<>();
         result.add(table1);
         result.add(table2);
-    
+
         // Extract rows at split indexes to generate output
         table1 = extractIndexes(table, table1, indexListOutput.get(0));
         table2 = extractIndexes(table, table2, indexListOutput.get(1));
@@ -168,15 +164,15 @@ public class TrainTestSplitTable {
             table1.getColumnsHeader().addItems(table.getColumnsHeader().getItems().toArray());
             table2.getColumnsHeader().addItems(table.getColumnsHeader().getItems().toArray());
         }
-    
+
         // Assuming first column is id, sorting output tables
         table1.sortRowsByColumnValues(0, false);
         table2.sortRowsByColumnValues(0, false);
-    
+
         return result;
-    
+
     }
-    
+
     /**
      * Randomly split table list indexes in 2 indexes lists according to repartition rate
      * ex : repartitionRate = 0.6
@@ -190,28 +186,28 @@ public class TrainTestSplitTable {
      * @param repartitionRate repartition rate between two output indexes lists
      */
     private List<List<Integer>> randomSplitTableIndexes(List<Integer> indexList, double repartitionRate) {
-    
+
         // Randomize list content
         Collections.shuffle(indexList);
         int nbItems = indexList.size();
-    
+
         // Constraint the range of repartition to [0, 1] if overshoot the limits
         repartitionRate = Math.max(repartitionRate, 0);
         repartitionRate = Math.min(repartitionRate, 1);
-    
+
         // Compute index of list where to split
         int indexSplit = (int) Math.round(nbItems * repartitionRate);
-    
+
         List<List<Integer>> result = new ArrayList<>();
-    
+
         // Splitting
         result.add(new ArrayList<>(indexList.subList(0, indexSplit)));
         result.add(new ArrayList<>(indexList.subList(indexSplit, nbItems)));
-    
+
         return result;
-    
+
     }
-    
+
 
     /**
      * Original input table is randomly split into 2 tables according to repartition rate
@@ -235,16 +231,16 @@ public class TrainTestSplitTable {
      */
     List<Table> trainTestSplitTable(Table table, String targetColumnName, double repartitionRate) throws
             ResourceNotFoundException, IkatsException {
-    
+
         boolean withColHeaders = table.isHandlingColumnsHeader();
         boolean withRowHeaders = table.isHandlingRowsHeader();
-    
+
         // Sort table by column 'target'
         table.sortRowsByColumnValues(targetColumnName, false);
-    
+
         // Extract classes column
         List<String> classColumnContent = table.getColumn(targetColumnName);
-    
+
         // Building list of indexes where classes change
         List<Integer> indexList = new ArrayList<>();
         Object lastClassValue = classColumnContent.get(0);
@@ -254,13 +250,13 @@ public class TrainTestSplitTable {
                 lastClassValue = classColumnContent.get(i);
             }
         }
-    
+
         // Creating indexes list by class
         int nbLines = classColumnContent.size();
         List<List<List<Integer>>> indexesListByClass = new ArrayList<>();
         Iterator<Integer> iteratorIndexList = indexList.iterator();
         List<Integer> listIndexToAppend = new ArrayList<>();
-    
+
         // Handle the case where there is only 1 class
         int nextIndex = nbLines - 1;
         if (iteratorIndexList.hasNext()) {
@@ -278,14 +274,14 @@ public class TrainTestSplitTable {
                 }
             }
         }
-    
+
         // Result initialization
         Table table1 = TableManager.initEmptyTable(withColHeaders, withRowHeaders);
         Table table2 = TableManager.initEmptyTable(withColHeaders, withRowHeaders);
         List<Table> result = new ArrayList<>();
         result.add(table1);
         result.add(table2);
-    
+
         // Filling column headers
         if (withColHeaders) {
             table1.getColumnsHeader().addItems(table.getColumnsHeader().getItems().toArray());
@@ -296,7 +292,7 @@ public class TrainTestSplitTable {
             table1.getRowsHeader().addItem(null);
             table2.getRowsHeader().addItem(null);
         }
-    
+
         // Retrieving rows from original table according to list of indexes previously generated
         // and filling output tables
         // Shifting indexes in case of row headers
@@ -317,11 +313,11 @@ public class TrainTestSplitTable {
                 }
             }
         }
-    
+
         // assuming first column is id, sorting output tables
         table1.sortRowsByColumnValues(0, false);
         table2.sortRowsByColumnValues(0, false);
-    
+
         return result;
     }
 
@@ -335,15 +331,15 @@ public class TrainTestSplitTable {
      * @throws ResourceNotFoundException row from original table is not found
      */
     private Table extractIndexes(Table tableIn, Table tableOut, List<Integer> indexList) throws ResourceNotFoundException, IkatsException {
-    
+
         // Shifting indexes in case of row headers
         int shift = (tableIn.isHandlingColumnsHeader()) ? 1 : 0;
-    
+
         // Init row headers (first item is null)
         if (tableIn.isHandlingRowsHeader()) {
             tableOut.getRowsHeader().addItem(null);
         }
-    
+
         // Retrieving rows from original table according to list of indexes previously generated
         // and filling output tables (row headers included, if managed)
         for (Integer index : indexList) {
@@ -353,8 +349,8 @@ public class TrainTestSplitTable {
             tableOut.appendRow(tableIn.getRow(index + shift, Object.class));
         }
         return tableOut;
-    
+
     }
 
-    
+
 }
