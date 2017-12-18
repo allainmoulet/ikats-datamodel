@@ -123,11 +123,14 @@ public class TablesMerge {
         // Retrieve the tables from database
         Table firstTable;
         Table secondTable;
+        String tableNameToRead = null;
         try {
-            firstTable = tableManager.initTable(tableManager.readFromDatabase(this.request.tableNames[0]), false);
-            secondTable = tableManager.initTable(tableManager.readFromDatabase(this.request.tableNames[1]), false);
+            tableNameToRead = this.request.tableNames[0];
+            firstTable = tableManager.initTable(tableManager.readFromDatabase(tableNameToRead), false);
+            tableNameToRead = this.request.tableNames[1];
+            secondTable = tableManager.initTable(tableManager.readFromDatabase(tableNameToRead), false);
         } catch (IkatsDaoMissingRessource e) {
-            String msg = "Table " + this.request.tableNames[0] + " not found in database";
+            String msg = "Table " + tableNameToRead + " not found in database";
             throw new IkatsOperatorException(msg, e);
         }
 
