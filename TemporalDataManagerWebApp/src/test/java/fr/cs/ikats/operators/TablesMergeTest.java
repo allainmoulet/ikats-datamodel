@@ -143,41 +143,19 @@ public class TablesMergeTest {
     private static Table table4 = null;
     private static Table table5 = null;
     private static TableManager tableManager = new TableManager();
-    private static ArrayList<Table> tablesList = new ArrayList();
-
 
     @BeforeClass
     public static void setUpBeforClass() throws Exception {
         table1 = buildTableFromCSVString("table1", TABLE1_CSV, true, false);
-        tablesList.add(table1);
         table1WithRow = buildTableFromCSVString("table1WithRow", TABLE1_CSV, true, true);
-        tablesList.add(table1WithRow);
         table2 = buildTableFromCSVString("table2", TABLE2_CSV, true, false);
-        tablesList.add(table2);
         table2WithRow = buildTableFromCSVString("table2WithRow", TABLE2_CSV, true, true);
-        tablesList.add(table2WithRow);
         table1Smaller = buildTableFromCSVString("table1Smaller", TABLE1_SMALLER_CSV, true, false);
-        tablesList.add(table1Smaller);
         table2Smaller = buildTableFromCSVString("table2Smaller", TABLE2_SMALLER_CSV, true, false);
-        tablesList.add(table2Smaller);
         table3 = buildTableFromCSVString("table3", TABLE3_CSV, false, false);
-        tablesList.add(table3);
         table4 = buildTableFromCSVString("table4", TABLE4_CSV, false, false);
-        tablesList.add(table4);
         table5 = buildTableFromCSVString("table5", TABLE5_CSV, true, false);
-        tablesList.add(table5);
-
-        for (Table table : tablesList) {
-            tableManager.createInDatabase(table.getTableInfo());
         }
-    }
-
-    @AfterClass
-    public static void tearDownAfterClass() throws Exception {
-        for (Table table : tablesList) {
-            tableManager.deleteFromDatabase(table.getName());
-        }
-    }
 
     /**
      * Construction check with 2 tables -> OK
@@ -254,6 +232,10 @@ public class TablesMergeTest {
                 + "B;two;02;2;0010;9,42;12,57;6,28;B\n";
         Table expectedTable = prepareExpectedTable(outputTableName, expected_merge, true, false);
 
+        // Register the 2 tables in database
+        tableManager.createInDatabase(table1.getTableInfo());
+        tableManager.createInDatabase(table2.getTableInfo());
+
         // Build the nominal request
         Request tableMergeRequest = new Request();
         tableMergeRequest.joinOn = "H1-2";
@@ -285,7 +267,8 @@ public class TablesMergeTest {
 
         // Clean
         tableManager.deleteFromDatabase(outputTableName);
-
+        tableManager.deleteFromDatabase(table1.getName());
+        tableManager.deleteFromDatabase(table2.getName());
     }
 
     /**
@@ -621,15 +604,8 @@ public class TablesMergeTest {
         Table expectedResult = prepareExpectedTable(outputTableName, expected_merge, resultTableWithColumnHeader,
                 resultTableWithRowHeader);
 
-        // Prepare the parameters of the merge
-        Request tableMergeRequest = new Request();
-        tableMergeRequest.joinOn = joinOn;
-        tableMergeRequest.outputTableName = outputTableName;
-        tableMergeRequest.tableNames = new String[]{firstTable.getName(), secondTable.getName()};
-
         // Instantiate the operator and do the job
-        TablesMerge tablesMerge = new TablesMerge(tableMergeRequest);
-        Table obtainedResult = tablesMerge.doMerge();
+        Table obtainedResult = new TablesMerge().doMerge(firstTable.getTableInfo(), secondTable.getTableInfo(), joinOn, outputTableName);
 
         // Test the expected number of columns
         assertEquals("Bad column count", expectedResult.getColumnCount(true), obtainedResult.getColumnCount(true));
