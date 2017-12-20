@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,9 +10,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -29,9 +29,12 @@
 package fr.cs.ikats.temporaldata.business;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
+import fr.cs.ikats.temporaldata.business.table.Table;
+import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import org.apache.log4j.Logger;
 import org.junit.Test;
@@ -81,10 +84,11 @@ public class MetaDataManagerTest {
                 table.appendRow(items);
             }
 
-            // Save the table into database
-            String rid = tableManager.createInDatabase(name, table);
+            // Store the table into database
+            table.setName(name);
+            tableManager.createInDatabase(table.getTableInfo());
 
-            logger.trace("Table " + name + " saved with RID=" + rid);
+            logger.trace("Table " + name + " saved with name=" + name);
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -553,18 +557,13 @@ public class MetaDataManagerTest {
             try {
                 ArrayList<FunctionalIdentifier> obtained = (ArrayList<FunctionalIdentifier>)
                         metaDataManager.filterByMetaWithTsuidList(scope, critList);
-            } catch (ResourceNotFoundException e) {
+            } catch (IkatsDaoMissingRessource e) {
                 // No column matches --> Test is OK
-                e.printStackTrace();
-                assertTrue(e.getMessage().contains("No result found for table"));
             } catch (Exception e) {
                 fail();
             }
         } catch (Exception e) {
             fail("Unexpected error");
-        } finally {
-            // Cleanup
-            deleteTable("TestTable");
         }
     }
 }

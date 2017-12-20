@@ -22,20 +22,19 @@
  * 
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
+ * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
  * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
  * 
  */
 
-package fr.cs.ikats.temporaldata.business;
+package fr.cs.ikats.temporaldata.business.table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
-import fr.cs.ikats.temporaldata.business.TableInfo.Header;
-import fr.cs.ikats.temporaldata.business.TableInfo.TableContent;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -531,7 +530,7 @@ public class TableInfo {
 	 * DataLink describes how to get linked data, at a deeper level.
 	 */
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	static public class DataLink {
+	static public class DataLink implements Serializable {
 
 		/**
 		 * Functional type of the linked data.
@@ -736,7 +735,7 @@ public class TableInfo {
 		 *
 		 * @return
 		 */
-		List<Object> getData() {
+		public List<Object> getData() {
 			return this.data;
 		}
 

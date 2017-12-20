@@ -26,7 +26,7 @@
  * 
  */
 
-package fr.cs.ikats.temporaldata.business;
+package fr.cs.ikats.temporaldata.business.table;
 
 import java.util.Arrays;
 import java.util.List;
@@ -38,11 +38,13 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
-import fr.cs.ikats.temporaldata.business.TableInfo.DataLink;
-import fr.cs.ikats.temporaldata.business.TableInfo.Header;
-import fr.cs.ikats.temporaldata.business.TableInfo.TableContent;
-import fr.cs.ikats.temporaldata.business.TableInfo.TableDesc;
-import fr.cs.ikats.temporaldata.business.TableInfo.TableHeaders;
+import fr.cs.ikats.temporaldata.business.table.TableInfo;
+import fr.cs.ikats.temporaldata.business.table.TableManager;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.DataLink;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.Header;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.TableContent;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.TableDesc;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.TableHeaders;
 import junit.framework.TestCase;
 
 /**
