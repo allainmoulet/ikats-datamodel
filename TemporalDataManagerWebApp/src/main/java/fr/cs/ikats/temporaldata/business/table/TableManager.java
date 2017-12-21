@@ -84,11 +84,6 @@ public class TableManager {
     public static final Pattern TABLE_NAME_PATTERN = Pattern.compile("[a-zA-Z0-9_-]+");
 
     /**
-     * String encoding inconsistency error raised by checkConsistency() method
-     */
-    static final String MSG_INCONSISTENCY_IN_TABLE = "Inconsistency error''{0}'' in table=''{1}'' near ''{2}'' ";
-
-    /**
      * jsonObjectMapper manages JSON persistence of Table
      */
     private ObjectMapper jsonObjectMapper;
@@ -400,12 +395,20 @@ public class TableManager {
                 tableFullContent.add(table.getColumnsHeader().data);
             }
         }
-        for (int i = 0; i < table.getContentData().size(); i++) {
+        Integer max_loop;
+        if (table.isHandlingRowsHeader()) {
+            max_loop = table.getRowsHeader().data.size() - 1;
+        } else {
+            max_loop = table.getContentData().size();
+        }
+        for (int i = 0; i < max_loop; i++) {
             List<Object> tempRowData = new ArrayList<>();
             if (table.isHandlingRowsHeader()) {
                 tempRowData.add(table.getRowsHeader().data.get(i + 1));
             }
-            tempRowData.addAll(table.getContentData().get(i));
+            if (table.getContentData().size() != 0) {
+                tempRowData.addAll(table.getContentData().get(i));
+            }
             tableFullContent.add(tempRowData);
         }
 
@@ -502,9 +505,6 @@ public class TableManager {
         // Validate that table name match pattern
         validateTableName(tableName, "Create Table in database");
 
-        // Check the table consistency
-        new Table(table).checkConsistency();
-
         // convert table info to dao table entity
         TableEntity tableToStore = tableInfoToTableEntity(table);
 
@@ -590,7 +590,6 @@ public class TableManager {
     }
 
 
-
     /**
      * Creates and initializes the structure of an empty Table,
      * <ul>
@@ -604,10 +603,10 @@ public class TableManager {
      */
     public static Table initEmptyTable(boolean withColumnsHeader, boolean withRowsHeader) {
         TableInfo tableInfo = new TableInfo();
-    
+
         tableInfo.table_desc = new TableDesc();
         tableInfo.headers = new TableHeaders();
-    
+
         if (withRowsHeader) {
             tableInfo.headers.row = new Header();
             tableInfo.headers.row.data = new ArrayList<>();
@@ -616,10 +615,10 @@ public class TableManager {
             tableInfo.headers.col = new Header();
             tableInfo.headers.col.data = new ArrayList<>();
         }
-    
+
         tableInfo.content = new TableContent();
         tableInfo.content.cells = new ArrayList<>();
-    
+
         return new Table(tableInfo);
     }
 

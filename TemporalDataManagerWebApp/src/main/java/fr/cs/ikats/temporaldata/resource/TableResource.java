@@ -228,11 +228,17 @@ public class TableResource extends AbstractResource {
             // init output table with both columns/rows header
             Table outputTable = TableManager.initEmptyTable(true, true);
 
+            // init line counter
+            Integer lineNb = 1;
+
             // parse csv content to :
             // 1. retrieve data to build json table structure to store
             // 2. fix duplicates : if occurs, we stop at first duplicate and
             // send back 409 http code
             while ((line = reader.readLine()) != null) {
+
+                // increment line number
+                lineNb++;
 
                 // skip empty lines
                 if (line.isEmpty()) {
@@ -242,7 +248,7 @@ public class TableResource extends AbstractResource {
                 String[] items = line.split(separator, -1);
                 // check table content consistency
                 if (items.length != columnHeaders.size()) {
-                    String context = "Line length does not fit headers size in csv file : " + fileName;
+                    String context = "CSV line "+ lineNb + " : length does not fit headers size in file " + fileName;
                     logger.error(context);
                     return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
                 }
@@ -569,7 +575,7 @@ public class TableResource extends AbstractResource {
             logger.error(context);
             return Response.status(Response.Status.CONFLICT).entity(context).build();
         }
-        
+
         // Creates the request to the operator. Should be replaced in a future version by the JAXRS JSON transformation
         // from the HTTP request. See mergeTables(Request)
         TrainTestSplitTable.Request request = new TrainTestSplitTable.Request();
@@ -577,14 +583,14 @@ public class TableResource extends AbstractResource {
         request.targetColumnName = targetColumnName;
         request.repartitionRate = repartitionRate;
         request.outputTableName = outputTableName;
-        
+
         // Try to initialize the operator with the request
         TrainTestSplitTable trainTestSplitTable = new TrainTestSplitTable(request);
-        
+
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         trainTestSplitTable.apply();
         chrono.stop(logger);
-        
+
         // tables names are returned in the body
         return Response.status(Response.Status.OK).entity(
                 outputTableName + "_Train" + "," + outputTableName + "_Test").build();
