@@ -11,7 +11,7 @@
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -25,7 +25,6 @@
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
  * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
- *
  */
 
 package fr.cs.ikats.temporaldata.business.table;
@@ -76,8 +75,6 @@ public class TableManagerTest {
         TableInfo table = mng.loadFromJson(TableManagerTest.JSON_CONTENT_SAMPLE_1);
 
         Table tableH = mng.initTable(table, false);
-
-        tableH.checkConsistency();
 
         String firstColName = (String) tableH.getColumnsHeader().getData().get(0);
         List<String> funcIds = tableH.getColumn(firstColName);
@@ -165,8 +162,6 @@ public class TableManagerTest {
         lTestedTable.appendRow(Arrays.asList("hello2", 10));
         lTestedTable.appendRow(Arrays.asList("hello3", 100));
 
-        lTestedTable.checkConsistency();
-
         List<String> myIds = lTestedTable.getColumn("Id");
         List<Integer> myTargets = lTestedTable.getColumn("Target", Integer.class);
         assertEquals(Arrays.asList("hello", "hello2", "hello3"), myIds);
@@ -177,8 +172,6 @@ public class TableManagerTest {
         lTestedTableWithRowsH.appendRow("hello", Arrays.asList(1));
         lTestedTableWithRowsH.appendRow("hello2", Arrays.asList(10));
         lTestedTableWithRowsH.appendRow("hello3", Arrays.asList(100));
-
-        lTestedTableWithRowsH.checkConsistency();
 
         List<String> myIdsBIS = lTestedTableWithRowsH.getColumn("Id");
         // testing converted String
@@ -261,9 +254,6 @@ public class TableManagerTest {
         tableHBis.appendRow(Arrays.asList(row2));
         tableHBis.appendRow(Arrays.asList(row3));
 
-        tableH.checkConsistency();
-        tableHBis.checkConsistency();
-
         if (verbose)
             System.out.println(mng.serializeToJson(table));
         if (verbose)
@@ -291,7 +281,7 @@ public class TableManagerTest {
 
         // Simplified initializer used with tableHBis
         Table tableHBis = mng.initTable(Arrays.asList(new String[]{"Above row header", "One", "Two", "Three"}),
-                                        true);
+                true);
 
         // Defining the content rows - excluding row header part-
         Object[] row1 = new Object[]{"One", new Double(2.0), Boolean.FALSE};
@@ -307,9 +297,6 @@ public class TableManagerTest {
         tableHBis.appendRow("A", Arrays.asList(row1));
         tableHBis.appendRow("B", Arrays.asList(row2));
         tableHBis.appendRow("C", Arrays.asList(row3));
-
-        tableH.checkConsistency();
-        tableHBis.checkConsistency();
 
         if (verbose)
             System.out.println(mng.serializeToJson(table));
@@ -360,7 +347,7 @@ public class TableManagerTest {
 
         // Simplified initializer used with tableHBis
         Table tableHBis = mng.initTable(Arrays.asList(new String[]{"Above row header", "One", "Two", "Three"}),
-                                        true);
+                true);
         tableHBis.enableLinks(true, defColH, true, defRowH, true, defContent);
 
         // Defining the content rows - excluding row header part-
@@ -377,7 +364,7 @@ public class TableManagerTest {
 
         // ... this row has defined links ...
         List<TableElement> row2AsList = TableElement.encodeElements(new TableElement("Prem", linkOne),
-                                                                    new TableElement("Sec", linkTwo), "Tri");
+                new TableElement("Sec", linkTwo), "Tri");
 
         // Row3
         List<TableElement> row3 = TableElement.encodeElements(1, 2, 3);
@@ -400,9 +387,6 @@ public class TableManagerTest {
         tableHBis.appendRow("B", row2AsList);
 
         tableHBis.appendRow("C", row3);
-
-        tableH.checkConsistency();
-        tableHBis.checkConsistency();
 
         if (verbose)
             System.out.println(mng.serializeToJson(table));
@@ -496,8 +480,6 @@ public class TableManagerTest {
         int finalRowCount = tableH.getRowCount(true);
         int finalColumnCount = tableH.getColumnCount(true);
 
-        tableH.checkConsistency();
-
         assertTrue(initialColumnCount == finalColumnCount);
         assertTrue(initialRowCount + 1 == finalRowCount);
 
@@ -533,11 +515,9 @@ public class TableManagerTest {
         try {
             myT.getColumn("One", BigDecimal.class);
             fail("Incorrect: class cast exception not detected !");
-        }
-        catch (IkatsException e) {
+        } catch (IkatsException e) {
             assertTrue(true);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             fail("Unexpected exception");
         }
 
@@ -572,12 +552,10 @@ public class TableManagerTest {
         try {
             myT.getRow("row2", BigDecimal.class);
             fail("Incorrect: class cast exception not detected !");
-        }
-        catch (IkatsException e) {
+        } catch (IkatsException e) {
             if (verbose)
                 System.out.println("testGetRow: Got expected exception");
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             fail("Unexpected exception");
         }
 
@@ -698,7 +676,6 @@ public class TableManagerTest {
         assertEquals(Arrays.asList("bla4", "BLAH4", 3.7), myTWithoutRowHeader.getRow(3, Object.class));
         assertEquals(Arrays.asList("bla6", "BLAH6", 6.0), myTWithoutRowHeader.getRow(4, Object.class));
 
-        myTWithoutRowHeader.checkConsistency();
     }
 
     /**
@@ -735,8 +712,6 @@ public class TableManagerTest {
         assertEquals(Arrays.asList("bla3", "BLAH3", 3), myTWithoutRowHeader.getRow(3, Object.class));
         assertEquals(Arrays.asList("bla4", "BLAH4", 4), myTWithoutRowHeader.getRow(4, Object.class));
         assertEquals(Arrays.asList("bla6", "BLAH6", 6), myTWithoutRowHeader.getRow(5, Object.class));
-
-        myTWithoutRowHeader.checkConsistency();
 
     }
 
@@ -782,9 +757,7 @@ public class TableManagerTest {
         displayTestedTable(myTWithoutRowHeader);
 
         assertEquals(Arrays.asList("A2", "A10", "A100", "B1", "B1.1"),
-                     myTWithoutRowHeader.getColumn("TopLeft", String.class));
-
-        myTWithoutRowHeader.checkConsistency();
+                myTWithoutRowHeader.getColumn("TopLeft", String.class));
 
     }
 
@@ -816,10 +789,8 @@ public class TableManagerTest {
 
         displayTestedTable(myTable);
 
-        myTable.checkConsistency();
-
         assertEquals(Arrays.asList("TopLeft", "First", "Bazar", "Blabla", "Order"),
-                     myTable.getColumnsHeader().getItems());
+                myTable.getColumnsHeader().getItems());
         assertEquals(Arrays.asList(true, false, "text", null, 3.14), myTable.getColumn("Bazar", Object.class));
     }
 
@@ -846,14 +817,12 @@ public class TableManagerTest {
         displayTestedTable(myTWithColHeader);
 
         myTWithColHeader.insertColumn("Blabla", "Bazar",
-                                      Arrays.asList(Boolean.TRUE, Boolean.FALSE, "text", null, 3.14));
+                Arrays.asList(Boolean.TRUE, Boolean.FALSE, "text", null, 3.14));
 
         displayTestedTable(myTWithColHeader);
 
-        myTWithColHeader.checkConsistency();
-
         assertEquals(Arrays.asList("First", "Bazar", "Blabla", "Order"),
-                     myTWithColHeader.getColumnsHeader().getItems());
+                myTWithColHeader.getColumnsHeader().getItems());
         assertEquals(Arrays.asList(true, false, "text", null, 3.14), myTWithColHeader.getColumn("Bazar", Object.class));
 
     }
@@ -882,8 +851,6 @@ public class TableManagerTest {
 
         displayTestedTable(myTable);
 
-        myTable.checkConsistency();
-
         assertEquals(Arrays.asList(true, false, "text", null, 3.14), myTable.getColumn(1, Object.class));
 
     }
@@ -911,8 +878,6 @@ public class TableManagerTest {
         myTable.insertRow(1, Arrays.asList("avantBla2", Boolean.FALSE, "text"));
 
         displayTestedTable(myTable);
-
-        myTable.checkConsistency();
 
         assertEquals(Arrays.asList("avantBla2", Boolean.FALSE, "text"), myTable.getRow(1, Object.class));
         assertEquals(Arrays.asList("bla2", "BLAH2", 2), myTable.getRow(2, Object.class));
@@ -947,10 +912,8 @@ public class TableManagerTest {
 
         displayTestedTable(myTable);
 
-        myTable.checkConsistency();
-
         assertEquals(Arrays.asList(null, "B1.1", "B1", "Bazar", "A100", "A10", "A2"),
-                     myTable.getRowsHeader().getItems());
+                myTable.getRowsHeader().getItems());
         assertEquals(Arrays.asList(true, false, 3.14), myTable.getRow("Bazar", Object.class));
         assertEquals(Arrays.asList(true, false, 3.14), myTable.getRow(3, Object.class));
     }
@@ -980,7 +943,7 @@ public class TableManagerTest {
         }
     }
 
- 
+
     /**
      * Tests the List all Tables service with no result
      */
@@ -1029,7 +992,6 @@ public class TableManagerTest {
         tableHBis.appendRow(Arrays.asList(row2));
         tableHBis.appendRow(Arrays.asList(row3));
 
-        tableH.checkConsistency();
         tableH.setName("TestTable");
         mng.createInDatabase(tableH.getTableInfo());
 
@@ -1078,7 +1040,6 @@ public class TableManagerTest {
         tableHBis.appendRow(Arrays.asList(row2));
         tableHBis.appendRow(Arrays.asList(row3));
 
-        tableH.checkConsistency();
         String tableName = "TestTableToDelete";
         tableH.setName(tableName);
         mng.createInDatabase(tableH.getTableInfo());

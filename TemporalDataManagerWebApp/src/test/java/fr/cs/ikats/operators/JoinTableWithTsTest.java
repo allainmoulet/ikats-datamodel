@@ -200,8 +200,6 @@ public class JoinTableWithTsTest extends CommonTest {
         selectedTable.appendRow(Arrays.asList(40, true, "B"));
         selectedTable.appendRow(Arrays.asList(500, true, "C"));
 
-        selectedTable.checkConsistency();
-
         JoinTableWithTs testedOperator = new JoinTableWithTs();
         testedOperator.apply(selectedTable.getTableInfo(), testedMetrics, SELECTED_DATASET_NAME,
                 testedInputJoinColName, testedInputJoinMetaName, theTargetColumnName, OUTPUT_TABLE_NAME);
@@ -272,8 +270,6 @@ public class JoinTableWithTsTest extends CommonTest {
             selectedTable.appendRow(Arrays.asList(133, false, "A"));
             selectedTable.appendRow(Arrays.asList(40, true, "B"));
             selectedTable.appendRow(Arrays.asList(500, true, "C"));
-
-            selectedTable.checkConsistency();
 
             JoinTableWithTs testedOperator = new JoinTableWithTs();
             Table computedTable = testedOperator.computeTable(selectedTable.getTableInfo(),
@@ -365,8 +361,6 @@ public class JoinTableWithTsTest extends CommonTest {
             selectedTable.appendRow(Arrays.asList("B", TABLE_FLIGHT_IDS.get(3), 40, true));
             selectedTable.appendRow(Arrays.asList("C", TABLE_FLIGHT_IDS.get(4), 500, true));
 
-            selectedTable.checkConsistency();
-
             JoinTableWithTs testedOperator = new JoinTableWithTs();
             Table computedTable = testedOperator.computeTable(selectedTable.getTableInfo(),
                     SELECTED_METRICS_ALL_MATCHING, SELECTED_DATASET_NAME, testedInputJoinColName,
@@ -437,8 +431,6 @@ public class JoinTableWithTsTest extends CommonTest {
         selectedTable.appendRow(Arrays.asList(40, true, "B"));
         selectedTable.appendRow(Arrays.asList(500, true, "C"));
 
-        selectedTable.checkConsistency();
-
         JoinTableWithTs testedOperator = new JoinTableWithTs();
         try {
             // the test shall raise a ResourceNotFoundException
@@ -485,8 +477,6 @@ public class JoinTableWithTsTest extends CommonTest {
         selectedTable.appendRow(Arrays.asList(133, false, "A"));
         selectedTable.appendRow(Arrays.asList(40, true, "B"));
         selectedTable.appendRow(Arrays.asList(500, true, "C"));
-
-        selectedTable.checkConsistency();
 
         JoinTableWithTs testedOperator = new JoinTableWithTs();
         Table computedTable = testedOperator.computeTable(selectedTable.getTableInfo(), "WS2;X;WS1",
