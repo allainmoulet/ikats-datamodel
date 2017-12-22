@@ -230,7 +230,7 @@ public class MetaDataResource extends AbstractResource {
     @POST
     @Path("/import/file")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.TEXT_PLAIN)
     public String importMetaDataFile(@FormDataParam("file") InputStream fileis, @FormDataParam("file") FormDataContentDisposition fileDisposition,
             @QueryParam("details") @DefaultValue("false") Boolean details, @QueryParam("update") @DefaultValue("false") Boolean update)
             throws IkatsDaoException, IkatsException {
