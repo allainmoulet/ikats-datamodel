@@ -193,7 +193,7 @@ public class MetaDataManager {
             // Dealing with the first error ...
 
             IkatsException contextError = new IkatsException(
-                    "At least 1 metadata could not be imported because it already exist", daoException);
+                    "No metadata imported because at least 1 metadata already exists", daoException);
 
             logger.error(contextError);
             throw contextError;
@@ -202,7 +202,7 @@ public class MetaDataManager {
         catch (Exception csvParsingError) {
             // Dealing with unexpected errors like: IOException ...
             IkatsException contextError = new IkatsException(
-                    "persistMetaData() : bad CSV format detected before opening the transaction: please correct CSV data at pointed lines in the detailed logs.",
+                    "persistMetaData() : bad CSV format detected before opening the transaction: please correct CSV data",
                     csvParsingError);
 
             logger.error(contextError);
