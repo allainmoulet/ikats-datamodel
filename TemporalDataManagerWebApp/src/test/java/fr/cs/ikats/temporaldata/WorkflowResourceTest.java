@@ -315,7 +315,6 @@ public class WorkflowResourceTest extends AbstractRequestTest {
             assertEquals(wfList.get(i).getId(), readWorkflowList.get(i).getId());
             assertEquals(wfList.get(i).getName(), readWorkflowList.get(i).getName());
             assertEquals(wfList.get(i).getDescription(), readWorkflowList.get(i).getDescription());
-            assertEquals(null, readWorkflowList.get(i).getRaw());
         }
 
 
