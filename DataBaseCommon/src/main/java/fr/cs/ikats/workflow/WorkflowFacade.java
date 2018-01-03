@@ -85,7 +85,7 @@ public class WorkflowFacade {
      * @return The list of all workflow
      * @throws IkatsDaoException if there is no workflow
      */
-    public List<Workflow> listAllWorkflows() throws IkatsDaoException {
+    public List<WorkflowEntitySummary> listAllWorkflows() throws IkatsDaoException {
         return dao.listAll(false);
     }
 
@@ -95,7 +95,7 @@ public class WorkflowFacade {
      * @return The list of all Macro Operators
      * @throws IkatsDaoException if there is no Macro Operator
      */
-    public List<Workflow> listAllMacroOp() throws IkatsDaoException {
+    public List<WorkflowEntitySummary> listAllMacroOp() throws IkatsDaoException {
         return dao.listAll(true);
     }
 

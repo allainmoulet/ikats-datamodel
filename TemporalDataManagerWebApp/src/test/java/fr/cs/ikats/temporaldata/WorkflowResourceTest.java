@@ -47,6 +47,7 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.datamanager.client.RequestSender;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.workflow.Workflow;
+import fr.cs.ikats.workflow.WorkflowEntitySummary;
 import fr.cs.ikats.workflow.WorkflowFacade;
 
 import static org.junit.Assert.assertEquals;
@@ -170,7 +171,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         String expectedId = matcher.group(1);
         assertEquals(getAPIURL() + "/wf/" + expectedId, headerLocation.toString());
 
-        List<Workflow> workflowList = Facade.listAllWorkflows();
+        List<WorkflowEntitySummary> workflowList = Facade.listAllWorkflows();
         assertEquals(1, workflowList.size());
 
         Response response2 = callAPI(VERB.GET, "/wf/" + expectedId, wf);
@@ -213,7 +214,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         String expectedId = matcher.group(1);
         assertEquals(getAPIURL() + "/wf/" + expectedId, headerLocation.toString());
 
-        List<Workflow> workflowList = Facade.listAllWorkflows();
+        List<WorkflowEntitySummary> workflowList = Facade.listAllWorkflows();
         assertEquals(2, workflowList.size());
 
         Response response2 = callAPI(VERB.GET, "/wf/" + expectedId, wf);

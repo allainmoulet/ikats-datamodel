@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- *
+ * 
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,19 +10,20 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
+ * 
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ * 
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- *
+ * 
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
+ * 
  */
 
 package fr.cs.ikats.workflow;
@@ -40,7 +41,7 @@ import org.hibernate.criterion.Restrictions;
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
 
 /**
  * DAO class for MetaData model class
@@ -62,12 +63,12 @@ public class WorkflowDAO extends DataBaseDAO {
      * List all workflows/Macro Operators
      *
      * @return the list of all workflow
-     * @throws IkatsDaoMissingResource if there is no workflow/Macro Operator
+     * @throws IkatsDaoMissingRessource if there is no workflow/Macro Operator
      * @throws IkatsDaoException        if any other exception occurs
      */
-    List<Workflow> listAll(Boolean isMacroOp) throws IkatsDaoException {
-        List<Workflow> result = null;
-
+    List<WorkflowEntitySummary> listAll(Boolean isMacroOp) throws IkatsDaoMissingRessource, IkatsDaoException {
+        List<WorkflowEntitySummary> result = null;
+        
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -78,12 +79,14 @@ public class WorkflowDAO extends DataBaseDAO {
             result = criteria.list();
 
             tx.commit();
-        } catch (RuntimeException e) {
-            if (tx != null) tx.rollback();
+        }
+        catch (RuntimeException e) {
+        	if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        } finally {
-
+        }
+        finally {
+ 
             // end the session
             session.close();
         }
@@ -101,7 +104,7 @@ public class WorkflowDAO extends DataBaseDAO {
      */
     public int removeAll(Boolean macroOp) throws IkatsDaoException {
         int result = 0;
-
+        
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -113,14 +116,14 @@ public class WorkflowDAO extends DataBaseDAO {
             result = query.executeUpdate();
 
             tx.commit();
-        } catch (RuntimeException e) {
+        }
+        catch (RuntimeException e) {
             // try to rollback
-            if (tx != null) {
-                tx.rollback();
-            }
+            if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        } finally {
+        }
+        finally {
             // end the session
             session.close();
         }
@@ -133,12 +136,12 @@ public class WorkflowDAO extends DataBaseDAO {
      *
      * @param id Id of the workflow/Macro Operator to get
      * @return The workflow/Macro Operator matching this id
-     * @throws IkatsDaoMissingResource if there is no workflow/Macro Operator matching the id
+     * @throws IkatsDaoMissingRessource if there is no workflow/Macro Operator matching the id
      * @throws IkatsDaoException        if any other exception occurs
      */
-    Workflow getById(Integer id) throws IkatsDaoMissingResource, IkatsDaoException {
+    Workflow getById(Integer id) throws IkatsDaoMissingRessource, IkatsDaoException {
         Workflow result = null;
-
+        
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -147,23 +150,25 @@ public class WorkflowDAO extends DataBaseDAO {
             Criteria criteria = session.createCriteria(Workflow.class);
             criteria.add(Restrictions.eq("id", id));
             List<Workflow> resultList = criteria.list();
-
-            if (resultList == null || (resultList.isEmpty())) {
+            
+            if (resultList == null || (resultList.size() == 0)) {
                 String msg = "Searching workflow from id=" + id + ": no resource found, but should exist.";
                 LOGGER.error(msg);
-                rollbackAndThrowException(tx, new IkatsDaoMissingResource(msg));
-            } else {
-                result = resultList.get(0);
+                rollbackAndThrowException(tx, new IkatsDaoMissingRessource(msg)); 
             }
-
+            else
+            {
+            	result = resultList.get(0);
+            }
+                        
             tx.commit();
-        } catch (RuntimeException e) {
-            if (tx != null) {
-                tx.rollback();
-            }
+        }
+        catch (RuntimeException e) {
+        	if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        } finally {
+        }
+        finally { 
             session.close();
         }
 
@@ -178,9 +183,9 @@ public class WorkflowDAO extends DataBaseDAO {
      * @throws IkatsDaoConflictException if the workflow/Macro Operator to append already exists
      * @throws IkatsDaoException         if any other exception occurs
      */
-    public Integer persist(Workflow wf) throws IkatsDaoException {
+    public Integer persist(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException {
         Integer wfId = null;
-
+        
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -191,14 +196,14 @@ public class WorkflowDAO extends DataBaseDAO {
 
             wfId = (Integer) session.save(wf);
             tx.commit();
-        } catch (RuntimeException e) {
+        }
+        catch (RuntimeException e) {
             // try to rollback
-            if (tx != null) {
-                tx.rollback();
-            }
+            if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        } finally {
+        }
+        finally {
             // end the session
             session.close();
         }
@@ -214,9 +219,9 @@ public class WorkflowDAO extends DataBaseDAO {
      * @throws IkatsDaoConflictException if the workflow/Macro Operator to update does not exist
      * @throws IkatsDaoException         if any other exception occurs
      */
-    public boolean update(Workflow wf) throws IkatsDaoException {
+    public boolean update(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException {
         boolean updated = false;
-
+        
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -226,19 +231,20 @@ public class WorkflowDAO extends DataBaseDAO {
             session.update(wf);
             tx.commit();
             updated = true;
-        } catch (StaleStateException e) {
+        }
+        catch (StaleStateException e) {
 
             String msg = "No match for Workflow with id:" + wf.getId();
             LOGGER.error(msg, e);
-            rollbackAndThrowException(tx, new IkatsDaoMissingResource(msg, e));
-        } catch (RuntimeException e) {
+            rollbackAndThrowException(tx, new IkatsDaoMissingRessource(msg, e));
+        }
+        catch (RuntimeException e) {
             // try to rollback
-            if (tx != null) {
-                tx.rollback();
-            }
+            if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        } finally {
+        }
+        finally {
             // end the session
             session.close();
         }
@@ -253,7 +259,7 @@ public class WorkflowDAO extends DataBaseDAO {
      * @throws IkatsDaoException if the workflow/Macro Operator couldn't be removed
      */
     public void removeById(Integer id) throws IkatsDaoException {
-
+        
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -267,18 +273,18 @@ public class WorkflowDAO extends DataBaseDAO {
                 String msg = "No workflow exists with Id:" + id.toString();
                 LOGGER.warn(msg);
                 session.getTransaction().rollback();
-                throw new IkatsDaoMissingResource(msg);
+                throw new IkatsDaoMissingRessource(msg);
             }
 
             tx.commit();
-        } catch (RuntimeException e) {
+        }
+        catch (RuntimeException e) {
             // try to rollback
-            if (tx != null) {
-                tx.rollback();
-            }
+            if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        } finally {
+        }
+        finally {
             // end the session
             session.close();
         }
