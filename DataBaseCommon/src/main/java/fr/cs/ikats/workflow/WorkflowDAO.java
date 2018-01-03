@@ -74,7 +74,7 @@ public class WorkflowDAO extends DataBaseDAO {
         try {
             tx = session.beginTransaction();
 
-            Criteria criteria = session.createCriteria(Workflow.class);
+            Criteria criteria = session.createCriteria(WorkflowEntitySummary.class);
             criteria.add(Restrictions.eq("isMacroOp", isMacroOp));
             result = criteria.list();
 
