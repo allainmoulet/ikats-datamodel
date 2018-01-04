@@ -64,6 +64,7 @@ public class WorkflowFacade {
         dao.init("/workflowHibernate.cfg.xml");
         dao.addAnotatedPackage("fr.cs.ikats.workflow");
         dao.addAnnotatedClass(Workflow.class);
+        dao.addAnnotatedClass(WorkflowEntitySummary.class);
         dao.completeConfiguration();
     }
 
