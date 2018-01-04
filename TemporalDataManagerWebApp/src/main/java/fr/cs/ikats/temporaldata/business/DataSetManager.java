@@ -39,7 +39,7 @@ import org.apache.log4j.Logger;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
@@ -131,7 +131,7 @@ public class DataSetManager {
      *            the identifier
      * @return a list of LinkDatasetTimeSeries, null if dataset is not found.
      */
-    public List<LinkDatasetTimeSeries> getDataSetContent(String dataSetId) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public List<LinkDatasetTimeSeries> getDataSetContent(String dataSetId) throws IkatsDaoMissingResource, IkatsDaoException {
         List<LinkDatasetTimeSeries> result = null;
         DataSet dataset = getDataSetFacade().getDataSet(dataSetId);
         if (dataset != null) {
@@ -148,7 +148,7 @@ public class DataSetManager {
      *            the identifier
      * @return null if dataset is not found.
      */
-    public DataSet getDataSet(String datasetName) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public DataSet getDataSet(String datasetName) throws IkatsDaoMissingResource, IkatsDaoException {
         DataSet dataset = getDataSetFacade().getDataSet(datasetName);
         return dataset;
     }
@@ -160,7 +160,7 @@ public class DataSetManager {
      * @return null if dataset is not found.
      */
     public DataSet getDataSetSummary(String datasetName)
-            throws IkatsDaoMissingRessource, IkatsDaoException {
+            throws IkatsDaoMissingResource, IkatsDaoException {
         DataSet dataset = getDataSetFacade().getDataSetSummary(datasetName);
         return dataset;
     }
@@ -175,7 +175,7 @@ public class DataSetManager {
      *            deletion of the timeseries linked to the dataset and their associated metadata
      * @throws IkatsDaoException
      */
-    public Status removeDataSet(String datasetId, Boolean deep) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public Status removeDataSet(String datasetId, Boolean deep) throws IkatsDaoMissingResource, IkatsDaoException {
 
         String context = "Removing dataset=" + datasetId + " : ";
         List<String> tsuidsToRemove = new ArrayList<String>();
@@ -334,7 +334,7 @@ public class DataSetManager {
      * @return the number of TS added while updating
      */
     public int updateDataSet(String datasetName, String description, List<String> tsuidList, String updateMode)
-            throws IkatsDaoInvalidValueException, IkatsDaoMissingRessource, IkatsDaoException {
+            throws IkatsDaoInvalidValueException, IkatsDaoMissingResource, IkatsDaoException {
         if ("replace".equalsIgnoreCase(updateMode)) {
             return getDataSetFacade().updateDataSet(datasetName, description, tsuidList);
         }

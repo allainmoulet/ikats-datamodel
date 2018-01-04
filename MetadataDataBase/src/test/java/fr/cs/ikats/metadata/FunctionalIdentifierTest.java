@@ -47,7 +47,7 @@ import org.junit.Test;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.common.junit.CommonTest;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 
@@ -171,11 +171,11 @@ public class FunctionalIdentifierTest extends CommonTest {
 	/**
 	 * Test method for {@link fr.cs.ikats.metadata.MetaDataFacade#getMetaDataForTS(java.lang.String)} .
 	 * @throws IkatsDaoException 
-	 * @throws IkatsDaoMissingRessource 
+	 * @throws IkatsDaoMissingResource
 	 * @throws IkatsDaoConflictException 
 	 */
 	@Test
-	public void testGetByFuncIdAndByTsuid() throws IkatsDaoConflictException, IkatsDaoMissingRessource, IkatsDaoException {
+	public void testGetByFuncIdAndByTsuid() throws IkatsDaoConflictException, IkatsDaoMissingResource, IkatsDaoException {
 
 		MetaDataFacade facade = new MetaDataFacade();
 
@@ -194,8 +194,8 @@ public class FunctionalIdentifierTest extends CommonTest {
 		assertEquals("mon_id_fonctionel12", result.getFuncId());
 	}
 
-	@Test(expected = IkatsDaoMissingRessource.class)
-	public void testGetbyFuncIdAndByTsuid_DG() throws IkatsDaoConflictException, IkatsDaoMissingRessource, IkatsDaoException {
+	@Test(expected = IkatsDaoMissingResource.class)
+	public void testGetbyFuncIdAndByTsuid_DG() throws IkatsDaoConflictException, IkatsDaoMissingResource, IkatsDaoException {
 
 		MetaDataFacade facade = new MetaDataFacade();
 

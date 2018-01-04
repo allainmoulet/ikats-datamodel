@@ -36,7 +36,7 @@ import org.springframework.stereotype.Component;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 
 /**
  * The type Workflow facade.
@@ -112,10 +112,10 @@ public class WorkflowFacade {
      *
      * @param id id of the workflow
      * @return the workflow matching this id
-     * @throws IkatsDaoMissingRessource if there is no workflow matching the id
+     * @throws IkatsDaoMissingResource if there is no workflow matching the id
      * @throws IkatsDaoException        if any other exception occurs
      */
-    public Workflow getById(Integer id) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public Workflow getById(Integer id) throws IkatsDaoMissingResource, IkatsDaoException {
         return dao.getById(id);
     }
 

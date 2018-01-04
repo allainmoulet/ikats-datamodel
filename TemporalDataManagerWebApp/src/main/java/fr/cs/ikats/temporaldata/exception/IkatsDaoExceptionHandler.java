@@ -37,7 +37,7 @@ import org.apache.log4j.Logger;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 
 /**
  * Handler of IkatsDaoExceptions
@@ -55,7 +55,7 @@ public class IkatsDaoExceptionHandler implements ExceptionMapper<IkatsDaoExcepti
     @Override
     public Response toResponse(IkatsDaoException exception) {
         
-        if(IkatsDaoMissingRessource.class.isAssignableFrom(exception.getClass())) {
+        if(IkatsDaoMissingResource.class.isAssignableFrom(exception.getClass())) {
             logger.error("Error processing the request: resource not found on server: ");
             logger.error( exception );
             return Response.status(Status.NOT_FOUND).entity(exception.getMessage()).build(); 

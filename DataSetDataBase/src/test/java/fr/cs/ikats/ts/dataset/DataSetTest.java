@@ -41,7 +41,7 @@ import org.junit.Test;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.common.junit.CommonTest;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
@@ -197,12 +197,12 @@ public class DataSetTest extends CommonTest {
      * Test method for
      * {@link fr.cs.ikats.ts.dataset.DataSetFacade#updateDataSet(java.lang.String, java.lang.String, java.util.List)}
      * .
-     * @throws IkatsDaoMissingRessource 
+     * @throws IkatsDaoMissingResource
      *
      * @throws IkatsDaoException
      */
     @Test
-    public void testUpdateDataSetInModeAppend() throws IkatsDaoMissingRessource, IkatsDaoException {
+    public void testUpdateDataSetInModeAppend() throws IkatsDaoMissingResource, IkatsDaoException {
 
         String testCaseName = "testUpdateDataSetInModeAppend";
 
@@ -385,7 +385,7 @@ public class DataSetTest extends CommonTest {
         try {
             facade.removeDataSet(dsname);
         }
-        catch (IkatsDaoMissingRessource e) {
+        catch (IkatsDaoMissingResource e) {
             // nothing to do: expected behaviour
         }
 
@@ -396,14 +396,14 @@ public class DataSetTest extends CommonTest {
         try {
             facade.getDataSet(dsname);
         }
-        catch (IkatsDaoMissingRessource e) {
+        catch (IkatsDaoMissingResource e) {
             // nothing to do: expected behaviour
         }
 
         try {
             facade.removeDataSet(dsname);
         }
-        catch (IkatsDaoMissingRessource e) {
+        catch (IkatsDaoMissingResource e) {
             // nothing to do: expected behaviour
         }
     }
@@ -412,12 +412,12 @@ public class DataSetTest extends CommonTest {
      * Test method for
      * {@link fr.cs.ikats.ts.dataset.DataSetFacade#getDataSet(java.lang.String)}
      * .
-     * @throws IkatsDaoMissingRessource 
+     * @throws IkatsDaoMissingResource
      *
      * @throws IkatsDaoException
      */
     @Test
-    public void testGetDataSet() throws IkatsDaoMissingRessource, IkatsDaoException {
+    public void testGetDataSet() throws IkatsDaoMissingResource, IkatsDaoException {
 
         String testCaseName = "testGetDataSet";
 
@@ -457,12 +457,12 @@ public class DataSetTest extends CommonTest {
     /**
      * Test method for
      * {@link fr.cs.ikats.ts.dataset.DataSetFacade#getAllDataSetSummary()}.
-     * @throws IkatsDaoMissingRessource 
+     * @throws IkatsDaoMissingResource
      *
      * @throws IkatsDaoException
      */
     @Test
-    public void testGetSummaryDataSet() throws IkatsDaoMissingRessource, IkatsDaoException {
+    public void testGetSummaryDataSet() throws IkatsDaoMissingResource, IkatsDaoException {
 
         String testCaseName = "testGetSummaryDataSet";
 
@@ -478,7 +478,7 @@ public class DataSetTest extends CommonTest {
                 facade.removeDataSet(ds.getName());
             }
         }
-        catch (IkatsDaoMissingRessource e) {
+        catch (IkatsDaoMissingResource e) {
             // Ok: no dataset found by facade.getAllDataSetSummary(): BD is cleaned
         }
 
@@ -524,12 +524,12 @@ public class DataSetTest extends CommonTest {
      * Test method for
      * {@link fr.cs.ikats.ts.dataset.DataSetFacade#getDataSetNamesForTsuid(java.lang.String)}
      * .
-     * @throws IkatsDaoMissingRessource 
+     * @throws IkatsDaoMissingResource
      *
      * @throws IkatsDaoException
      */
     @Test
-    public void testGetDataSetNamesForTsuid() throws IkatsDaoMissingRessource, IkatsDaoException {
+    public void testGetDataSetNamesForTsuid() throws IkatsDaoMissingResource, IkatsDaoException {
 
         String testCaseName = "testGetDataSetNamesForTsuid";
         

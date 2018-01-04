@@ -35,7 +35,7 @@ import java.util.List;
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import org.apache.log4j.Logger;
 import org.hibernate.Criteria;
@@ -335,7 +335,7 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
 	 * @return null if nothing found in database, FunctionalIdentifier else.
 	 */
 	public FunctionalIdentifier getFromFuncId(String funcId)
-			throws IkatsDaoMissingRessource, IkatsDaoConflictException, IkatsDaoException {
+			throws IkatsDaoMissingResource, IkatsDaoConflictException, IkatsDaoException {
 
 		String propertyName = "funcId";
 
@@ -350,12 +350,12 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
 	 *
 	 * @return
 	 *
-	 * @throws IkatsDaoMissingRessource
+	 * @throws IkatsDaoMissingResource
 	 * @throws IkatsDaoConflictException
 	 * @throws IkatsDaoException
 	 */
 	public FunctionalIdentifier getFromTsuid(String tsuid)
-			throws IkatsDaoMissingRessource, IkatsDaoConflictException, IkatsDaoException {
+			throws IkatsDaoMissingResource, IkatsDaoConflictException, IkatsDaoException {
 
 		String propertyName = "tsuid";
 
@@ -377,7 +377,7 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
 			criteria.add(Restrictions.eq(propertyName, propertyValue));
 			List<?> results = criteria.list();
 			if ((results == null) || (results.size() == 0)) {
-				throw new IkatsDaoMissingRessource(
+				throw new IkatsDaoMissingResource(
 						"Missing FunctionalIdentifier matching " + propertyName + "=" + propertyValue);
 			} else if ((results != null) && (results.size() > 1)) {
 				throw new IkatsDaoConflictException("Unexpected conflict error: several FunctionalIdentifier matching "

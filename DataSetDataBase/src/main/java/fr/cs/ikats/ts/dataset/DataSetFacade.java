@@ -29,7 +29,7 @@
 package fr.cs.ikats.ts.dataset;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.ts.dataset.dao.DataSetDAO;
 import fr.cs.ikats.ts.dataset.model.DataSet;
@@ -123,7 +123,7 @@ public class DataSetFacade {
      *
      * @return the dataset
      */
-    public DataSet getDataSet(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public DataSet getDataSet(String name) throws IkatsDaoMissingResource, IkatsDaoException {
         return dao.getDataSet(name);
     }
 
@@ -134,7 +134,7 @@ public class DataSetFacade {
      *
      * @return the dataset
      */
-    public DataSet getDataSetSummary(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public DataSet getDataSetSummary(String name) throws IkatsDaoMissingResource, IkatsDaoException {
         return dao.getDataSetSummary(name);
     }
 
@@ -145,7 +145,7 @@ public class DataSetFacade {
      *
      * @throws IkatsDaoException
      */
-    public void removeDataSet(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public void removeDataSet(String name) throws IkatsDaoMissingResource, IkatsDaoException {
         dao.removeDataSet(name);
     }
 
@@ -214,7 +214,7 @@ public class DataSetFacade {
      *
      * @return the number of TS added while updating
      */
-    public int updateDataSet(String datasetName, String description, List<String> tsuidList) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public int updateDataSet(String datasetName, String description, List<String> tsuidList) throws IkatsDaoMissingResource, IkatsDaoException {
         DataSet theDataset = dao.getDataSet(datasetName);
         String theDescription = (description != null) ? description : theDataset.getDescription();
 
@@ -240,7 +240,7 @@ public class DataSetFacade {
      *
      * @return the number of TS added while updating
      */
-    public int updateInAppendMode(String datasetName, String description, List<String> tsuidList) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public int updateInAppendMode(String datasetName, String description, List<String> tsuidList) throws IkatsDaoMissingResource, IkatsDaoException {
         DataSet theDataset = dao.getDataSet(datasetName);
         String theDescription = (description != null) ? description : theDataset.getDescription();
 
@@ -261,7 +261,7 @@ public class DataSetFacade {
      *
      * @return the number of TS added while updating
      */
-    public void updateInAppendMode(String tsuid, String datasetName) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public void updateInAppendMode(String tsuid, String datasetName) throws IkatsDaoMissingResource, IkatsDaoException {
         dao.updateAddOneTimeseries(tsuid, datasetName);
     }
 }

@@ -33,7 +33,7 @@ import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.common.expr.Atom;
 import fr.cs.ikats.common.expr.Expression;
 import fr.cs.ikats.common.expr.Group;
@@ -183,11 +183,11 @@ public class MetaDataTest {
 
     /**
      * @throws IkatsDaoException 
-     * @throws IkatsDaoMissingRessource 
+     * @throws IkatsDaoMissingResource
      *
      */
-    @Test(expected = IkatsDaoMissingRessource.class)
-    public void testUpdateMetadataFailure() throws IkatsDaoMissingRessource, IkatsDaoException {
+    @Test(expected = IkatsDaoMissingResource.class)
+    public void testUpdateMetadataFailure() throws IkatsDaoMissingResource, IkatsDaoException {
         MetaDataFacade facade = new MetaDataFacade();
         facade.updateMetaData("tsuidF01", "MDFailedUpdateWithoutCreate", "value");
         fail("IkatsDaoMissingRessource should be raised");
@@ -196,10 +196,10 @@ public class MetaDataTest {
     /**
      * Test the failures of searchs by TSUIDs
      * @throws IkatsDaoException 
-     * @throws IkatsDaoMissingRessource 
+     * @throws IkatsDaoMissingResource
      */
-    @Test(expected = IkatsDaoMissingRessource.class)
-    public void testSearchByTsuidFailure() throws IkatsDaoMissingRessource, IkatsDaoException {
+    @Test(expected = IkatsDaoMissingResource.class)
+    public void testSearchByTsuidFailure() throws IkatsDaoMissingResource, IkatsDaoException {
         MetaDataFacade facade = new MetaDataFacade();
         // test failure: non existant tsuid
         facade.getMetaDataForTS("tsuidM01");
@@ -230,7 +230,7 @@ public class MetaDataTest {
      * @throws IkatsDaoException 
      * @throws IkatsDaoConflictException 
      */
-    @Test(expected =  IkatsDaoMissingRessource.class)
+    @Test(expected =  IkatsDaoMissingResource.class)
     public void testRemoveMetaDataForTS() throws IkatsDaoConflictException, IkatsDaoException {
         MetaDataFacade facade = new MetaDataFacade();
 

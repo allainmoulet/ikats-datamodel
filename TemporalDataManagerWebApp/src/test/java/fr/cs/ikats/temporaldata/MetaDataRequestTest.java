@@ -61,7 +61,7 @@ import org.springframework.core.io.Resource;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.datamanager.client.RequestSender;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
@@ -424,10 +424,10 @@ public class MetaDataRequestTest extends AbstractRequestTest {
     /**
      * Test the import of meta data from a bad formatted CSV file
      * without update option => no meta created
-     * @throws IkatsDaoMissingRessource 
+     * @throws IkatsDaoMissingResource
      */
     @Test
-    public void testImportMetaDataCSVWithErrorsinCSV() throws IkatsDaoMissingRessource {
+    public void testImportMetaDataCSVWithErrorsinCSV() throws IkatsDaoMissingResource {
 
         String testCaseName = "testImportMetaDataCSVWithErrorsinCSV";
 
@@ -443,11 +443,11 @@ public class MetaDataRequestTest extends AbstractRequestTest {
     /**
      * Test the import of meta data from a CSV file
      * with update option => meta are created
-     * @throws IkatsDaoMissingRessource 
+     * @throws IkatsDaoMissingResource
      * @throws IkatsDaoConflictException 
      */
     @Test
-    public void testImportMetaDataCSVWithUpdate() throws IkatsDaoException, IkatsDaoMissingRessource, IkatsDaoConflictException {
+    public void testImportMetaDataCSVWithUpdate() throws IkatsDaoException, IkatsDaoMissingResource, IkatsDaoConflictException {
 
         String testCaseName = "testImportMetaDataCSVWithUpdate";
 
@@ -517,7 +517,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
             // check NON-update of md
             assertEquals("aterrissage", metaList.get(0).getValue());
         }
-        catch (IkatsDaoMissingRessource e) {
+        catch (IkatsDaoMissingResource e) {
             getLogger().error("Exception catched : no metadata found => NOK");
             fail();
         }
@@ -527,7 +527,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
             List metaList = facade.getMetaDataForTS(tsuid2);
             fail();
         }
-        catch (IkatsDaoMissingRessource e) {
+        catch (IkatsDaoMissingResource e) {
             // ok no metadata found
             getLogger().info("Exception catched : no metadata found => OK");
         }
@@ -537,7 +537,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
             List metaList = facade.getMetaDataForTS(tsuid3);
             fail();
         }
-        catch (IkatsDaoMissingRessource e) {
+        catch (IkatsDaoMissingResource e) {
             // ok no metadata found
             getLogger().info("Exception catched : no metadata found => OK");
         }
@@ -631,7 +631,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
      *            if true, already existing metadata is updated
      *            otherwise no metadata is imported if one of them already exists
      */
-    private void checkImportMetadataFromCsv(String resourcePath, Integer expectedImportCount, boolean update) throws IkatsDaoMissingRessource {
+    private void checkImportMetadataFromCsv(String resourcePath, Integer expectedImportCount, boolean update) throws IkatsDaoMissingResource {
 
         // Prepare file to import
         Resource resource = new ClassPathResource(resourcePath);

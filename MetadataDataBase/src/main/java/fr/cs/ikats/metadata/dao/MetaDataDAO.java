@@ -33,7 +33,7 @@ import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.common.expr.Atom;
 import fr.cs.ikats.common.expr.Expression;
 import fr.cs.ikats.common.expr.Expression.ConnectorExpression;
@@ -340,12 +340,12 @@ public class MetaDataDAO extends DataBaseDAO {
      *
      * @param tsuid the ts identifier
      * @return the list if any result found.
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid
+     * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid
      *                                  different from '*'
      * @throws IkatsDaoException        other errors
      */
     @SuppressWarnings("unchecked")
-    public List<MetaData> listForTS(String tsuid) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public List<MetaData> listForTS(String tsuid) throws IkatsDaoMissingResource, IkatsDaoException {
         List<MetaData> result = null;
 
         Session session = getSession();
@@ -368,7 +368,7 @@ public class MetaDataDAO extends DataBaseDAO {
                     String msg = "Searching MetaData from tsuid=" + tsuid + ": no resource found, but should exist.";
                     
                     LOGGER.error(msg);
-                    throw new IkatsDaoMissingRessource(msg);
+                    throw new IkatsDaoMissingResource(msg);
                 }
             }
         } catch (RuntimeException e) {
@@ -389,11 +389,11 @@ public class MetaDataDAO extends DataBaseDAO {
      * get list of metadata/type couples.
      *
      * @return the list if any result found.
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid
+     * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid
      *                                  different from '*'
      * @throws IkatsDaoException        other errors
      */
-    public Map<String, String> listTypes() throws IkatsDaoMissingRessource, IkatsDaoException {
+    public Map<String, String> listTypes() throws IkatsDaoMissingResource, IkatsDaoException {
         Map<String, String> result = new HashMap<>();
         
         Session session = getSession();
@@ -583,7 +583,7 @@ public class MetaDataDAO extends DataBaseDAO {
         	if (tx != null) tx.rollback();
             String msg = "Resource Not found, searching functional identifiers matched by metadata criteria";
             LOGGER.error("NOT FOUND: " + msg);
-            throw new IkatsDaoMissingRessource(msg, invalidCriterionException);
+            throw new IkatsDaoMissingResource(msg, invalidCriterionException);
         }
         catch (RuntimeException e) {
         	if (tx != null) tx.rollback();

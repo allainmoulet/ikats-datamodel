@@ -31,7 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
 import fr.cs.ikats.temporaldata.business.table.TableManager;
@@ -54,32 +54,16 @@ public class TrainTestSplitTable {
         private double repartitionRate;
         private String outputTableName;
 
-        public String getTableName() {
-            return tableName;
-        }
-
         public void setTableName(String tableName) {
             this.tableName = tableName;
-        }
-
-        public String getTargetColumnName() {
-            return targetColumnName;
         }
 
         public void setTargetColumnName(String targetColumnName) {
             this.targetColumnName = targetColumnName;
         }
 
-        public double getRepartitionRate() {
-            return repartitionRate;
-        }
-
         public void setRepartitionRate(double repartitionRate) {
             this.repartitionRate = repartitionRate;
-        }
-
-        public String getOutputTableName() {
-            return outputTableName;
         }
 
         public void setOutputTableName(String outputTableName) {
@@ -116,13 +100,13 @@ public class TrainTestSplitTable {
      * Apply the operator to the {@link Request}, save the result.
      * @throws ResourceNotFoundException
      * @throws IkatsException
-     * @throws IkatsDaoMissingRessource
+     * @throws IkatsDaoMissingResource
      * @throws InvalidValueException
      * @throws IkatsDaoConflictException
      *
      * @throws IkatsOperatorException
      */
-    public void apply() throws IkatsDaoMissingRessource, IkatsException, ResourceNotFoundException, IkatsDaoConflictException, InvalidValueException {
+    public void apply() throws IkatsDaoMissingResource, IkatsException, ResourceNotFoundException, IkatsDaoConflictException, InvalidValueException {
 
         // do the job
         List<Table> tabListResult = doCompute();
@@ -136,10 +120,10 @@ public class TrainTestSplitTable {
 
     /**
      * @throws IkatsException
-     * @throws IkatsDaoMissingRessource
+     * @throws IkatsDaoMissingResource
      * @throws ResourceNotFoundException
      */
-    public List<Table> doCompute() throws IkatsDaoMissingRessource, IkatsException, ResourceNotFoundException {
+    public List<Table> doCompute() throws IkatsDaoMissingResource, IkatsException, ResourceNotFoundException {
 
         // retrieve table tableName from db
         TableInfo tableInfo = tableManager.readFromDatabase(request.tableName);

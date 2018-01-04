@@ -51,7 +51,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.lang.NaturalOrderComparator;
 import fr.cs.ikats.table.TableDAO;
 import fr.cs.ikats.table.TableEntity;
@@ -466,10 +466,10 @@ public class TableManager {
      * @param tableName the name of the table is its unique identifier
      * @return read resource TableInfo.
      * @throws IkatsJsonException       failed to read consistent JSON format into TableInfo structure.
-     * @throws IkatsDaoMissingRessource the table name tableName is not matched in the database.
+     * @throws IkatsDaoMissingResource the table name tableName is not matched in the database.
      */
     public TableInfo readFromDatabase(String tableName)
-            throws IkatsDaoMissingRessource, IkatsException {
+            throws IkatsDaoMissingResource, IkatsException {
 
         TableEntity dataTable = dao.getByName(tableName);
 

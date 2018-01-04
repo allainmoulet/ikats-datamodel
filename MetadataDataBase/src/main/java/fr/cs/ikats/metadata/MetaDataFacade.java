@@ -46,7 +46,7 @@ import org.springframework.stereotype.Component;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.common.expr.Group;
 import fr.cs.ikats.metadata.dao.FunctionalIdentifierDAO;
 import fr.cs.ikats.metadata.dao.MetaDataDAO;
@@ -128,18 +128,18 @@ public class MetaDataFacade {
      * @param value new value for this metadata
      * @return the id of the metadata or null if no update has been performed
      * @throws IkatsDaoConflictException in case of conflict with existing ( tsuid, name ) pair
-     * @throws IkatsDaoMissingRessource  in case of missing MetaData
+     * @throws IkatsDaoMissingResource  in case of missing MetaData
      * @throws IkatsDaoException         if the meta doesn't exists or if database can't be accessed
      * @since [#142998] Manage IkatsDaoConflictException, IkatsDaoMissingRessource, IkatsDaoException
      */
     public Integer updateMetaData(String tsuid, String name, String value)
-            throws IkatsDaoConflictException, IkatsDaoMissingRessource, IkatsDaoException {
+            throws IkatsDaoConflictException, IkatsDaoMissingResource, IkatsDaoException {
 
         // [#142998] do not need to test the results from facade/dao:
         // exception is raised if result is not good
         MetaData metadata = getMetaData(tsuid, name);
         if (metadata == null) {
-            throw new IkatsDaoMissingRessource("Metadata " + name + "does not exists for tsuid <" + tsuid + ">");
+            throw new IkatsDaoMissingResource("Metadata " + name + "does not exists for tsuid <" + tsuid + ">");
         }
         metadata.setValue(value);
         dao.update(metadata);
@@ -218,10 +218,10 @@ public class MetaDataFacade {
      * @param csvLine the line
      * @return the internal identifier
      * @throws IkatsDaoConflictException conflict error with a Metadata already created.
-     * @throws IkatsDaoMissingRessource  error on missing functional identifier resource: required here
+     * @throws IkatsDaoMissingResource  error on missing functional identifier resource: required here
      * @throws IkatsDaoException         other errors
      */
-    public Integer persistMetaData(String csvLine) throws IkatsDaoConflictException, IkatsDaoMissingRessource, IkatsDaoException {
+    public Integer persistMetaData(String csvLine) throws IkatsDaoConflictException, IkatsDaoMissingResource, IkatsDaoException {
 
         // raise error on CSV parsing failure
         MetaData md = getMetaDataFromCSV(csvLine);
@@ -234,10 +234,10 @@ public class MetaDataFacade {
      *
      * @param tsuid the tsuid
      * @return List of MetaData
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid different from '*'
+     * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException        any error raised by DAO layer.
      */
-    public List<MetaData> getMetaDataForTS(String tsuid) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public List<MetaData> getMetaDataForTS(String tsuid) throws IkatsDaoMissingResource, IkatsDaoException {
         return dao.listForTS(tsuid);
     }
 
@@ -317,11 +317,11 @@ public class MetaDataFacade {
      *
      * @param line
      * @return
-     * @throws IkatsDaoMissingRessource      error when there is a missing functional identifier
+     * @throws IkatsDaoMissingResource      error when there is a missing functional identifier
      * @throws IkatsDaoInvalidValueException error when there is an invalid metadata type defined in the CSV
      */
     public MetaData getMetaDataFromCSV(String line)
-            throws IkatsDaoMissingRessource, IkatsDaoInvalidValueException, IkatsDaoConflictException, IkatsDaoException {
+            throws IkatsDaoMissingResource, IkatsDaoInvalidValueException, IkatsDaoConflictException, IkatsDaoException {
 
         StringTokenizer tokenizer = new StringTokenizer(line, ";");
         MetaData md = null;
@@ -361,7 +361,7 @@ public class MetaDataFacade {
             String msg = "Importing metadata row from CSV: unknown functional identifier [" + idFunc
                     + "] is not registered in database. Unable to retrieve the corresponding tsuid.";
             LOGGER.error(msg);
-            throw new IkatsDaoMissingRessource(msg);
+            throw new IkatsDaoMissingResource(msg);
         }
         return md;
     }
@@ -372,7 +372,7 @@ public class MetaDataFacade {
      *
      * @param fileis
      * @return
-     * @throws IkatsDaoMissingRessource
+     * @throws IkatsDaoMissingResource
      * @throws IkatsDaoInvalidValueException
      */
     public List<MetaData> getMetaDataFromCSV(InputStream fileis) throws IOException, IkatsDaoException {
@@ -669,7 +669,7 @@ public class MetaDataFacade {
      * @see FunctionalIdentifierDAO#getFromFuncId(String)
      */
     public FunctionalIdentifier getFunctionalIdentifierByFuncId(String funcId)
-            throws IkatsDaoConflictException, IkatsDaoMissingRessource, IkatsDaoException {
+            throws IkatsDaoConflictException, IkatsDaoMissingResource, IkatsDaoException {
         return idDao.getFromFuncId(funcId);
     }
 

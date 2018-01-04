@@ -63,7 +63,7 @@ import org.mockito.Mockito;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
@@ -261,7 +261,7 @@ public class DataSetRequestTest extends AbstractRequestTest {
 	}
 
 	@Test
-    public void testRemoveDataSet() throws IkatsDaoMissingRessource, IkatsDaoException, IkatsWebClientException {
+    public void testRemoveDataSet() throws IkatsDaoMissingResource, IkatsDaoException, IkatsWebClientException {
 
 		String testCaseName = "testRemoveDataSet";
 
@@ -297,13 +297,13 @@ public class DataSetRequestTest extends AbstractRequestTest {
 	/**
 	 * Beside testRemoveDataset(): the test testDeepRemoveDataSet() is checking if facade methods are correctly called
 	 * in order to complete deletion with timeseries tsuidX1 and tsuidX2 attached to the deleted dataset.
-	 * @throws IkatsDaoMissingRessource
+	 * @throws IkatsDaoMissingResource
 	 * @throws IkatsDaoException
      * @throws IkatsWebClientException 
      * @throws ResourceNotFoundException 
 	 */
 	@Test
-    public void testDeepRemoveDataSet() throws IkatsDaoMissingRessource, IkatsDaoException, ResourceNotFoundException, IkatsWebClientException {
+    public void testDeepRemoveDataSet() throws IkatsDaoMissingResource, IkatsDaoException, ResourceNotFoundException, IkatsWebClientException {
 
         String testCaseName = "testDeepRemoveDataSet";
         // This black-box test -high level test- simulates that a dataset exists,

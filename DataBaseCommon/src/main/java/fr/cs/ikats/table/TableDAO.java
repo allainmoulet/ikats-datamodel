@@ -42,7 +42,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 
 public class TableDAO extends DataBaseDAO {
 
@@ -154,9 +154,9 @@ public class TableDAO extends DataBaseDAO {
      *
      * @return The TableEntity matching this id
      *
-     * @throws IkatsDaoMissingRessource if there is no TableEntity matching the id
+     * @throws IkatsDaoMissingResource if there is no TableEntity matching the id
      */
-    public TableEntity getById(Integer id) throws IkatsDaoMissingRessource {
+    public TableEntity getById(Integer id) throws IkatsDaoMissingResource {
         TableEntity result = null;
 
         Session session = getSession();
@@ -172,7 +172,7 @@ public class TableDAO extends DataBaseDAO {
                 String msg = "Table " + id + " not found";
                 LOGGER.error(msg);
                 tx.rollback();
-                throw new IkatsDaoMissingRessource(msg);
+                throw new IkatsDaoMissingResource(msg);
             }
             else {
                 tx.commit();
@@ -201,9 +201,9 @@ public class TableDAO extends DataBaseDAO {
      *
      * @return The TableEntity matching this name
      *
-     * @throws IkatsDaoMissingRessource if there is no TableEntity matching the name
+     * @throws IkatsDaoMissingResource if there is no TableEntity matching the name
      */
-    public TableEntity getByName(String name) throws IkatsDaoMissingRessource {
+    public TableEntity getByName(String name) throws IkatsDaoMissingResource {
         TableEntity result = null;
 
         Session session = getSession();
@@ -219,7 +219,7 @@ public class TableDAO extends DataBaseDAO {
                 String msg = "Table " + name + " not found";
                 LOGGER.error(msg);
                 tx.rollback();
-                throw new IkatsDaoMissingRessource(msg);
+                throw new IkatsDaoMissingResource(msg);
             }
             else {
                 tx.commit();
@@ -310,7 +310,7 @@ public class TableDAO extends DataBaseDAO {
 
             String msg = "No match for TableEntity with id:" + tableEntity.getId();
             LOGGER.error(msg, e);
-            rollbackAndThrowException(tx, new IkatsDaoMissingRessource(msg, e));
+            rollbackAndThrowException(tx, new IkatsDaoMissingResource(msg, e));
         }
         catch (RuntimeException e) {
             // try to rollback

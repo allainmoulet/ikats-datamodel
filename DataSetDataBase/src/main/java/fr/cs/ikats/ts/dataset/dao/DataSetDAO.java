@@ -30,7 +30,7 @@ package fr.cs.ikats.ts.dataset.dao;
 
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.ts.dataset.model.DataSet;
 import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 import org.apache.log4j.Logger;
@@ -120,7 +120,7 @@ public class DataSetDAO extends DataBaseDAO {
                 }
             }
             else {
-                throw new IkatsDaoMissingRessource("Update dataset failed: Dataset not found with name=" + name);
+                throw new IkatsDaoMissingResource("Update dataset failed: Dataset not found with name=" + name);
             }
 
             mergedDs.setDescription(description);
@@ -134,7 +134,7 @@ public class DataSetDAO extends DataBaseDAO {
             session.update(mergedDs);
             tx.commit();
         }
-        catch (IkatsDaoMissingRessource me) {
+        catch (IkatsDaoMissingResource me) {
             rollbackAndThrowException(tx, me);
         }
         catch (HibernateException e) {
@@ -220,7 +220,7 @@ public class DataSetDAO extends DataBaseDAO {
      *
      * @return a DataSet or null if no dataset is found.
      */
-    public DataSet getDataSet(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public DataSet getDataSet(String name) throws IkatsDaoMissingResource, IkatsDaoException {
         DataSet result;
         Session session = getSession();
         Transaction tx = null;
@@ -229,20 +229,20 @@ public class DataSetDAO extends DataBaseDAO {
         	
             result = (DataSet) session.get(DataSet.class, name);
             if (result == null) {
-                throw new IkatsDaoMissingRessource("DataSet with name=" + name);
+                throw new IkatsDaoMissingResource("DataSet with name=" + name);
             }
             Hibernate.initialize(result.getLinksToTimeSeries());
             result.getLinksToTimeSeries();
             
             tx.commit();
         }
-        catch (IkatsDaoMissingRessource me) {
+        catch (IkatsDaoMissingResource me) {
         	if (tx != null) tx.rollback();
             throw me;
         }
         catch (HibernateException e) {
         	if (tx != null) tx.rollback();
-            IkatsDaoMissingRessource error = new IkatsDaoMissingRessource("DataSet with name=" + name, e);
+            IkatsDaoMissingResource error = new IkatsDaoMissingResource("DataSet with name=" + name, e);
             throw error;
         }
         finally {
@@ -259,7 +259,7 @@ public class DataSetDAO extends DataBaseDAO {
      *
      * @return a DataSet or null if no dataset is found.
      */
-    public DataSet getDataSetSummary(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public DataSet getDataSetSummary(String name) throws IkatsDaoMissingResource, IkatsDaoException {
         DataSet result;
         Session session = getSession();
         Transaction tx = null;
@@ -268,18 +268,18 @@ public class DataSetDAO extends DataBaseDAO {
         	
             result = (DataSet) session.get(DataSet.class, name);
             if (result == null) {
-                throw new IkatsDaoMissingRessource("DataSet with name=" + name);
+                throw new IkatsDaoMissingResource("DataSet with name=" + name);
             }
             
             tx.commit();
         }
-        catch (IkatsDaoMissingRessource me) {
+        catch (IkatsDaoMissingResource me) {
         	if (tx != null) tx.rollback();
             throw me;
         }
         catch (HibernateException e) {
         	if (tx != null) tx.rollback();
-            IkatsDaoMissingRessource error = new IkatsDaoMissingRessource("DataSet with name=" + name, e);
+            IkatsDaoMissingResource error = new IkatsDaoMissingResource("DataSet with name=" + name, e);
             throw error;
         }
         finally {
@@ -294,10 +294,10 @@ public class DataSetDAO extends DataBaseDAO {
      *
      * @param name the dataset name to remove
      *
-     * @throws IkatsDaoMissingRessource error when the dataset is not found
+     * @throws IkatsDaoMissingResource error when the dataset is not found
      * @throws IkatsDaoException        another error
      */
-    public void removeDataSet(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public void removeDataSet(String name) throws IkatsDaoMissingResource, IkatsDaoException {
         Session session = getSession();
         Transaction tx = null;
         DataSet ds;
@@ -311,7 +311,7 @@ public class DataSetDAO extends DataBaseDAO {
                 session.delete(ds);
             }
             else {
-                throw new IkatsDaoMissingRessource("Dataset not found in database: " + name);
+                throw new IkatsDaoMissingResource("Dataset not found in database: " + name);
             }
             tx.commit();
 
@@ -321,7 +321,7 @@ public class DataSetDAO extends DataBaseDAO {
             LOGGER.error(msg, e);
             rollbackAndThrowException(tx, new IkatsDaoException(msg, e));
         }
-        catch (IkatsDaoMissingRessource e) {
+        catch (IkatsDaoMissingResource e) {
 
             LOGGER.error(e);
             rollbackAndThrowException(tx, e);
@@ -343,7 +343,7 @@ public class DataSetDAO extends DataBaseDAO {
      *
      * @return all corresponding datasets
      */
-    public List<DataSet> getAllDataSets() throws IkatsDaoMissingRessource, IkatsDaoException {
+    public List<DataSet> getAllDataSets() throws IkatsDaoMissingResource, IkatsDaoException {
         List<DataSet> result;
         Session session = getSession();
         Transaction tx = null; 
@@ -361,7 +361,7 @@ public class DataSetDAO extends DataBaseDAO {
         }
         catch (RuntimeException e) {
         	if (tx != null) tx.rollback();
-            throw new IkatsDaoMissingRessource("Hibernate error: Get all DataSets ", e);
+            throw new IkatsDaoMissingResource("Hibernate error: Get all DataSets ", e);
         }
         catch (Exception te) {
         	if (tx != null && !tx.wasRolledBack()) tx.rollback();
@@ -393,7 +393,7 @@ public class DataSetDAO extends DataBaseDAO {
         }
         catch (RuntimeException e) {
         	if (tx != null) tx.rollback();
-            IkatsDaoException error = new IkatsDaoMissingRessource("Hibernate error: Get all DataSet names", e);
+            IkatsDaoException error = new IkatsDaoMissingResource("Hibernate error: Get all DataSet names", e);
             throw error;
 
         }
@@ -453,12 +453,12 @@ public class DataSetDAO extends DataBaseDAO {
                 }
             }
             else {
-                throw new IkatsDaoMissingRessource("Remove TS links from dataset failed: Dataset not found with name=" + name);
+                throw new IkatsDaoMissingResource("Remove TS links from dataset failed: Dataset not found with name=" + name);
             }
             session.update(mergedDs);
             tx.commit();
         }
-        catch (IkatsDaoMissingRessource me) {
+        catch (IkatsDaoMissingResource me) {
             rollbackAndThrowException(tx, me);
         }
         catch (RuntimeException e) {

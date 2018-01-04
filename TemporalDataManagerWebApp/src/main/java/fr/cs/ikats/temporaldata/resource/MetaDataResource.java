@@ -57,7 +57,7 @@ import org.glassfish.jersey.media.multipart.FormDataParam;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.datamanager.client.opentsdb.ApiResponse;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.lang.CollectionUtils;
@@ -158,7 +158,7 @@ public class MetaDataResource extends AbstractResource {
             String streResult = result.toString();
             return streResult;
         }
-        catch (IkatsDaoMissingRessource e) {
+        catch (IkatsDaoMissingResource e) {
             // Note Kept
             throw new ResourceNotFoundException(tsuid);
         }
@@ -256,7 +256,7 @@ public class MetaDataResource extends AbstractResource {
      * @param tsuids
      *            the requested tsuid, a comma separated list of values,
      * @return a String : csv file with on metadata per line.
-     * @throws IkatsDaoMissingRessource
+     * @throws IkatsDaoMissingResource
      *             dao error raised in case of unmatched TSUID
      * @throws IkatsDaoException
      *             other error raised by DAO layer
@@ -264,7 +264,7 @@ public class MetaDataResource extends AbstractResource {
     @GET
     @Path("/list")
     @Produces({ "application/ms-excel" })
-    public Response getMetaData(@QueryParam("tsuid") String tsuids) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public Response getMetaData(@QueryParam("tsuid") String tsuids) throws IkatsDaoMissingResource, IkatsDaoException {
 
         // Handle multiple tsuids separated by ','
         List<String> tsuidslist = new ArrayList<String>(Arrays.asList(tsuids.split(",")));
@@ -289,7 +289,7 @@ public class MetaDataResource extends AbstractResource {
             }
             response = Response.ok(getOut(csvStr)).header("Content-Disposition", "attachment;filename=" + filename).build();
         }
-        catch (IkatsDaoMissingRessource e) {
+        catch (IkatsDaoMissingResource e) {
             // just to add a message in the logger ...
             // TODO TBC error level instead of warning ?
             logger.warn("Unable to find tsuid " + tsuids + " in database");
@@ -324,7 +324,7 @@ public class MetaDataResource extends AbstractResource {
             tsuidslist = new ArrayList<String>(Arrays.asList(tsuids.split(",")));
             result = metadataManager.getList(tsuidslist);
         }
-        catch (IkatsDaoMissingRessource e) {
+        catch (IkatsDaoMissingResource e) {
             // ResourceNotFoundException is equivalent to
             // IkatsDaoMissingRessource
 
@@ -350,7 +350,7 @@ public class MetaDataResource extends AbstractResource {
             List<String> tsuidslist = tsuids.getTsuids();
             result = metadataManager.getList(tsuidslist);
         }
-        catch (IkatsDaoMissingRessource e) {
+        catch (IkatsDaoMissingResource e) {
             // ResourceNotFoundException is equivalent to
             // IkatsDaoMissingRessource
 

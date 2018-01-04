@@ -43,7 +43,7 @@ import org.apache.log4j.Logger;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.common.expr.Atom;
 import fr.cs.ikats.common.expr.Expression;
 import fr.cs.ikats.common.expr.Expression.ConnectorExpression;
@@ -140,11 +140,11 @@ public class MetaDataManager {
      * @return the id of the updated metadata or null if no update has been performed
      *
      * @throws IkatsDaoConflictException update error raised on conflict with another resource
-     * @throws IkatsDaoMissingRessource  update error raised when a MetaData is missing
+     * @throws IkatsDaoMissingResource  update error raised when a MetaData is missing
      * @throws IkatsDaoException         another error from DAO
      */
     public Integer updateMetaData(String tsuid, String name, String value)
-            throws IkatsDaoConflictException, IkatsDaoMissingRessource, IkatsDaoException {
+            throws IkatsDaoConflictException, IkatsDaoMissingResource, IkatsDaoException {
         return getMetaDataFacade().updateMetaData(tsuid, name, value);
     }
 
@@ -219,10 +219,10 @@ public class MetaDataManager {
      *
      * @return a csv formatted string.
      *
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid different from '*'
+     * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException        any error raised by DAO layer.
      */
-    public String getListAsCSV(List<String> tsuids) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public String getListAsCSV(List<String> tsuids) throws IkatsDaoMissingResource, IkatsDaoException {
         MetaDataFacade facade = getMetaDataFacade();
         String separator = ";";
         Map<String, Map<String, String>> exportedMap = new HashMap<>();
@@ -271,10 +271,10 @@ public class MetaDataManager {
      *
      * @return a csv formatted string.
      *
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid different from '*'
+     * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException        any error raised by DAO layer.
      */
-    public List<MetaData> getList(List<String> tsuids) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public List<MetaData> getList(List<String> tsuids) throws IkatsDaoMissingResource, IkatsDaoException {
         MetaDataFacade facade = getMetaDataFacade();
 
         // List of metadata returned
@@ -297,10 +297,10 @@ public class MetaDataManager {
      *
      * @return the built map.
      *
-     * @throws IkatsDaoMissingRessource
+     * @throws IkatsDaoMissingResource
      * @throws IkatsDaoException
      */
-    public Map<String, List<MetaData>> getMapGroupingByTsuid(Set<String> tsuids) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public Map<String, List<MetaData>> getMapGroupingByTsuid(Set<String> tsuids) throws IkatsDaoMissingResource, IkatsDaoException {
         MetaDataFacade facade = getMetaDataFacade();
 
         // List of metadata returned
@@ -318,10 +318,10 @@ public class MetaDataManager {
      *
      * @return a json formatted string.
      *
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid different from '*'
+     * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException        any error raised by DAO layer.
      */
-    public Map<String, String> getListTypes() throws IkatsDaoMissingRessource, IkatsDaoException {
+    public Map<String, String> getListTypes() throws IkatsDaoMissingResource, IkatsDaoException {
         MetaDataFacade facade = getMetaDataFacade();
         return facade.getMetaDataTypes();
     }
@@ -333,10 +333,10 @@ public class MetaDataManager {
      *
      * @return a csv formatted string.
      *
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid different from '*'
+     * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException        any error raised by DAO layer.
      */
-    public Object getList(String tsuid) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public Object getList(String tsuid) throws IkatsDaoMissingResource, IkatsDaoException {
         MetaDataFacade facade = getMetaDataFacade();
         return facade.getMetaDataForTS(tsuid);
     }
@@ -348,10 +348,10 @@ public class MetaDataManager {
      *
      * @return a csv formatted string.
      *
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid different from '*'
+     * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException        any error raised by DAO layer.
      */
-    public String getListAsCSV(String tsuid) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public String getListAsCSV(String tsuid) throws IkatsDaoMissingResource, IkatsDaoException {
         // Convert String to List<String>
         List<String> tsuids = new ArrayList<String>();
         tsuids.add(tsuid);

@@ -35,7 +35,7 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableElement;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
@@ -129,7 +129,7 @@ public class TablesMerge {
             firstTable = tableManager.initTable(tableManager.readFromDatabase(tableNameToRead), false);
             tableNameToRead = this.request.tableNames[1];
             secondTable = tableManager.initTable(tableManager.readFromDatabase(tableNameToRead), false);
-        } catch (IkatsDaoMissingRessource e) {
+        } catch (IkatsDaoMissingResource e) {
             String msg = "Table " + tableNameToRead + " not found in database";
             throw new IkatsOperatorException(msg, e);
         }

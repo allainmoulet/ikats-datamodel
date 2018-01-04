@@ -31,7 +31,7 @@ package fr.cs.ikats.temporaldata.resource;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.datamanager.client.opentsdb.ApiResponse;
 import fr.cs.ikats.datamanager.client.opentsdb.ApiStatus;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
@@ -415,7 +415,7 @@ public class TimeSerieResource extends AbstractResource {
     @GET
     @Path("/{tsuid}/ds")
     public Response getDsTimeSeries(@PathParam("tsuid") String tsuid)
-            throws IkatsDaoMissingRessource, IkatsDaoException {
+            throws IkatsDaoMissingResource, IkatsDaoException {
         FunctionalIdentifier funcId = getMetadataManager().getFunctionalIdentifierByTsuid(tsuid);
         if (funcId == null) {
             return Response.status(Status.NOT_FOUND).build();

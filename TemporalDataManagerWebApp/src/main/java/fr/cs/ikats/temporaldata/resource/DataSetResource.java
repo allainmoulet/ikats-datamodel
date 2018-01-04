@@ -50,7 +50,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.DataSetWithFids;
@@ -100,7 +100,7 @@ public class DataSetResource extends AbstractResource {
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     public List<DataSet> getAllDataSetNamesWithNb(@QueryParam("size") @DefaultValue("false") boolean getSize)
-            throws IkatsDaoMissingRessource, IkatsDaoException {
+            throws IkatsDaoMissingResource, IkatsDaoException {
         return getDataSetManager().getAllDataSetSummary();
     }
 
@@ -139,7 +139,7 @@ public class DataSetResource extends AbstractResource {
      * @param updateMode  "replace" for classical update, "append" to add new tsuids to the dataset in database.
      *
      * @throws IkatsDaoInvalidValueException
-     * @throws IkatsDaoMissingRessource
+     * @throws IkatsDaoMissingResource
      * @throws IkatsDaoException
      */
     @PUT
@@ -148,7 +148,7 @@ public class DataSetResource extends AbstractResource {
     public void updateDataSet(@PathParam("datasetId") String datasetId, @FormParam("tsuidList") String tsuids,
                               @FormParam("description") String description,
                               @QueryParam("updateMode") @DefaultValue("replace") String updateMode)
-            throws IkatsDaoInvalidValueException, IkatsDaoMissingRessource, IkatsDaoException {
+            throws IkatsDaoInvalidValueException, IkatsDaoMissingResource, IkatsDaoException {
 
         logger.info("importing dataset " + datasetId + " with tsuids :" + tsuids);
         List<String> tsuidList = Arrays.asList(tsuids.split(","));
@@ -165,12 +165,12 @@ public class DataSetResource extends AbstractResource {
      *
      * @return the list of {@link DataSetWithFids}.
      *
-     * @throws IkatsDaoMissingRessource if no dataset is found
+     * @throws IkatsDaoMissingResource if no dataset is found
      */
     @GET
     @Produces({MediaType.APPLICATION_JSON})
     @Path("{datasetId}")
-    public DataSetWithFids getDataSet(@PathParam("datasetId") String datasetId) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public DataSetWithFids getDataSet(@PathParam("datasetId") String datasetId) throws IkatsDaoMissingResource, IkatsDaoException {
         logger.info("get infos on dataset " + datasetId);
 
         DataSetWithFids result = getDataSetWithFids(datasetId);
@@ -190,13 +190,13 @@ public class DataSetResource extends AbstractResource {
      *
      * @return a summary of the execution.
      *
-     * @throws IkatsDaoMissingRessource
+     * @throws IkatsDaoMissingResource
      * @throws IkatsDaoException
      */
     @DELETE
     @Path("{datasetId}")
     public Response removeDataSet(@PathParam("datasetId") String datasetId, @DefaultValue("false") @QueryParam("deep") Boolean deep)
-            throws IkatsDaoMissingRessource, IkatsDaoException {
+            throws IkatsDaoMissingResource, IkatsDaoException {
         String context = "Removing dataset=" + datasetId + " : ";
 
         logger.info(context + ": remove the dataset and its links");
@@ -211,7 +211,7 @@ public class DataSetResource extends AbstractResource {
      * @return
      */
     private DataSetWithFids getDataSetWithFids(String datasetId)
-            throws IkatsDaoMissingRessource, IkatsDaoException {
+            throws IkatsDaoMissingResource, IkatsDaoException {
         DataSet ds = getDataSetManager().getDataSetSummary(datasetId);
         List<FunctionalIdentifier> fids = metadataManager.getFunctionalIdentifierFromDataset(datasetId);
         DataSetWithFids result = new DataSetWithFids(ds.getName(), ds.getDescription(), fids);
