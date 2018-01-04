@@ -97,7 +97,7 @@ public class MetaDataTest {
      * For each test case: purge the database
      */
     @Before
-    public void init_db() {
+    public void init_db() throws IkatsDaoException {
 
         Session session = dao.getSession();
 

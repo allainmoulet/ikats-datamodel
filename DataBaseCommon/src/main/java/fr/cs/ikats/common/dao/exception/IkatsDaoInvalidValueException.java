@@ -43,7 +43,7 @@ public class IkatsDaoInvalidValueException extends IkatsDaoException {
     private String column = null;
     
     /**
-     * Optional field: when user wants tospecifically stock the value causing this exception
+     * Optional field: when user wants to specifically stock the value causing this exception
      */
     private Object value = null;
     

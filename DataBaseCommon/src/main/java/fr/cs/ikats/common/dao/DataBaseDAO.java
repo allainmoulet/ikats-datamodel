@@ -54,14 +54,7 @@ public abstract class DataBaseDAO {
      * @param hibernateConfigurationFile the hibernate configuration file
      */
     public void init(String hibernateConfigurationFile) {
-        try {
             configuration = new AnnotationConfiguration().configure(hibernateConfigurationFile);
-
-        }
-        catch (Throwable ex) {
-            LOGGER.error("Failed to create sessionFactory object." + ex);
-            throw new ExceptionInInitializerError(ex);
-        }
     }
 
     /**
@@ -108,15 +101,15 @@ public abstract class DataBaseDAO {
      * 
      * @return a session.
      */
-    public Session getSession() {
+    public Session getSession() throws IkatsDaoException {
         Session result = null;
         if (isReady()) {
             result = sessionFactory.openSession();
         }
         else {
-            String message = "Manager not initialize, call completConfiguration first";
+            String message = "Manager not initialize, call complete configuration first";
             LOGGER.error(message);
-            throw new RuntimeException(message);
+            throw new IkatsDaoException(message);
         }
         return result;
     }

@@ -155,7 +155,7 @@ public class TimeSerieResource extends AbstractResource {
 	@GET
 	@Path("/tsuid/{tsuid}")
 	@Produces(MediaType.APPLICATION_JSON)
-	public TSInfo getTSInfo(@PathParam("tsuid") String tsuid) throws ResourceNotFoundException, IkatsException {
+	public TSInfo getTSInfo(@PathParam("tsuid") String tsuid) throws IkatsDaoException, ResourceNotFoundException, IkatsException {
 		// FIXME 163211: TBC:  suppress dead code getTSInfo() and getTemporalDataManager().getTS() ...
 		String response = null;
 		try {

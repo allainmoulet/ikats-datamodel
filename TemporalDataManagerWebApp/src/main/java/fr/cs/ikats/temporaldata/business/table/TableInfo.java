@@ -254,7 +254,7 @@ public class TableInfo {
 						throw new IkatsException("Failed: getColumn at row=" + posRow + " : row is null");
 
 					DataLink addedLink = null;
-					if (isHandlingLinks()) {
+					if (iterLinks != null) {
 						List<DataLink> rowOfLinks = iterLinks.next();
 						if (rowOfLinks == null)
 							throw new IkatsException("Failed: getColumn at row=" + posRow + " : row of links is null");

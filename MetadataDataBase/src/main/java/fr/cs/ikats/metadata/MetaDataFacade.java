@@ -278,7 +278,7 @@ public class MetaDataFacade {
      *
      * @throws IkatsDaoConflictException error raised when multiple metadata are found.
      */
-    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoConflictException {
+    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoException, IkatsDaoConflictException {
         return dao.getMD(tsuid, name);
     }
 
@@ -708,7 +708,7 @@ public class MetaDataFacade {
      *
      * @return a list of FunctionalIdentifier, or null if nothing is found.
      */
-    public FunctionalIdentifier getFunctionalIdentifierByTsuid(String tsuid) {
+    public FunctionalIdentifier getFunctionalIdentifierByTsuid(String tsuid) throws IkatsDaoException {
         List<String> tsuids = new ArrayList<String>();
         tsuids.add(tsuid);
         FunctionalIdentifier result = null;
@@ -755,7 +755,7 @@ public class MetaDataFacade {
      *
      * @return a list of FunctionalIdentifier, or null if nothing is found.
      */
-    public List<FunctionalIdentifier> getFunctionalIdentifierByTsuidList(List<String> tsuids) {
+    public List<FunctionalIdentifier> getFunctionalIdentifierByTsuidList(List<String> tsuids) throws IkatsDaoException {
 
         List<FunctionalIdentifier> results = idDao.list(tsuids);
         return results;
@@ -768,7 +768,7 @@ public class MetaDataFacade {
      *
      * @return a list of FunctionalIdentifier, or null if nothing is found.
      */
-    public List<FunctionalIdentifier> getFunctionalIdentifierByFuncIdList(List<String> funcIds) {
+    public List<FunctionalIdentifier> getFunctionalIdentifierByFuncIdList(List<String> funcIds) throws IkatsDaoException{
 
         List<FunctionalIdentifier> results = idDao.listByFuncIds(funcIds);
         return results;
@@ -779,7 +779,7 @@ public class MetaDataFacade {
      *
      * @return a list of FunctionalIdentifier, or null if nothing is found.
      */
-    public List<FunctionalIdentifier> getFunctionalIdentifiersList() {
+    public List<FunctionalIdentifier> getFunctionalIdentifiersList() throws IkatsDaoException {
 
         List<FunctionalIdentifier> results = idDao.listAll();
         return results;

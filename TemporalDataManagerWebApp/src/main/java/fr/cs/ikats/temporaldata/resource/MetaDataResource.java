@@ -469,7 +469,8 @@ public class MetaDataResource extends AbstractResource {
     @GET
     @Path("/funcId/{tsuid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public FunctionalIdentifier getFunctionalIdentifier(@PathParam("tsuid") String tsuid) throws ResourceNotFoundJsonException {
+    public FunctionalIdentifier getFunctionalIdentifier(@PathParam("tsuid") String tsuid) throws IkatsDaoException ,
+            ResourceNotFoundJsonException {
 
         FunctionalIdentifier internalIdentifiers = metadataManager.getFunctionalIdentifierByTsuid(tsuid);
         if (internalIdentifiers == null) {
@@ -498,7 +499,7 @@ public class MetaDataResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
     public List<FunctionalIdentifier> searchFunctionalIdentifiers(@FormParam("tsuids") List<String> tsuids,
-            @FormParam("funcIds") List<String> funcIds) throws IkatsJsonException, ResourceNotFoundJsonException {
+            @FormParam("funcIds") List<String> funcIds) throws IkatsDaoException, IkatsJsonException {
 
         FilterFunctionalIdentifiers filter = new FilterFunctionalIdentifiers();
         filter.setTsuids(tsuids);
@@ -526,14 +527,14 @@ public class MetaDataResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public List<FunctionalIdentifier> searchFunctionalIdentifiersJson(FilterFunctionalIdentifiers filter)
-            throws IkatsJsonException, ResourceNotFoundJsonException {
+            throws IkatsDaoException, IkatsJsonException {
         return searchTsIds(filter);
     }
 
     @GET
     @Path("/funcId")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<FunctionalIdentifier> searchFunctionalIdentifiersJson() throws IkatsJsonException, ResourceNotFoundJsonException {
+    public List<FunctionalIdentifier> searchFunctionalIdentifiersJson() throws IkatsDaoException {
         return metadataManager.getAllFunctionalIdentifiers();
     }
 
@@ -550,7 +551,7 @@ public class MetaDataResource extends AbstractResource {
      *             error when search is incorrectly defined by client: bad
      *             request
      */
-    private List<FunctionalIdentifier> searchTsIds(FilterFunctionalIdentifiers filter) throws IkatsJsonException, ResourceNotFoundJsonException {
+    private List<FunctionalIdentifier> searchTsIds(FilterFunctionalIdentifiers filter) throws IkatsDaoException, IkatsJsonException {
         List<FunctionalIdentifier> res = null;
         if ((!CollectionUtils.isNullOrEmpy(filter.getTsuids())) && (!CollectionUtils.isNullOrEmpy(filter.getFuncIds()))) {
             throw new IkatsJsonException("Forbidden: both funcIds and tsuids filters are defined: " + filter.toString());

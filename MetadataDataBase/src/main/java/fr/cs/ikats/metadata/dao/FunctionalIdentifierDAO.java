@@ -161,7 +161,7 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
 	 * @return null if nothing is found, or error occured.
 	 */
 	@SuppressWarnings("unchecked")
-	public List<FunctionalIdentifier> list(List<String> tsuids) {
+	public List<FunctionalIdentifier> list(List<String> tsuids) throws IkatsDaoException {
 
 		List<FunctionalIdentifier> result = new ArrayList<>();
 		List<List<String>> tsuidSublists = new ArrayList<List<String>>();
@@ -268,7 +268,7 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
 	 *
 	 * @return null if nothing is found, or error occured.
 	 */
-	public List<FunctionalIdentifier> listByFuncIds(List<String> funcIds) {
+	public List<FunctionalIdentifier> listByFuncIds(List<String> funcIds) throws IkatsDaoException {
 
 		List<FunctionalIdentifier> result = null;
 
@@ -300,7 +300,7 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
 	 *
 	 * @return null if nothing is found, or error occurred.
 	 */
-	public List<FunctionalIdentifier> listAll() {
+	public List<FunctionalIdentifier> listAll() throws IkatsDaoException {
 
 		List<FunctionalIdentifier> result = null;
 

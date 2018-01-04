@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,21 +10,20 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.temporaldata.business;
@@ -68,18 +67,18 @@ import fr.cs.ikats.temporaldata.utils.ExecutorManager;
 
 /**
  * the business layer for Temporal Data management.
- * 
+ *
  */
 
 public class TemporalDataManager {
 
-	/** Timeout for atomic TS import, in milliseconds */
-	private static final int IMPORT_FULL_TS_TIMEOUT = 45000;
+    /** Timeout for atomic TS import, in milliseconds */
+    private static final int IMPORT_FULL_TS_TIMEOUT = 45000;
 
-	/** Wait time before checks between TS chunks, in milliseconds */ 
-	private static final long IMPORT_CHECK_TS_CHUNKS_WAIT = 1000;
+    /** Wait time before checks between TS chunks, in milliseconds */
+    private static final long IMPORT_CHECK_TS_CHUNKS_WAIT = 1000;
 
-	private static Logger logger = Logger.getLogger(TemporalDataManager.class);
+    private static Logger logger = Logger.getLogger(TemporalDataManager.class);
 
     /**
      * the URL builder instance
@@ -99,7 +98,7 @@ public class TemporalDataManager {
 
     /**
      * get the application configuration
-     * 
+     *
      * @return the ApplicationConfiguration
      */
     protected ApplicationConfiguration getConfig() {
@@ -108,7 +107,7 @@ public class TemporalDataManager {
 
     /**
      * return the DB Host value from configuration
-     * 
+     *
      * @return the host of TS DB
      */
     public String getHost() {
@@ -117,7 +116,7 @@ public class TemporalDataManager {
 
     /**
      * return the URL base for DB HTTP API.
-     * 
+     *
      * @return the DB HTTP API
      */
     protected String getURLDbApiBase() {
@@ -126,7 +125,7 @@ public class TemporalDataManager {
 
     /**
      * private method to get the import factory from Spring Context.
-     * 
+     *
      * @return the serializer factory from Spring Context
      */
     private ImportSerializerFactory getImportFactory() {
@@ -137,7 +136,7 @@ public class TemporalDataManager {
     /**
      * FIXME : cette fonction ne valide pas un pattern de Fonctional Identifier IKATS, mais simplement les caractères autorisés pour les tags OpenTSDB
      * validate the funcId value for the given tsuid
-     * 
+     *
      * @param funcId
      *            the value to validate
      * @return true
@@ -148,15 +147,14 @@ public class TemporalDataManager {
         Matcher matcher = funcIdPattern.matcher(funcId);
         if (matcher.matches()) {
             return true;
-        }
-        else {
+        } else {
             throw new InvalidValueException("TimeSerie", "FuncId", funcIdPattern.pattern(), funcId, null);
         }
     }
 
     /**
      * launch all the necessary import tasks
-     * 
+     *
      * @param metric
      *            the metric name
      * @param fileis
@@ -172,18 +170,18 @@ public class TemporalDataManager {
      * @throws ImportException
      *             if data cannot be imported ( mostly problem of file format)
      * @return a date array with start date and end date for this file
-     * @throws DataManagerException 
-     * @throws IOException 
+     * @throws DataManagerException
+     * @throws IOException
      */
     public long[] launchImportTasks(String metric, InputStream fileis, List<Future<ImportResult>> resultats, Map<String, String> tags,
-            String fileName) throws ImportException, DataManagerException, IOException {
-    	
+                                    String fileName) throws ImportException, DataManagerException, IOException, InterruptedException {
+
         ExecutorService executorService = ExecutorManager.getInstance().getExecutorService(ApplicationConfiguration.IMPORT_THREAD_POOL_NAME);
         // FIXME FTO : to be static. But getConfig has to be static.
         int numberOfPointsByImport = getConfig().getIntValue(ApplicationConfiguration.IMPORT_NB_POINTS_BY_BATCH);
-        
+
         IImportSerializer jsonizer = null;
-        
+
         jsonizer = getImportFactory().getBetterSerializer(fileName, metric, fileis, tags);
         if (jsonizer == null) {
             throw new ImportException("Input file format is not recognized by any serializers");
@@ -191,69 +189,64 @@ public class TemporalDataManager {
 
         // loop to submit import request for each TS chunk
         while (jsonizer.hasNext()) {
-        	String json = jsonizer.next(numberOfPointsByImport);
-        	ImportTSChunkTask task = new ImportTSChunkTask(json);
+            String json = jsonizer.next(numberOfPointsByImport);
+            ImportTSChunkTask task = new ImportTSChunkTask(json);
             logger.info("submit import task");
 
             Future<ImportResult> futureResult;
-			try {
-				futureResult = executorService.submit(task);
-			} catch (RejectedExecutionException re) {
-				// in case of exception : register the error into the result set.
-				ImportResult result = new ImportResult();
-				result.setSummary("RejectedExecutionException while submitting task: " + re.getMessage());
-				result.addError("details", ExceptionUtils.getStackTrace(re));
-				futureResult = CompletableFuture.completedFuture(result);
-			}
-			resultats.add(futureResult);
+            try {
+                futureResult = executorService.submit(task);
+            } catch (RejectedExecutionException re) {
+                // in case of exception : register the error into the result set.
+                ImportResult result = new ImportResult();
+                result.setSummary("RejectedExecutionException while submitting task: " + re.getMessage());
+                result.addError("details", ExceptionUtils.getStackTrace(re));
+                futureResult = CompletableFuture.completedFuture(result);
+            }
+            resultats.add(futureResult);
         }
 
         // FIXME FTO voir si la portion de code suivante devrait former endpoints permettant un traitement asynchorne des retours d'import... 
-    	
-    	// to simulate the timeout with check at each loop for diff between time started and time now
-    	int timeout = IMPORT_FULL_TS_TIMEOUT;
-    	long dateTimeout = new Date().getTime() + timeout;
-    	
-    	while (true) {
-    		// check if there is a task that is not completed
-    		boolean allResultsDone = true;
-        	for (Future<ImportResult> future : resultats) {
-				if (! future.isDone()) {
-					allResultsDone = false;
-					break;
-				}
-			}
-        	
-        	if (allResultsDone) {
-        		break;
-        	}
-        	
-        	// check for timeout
-        	if (new Date().getTime() > dateTimeout) {
-        		// cancel all tasks
-            	for (Future<ImportResult> future : resultats) {
-    				if (! future.isDone()) {
-    					future.cancel(true);
-    					break;
-    				}
-    			}
-            	
-            	// out of loop
-        		break;
-        	} else {
-        		// sleep a moment before restart the loop again
-        		try {
-					Thread.sleep(IMPORT_CHECK_TS_CHUNKS_WAIT);
-				} catch (InterruptedException e) {
-					// do nothing because there is not impact here
-					logger.warn("Interrupted while waiting in loop of launchImportTasks for ImportResults to be available", e);
-				}
-        	}
-    	}
-    	
-    	// return executor service into the pool 
-    	ExecutorManager.getInstance().returnExecutorService(ApplicationConfiguration.IMPORT_THREAD_POOL_NAME, executorService);
-    	
+
+        // to simulate the timeout with check at each loop for diff between time started and time now
+        int timeout = IMPORT_FULL_TS_TIMEOUT;
+        long dateTimeout = new Date().getTime() + timeout;
+
+        while (true) {
+            // check if there is a task that is not completed
+            boolean allResultsDone = true;
+            for (Future<ImportResult> future : resultats) {
+                if (!future.isDone()) {
+                    allResultsDone = false;
+                    break;
+                }
+            }
+
+            if (allResultsDone) {
+                break;
+            }
+
+            // check for timeout
+            if (new Date().getTime() > dateTimeout) {
+                // cancel all tasks
+                for (Future<ImportResult> future : resultats) {
+                    if (!future.isDone()) {
+                        future.cancel(true);
+                        break;
+                    }
+                }
+
+                // out of loop
+                break;
+            } else {
+                // sleep a moment before restart the loop again
+                Thread.sleep(IMPORT_CHECK_TS_CHUNKS_WAIT);
+            }
+        }
+
+        // return executor service into the pool
+        ExecutorManager.getInstance().returnExecutorService(ApplicationConfiguration.IMPORT_THREAD_POOL_NAME, executorService);
+
         return jsonizer.getDates();
     }
 
@@ -262,20 +255,20 @@ public class TemporalDataManager {
      * to openTSDB API
      */
     protected class ImportTSChunkTask implements Callable<ImportResult> {
-    	
+
         /** JSON import data */
         private String json;
 
         /**
          * build the json input string from the given IImportSerializer
-         * 
-         * @param reader
-         *            Component
+         *
+         * @param json
+         *            json input string
          * @throws ImportException
          *             if the task cannot be created
          */
         public ImportTSChunkTask(String json) throws ImportException {
-           this.json = json;
+            this.json = json;
         }
 
         /**
@@ -293,20 +286,18 @@ public class TemporalDataManager {
                     Response response = RequestSender.sendPUTJsonRequest(url, json);
                     importResult = ResponseParser.parseImportResponse(response);
                     logger.debug("Import task finished with result : " + importResult);
-                }
-                else {
+                } else {
                     logger.error("JSON data is empty");
-            		importResult = new ImportResult();
-            		importResult.setSummary("JSON data is empty");
+                    importResult = new ImportResult();
+                    importResult.setSummary("JSON data is empty");
                 }
-            }
-            catch (Throwable e) {
+            } catch (Throwable e) {
                 logger.error("Exception occured while sending json to db", e);
-        		importResult = new ImportResult();
-        		importResult.setSummary("Exception occured while sending json to db: " + e.getMessage());
-        		importResult.addError("details", ExceptionUtils.getStackTrace(e));
+                importResult = new ImportResult();
+                importResult.setSummary("Exception occured while sending json to db: " + e.getMessage());
+                importResult.addError("details", ExceptionUtils.getStackTrace(e));
             }
-            
+
             return importResult;
         }
 
@@ -316,7 +307,7 @@ public class TemporalDataManager {
      * get and parse the import result from all the Callable future results of
      * the Import tasks. generate an ImportResult with the following information
      * : tsuid, number of success, number of errors.
-     * 
+     *
      * @param metric
      *            the metric
      * @param resultats
@@ -336,7 +327,7 @@ public class TemporalDataManager {
      *             if TSUID cannot be retrieved
      */
     public ImportResult parseImportResults(String metric, List<Future<ImportResult>> resultats, Map<String, String> tags, Long startDate,
-            Long endDate) throws InterruptedException, ExecutionException, IkatsWebClientException {
+                                           Long endDate) throws InterruptedException, ExecutionException, IkatsWebClientException {
         ImportResult resultatTotal = new ImportResult();
         long success = 0L;
         for (Future<ImportResult> resultat : resultats) {
@@ -385,10 +376,10 @@ public class TemporalDataManager {
      */
     public String getTS(String metrique, MultivaluedMap<String, String> queryParams)
             throws UnsupportedEncodingException, IkatsWebClientException, ResourceNotFoundException {
-    	// FIXME 163211: TBC: suppress dead code getAllTS() and getTemporalDataManager().getTS() ...
-    	// or else FIXME ugly name confusing with another method (getTS)  completely different 
-    	// !!! different semantic => different name !!!
-    	String url;
+        // FIXME 163211: TBC: suppress dead code getAllTS() and getTemporalDataManager().getTS() ...
+        // or else FIXME ugly name confusing with another method (getTS)  completely different
+        // !!! different semantic => different name !!!
+        String url;
         Response response;
         url = "http://" + getHost() + getURLDbApiBase() + urlBuilder.generateLookupRequest(metrique, queryParams);
         logger.debug(url);
@@ -401,7 +392,7 @@ public class TemporalDataManager {
 
     /**
      * get the opentsdb metadata for a tsuid
-     * 
+     *
      * @param tsuid
      *            the tsuid
      * @return an object containiong
@@ -443,7 +434,7 @@ public class TemporalDataManager {
 
     /**
      * get the TS from data base for tsuid parameters.
-     * 
+     *
      * @param tsuid
      *            the requested tsuid
      * @param startDate
@@ -463,7 +454,7 @@ public class TemporalDataManager {
      *             if lookup request fails
      */
     public Response getTSFromTSUID(List<String> tsuid, String startDate, String endDate, String urlOptions, String aggregationMethod,
-            String downSampler, String downSamplerPeriod) throws IkatsWebClientException {
+                                   String downSampler, String downSamplerPeriod) throws IkatsWebClientException {
         String url;
         url = "http://" + getHost() + getURLDbApiBase()
                 + urlBuilder.generateQueryTSUIDUrl(tsuid, aggregationMethod, startDate, endDate, urlOptions, downSampler, downSamplerPeriod);
@@ -476,7 +467,7 @@ public class TemporalDataManager {
      * get the TSUID for metric, tags and start/end date.
      * request is done for counting the number of points 
      * in the interval [startDate .. endDate]
-     * 
+     *
      * @param metric
      *            the metric name
      * @param startDate
@@ -505,13 +496,9 @@ public class TemporalDataManager {
     }
 
     /**
-     * 
+     *
      * @param tsuid
      *            the tsuid
-     * @param metric
-     *            associated to tsuid
-     * @param tags
-     *            associated to tsuid
      * @return the deleted points
      * @throws IkatsWebClientException
      *             if errors
@@ -534,7 +521,7 @@ public class TemporalDataManager {
 
     /**
      * get the TS from database for the query parameters
-     * 
+     *
      * @param metrique
      *            the metric name
      * @param startDate
@@ -558,26 +545,25 @@ public class TemporalDataManager {
      * @return the Response
      */
     public Response getTS(String metrique, String startDate, String endDate, String urlOptions, String tags, String aggregationMethod,
-            String downSampler, String downSamplerPeriod, boolean downSamplingAdditionalInformation) throws IkatsWebClientException {
+                          String downSampler, String downSamplerPeriod, boolean downSamplingAdditionalInformation) throws IkatsWebClientException {
         String url;
         String host = getHost();
         if (downSamplingAdditionalInformation) {
             logger.info("Additionnal information asked : dev,min and max aggregation method added to query");
             url = "http://" + host + getURLDbApiBase()
                     + urlBuilder.generateMetricQueryUrl(metrique, tags, aggregationMethod, downSampler, downSamplerPeriod, startDate, endDate,
-                            urlOptions)
+                    urlOptions)
                     + "&" + urlBuilder.generateMetricQueryForQueryRequest(aggregationMethod, "dev", downSamplerPeriod, metrique, tags) + "&"
                     + urlBuilder.generateMetricQueryForQueryRequest(aggregationMethod, "min", downSamplerPeriod, metrique, tags) + "&"
                     + urlBuilder.generateMetricQueryForQueryRequest(aggregationMethod, "max", downSamplerPeriod, metrique, tags);
             logger.debug(url);
 
-        }
-        else {
+        } else {
             url = "http://" + host + getURLDbApiBase() + urlBuilder.generateMetricQueryUrl(metrique, tags, aggregationMethod, downSampler,
                     downSamplerPeriod, startDate, endDate, urlOptions);
         }
         logger.debug(url);
-        
+
         return RequestSender.sendGETRequest(url, host);
     }
 }

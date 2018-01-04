@@ -65,7 +65,8 @@ public class ProcessDataManager {
      *
      * @throws IOException In case of error when reading fileis
      */
-    public String importProcessData(InputStream fileis, Long fileLength, String processId, String dataType, String name) throws IOException {
+    public String importProcessData(InputStream fileis, Long fileLength, String processId, String dataType, String name)
+            throws IkatsDaoException, IOException {
         ProcessData data = new ProcessData(processId, dataType, name);
         return getProcessDataFacade().importProcessData(data, fileis, fileLength.intValue());
     }
@@ -79,7 +80,7 @@ public class ProcessDataManager {
      *
      * @return the internal identifier of the result.
      */
-    public String importProcessData(String processId, String name, byte[] data) {
+    public String importProcessData(String processId, String name, byte[] data) throws IkatsDaoException {
         ProcessData processData = new ProcessData(processId, "ANY", name);
         return getProcessDataFacade().importProcessData(processData, data);
     }
@@ -95,7 +96,7 @@ public class ProcessDataManager {
      *
      * @return the internal identifier of the result.
      */
-    public String importProcessData(String processId, String name, byte[] data, ProcessResultTypeEnum type) {
+    public String importProcessData(String processId, String name, byte[] data, ProcessResultTypeEnum type) throws IkatsDaoException {
         ProcessData processData = new ProcessData(processId, type.toString(), name);
         return getProcessDataFacade().importProcessData(processData, data);
     }
@@ -126,7 +127,7 @@ public class ProcessDataManager {
      *
      * @return null if nothing is found.
      */
-    public ProcessData getProcessPieceOfData(int id) {
+    public ProcessData getProcessPieceOfData(int id) throws IkatsDaoException {
         return getProcessDataFacade().getProcessPieceOfData(id);
     }
 
@@ -137,7 +138,7 @@ public class ProcessDataManager {
      *
      * @return null if not processResult is found.
      */
-    public List<ProcessData> getProcessData(String processId) {
+    public List<ProcessData> getProcessData(String processId) throws IkatsDaoException {
         return getProcessDataFacade().getProcessData(processId);
     }
 
@@ -146,7 +147,7 @@ public class ProcessDataManager {
      *
      * @return the list of all tables. null returned only in case of error.
      */
-    public List<ProcessData> listTables() {
+    public List<ProcessData> listTables() throws IkatsDaoException {
         return getProcessDataFacade().listTables();
     }
 

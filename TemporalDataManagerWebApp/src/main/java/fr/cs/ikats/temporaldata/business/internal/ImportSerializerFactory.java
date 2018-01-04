@@ -70,7 +70,7 @@ public class ImportSerializerFactory {
 	private List<IImportSerializer> serializers;
 	
 	/**
-     * get an usefull  of serializer, list all the serializer and test its against the first data line ( after the header line)
+     * get an usefull of serializer, list all the serializer and test its against the first data line ( after the header line)
      * of the given inputStream. The first serializer able to parse the line is selected.
      * 
      * Note : if only one serializer is found in the classpath, use it directly without testing it.
@@ -93,7 +93,7 @@ public class ImportSerializerFactory {
             // set 500 char max before reseting is still allowed
             reader.mark(500);
             // read the first line because it is the header line
-            reader.readLine();
+            String headerLine = reader.readLine();
             // read the first line to test the serializers
             String testLine = reader.readLine();
             logger.debug("testLine = "+testLine);

@@ -225,8 +225,8 @@ public class TablesMerge {
         }
 
         // -- Initialize the result/merged table
-        boolean withColHeaders = firstTable.isHandlingColumnsHeader() | secondTable.isHandlingColumnsHeader();
-        boolean withRowHeaders = firstTable.isHandlingRowsHeader() | secondTable.isHandlingRowsHeader();
+        boolean withColHeaders = firstTable.isHandlingColumnsHeader() || secondTable.isHandlingColumnsHeader();
+        boolean withRowHeaders = firstTable.isHandlingRowsHeader() || secondTable.isHandlingRowsHeader();
 
         Table resultTable = tableManager.initEmptyTable(withColHeaders, withRowHeaders);
         resultTable.setName(outputTableName);

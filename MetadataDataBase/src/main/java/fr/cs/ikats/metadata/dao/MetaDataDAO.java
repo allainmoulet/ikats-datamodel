@@ -432,7 +432,7 @@ public class MetaDataDAO extends DataBaseDAO {
      * 
      * @throws IkatsDaoConflictException error raised when multiple metadata are found
      */
-    public MetaData getMD(String tsuid, String name) throws IkatsDaoConflictException {
+    public MetaData getMD(String tsuid, String name) throws IkatsDaoConflictException, IkatsDaoException {
 
         MetaData result = null;
         String pairCriteria = "null";

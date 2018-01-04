@@ -447,7 +447,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
      * @throws IkatsDaoConflictException 
      */
     @Test
-    public void testImportMetaDataCSVWithUpdate() throws IkatsDaoMissingRessource, IkatsDaoConflictException {
+    public void testImportMetaDataCSVWithUpdate() throws IkatsDaoException, IkatsDaoMissingRessource, IkatsDaoConflictException {
 
         String testCaseName = "testImportMetaDataCSVWithUpdate";
 

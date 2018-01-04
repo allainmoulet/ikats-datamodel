@@ -158,7 +158,7 @@ public class MetaDataManager {
      *
      * @throws IkatsDaoConflictException error raised when multiple metadata are found
      */
-    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoConflictException {
+    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoException, IkatsDaoConflictException {
 
         MetaData metadata = getMetaDataFacade().getMetaData(tsuid, name);
 
@@ -407,7 +407,7 @@ public class MetaDataManager {
      *
      * @return found FunctionalIdentifier, or null
      */
-    public FunctionalIdentifier getFunctionalIdentifierByTsuid(String tsuid) {
+    public FunctionalIdentifier getFunctionalIdentifierByTsuid(String tsuid) throws IkatsDaoException {
 
         return getMetaDataFacade().getFunctionalIdentifierByTsuid(tsuid);
 
@@ -420,7 +420,7 @@ public class MetaDataManager {
      *
      * @return a list of FunctionalIdentifier, or null if nothing is found.
      */
-    public List<FunctionalIdentifier> getFunctionalIdentifierByTsuidList(List<String> tsuids) {
+    public List<FunctionalIdentifier> getFunctionalIdentifierByTsuidList(List<String> tsuids) throws IkatsDaoException {
 
         return getMetaDataFacade().getFunctionalIdentifierByTsuidList(tsuids);
 
@@ -446,7 +446,7 @@ public class MetaDataManager {
      *
      * @return a list of FunctionalIdentifier, or null if nothing is found.
      */
-    public List<FunctionalIdentifier> getFunctionalIdentifierByFuncIdList(List<String> funcIds) {
+    public List<FunctionalIdentifier> getFunctionalIdentifierByFuncIdList(List<String> funcIds) throws IkatsDaoException {
 
         return getMetaDataFacade().getFunctionalIdentifierByFuncIdList(funcIds);
 
@@ -457,7 +457,7 @@ public class MetaDataManager {
      *
      * @return a list of FunctionalIdentifier, or null if nothing is found.
      */
-    public List<FunctionalIdentifier> getAllFunctionalIdentifiers() {
+    public List<FunctionalIdentifier> getAllFunctionalIdentifiers() throws IkatsDaoException {
 
         return getMetaDataFacade().getFunctionalIdentifiersList();
 

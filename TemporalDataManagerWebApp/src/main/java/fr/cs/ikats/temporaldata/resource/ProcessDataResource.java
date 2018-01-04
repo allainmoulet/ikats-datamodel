@@ -90,7 +90,7 @@ public class ProcessDataResource extends AbstractResource {
     @GET
     @Path("/{processId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ProcessData> getProcessData(@PathParam("processId") String processId) throws ResourceNotFoundException {
+    public List<ProcessData> getProcessData(@PathParam("processId") String processId) throws IkatsDaoException, ResourceNotFoundException {
         List<ProcessData> result = processDataManager.getProcessData(processId);
         if (result == null) {
             throw new ResourceNotFoundException("No ProcessResult found for processId " + processId);
@@ -173,7 +173,7 @@ public class ProcessDataResource extends AbstractResource {
     @GET
     @Path("/id/{id}")
     @Produces(MediaType.MULTIPART_FORM_DATA)
-    public Response getProcessData(@PathParam("id") Integer id) throws ResourceNotFoundException, IkatsException, IOException, SQLException {
+    public Response getProcessData(@PathParam("id") Integer id) throws IkatsDaoException, ResourceNotFoundException, IkatsException {
 
         // TODO : service a supprimer ??? PAS UTILISE
 
@@ -190,21 +190,11 @@ public class ProcessDataResource extends AbstractResource {
             multipart.bodyPart(new BodyPart(result, MediaType.APPLICATION_JSON_TYPE));
 
             if (ProcessResultTypeEnum.valueOf(result.getDataType()).equals(ProcessResultTypeEnum.JSON)) {
-//                String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
                 String jsonString = new String(result.getData(), Charset.defaultCharset());
                 multipart.bodyPart(new BodyPart(jsonString, MediaType.APPLICATION_JSON_TYPE));
             } else if (ProcessResultTypeEnum.valueOf(result.getDataType()).equals(ProcessResultTypeEnum.CSV)) {
-//                multipart.bodyPart(new StreamDataBodyPart("myFile.csv", result.getData().getBinaryStream()));
                 multipart.bodyPart(new StreamDataBodyPart("myFile.csv", new ByteArrayInputStream(result.getData())));
             }
-//        } catch (SQLException sqle) {
-//            logger.error("Failed: service getProcessData(Integer): caught SQLException:", sqle);
-//            try {
-//                multipart.close();
-//            } catch (Throwable e) { // no more closing attempt
-//            }
-//
-//            throw sqle;
         } catch (Throwable e) {
             IkatsException ierror = new IkatsException("Failed: service getProcessData(Integer): caught unexpected Throwable:", e);
             logger.error(ierror);
@@ -279,11 +269,11 @@ public class ProcessDataResource extends AbstractResource {
     @POST
     @Consumes(MediaType.TEXT_PLAIN)
     @Produces(MediaType.APPLICATION_JSON)
-    public String importProcessResult(
+    public String importProcessResult (
             @QueryParam("processId") String processId,
             @QueryParam("name") String name,
             byte[] data,
-            @Context UriInfo uriInfo) {
+            @Context UriInfo uriInfo) throws IkatsDaoException {
 
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         logger.info("ProcessId : " + processId);
@@ -313,7 +303,7 @@ public class ProcessDataResource extends AbstractResource {
             @FormDataParam("file") InputStream fileis,
             @FormDataParam("file") FormDataContentDisposition fileDisposition,
             FormDataMultiPart formData,
-            @Context UriInfo uriInfo) throws IkatsException {
+            @Context UriInfo uriInfo) throws IkatsDaoException, IkatsException {
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         String fileName = fileDisposition.getFileName();
         logger.info("Import result file : " + fileName);
@@ -357,7 +347,11 @@ public class ProcessDataResource extends AbstractResource {
     @Path("/{processId}/JSON")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
-    public String importProcessResultAsJson(@PathParam("processId") String processId, @FormParam("name") String name, @FormParam("json") String json, @FormParam("size") String sizeParam, @Context UriInfo uriInfo) {
+    public String importProcessResultAsJson(@PathParam("processId") String processId,
+                                            @FormParam("name") String name,
+                                            @FormParam("json") String json,
+                                            @FormParam("size") String sizeParam,
+                                            @Context UriInfo uriInfo) throws IkatsDaoException {
 
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         logger.info("processId : " + processId);

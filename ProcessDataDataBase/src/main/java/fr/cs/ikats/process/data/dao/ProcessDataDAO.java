@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,21 +10,21 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
+ *
  *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
- * 
+ *
  */
 
 package fr.cs.ikats.process.data.dao;
@@ -69,7 +69,7 @@ public class ProcessDataDAO extends DataBaseDAO {
      *
      * @return the internal identifier if ProcessData has been correctly persisted,
      */
-    public String persist(ProcessData ds, byte[] data) {
+    public String persist(ProcessData ds, byte[] data) throws IkatsDaoException {
         Integer processDataId = null;
 
         Session session = getSession();
@@ -104,9 +104,9 @@ public class ProcessDataDAO extends DataBaseDAO {
      *
      * @return a ProcessData or null if no ProcessData is found.
      */
-    public ProcessData getProcessData(Integer id) {
+    public ProcessData getProcessData(Integer id) throws IkatsDaoException {
         ProcessData result = null;
-        
+
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -114,7 +114,7 @@ public class ProcessDataDAO extends DataBaseDAO {
             LOGGER.debug("Getting processId:" + id);
 
             result = (ProcessData) session.get(ProcessData.class, id);
-            
+
             tx.commit();
         }
         catch (RuntimeException e) {
@@ -136,11 +136,11 @@ public class ProcessDataDAO extends DataBaseDAO {
      *
      * @return a ProcessData or an empty list if no ProcessData is found or null if an HibernateException is raised.
      */
-    public List<ProcessData> getProcessData(String processId) {
+    public List<ProcessData> getProcessData(String processId) throws IkatsDaoException {
         List<ProcessData> result = null;
 
         Session session = getSession();
-      
+
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
@@ -149,7 +149,7 @@ public class ProcessDataDAO extends DataBaseDAO {
             Criteria criteria = session.createCriteria(ProcessData.class);
             criteria.add(Restrictions.eq("processId", processId));
             result = criteria.list();
-            
+
             tx.commit();
         }
         catch (RuntimeException e) {
@@ -170,17 +170,17 @@ public class ProcessDataDAO extends DataBaseDAO {
 
     /**
      * return all Tables from database,
-     * 
+     *
      * @return the list of all tables
      */
-    public List<ProcessData> listTables() {
+    public List<ProcessData> listTables() throws IkatsDaoException {
         List<ProcessData> result = null;
         Session session = getSession();
-        
+
         Transaction tx = null;
         try {
         	tx = session.beginTransaction();
-        	
+
         	// -- Trick to change the query depending on the database
         	// getSessionFactory doesn't expose th dialect property in our Hibernate 3.3.
         	// Use Java reflexion instead
@@ -188,7 +188,7 @@ public class ProcessDataDAO extends DataBaseDAO {
         	Field f = SessionFactoryImpl.class.getDeclaredField("properties");
         	f.setAccessible(true);
         	Properties p = (Properties)f.get(session.getSessionFactory());
-        	
+
         	String dialect = p.getProperty("hibernate.dialect");
         	if (dialect.toString().equals("org.hibernate.dialect.PostgreSQLDialect")) {
         	    // For PostgreSQL
@@ -197,7 +197,7 @@ public class ProcessDataDAO extends DataBaseDAO {
         	    // for HSQLDB when in Unit Tests
         	    procDataTableMatchCrit = Restrictions.sqlRestriction("regexp_matches({alias}.processid, '^[a-zA-Z]+$')");
         	}
-        	
+
             Criteria criteria = session.createCriteria(ProcessData.class);
             criteria.add(procDataTableMatchCrit);
             // Table are handled in ProcessData so as CorrelationDataset results.
@@ -209,7 +209,7 @@ public class ProcessDataDAO extends DataBaseDAO {
                                     )
                         );
             result = criteria.list();
-            
+
             // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
             tx.commit();
         }
@@ -219,7 +219,7 @@ public class ProcessDataDAO extends DataBaseDAO {
             //
             // throw new IkatsDaoException("Error reading process Data for processId " + processId + " in database", e);
             LOGGER.error("Error reading process Data in database", e);
-            
+
             if (tx != null) tx.rollback();
         }
         finally {
@@ -254,9 +254,9 @@ public class ProcessDataDAO extends DataBaseDAO {
             tx.commit();
         }
         catch (RuntimeException e) {
-          
+
         	LOGGER.error("Error deleting ProcessData for " + processId, e);
-            
+
         	// try to rollback
         	if (tx != null) tx.rollback();
             // Re-raise the original exception
@@ -267,6 +267,6 @@ public class ProcessDataDAO extends DataBaseDAO {
             session.close();
         }
     }
-    
+
 }
 
