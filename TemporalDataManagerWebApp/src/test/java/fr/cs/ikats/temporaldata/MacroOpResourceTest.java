@@ -341,43 +341,6 @@ public class MacroOpResourceTest extends AbstractRequestTest {
     }
 
     /**
-     * Macro operator list All - Nominal case - with full content
-     *
-     * @throws Exception if test fails
-     */
-    @Test
-    public void listAll_full_200() throws Exception {
-
-        // PREPARE THE DATABASE
-        // Fill in the workflow db
-        List<Workflow> wfList = new ArrayList<>();
-        wfList.add(addMOToDb(1));
-        wfList.add(addMOToDb(2));
-        wfList.add(addMOToDb(3));
-
-        // PREPARE THE TEST
-        // Fill in the workflow db
-
-        // DO THE TEST
-        Response response = callAPI(VERB.GET, "/mo/?full=true", null);
-
-        // CHECK RESULTS
-        int status = response.getStatus();
-        assertEquals(200, status);
-
-        List<Workflow> readWorkflowList = response.readEntity(new GenericType<List<Workflow>>() {
-        });
-        assertEquals(wfList.size(), readWorkflowList.size());
-        for (int i = 0; i < wfList.size(); i++) {
-            assertEquals(wfList.get(i).getId(), readWorkflowList.get(i).getId());
-            assertEquals(wfList.get(i).getName(), readWorkflowList.get(i).getName());
-            assertEquals(wfList.get(i).getDescription(), readWorkflowList.get(i).getDescription());
-            assertEquals(wfList.get(i).getRaw(), readWorkflowList.get(i).getRaw());
-        }
-
-    }
-
-    /**
      * Macro operator list All - Robustness case - No Macro operator stored
      *
      * @throws Exception if test fails
