@@ -101,8 +101,8 @@ public class LinkDatasetTimeSeries {
      * @param tsuid : the tsuid
      */
     public LinkDatasetTimeSeries(String tsuid, String datasetname) {
-        setFunctionalIdentifier(new FunctionalIdentifier( tsuid, null ) );// setTsuid(tsuid);
-        setDataset( new DataSet( datasetname, null, null ) );// setDatasetName( datasetname );
+        setFunctionalIdentifier(new FunctionalIdentifier( tsuid, null ) );
+        setDataset( new DataSet( datasetname, null, null ) );
     }
     
     /**
@@ -158,10 +158,6 @@ public class LinkDatasetTimeSeries {
             return funcIdentifier.getTsuid();
         }
         else return "";
-//        else
-//        {
-//            return tsuid;
-//        } 
     }
 
     /**
@@ -175,7 +171,6 @@ public class LinkDatasetTimeSeries {
             setFunctionalIdentifier(new FunctionalIdentifier() );
         }
         getFuncIdentifier().setTsuid(tsuid);
-        // this.tsuid = tsuid;
     }
 
     /**
@@ -194,9 +189,6 @@ public class LinkDatasetTimeSeries {
      */
     public void setDataset(DataSet dataset) {
         this.dataset = dataset;
-//        if (this.dataset != null) {
-//            this.datasetName = this.dataset.getName();
-//        }
     }
     
     /**
@@ -209,10 +201,6 @@ public class LinkDatasetTimeSeries {
         {
             return dataset.getName();
         } else return "";
-//        else
-//        {
-//            return this.datasetName;
-//        } 
     }
     
     /**
@@ -225,9 +213,6 @@ public class LinkDatasetTimeSeries {
             setDataset( new DataSet( datasetname, null, null));
         }
         getDataset().setName( datasetname );
-        
-        
-        // this.datasetName = datasetname;
     }
 
     /**
@@ -245,10 +230,6 @@ public class LinkDatasetTimeSeries {
      */
     public void setFunctionalIdentifier(FunctionalIdentifier funcIdentifier) {
         this.funcIdentifier= funcIdentifier;
-//        if ( this.funcIdentifier != null)
-//        {
-//            this.tsuid = this.funcIdentifier.getTsuid();
-//        }
     }
     
     /**
@@ -260,7 +241,7 @@ public class LinkDatasetTimeSeries {
         if ( obj instanceof LinkDatasetTimeSeries )
         {
             LinkDatasetTimeSeries tsObj = (LinkDatasetTimeSeries) obj;
-            String tsuid = this.getTsuid(); 
+            String tsuid = this.getTsuid();
             String datasetName = this.getDatasetName();
             return tsuid.equals( tsObj.getTsuid()) && datasetName.equals( tsObj.getDatasetName() );
         }

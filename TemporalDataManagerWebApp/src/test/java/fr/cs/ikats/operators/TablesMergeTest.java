@@ -249,7 +249,7 @@ public class TablesMergeTest {
         tablesMergeOperator.apply();
 
         // Direct connection to the database
-        TableEntity writtenData = tableManager.dao.getByName(outputTableName);
+        TableEntity writtenData = tableManager.getDao().getByName(outputTableName);
 
         // Check the record in database
         assertEquals(writtenData.getName(), outputTableName);

@@ -131,10 +131,8 @@ public class ExecutorManager {
      *            the runnalbe task to run
      * @param executorName
      *            the name of the executor
-     * @throws Exception
-     *             if runnable cannot be executed into the executor
      */
-    public void execute(ExecutorService executor, Runnable runnable, String executorName) throws Exception {
+    public void execute(ExecutorService executor, Runnable runnable, String executorName) {
         if (executor == null) {
             logger.error("executor " + executorName + " not registered");
         }
@@ -157,10 +155,8 @@ public class ExecutorManager {
      *            the name of the executor
      * @param <T>  the result type of method call
      * @return a list of execution result
-     * @throws Exception
-     *             if callable cannot be submited into the executor
      */
-    public <T> Future<T> execute(ExecutorService executor, Callable<T> callable, String executorName) throws Exception {
+    public <T> Future<T> execute(ExecutorService executor, Callable<T> callable, String executorName) {
         if (executor == null) {
             logger.error("executor " + executorName + " not registered");
             return null;

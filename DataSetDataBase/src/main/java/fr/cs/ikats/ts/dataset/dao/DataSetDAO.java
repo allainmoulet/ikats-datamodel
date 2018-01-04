@@ -84,10 +84,6 @@ public class DataSetDAO extends DataBaseDAO {
             IkatsDaoException error = buildDaoException("Failed to create DataSet named=" + name, e);
             rollbackAndThrowException(tx, error);
         }
-        catch (Throwable te) {
-            IkatsDaoException error = new IkatsDaoException("Unexpected error: failed to create DataSet named=" + name, te);
-            rollbackAndThrowException(tx, error);
-        }
         finally {
             session.close();
         }
@@ -146,11 +142,6 @@ public class DataSetDAO extends DataBaseDAO {
                     "HibernateException occurred => failed to update dataset using mode replace, with name=" + name, e);
             rollbackAndThrowException(tx, error);
         }
-        catch (Throwable te) {
-            IkatsDaoException error = new IkatsDaoException(
-                    te.getClass().getSimpleName() + "unexpectedly occurred => Failed to update dataset using mode replace, with name=" + name, te);
-            rollbackAndThrowException(tx, error);
-        }
         finally {
             session.close();
         }
@@ -175,11 +166,6 @@ public class DataSetDAO extends DataBaseDAO {
         catch (HibernateException e) {
             IkatsDaoException error = new IkatsDaoException(
                     "Failed to add the timeseries " + tsuid + " to dataset " + datasetName, e);
-            rollbackAndThrowException(tx, error);
-        }
-        catch (Throwable te) {
-            IkatsDaoException error = new IkatsDaoException(
-                    te.getClass().getSimpleName() + "unexpectedly occured => Failed to add the timeserie " + tsuid + " to dataset " + datasetName, te);
             rollbackAndThrowException(tx, error);
         }
         finally {
@@ -221,11 +207,6 @@ public class DataSetDAO extends DataBaseDAO {
                     "HibernateException occured => failed to update dataset using mode append, with name=" + name, e);
             rollbackAndThrowException(tx, error);
         }
-        catch (Throwable te) {
-            IkatsDaoException error = new IkatsDaoException(
-                    te.getClass().getSimpleName() + "unexpectedly occured => Failed to update dataset using mode append, with name=" + name, te);
-            rollbackAndThrowException(tx, error);
-        }
         finally {
             session.close();
         }
@@ -264,11 +245,6 @@ public class DataSetDAO extends DataBaseDAO {
             IkatsDaoMissingRessource error = new IkatsDaoMissingRessource("DataSet with name=" + name, e);
             throw error;
         }
-        catch (Throwable te) {
-        	if (tx != null) tx.rollback();
-            IkatsDaoException error = new IkatsDaoException("Unexpected error: Get DataSet with name=" + name, te);
-            throw error;
-        }
         finally {
             session.close();
         }
@@ -304,11 +280,6 @@ public class DataSetDAO extends DataBaseDAO {
         catch (HibernateException e) {
         	if (tx != null) tx.rollback();
             IkatsDaoMissingRessource error = new IkatsDaoMissingRessource("DataSet with name=" + name, e);
-            throw error;
-        }
-        catch (Throwable te) {
-        	if (tx != null) tx.rollback();
-            IkatsDaoException error = new IkatsDaoException("Unexpected error: Get DataSet with name=" + name, te);
             throw error;
         }
         finally {
@@ -418,28 +389,11 @@ public class DataSetDAO extends DataBaseDAO {
             Query q = session.createQuery(LinkDatasetTimeSeries.LIST_DATASET_NAMES_FOR_TSUID);
             q.setString("tsuid", tsuid);
             result = q.list();
-
-            // Note: TODO TBC should we handle IkatsDaoMissingRessource here ?
-            // if ((result == null) || (result.size() == 0)) {
-            // throw new IkatsDaoMissingRessource("Empty result: Get All DataSet
-            // names");
-            // }
-            
             tx.commit();
         }
-        // Note: TODO TBC should we handle IkatsDaoMissingRessource here ?
-        // catch (IkatsDaoMissingRessource me) {
-        // throw me;
-        // }
         catch (RuntimeException e) {
         	if (tx != null) tx.rollback();
             IkatsDaoException error = new IkatsDaoMissingRessource("Hibernate error: Get all DataSet names", e);
-            throw error;
-
-        }
-        catch (Throwable te) {
-        	if (tx != null) tx.rollback();
-            IkatsDaoException error = new IkatsDaoException("Unexpected error: Get all DataSet names", te);
             throw error;
 
         }
@@ -469,11 +423,6 @@ public class DataSetDAO extends DataBaseDAO {
         }
         catch (RuntimeException e) {
             IkatsDaoException error = new IkatsDaoException("RuntimeException occured => failed to delete dataset with name=" + datasetName, e);
-            rollbackAndThrowException(tx, error);
-        }
-        catch (Throwable te) {
-            IkatsDaoException error = new IkatsDaoException(
-                    te.getClass().getSimpleName() + "unexpectedly occured => failed to delete dataset with name=" + datasetName, te);
             rollbackAndThrowException(tx, error);
         }
         finally {
@@ -515,11 +464,6 @@ public class DataSetDAO extends DataBaseDAO {
         catch (RuntimeException e) {
             IkatsDaoException error = new IkatsDaoException(
                     "HibernateException occured => failed to remove TS links from dataset dataset using mode replace, with name=" + name, e);
-            rollbackAndThrowException(tx, error);
-        }
-        catch (Throwable te) {
-            IkatsDaoException error = new IkatsDaoException(te.getClass().getSimpleName()
-                                                                    + "unexpectedly occured => Failed to remove TS links from dataset dataset using mode replace, with name=" + name, te);
             rollbackAndThrowException(tx, error);
         }
         finally {

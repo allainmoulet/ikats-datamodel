@@ -88,10 +88,18 @@ public class TableManager {
      */
     private ObjectMapper jsonObjectMapper;
 
+    public TableDAO getDao() {
+        return dao;
+    }
+
+    public void setDao(TableDAO dao) {
+        this.dao = dao;
+    }
+
     /**
      * DAO object to access the Workflow storage
      */
-    public TableDAO dao;
+    private TableDAO dao;
 
     /**
      * Default constructor for default configuration of jsonObjectMapper.

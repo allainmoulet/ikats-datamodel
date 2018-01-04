@@ -514,7 +514,7 @@ public class MetaDataManager {
         catch (IkatsDaoException daoError) {
             throw daoError;
         }
-        catch (Throwable e) {
+        catch (Exception e) {
             throw new IkatsDaoException("MetadataManager::searchFunctionalIdentifiers ended with unhandled error ", e);
         }
     }

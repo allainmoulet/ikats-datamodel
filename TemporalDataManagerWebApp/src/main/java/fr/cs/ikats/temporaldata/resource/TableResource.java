@@ -579,10 +579,10 @@ public class TableResource extends AbstractResource {
         // Creates the request to the operator. Should be replaced in a future version by the JAXRS JSON transformation
         // from the HTTP request. See mergeTables(Request)
         TrainTestSplitTable.Request request = new TrainTestSplitTable.Request();
-        request.tableName = tableName;
-        request.targetColumnName = targetColumnName;
-        request.repartitionRate = repartitionRate;
-        request.outputTableName = outputTableName;
+        request.setTableName(tableName);
+        request.setTargetColumnName(targetColumnName);
+        request.setRepartitionRate(repartitionRate);
+        request.setOutputTableName(outputTableName);
 
         // Try to initialize the operator with the request
         TrainTestSplitTable trainTestSplitTable = new TrainTestSplitTable(request);

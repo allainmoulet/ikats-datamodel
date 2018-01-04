@@ -49,10 +49,42 @@ public class TrainTestSplitTable {
      */
     public static class Request {
 
-        public String tableName;
-        public String targetColumnName;
-        public double repartitionRate;
-        public String outputTableName;
+        private String tableName;
+        private String targetColumnName;
+        private double repartitionRate;
+        private String outputTableName;
+
+        public String getTableName() {
+            return tableName;
+        }
+
+        public void setTableName(String tableName) {
+            this.tableName = tableName;
+        }
+
+        public String getTargetColumnName() {
+            return targetColumnName;
+        }
+
+        public void setTargetColumnName(String targetColumnName) {
+            this.targetColumnName = targetColumnName;
+        }
+
+        public double getRepartitionRate() {
+            return repartitionRate;
+        }
+
+        public void setRepartitionRate(double repartitionRate) {
+            this.repartitionRate = repartitionRate;
+        }
+
+        public String getOutputTableName() {
+            return outputTableName;
+        }
+
+        public void setOutputTableName(String outputTableName) {
+            this.outputTableName = outputTableName;
+        }
 
         public Request() {
             // default constructor

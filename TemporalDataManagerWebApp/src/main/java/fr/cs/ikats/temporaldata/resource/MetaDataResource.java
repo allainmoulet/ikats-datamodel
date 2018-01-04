@@ -367,9 +367,7 @@ public class MetaDataResource extends AbstractResource {
     /**
      * get a json representation of the metadata types 
      * 
-     * @param tsuids
-     *            the requested tsuid, a comma separated list of values,
-     * @return a String : json file with one {metadata_name:metadata_type}per line.
+     * @return a String : json file with one {metadata_name:metadata_type} per line.
      * @throws ResourceNotFoundException
      *             if at least one metadata was not found: mismatched tsuid in
      *             DAO layer
@@ -386,9 +384,6 @@ public class MetaDataResource extends AbstractResource {
         }
         catch (IkatsDaoException e) {
             throw  e;
-        }
-        catch (Throwable ue) {
-           throw new WebApplicationException("Getting MetaData types from all TS : ", ue);
         }
         return result;
     }

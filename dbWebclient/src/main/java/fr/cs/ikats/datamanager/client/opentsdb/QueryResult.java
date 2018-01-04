@@ -41,7 +41,7 @@ import org.apache.log4j.Logger;
  * Query Result get from opentsdb
  */
 public class QueryResult implements Serializable {
-    private final Logger logger = Logger.getLogger(QueryResult.class);
+    private static final Logger logger = Logger.getLogger(QueryResult.class);
 
     private static final long serialVersionUID = 8590227526827248120L;
     private Map<Integer, Map<Object, Object>> series;

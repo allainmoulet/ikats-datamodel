@@ -291,7 +291,7 @@ public class TemporalDataManager {
                     importResult = new ImportResult();
                     importResult.setSummary("JSON data is empty");
                 }
-            } catch (Throwable e) {
+            } catch (Exception e) {
                 logger.error("Exception occured while sending json to db", e);
                 importResult = new ImportResult();
                 importResult.setSummary("Exception occured while sending json to db: " + e.getMessage());

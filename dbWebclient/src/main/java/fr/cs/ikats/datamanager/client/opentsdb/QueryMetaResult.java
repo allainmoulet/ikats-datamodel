@@ -44,7 +44,7 @@ public class QueryMetaResult implements Serializable {
     private Map<String, String[]> series;
 
     /**
-     * constructor
+     * constructorLogger
      */
     public QueryMetaResult() {
         series = new LinkedHashMap<String, String[]>();

@@ -206,7 +206,7 @@ public class JoinTableWithTsTest extends CommonTest {
 
         // using DAO for Table:
         try {
-            TableEntity writtenData = tableManager.dao.getByName(OUTPUT_TABLE_NAME);
+            TableEntity writtenData = tableManager.getDao().getByName(OUTPUT_TABLE_NAME);
 
             assertEquals(writtenData.getName(), OUTPUT_TABLE_NAME);
 

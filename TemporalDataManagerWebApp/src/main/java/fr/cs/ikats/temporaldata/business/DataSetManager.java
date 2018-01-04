@@ -120,8 +120,8 @@ public class DataSetManager {
      * 
      * @return the list of the internal id of the inserted metadata
      */
-    public String persistDataSetFromEntity(String name, String description, List<FunctionalIdentifier> funcIdentifiers) throws IkatsDaoException {
-        return getDataSetFacade().persistDataSetFromEntity(name, description, funcIdentifiers);
+    public String persistDataSetFromEntity(String dataSetId, String description, List<FunctionalIdentifier> funcIdentifiers) throws IkatsDaoException {
+        return getDataSetFacade().persistDataSetFromEntity(dataSetId, description, funcIdentifiers);
     }
 
     /**
@@ -248,7 +248,7 @@ public class DataSetManager {
                     LOGGER.error("- failed to remove associated metadata for tsuid=" + tsuid);
                     tsRemoveError.add(new IkatsDaoException("failed to remove associated metadata for tsuid " + tsuid, e));
                 }
-                catch (Throwable e) {
+                catch (Exception e) {
                     LOGGER.error("- failed to remove tsuid=" + tsuid);
                     tsRemoveError.add(new IkatsDaoException("failed to delete TS for tsuid " + tsuid, e));
                 }
