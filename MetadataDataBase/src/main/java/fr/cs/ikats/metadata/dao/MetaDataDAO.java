@@ -484,9 +484,9 @@ public class MetaDataDAO extends DataBaseDAO {
     public List<FunctionalIdentifier> searchFuncId(List<FunctionalIdentifier> scope, Group<MetadataCriterion> formula) throws IkatsDaoException {
 
         // only AND connector allowed
-        if (ConnectorExpression.AND != formula.connector) {
+        if (ConnectorExpression.AND != formula.getConnector()) {
             throw new IkatsDaoInvalidValueException(
-                    "searchFuncId expects ConnectorExpression.AND: not yet implemented connector " + formula.connector);
+                    "searchFuncId expects ConnectorExpression.AND: not yet implemented connector " + formula.getConnector());
         }
 
         // step 1:
@@ -746,10 +746,10 @@ public class MetaDataDAO extends DataBaseDAO {
 
         Map<String, List<MetadataCriterion>> map = new HashMap<String, List<MetadataCriterion>>();
 
-        for (Expression<MetadataCriterion> expression : formula.terms) {
+        for (Expression<MetadataCriterion> expression : formula.getTerms()) {
             if (expression instanceof Atom<?>) {
                 Atom<MetadataCriterion> atomMetaCriterion = (Atom<MetadataCriterion>) expression;
-                MetadataCriterion metaCriterion = atomMetaCriterion.atomicTerm;
+                MetadataCriterion metaCriterion = atomMetaCriterion.getAtomicTerm();
                 String criterionPropertyName = metaCriterion.getMetadataName();
                 List<MetadataCriterion> mapValue = map.get(criterionPropertyName);
                 if (mapValue == null) {

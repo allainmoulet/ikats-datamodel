@@ -626,8 +626,8 @@ public class MetaDataManager {
             throws IkatsDaoInvalidValueException, IkatsDaoException, IkatsException, SQLException, ResourceNotFoundException {
 
         Group<MetadataCriterion> lFormula = new Group<MetadataCriterion>();
-        lFormula.connector = ConnectorExpression.AND;
-        lFormula.terms = new ArrayList<Expression<MetadataCriterion>>();
+        lFormula.setConnector(ConnectorExpression.AND);
+        lFormula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
 
         List<MetadataCriterion> convertedCriteria = criteriaConverter(lCriteria);
 
@@ -635,8 +635,8 @@ public class MetaDataManager {
         for (MetadataCriterion metadataCriterion : convertedCriteria) {
             metadataCriterion.computeServerValue(); // '*' to '%' for operator like
             Atom<MetadataCriterion> atomCriterion = new Atom<MetadataCriterion>();
-            atomCriterion.atomicTerm = metadataCriterion;
-            lFormula.terms.add(atomCriterion);
+            atomCriterion.setAtomicTerm(metadataCriterion);
+            lFormula.getTerms().add(atomCriterion);
         }
 
         // plug the restriction of size below

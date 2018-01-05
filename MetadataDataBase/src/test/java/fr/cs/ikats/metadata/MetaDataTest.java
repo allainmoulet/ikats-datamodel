@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,21 +10,20 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.metadata;
@@ -107,14 +106,12 @@ public class MetaDataTest {
             Query q = session.createQuery("DELETE FROM MetaData where tsuid like '%ts%'");
             q.executeUpdate();
             tx.commit();
-        }
-        catch (HibernateException e) {
+        } catch (HibernateException e) {
             if (tx != null) {
                 tx.rollback();
             }
             throw e;
-        }
-        finally {
+        } finally {
             session.close();
         }
     }
@@ -124,8 +121,8 @@ public class MetaDataTest {
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.lang.String)}
      * .
-     * @throws IkatsDaoException 
-     * @throws IkatsDaoConflictException 
+     * @throws IkatsDaoException
+     * @throws IkatsDaoConflictException
      */
     @Test
     public void testPersistMetaData() throws IkatsDaoConflictException, IkatsDaoException {
@@ -149,8 +146,8 @@ public class MetaDataTest {
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.lang.String)}
      * .
-     * @throws IkatsDaoException 
-     * @throws IkatsDaoConflictException 
+     * @throws IkatsDaoException
+     * @throws IkatsDaoConflictException
      */
     @Test
     public void testUpdateMetaData() throws IkatsDaoConflictException, IkatsDaoException {
@@ -182,7 +179,7 @@ public class MetaDataTest {
     }
 
     /**
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      * @throws IkatsDaoMissingResource
      *
      */
@@ -195,7 +192,7 @@ public class MetaDataTest {
 
     /**
      * Test the failures of searchs by TSUIDs
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      * @throws IkatsDaoMissingResource
      */
     @Test(expected = IkatsDaoMissingResource.class)
@@ -209,8 +206,8 @@ public class MetaDataTest {
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.lang.String)}
      * .
-     * @throws IkatsDaoException 
-     * @throws IkatsDaoConflictException 
+     * @throws IkatsDaoException
+     * @throws IkatsDaoConflictException
      */
     @Test
     public void testCreateMetaDataDuplicate() throws IkatsDaoConflictException, IkatsDaoException {
@@ -227,10 +224,10 @@ public class MetaDataTest {
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#removeMetaDataForTS(java.lang.String)}
      * .
-     * @throws IkatsDaoException 
-     * @throws IkatsDaoConflictException 
+     * @throws IkatsDaoException
+     * @throws IkatsDaoConflictException
      */
-    @Test(expected =  IkatsDaoMissingResource.class)
+    @Test(expected = IkatsDaoMissingResource.class)
     public void testRemoveMetaDataForTS() throws IkatsDaoConflictException, IkatsDaoException {
         MetaDataFacade facade = new MetaDataFacade();
 
@@ -244,7 +241,7 @@ public class MetaDataTest {
         facade.removeMetaDataForTS("tsuidC3", "MDName1");
         result = facade.getMetaDataForTS("tsuidC3");
         assertEquals(1, result.size());
-        
+
         facade.removeMetaDataForTS("tsuidC4");
         // assert exception 
         facade.getMetaDataForTS("tsuidC4");
@@ -254,8 +251,8 @@ public class MetaDataTest {
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#getMetaDataForTS(java.lang.String)}
      * .
-     * @throws IkatsDaoException 
-     * @throws IkatsDaoConflictException 
+     * @throws IkatsDaoException
+     * @throws IkatsDaoConflictException
      */
     @Test
     public void testGetMetaDataForTS() throws IkatsDaoConflictException, IkatsDaoException {
@@ -264,7 +261,6 @@ public class MetaDataTest {
         facade.persistMetaData("tsuidD5", "MDName1", "value1");
 
         List<MetaData> result = facade.getMetaDataForTS("tsuidD5");
-        System.out.println(facade.getCSVForMetaData(result));
         assertEquals(1, result.size());
         MetaData result0 = result.get(0);
 
@@ -274,8 +270,8 @@ public class MetaDataTest {
     }
 
     /**
-     * @throws IkatsDaoException 
-     * @throws IkatsDaoConflictException 
+     * @throws IkatsDaoException
+     * @throws IkatsDaoConflictException
      *
      */
     @Test
@@ -294,14 +290,14 @@ public class MetaDataTest {
             facade.persistMetaData("tsG1", "MDName1", "21");
         } catch (IkatsDaoConflictException e) {
             // Good: expected error
-        } 
+        }
     }
 
     private void addCrit(Group<MetadataCriterion> formula, String critName, String critOperator, String rightOperandValue) {
         MetadataCriterion crit = new MetadataCriterion(critName, critOperator, rightOperandValue);
         Atom<MetadataCriterion> atomCriterion = new Atom<MetadataCriterion>();
-        atomCriterion.atomicTerm = crit;
-        formula.terms.add(atomCriterion);
+        atomCriterion.setAtomicTerm(crit);
+        formula.getTerms().add(atomCriterion);
     }
 
     /**
@@ -318,7 +314,7 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on "in" operator with single item in operand list
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      */
     @Test
     public void testSearchFuncId_in_single() throws IkatsDaoException {
@@ -354,8 +350,8 @@ public class MetaDataTest {
 
         // Formula
         Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
-        formula.connector = Expression.ConnectorExpression.AND;
-        formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+        formula.setConnector(Expression.ConnectorExpression.AND);
+        formula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
 
         ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
 
@@ -387,7 +383,7 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on "in" operator with not right operand for "in"
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      */
     @Test
     public void testSearchFuncId_in_noOperand() throws IkatsDaoException {
@@ -423,8 +419,8 @@ public class MetaDataTest {
 
         // Formula
         Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
-        formula.connector = Expression.ConnectorExpression.AND;
-        formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+        formula.setConnector(Expression.ConnectorExpression.AND);
+        formula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
 
         // Preparing results
         addCrit(formula, "MD1", "in", "");
@@ -450,7 +446,7 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on "in" operator with multiple items in operand list
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      */
     @Test
     public void testSearchFuncId_in_multiple() throws IkatsDaoException {
@@ -485,8 +481,8 @@ public class MetaDataTest {
 
         // Formula
         Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
-        formula.connector = Expression.ConnectorExpression.AND;
-        formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+        formula.setConnector(Expression.ConnectorExpression.AND);
+        formula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
 
         ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
 
@@ -518,7 +514,7 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on "not in" operator with multiple items in operand list
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      */
     @Test
     public void testSearchFuncId_notin_multiple() throws IkatsDaoException {
@@ -553,8 +549,8 @@ public class MetaDataTest {
 
         // Formula
         Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
-        formula.connector = Expression.ConnectorExpression.AND;
-        formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+        formula.setConnector(Expression.ConnectorExpression.AND);
+        formula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
 
         ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
 
@@ -584,7 +580,7 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on mixed "in" and "not in" operators with multiple items in operand list
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      */
     @Test
     public void testSearchFuncId_in_notin_mixed() throws IkatsDaoException {
@@ -619,8 +615,8 @@ public class MetaDataTest {
 
         // Formula
         Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
-        formula.connector = Expression.ConnectorExpression.AND;
-        formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+        formula.setConnector(Expression.ConnectorExpression.AND);
+        formula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
 
         ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
 
@@ -650,7 +646,7 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on mixed "in" and "not in" operators with multiple items in operand list
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      */
     @Test
     public void testSearchFuncId_empty_result() throws IkatsDaoException {
@@ -685,8 +681,8 @@ public class MetaDataTest {
 
         // Formula
         Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
-        formula.connector = Expression.ConnectorExpression.AND;
-        formula.terms = new ArrayList<Expression<MetadataCriterion>>();
+        formula.setConnector(Expression.ConnectorExpression.AND);
+        formula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
 
         ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
 
@@ -714,27 +710,26 @@ public class MetaDataTest {
      * Tests that implemented equals, hashcode are exact or/and robust to null values.
      */
     @Test
-    public void testRobustness()
-    {
-    	MetaData meta = new MetaData();
-    	meta.hashCode();
-    	assertFalse( meta.equals("toto"));
-    	assertTrue( meta.equals(meta));
-    	MetaData meta2 = new MetaData();
-    	meta.setTsuid("tsuid1");
-    	meta2.setTsuid(meta.getTsuid());
-    	meta.setName("name1");
-    	meta2.setName(meta.getName());
-    	meta.setDType(MetaType.number);
-    	meta.setValue("12");
-    	meta2.setDType(meta.getDType());
-    	meta2.setValue(meta.getValue());
-    	
-    	assertEquals(meta, meta2);
-    	meta.setValue("11");
-    	assertFalse(meta.equals(meta2));
-    	
-    	
+    public void testRobustness() {
+        MetaData meta = new MetaData();
+        meta.hashCode();
+        assertFalse(meta.equals("toto"));
+        assertTrue(meta.equals(meta));
+        MetaData meta2 = new MetaData();
+        meta.setTsuid("tsuid1");
+        meta2.setTsuid(meta.getTsuid());
+        meta.setName("name1");
+        meta2.setName(meta.getName());
+        meta.setDType(MetaType.number);
+        meta.setValue("12");
+        meta2.setDType(meta.getDType());
+        meta2.setValue(meta.getValue());
+
+        assertEquals(meta, meta2);
+        meta.setValue("11");
+        assertFalse(meta.equals(meta2));
+
+
     }
 }
 

@@ -47,6 +47,12 @@ import org.junit.runner.Description;
 abstract public class CommonTest {
 
     /**
+     * Log of the unit test which inherits from this class: initialized by
+     * initLogger()
+     */
+    private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
+
+    /**
      * Log marker for JUnit test case (several per class)
      */
     final public static String DECO_JUNIT_LINE = "-------------------";
@@ -55,12 +61,6 @@ abstract public class CommonTest {
      * Log marker for JUnit test class
      */
     final public static String DECO_JUNIT_CLASS_LINE = "===================";
-
-    /**
-     * Log of the unit test which inherits from this class: initialized by
-     * initLogger()
-     */
-    private Logger logger = Logger.getLogger(this.getClass().getSimpleName());
 
     @Rule
     public TestRule watcher = new TestWatcher() {
@@ -82,11 +82,6 @@ abstract public class CommonTest {
      * @return
      */
     final protected Logger getLogger() {
-//        if (logger == null) {
-//            // Init
-//            logger = Logger.getLogger(this.getClass().getSimpleName());
-//            logger.setLevel(Level.INFO);
-//        }
         return logger;
     }
 

@@ -52,12 +52,6 @@ import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 public class TableManagerTest {
 
     /**
-     * verbose == true enables more logs (to sysout), for instance in DEV environment, debugging the JUnit tests.
-     * Expected for usual deployment: verbose == false for usual tests, not requiring displays.
-     */
-    private static boolean verbose = false;
-
-    /**
      * Do not change this sample: reused by several tests: for new purposes => create another one
      */
     private final static String JSON_CONTENT_SAMPLE_1 = "{\"table_desc\":{\"title\":\"Discretized matrix\",\"desc\":\"This is a ...\"},\"headers\":{\"col\":{\"data\":[\"funcId\",\"metric\",\"min_B1\",\"max_B1\",\"min_B2\",\"max_B2\"],\"links\":null,\"default_links\":null},\"row\":{\"data\":[null,\"Flid1_VIB2\",\"Flid1_VIB3\",\"Flid1_VIB4\",\"Flid1_VIB5\"],\"default_links\":{\"type\":\"ts_bucket\",\"context\":\"processdata\"},\"links\":[null,{\"val\":\"1\"},{\"val\":\"2\"},{\"val\":\"3\"},{\"val\":\"4\"}]}},\"content\":{\"cells\":[[\"VIB2\",-50.0,12.1,1.0,3.4],[\"VIB3\",-5.0,2.1,1.0,3.4],[\"VIB4\",0.0,2.1,12.0,3.4],[\"VIB5\",0.0,2.1,1.0,3.4]]}}";
@@ -81,11 +75,6 @@ public class TableManagerTest {
         List<Object> refFuncIds = new ArrayList<Object>(table.headers.row.data);
         refFuncIds.remove(0);
 
-        if (verbose)
-            System.out.println(funcIds);
-        if (verbose)
-            System.out.println(refFuncIds);
-
         assertEquals(refFuncIds, funcIds);
 
     }
@@ -101,9 +90,6 @@ public class TableManagerTest {
         TableManager mng = new TableManager();
 
         TableInfo tableJson = mng.loadFromJson(TableManagerTest.JSON_CONTENT_SAMPLE_1);
-
-        if (verbose)
-            System.out.println(TableManagerTest.JSON_CONTENT_SAMPLE_1);
 
         Table table = mng.initTable(tableJson, false);
 
@@ -125,11 +111,6 @@ public class TableManagerTest {
         for (List<Object> row : tableJson.content.cells) {
             refOtherDecimal.add((Double) row.get(1));
         }
-
-        if (verbose)
-            System.out.println(refOtherDecimal);
-        if (verbose)
-            System.out.println(otherDecimal);
 
         assertEquals(refOtherDecimal, otherDecimal);
         assertEquals(-50.0d, otherDecimal.get(0).doubleValue(), 0.0d);
@@ -207,13 +188,6 @@ public class TableManagerTest {
         List<Object> selectedRowVals = tableH.getRow(secondRowName, Object.class);
         List<Object> ref = new ArrayList<Object>(table.content.cells.get(contentIndex));
 
-        if (verbose)
-            System.out.println(selectedRowValsBis);
-        if (verbose)
-            System.out.println(selectedRowVals);
-        if (verbose)
-            System.out.println(ref);
-
         assertEquals(selectedRowVals, selectedRowValsBis);
         assertEquals(selectedRowVals, Arrays.asList("VIB2", -50.0, 12.1, 1.0, 3.4));
 
@@ -254,11 +228,6 @@ public class TableManagerTest {
         tableHBis.appendRow(Arrays.asList(row2));
         tableHBis.appendRow(Arrays.asList(row3));
 
-        if (verbose)
-            System.out.println(mng.serializeToJson(table));
-        if (verbose)
-            System.out.println(mng.serializeToJson(tableHBis.getTableInfo()));
-
         assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
     }
 
@@ -298,22 +267,13 @@ public class TableManagerTest {
         tableHBis.appendRow("B", Arrays.asList(row2));
         tableHBis.appendRow("C", Arrays.asList(row3));
 
-        if (verbose)
-            System.out.println(mng.serializeToJson(table));
-        if (verbose)
-            System.out.println(mng.serializeToJson(tableHBis.getTableInfo()));
-
         assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
 
         List<Object> columnnTwo = tableH.getColumn("Two", Object.class);
-        if (verbose)
-            System.out.println(columnnTwo);
 
         assertEquals(columnnTwo, Arrays.asList(new Object[]{2.0, 2.2, false}));
 
         List<String> columnnOfRowHeaders = tableH.getColumn("Above row header");
-        if (verbose)
-            System.out.println(columnnOfRowHeaders);
 
         assertEquals(columnnOfRowHeaders, Arrays.asList("A", "B", "C"));
 
@@ -388,15 +348,9 @@ public class TableManagerTest {
 
         tableHBis.appendRow("C", row3);
 
-        if (verbose)
-            System.out.println(mng.serializeToJson(table));
-        if (verbose)
-            System.out.println(mng.serializeToJson(tableHBis.getTableInfo()));
         assertEquals(mng.serializeToJson(table), mng.serializeToJson(tableHBis.getTableInfo()));
 
         List<Object> columnnTwo = tableH.getColumn("Two", Object.class);
-        if (verbose)
-            System.out.println(columnnTwo);
 
         assertEquals(columnnTwo, Arrays.asList(new Object[]{row1[1], row2AsList.get(1).data, row3.get(1).data}));
         assertEquals(columnnTwo, tableHBis.getColumn("Two", Object.class));
@@ -407,8 +361,6 @@ public class TableManagerTest {
         // tableHBis.getColumnFromTable("Two") );
 
         List<String> columnnOfRowHeaders = tableH.getColumn("Above row header");
-        if (verbose)
-            System.out.println(columnnOfRowHeaders);
 
         assertEquals(columnnOfRowHeaders, Arrays.asList(new Object[]{"A", "B", "C"}));
 
@@ -462,9 +414,6 @@ public class TableManagerTest {
         int initialRowCount = tableH.getRowCount(true);
         int initialColumnCount = tableH.getColumnCount(true);
 
-        if (verbose)
-            System.out.println(TableManagerTest.JSON_CONTENT_SAMPLE_1);
-
         List<Object> addedList = new ArrayList<>();
         for (int i = 0; i < 4; i++)
             addedList.add("item" + i);
@@ -502,13 +451,6 @@ public class TableManagerTest {
             myT.appendRow(Arrays.asList(i < 5, "" + i, null));
         }
 
-        if (verbose)
-            System.out.println(myT.getColumn("One"));
-        if (verbose)
-            System.out.println(myT.getColumn("Two"));
-        if (verbose)
-            System.out.println(myT.getColumn("Three"));
-
         List<Boolean> strOneList = myT.getColumn("One", Boolean.class);
         List<String> strOneListAString = myT.getColumn("One");
 
@@ -540,21 +482,13 @@ public class TableManagerTest {
             myT.appendRow("row" + i, Arrays.asList(i, i + 2));
         }
 
-        if (verbose)
-            System.out.println(myT.getRow("row1"));
-        if (verbose)
-            System.out.println(myT.getRow("row2"));
-        if (verbose)
-            System.out.println(myT.getRow("row9"));
-
         List<Integer> strOneList = myT.getRow("row1", Integer.class);
         List<String> strOneListAString = myT.getRow("row1");
         try {
             myT.getRow("row2", BigDecimal.class);
             fail("Incorrect: class cast exception not detected !");
         } catch (IkatsException e) {
-            if (verbose)
-                System.out.println("testGetRow: Got expected exception");
+            // testGetRow: Got expected exception
         } catch (Exception e) {
             fail("Unexpected exception");
         }
@@ -582,13 +516,9 @@ public class TableManagerTest {
             myT.appendColumn(Arrays.asList("a" + i, "b" + i, "c" + i, "d" + i, "e" + i));
         }
 
-        if (verbose)
-            System.out.println(myT.getRowsHeader().getItems());
         assertEquals("0", myT.getRowsHeader().getItems().get(0));
         assertEquals("4", myT.getRowsHeader().getItems().get(4));
 
-        if (verbose)
-            System.out.println(myT.getRow("0"));
         assertEquals("a0", myT.getRow("0").get(0));
         assertEquals("a5", myT.getRow("0").get(5));
 
@@ -615,8 +545,6 @@ public class TableManagerTest {
             myT.appendRow(Arrays.asList("a" + i, "b" + i, "c" + i, "d" + i, "e" + i));
         }
 
-        if (verbose)
-            System.out.println(myT.getColumnsHeader().getItems());
         // getting effective header data
         assertEquals(new Integer(0), myT.getColumnsHeader().getItems(Integer.class).get(0));
         assertEquals(new Integer(8), myT.getColumnsHeader().getItems(Integer.class).get(4));
@@ -624,9 +552,6 @@ public class TableManagerTest {
         assertEquals("8", myT.getColumnsHeader().getItems().get(4));
 
         // a bit weird but the key for header 0 is toString() representation "0"
-        // =>
-        if (verbose)
-            System.out.println(myT.getColumn("0"));
 
         // usual case: handling Strings in header data
         Table myUsualT = TableManager.initEmptyTable(true, false);
@@ -635,12 +560,8 @@ public class TableManagerTest {
             myUsualT.appendRow(Arrays.asList("a" + i, "b" + i, "c" + i, "d" + i, "e" + i));
         }
 
-        if (verbose)
-            System.out.println(myUsualT.getColumnsHeader().getItems());
         assertEquals("10", myUsualT.getColumnsHeader().getItems().get(0));
         assertEquals("8", myUsualT.getColumnsHeader().getItems().get(4));
-        if (verbose)
-            System.out.println(myUsualT.getColumn("10"));
 
     }
 
@@ -661,12 +582,7 @@ public class TableManagerTest {
         myTWithoutRowHeader.appendRow(Arrays.asList("bla6", "BLAH6", 6.0));
         myTWithoutRowHeader.appendRow(Arrays.asList("-bla6", "-BLAH6", -6.0));
 
-        // displayed when verbose == true
-        displayTestedTable(myTWithoutRowHeader);
-
         myTWithoutRowHeader.sortRowsByColumnValues(2, false);
-
-        displayTestedTable(myTWithoutRowHeader);
 
         assertEquals(Arrays.asList(-6.0, 2.0, 3.5, 3.7, 6.0), myTWithoutRowHeader.getColumn(2, Double.class));
 
@@ -698,12 +614,7 @@ public class TableManagerTest {
         myTWithoutRowHeader.appendRow(Arrays.asList("bla6", "BLAH6", 6));
         myTWithoutRowHeader.appendRow(Arrays.asList("-bla6", "-BLAH6", -6));
 
-        // displayed when verbose == true
-        displayTestedTable(myTWithoutRowHeader);
-
         myTWithoutRowHeader.sortRowsByColumnValues("Order", false);
-
-        displayTestedTable(myTWithoutRowHeader);
 
         assertEquals(Arrays.asList(-6, 2, 3, 4, 6), myTWithoutRowHeader.getColumn("Order", Integer.class));
 
@@ -737,12 +648,7 @@ public class TableManagerTest {
         myTWithoutRowHeader.appendRow("A10", Arrays.asList("bla6", "BLAH6", 6));
         myTWithoutRowHeader.appendRow("A2", Arrays.asList("-bla6", "-BLAH6", -6));
 
-        // displayed when verbose == true
-        displayTestedTable(myTWithoutRowHeader);
-
         myTWithoutRowHeader.sortRowsByColumnValues("Order", false);
-
-        displayTestedTable(myTWithoutRowHeader);
 
         assertEquals(Arrays.asList(-6, 2, 3, 4, 6), myTWithoutRowHeader.getColumn("Order", Integer.class));
 
@@ -753,8 +659,6 @@ public class TableManagerTest {
         assertEquals(Arrays.asList("bla6", "BLAH6", 6), myTWithoutRowHeader.getRow(5, Object.class));
 
         myTWithoutRowHeader.sortRowsByColumnValues("TopLeft", false);
-
-        displayTestedTable(myTWithoutRowHeader);
 
         assertEquals(Arrays.asList("A2", "A10", "A100", "B1", "B1.1"),
                 myTWithoutRowHeader.getColumn("TopLeft", String.class));
@@ -783,11 +687,7 @@ public class TableManagerTest {
         myTable.appendRow("A10", Arrays.asList("bla6", "BLAH6", 6));
         myTable.appendRow("A2", Arrays.asList("-bla6", "-BLAH6", -6));
 
-        displayTestedTable(myTable);
-
         myTable.insertColumn("Blabla", "Bazar", Arrays.asList(Boolean.TRUE, Boolean.FALSE, "text", null, 3.14));
-
-        displayTestedTable(myTable);
 
         assertEquals(Arrays.asList("TopLeft", "First", "Bazar", "Blabla", "Order"),
                 myTable.getColumnsHeader().getItems());
@@ -813,13 +713,8 @@ public class TableManagerTest {
         myTWithColHeader.appendRow(Arrays.asList("bla6", "BLAH6", 6));
         myTWithColHeader.appendRow(Arrays.asList("-bla6", "-BLAH6", -6));
 
-        // displayed if verbose == true
-        displayTestedTable(myTWithColHeader);
-
         myTWithColHeader.insertColumn("Blabla", "Bazar",
                 Arrays.asList(Boolean.TRUE, Boolean.FALSE, "text", null, 3.14));
-
-        displayTestedTable(myTWithColHeader);
 
         assertEquals(Arrays.asList("First", "Bazar", "Blabla", "Order"),
                 myTWithColHeader.getColumnsHeader().getItems());
@@ -844,12 +739,7 @@ public class TableManagerTest {
         myTable.appendRow(Arrays.asList("bla6", "BLAH6", 6));
         myTable.appendRow(Arrays.asList("-bla6", "-BLAH6", -6));
 
-        // displayed when verbose == true
-        displayTestedTable(myTable);
-
         myTable.insertColumn(1, Arrays.asList(Boolean.TRUE, Boolean.FALSE, "text", null, 3.14));
-
-        displayTestedTable(myTable);
 
         assertEquals(Arrays.asList(true, false, "text", null, 3.14), myTable.getColumn(1, Object.class));
 
@@ -872,12 +762,7 @@ public class TableManagerTest {
         myTable.appendRow(Arrays.asList("bla6", "BLAH6", 6));
         myTable.appendRow(Arrays.asList("-bla6", "-BLAH6", -6));
 
-        // displayed when verbose == true
-        displayTestedTable(myTable);
-
         myTable.insertRow(1, Arrays.asList("avantBla2", Boolean.FALSE, "text"));
-
-        displayTestedTable(myTable);
 
         assertEquals(Arrays.asList("avantBla2", Boolean.FALSE, "text"), myTable.getRow(1, Object.class));
         assertEquals(Arrays.asList("bla2", "BLAH2", 2), myTable.getRow(2, Object.class));
@@ -905,42 +790,12 @@ public class TableManagerTest {
         myTable.appendRow("A10", Arrays.asList("bla6", "BLAH6", 6));
         myTable.appendRow("A2", Arrays.asList("-bla6", "-BLAH6", -6));
 
-        // displayed when verbose == true
-        displayTestedTable(myTable);
-
         myTable.insertRow("A100", "Bazar", Arrays.asList(Boolean.TRUE, Boolean.FALSE, 3.14));
-
-        displayTestedTable(myTable);
 
         assertEquals(Arrays.asList(null, "B1.1", "B1", "Bazar", "A100", "A10", "A2"),
                 myTable.getRowsHeader().getItems());
         assertEquals(Arrays.asList(true, false, 3.14), myTable.getRow("Bazar", Object.class));
         assertEquals(Arrays.asList(true, false, 3.14), myTable.getRow(3, Object.class));
-    }
-
-    /**
-     * Makes sysout display of Table activated, once verbose is True
-     *
-     * @param table
-     *
-     * @throws IkatsException
-     * @throws ResourceNotFoundException
-     */
-    private void displayTestedTable(Table table) throws IkatsException, ResourceNotFoundException {
-        if (verbose) {
-            if (table.isHandlingColumnsHeader())
-                System.out.println(table.getColumnsHeader().getItems());
-            List<Object> rowsHeaderItems = table.isHandlingRowsHeader() ? table.getRowsHeader().getItems(Object.class)
-                    : null;
-            for (int i = 0; i < table.getRowCount(true); i++) {
-                String start = "";
-                if (rowsHeaderItems != null) {
-                    start = "" + rowsHeaderItems.get(i) + ": ";
-                }
-                System.out.println(start + table.getRow(i, Object.class));
-            }
-            System.out.println(" ");
-        }
     }
 
 

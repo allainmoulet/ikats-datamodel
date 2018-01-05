@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,19 +10,18 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.common.dao;
@@ -51,10 +50,11 @@ public abstract class DataBaseDAO {
 
     /**
      * init an AnnotationConfiguration with a minimal Hibernate.cfg.xml read from the classpath
+     *
      * @param hibernateConfigurationFile the hibernate configuration file
      */
     public void init(String hibernateConfigurationFile) {
-            configuration = new AnnotationConfiguration().configure(hibernateConfigurationFile);
+        configuration = new AnnotationConfiguration().configure(hibernateConfigurationFile);
     }
 
     /**
@@ -64,22 +64,20 @@ public abstract class DataBaseDAO {
     public void completeConfiguration() {
         if (sessionFactory != null) {
             LOGGER.error("Configuration is already complete, nothing done");
-        }
-        else {
+        } else {
             sessionFactory = configuration.buildSessionFactory();
         }
     }
 
     /**
      * register an annotated class to the hibernate configuration
-     * 
+     *
      * @param annotatedClass the class with annotations
      */
     public void addAnnotatedClass(Class<?> annotatedClass) {
         if (sessionFactory != null) {
             LOGGER.error("Configuration is already complete, nothing done");
-        }
-        else {
+        } else {
             configuration.addAnnotatedClass(annotatedClass);
         }
 
@@ -87,9 +85,8 @@ public abstract class DataBaseDAO {
 
     /**
      * register an annotated package to the hibernate configuration
-     * 
-     * @param packageName
-     *            complete name of the package
+     *
+     * @param packageName complete name of the package
      */
     public void addAnotatedPackage(String packageName) {
         configuration.addPackage(packageName);
@@ -98,15 +95,14 @@ public abstract class DataBaseDAO {
     /**
      * get a session from the session factory throw a runtime exception if
      * configuration is not complete.
-     * 
+     *
      * @return a session.
      */
     public Session getSession() throws IkatsDaoException {
         Session result = null;
         if (isReady()) {
             result = sessionFactory.openSession();
-        }
-        else {
+        } else {
             String message = "Manager not initialize, call complete configuration first";
             LOGGER.error(message);
             throw new IkatsDaoException(message);
@@ -117,47 +113,33 @@ public abstract class DataBaseDAO {
     /**
      * check if configuration has been completed by testing sessionFactory
      * instanciation
-     * 
+     *
      * @return true if session factory is not null
      */
     protected boolean isReady() {
         return (sessionFactory != null);
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see java.lang.Object#finalize()
-     */
-    @Override
-    protected void finalize() throws Throwable {
-        stop();
-        super.finalize();
-    }
-    
     /**
      * close the sessionFactory
      */
     public void stop() {
-        LOGGER.trace("Stopping DataBase Dao : "+getClass());
+        LOGGER.trace("Stopping DataBase Dao : " + getClass());
         sessionFactory.close();
     }
-     
+
     /**
      * Return configured property
+     *
      * @param propertyName
      * @return configuration.getProperty(propertyName)
      */
-    public String getAnnotationConfigurationProperty( String propertyName )
-    {
-        if ( configuration != null )
-        {
+    public String getAnnotationConfigurationProperty(String propertyName) {
+        if (configuration != null) {
             return configuration.getProperty(propertyName);
-        }
-        else
-        {
+        } else {
             return null;
-        } 
+        }
     }
 
     /**
@@ -166,43 +148,39 @@ public abstract class DataBaseDAO {
      * <li>Try to roll-back the transaction.</li>
      * <li>And then throws the defined exception.</li>
      * </ul>
-     * Specific case: when the roll-back fails: the method raises 
+     * Specific case: when the roll-back fails: the method raises
      * a new IkatsDaoRollbackException( causeException ).
-     * 
+     *
      * @param rolledBackTransaction transaction on which roll-back is applied
-     * @param causeException thrown exception after roll-back
+     * @param causeException        thrown exception after roll-back
      * @throws IkatsDaoException defined causeException or else a IkatsDaoRollbackException
      */
-    public final void rollbackAndThrowException(Transaction rolledBackTransaction, IkatsDaoException causeException) 
-            throws IkatsDaoException
-    {
+    public final void rollbackAndThrowException(Transaction rolledBackTransaction, IkatsDaoException causeException)
+            throws IkatsDaoException {
         try {
             if (rolledBackTransaction != null) {
                 rolledBackTransaction.rollback();
             }
+        } catch (HibernateException e) {
+            LOGGER.error(e);
+            throw new IkatsDaoRollbackException(causeException);
         }
-        catch (HibernateException e) { 
-            throw new IkatsDaoRollbackException( causeException );
-        }
-        
+
         throw causeException;
     }
-    
+
     /**
      * Wrapps the HibernateException into the GOOD subclass of IkatsDaoException, which will be handled by Web application error handlers.
+     *
      * @param ikatsMessage
      * @param hibernateException
      * @return
      */
-    public IkatsDaoException buildDaoException( String ikatsMessage, HibernateException hibernateException )
-    {
+    public IkatsDaoException buildDaoException(String ikatsMessage, HibernateException hibernateException) {
         IkatsDaoException error;
-        if ( hibernateException.getMessage().indexOf("Could not execute JDBC batch update") >= 0 )
-        {
+        if (hibernateException.getMessage().indexOf("Could not execute JDBC batch update") >= 0) {
             error = new IkatsDaoConflictException(ikatsMessage + " already existing in database.", hibernateException);
-        }
-        else
-        {
+        } else {
             error = new IkatsDaoException(ikatsMessage, hibernateException);
         }
         return error;

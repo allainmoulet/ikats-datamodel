@@ -33,7 +33,7 @@ package fr.cs.ikats.common.expr;
  * ... a voir: garder eval(), comment adapter
  */
 public class Atom<T> extends Expression<T> {
-    public T atomicTerm;
+    private T atomicTerm;
     
     /**
      * STUB
@@ -44,6 +44,14 @@ public class Atom<T> extends Expression<T> {
         // TODO Auto-generated method stub
         // evaluate atomicTerm
         return false;
+    }
+
+    public T getAtomicTerm() {
+        return atomicTerm;
+    }
+
+    public void setAtomicTerm(T atomicTerm) {
+        this.atomicTerm = atomicTerm;
     }
 }
 

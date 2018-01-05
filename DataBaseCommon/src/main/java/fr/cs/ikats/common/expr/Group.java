@@ -35,9 +35,26 @@ import java.util.List;
  * ... a voir: garder eval(), comment adapter
  */
 public class Group<T> extends Expression<T>{
-    public ConnectorExpression connector;
-    public List<Expression<T>> terms;
-    
+    private ConnectorExpression connector;
+
+    public List<Expression<T>> getTerms() {
+        return terms;
+    }
+
+    public void setTerms(List<Expression<T>> terms) {
+        this.terms = terms;
+    }
+
+    private List<Expression<T>> terms;
+
+    public ConnectorExpression getConnector() {
+        return connector;
+    }
+
+    public void setConnector(ConnectorExpression connector) {
+        this.connector = connector;
+    }
+
     /**
      * STUB
      * {@inheritDoc}
@@ -50,5 +67,6 @@ public class Group<T> extends Expression<T>{
         // return expression
         return false;
     }
+
 }
 
