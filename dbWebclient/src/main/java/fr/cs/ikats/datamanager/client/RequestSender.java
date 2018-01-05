@@ -48,12 +48,11 @@ public class RequestSender {
     /**
      * send GET request and return JSON format response
      *
-     * @param url  the url to send
-     * @param host the host
+     * @param url the url to send
      * @return the response
      * @throws IkatsWebClientException if request has error
      */
-    public static Response sendGETRequest(String url, String host) throws IkatsWebClientException {
+    public static Response sendGETRequest(String url) {
         LOGGER.debug("Sending GET request to url : " + url);
         ClientConfig clientConfig = new ClientConfig();
         Client client = ClientBuilder.newClient(clientConfig);
@@ -146,13 +145,9 @@ public class RequestSender {
         Client client = ClientBuilder.newClient(clientConfig);
 
         Response response = null;
-        try {
-            WebTarget target = client.target(url);
-            response = target.request().post(Entity.entity(body, MediaType.APPLICATION_JSON));
-        } finally {
-            // FIXME : commented since SVN rev1271 after Jersey update. why ?
-            // client.close();
-        }
+        WebTarget target = client.target(url);
+        response = target.request().post(Entity.entity(body, MediaType.APPLICATION_JSON));
+
         return response;
     }
 }

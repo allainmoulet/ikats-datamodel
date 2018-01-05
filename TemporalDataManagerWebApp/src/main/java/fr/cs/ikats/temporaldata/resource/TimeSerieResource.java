@@ -138,8 +138,6 @@ public class TimeSerieResource extends AbstractResource {
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters(true);
         try {
             response = getTemporalDataManager().getTS(metrique, queryParams);
-        } catch (IkatsWebClientException e) {
-            throw new ResourceNotFoundException("Get TS returned exception", e);
         } catch (UnsupportedEncodingException e) {
             throw new ResourceNotFoundException("Get TS returned exception", e);
         }
@@ -172,11 +170,7 @@ public class TimeSerieResource extends AbstractResource {
     public TSInfo getTSInfo(@PathParam("tsuid") String tsuid) throws IkatsDaoException, ResourceNotFoundException, IkatsException {
         // FIXME 163211: TBC:  suppress dead code getTSInfo() and getTemporalDataManager().getTS() ...
         String response = null;
-        try {
-            response = getTemporalDataManager().getMetaData(tsuid);
-        } catch (IkatsWebClientException e) {
-            throw new ResourceNotFoundException("Get TS returned exception", e);
-        }
+        response = getTemporalDataManager().getMetaData(tsuid);
 
         TSInfo returnValue = new TSInfo();
 
@@ -220,8 +214,6 @@ public class TimeSerieResource extends AbstractResource {
         String response = null;
         try {
             response = getTemporalDataManager().getTS("*", null);
-        } catch (IkatsWebClientException e) {
-            throw new ResourceNotFoundException("Get TS returned exception", e);
         } catch (UnsupportedEncodingException e) {
             throw new ResourceNotFoundException("Get TS returned exception", e);
         }
@@ -505,7 +497,7 @@ public class TimeSerieResource extends AbstractResource {
                             tags.put(key, value);
                             logger.info("Tag : " + key + " - " + value);
                         } else {
-                            // modif agn 04/24: List<String> for tag value
+                            // List<String> for tag value
                             // kept to avoid too much modifications
                             // in sub-function and interfaces, but we force
                             // the list to have only one value
@@ -519,7 +511,6 @@ public class TimeSerieResource extends AbstractResource {
             // import into openTSDB
             chrono.start();
             long[] dates = getTemporalDataManager().launchImportTasks(metric, tsStream, resultats, tags, filename);
-            // Thread.sleep(TemporalDataApplication.getApplicationConfiguration().getLongValue(ApplicationConfiguration.DB_FLUSHING_INTERVAL));
             importResult = getTemporalDataManager().parseImportResults(metric, resultats, tags, dates[0], dates[1]);
             chrono.stop(logger);
 

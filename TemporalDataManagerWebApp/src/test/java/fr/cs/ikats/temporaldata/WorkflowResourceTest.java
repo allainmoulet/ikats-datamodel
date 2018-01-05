@@ -82,7 +82,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
                 result = RequestSender.sendPOSTRequest(getAPIURL() + url, wfEntity);
                 break;
             case GET:
-                result = RequestSender.sendGETRequest(getAPIURL() + url, null);
+                result = RequestSender.sendGETRequest(getAPIURL() + url);
                 break;
             case PUT:
                 result = RequestSender.sendPUTRequest(getAPIURL() + url, wfEntity);

@@ -63,11 +63,6 @@ import fr.cs.ikats.metadata.model.MetadataCriterion;
 public class MetaDataFacade {
 
     /**
-     *
-     */
-    private static final String UNPARSED_TYPE = "unparsed";
-
-    /**
      * the logger instance for this class
      */
     private static final Logger LOGGER = Logger.getLogger(MetaDataFacade.class);
@@ -347,8 +342,7 @@ public class MetaDataFacade {
             int indexSplit = nameAndType.lastIndexOf('#');
             if (indexSplit != -1) {
                 name = nameAndType.substring(0, indexSplit);
-                String parsedType = UNPARSED_TYPE;
-                parsedType = nameAndType.substring(indexSplit + 1);
+                String parsedType = nameAndType.substring(indexSplit + 1);
                 dtype = MetaType.valueOf(parsedType);
 
             } else {

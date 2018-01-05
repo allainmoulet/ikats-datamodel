@@ -29,9 +29,7 @@ package fr.cs.ikats.common.expr;
 import java.util.List;
 
 /**
- * TODO a finaliser ... la methode eval reste hypothetique
  * le premier but des Expression: donnee definie de maniere reccursive
- * ... a voir: garder eval(), comment adapter
  */
 public class Group<T> extends Expression<T> {
     private ConnectorExpression connector;
@@ -52,19 +50,6 @@ public class Group<T> extends Expression<T> {
 
     public void setConnector(ConnectorExpression connector) {
         this.connector = connector;
-    }
-
-    /**
-     * STUB
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean eval() {
-        // TODO Auto-generated method stub
-        // while expression is true : evaluate :
-        //       expression ::= expression <connector> <next term>
-        // return expression
-        return false;
     }
 
 }

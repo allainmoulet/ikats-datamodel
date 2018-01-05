@@ -72,7 +72,6 @@ import static org.junit.Assert.fail;
 
 /**
  * Test on webService metadata operations.
- *
  */
 public class MetaDataRequestTest extends AbstractRequestTest {
 
@@ -90,6 +89,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
      * Test Import of metaData
      *
      * Since [#142998] corrected codes: 204 => 409
+     *
      * @throws Exception
      */
     @Test
@@ -141,7 +141,8 @@ public class MetaDataRequestTest extends AbstractRequestTest {
     }
 
     /**
-     * testExportMetaDataCSVSynthetic tests the CSV synthetic format 
+     * testExportMetaDataCSVSynthetic tests the CSV synthetic format
+     *
      * @throws Exception
      */
     @Test
@@ -165,6 +166,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
     /**
      * testReadMetaData tests the CSV format based on the following requests
      * "ts1,ts2,ts3" "*" "ts1,ts1"
+     *
      * @throws Exception
      */
     @Test
@@ -199,6 +201,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
 
     /**
      * tests READ services on /metadata/funcId/ : consuming Json input
+     *
      * @throws Exception
      */
     @Test
@@ -342,25 +345,20 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         getLogger().info("get functional ID for tsuid=" + tsuid);
         String url = getAPIURL() + "/metadata/funcId/" + tsuid;
 
-        try {
-            Response response = RequestSender.sendGETRequest(url, null);
+        Response response = RequestSender.sendGETRequest(url);
 
-            getLogger().info(response.getStatus());
-            if (funcIdExists) {
-                // 200
-                assertEquals(Status.OK.getStatusCode(), response.getStatus());
+        getLogger().info(response.getStatus());
+        if (funcIdExists) {
+            // 200
+            assertEquals(Status.OK.getStatusCode(), response.getStatus());
 
-                FunctionalIdentifier res = response.readEntity(FunctionalIdentifier.class);
-                getLogger().info(res);
+            FunctionalIdentifier res = response.readEntity(FunctionalIdentifier.class);
+            getLogger().info(res);
 
-                assertEquals(expectedFuncId, res.getFuncId());
-            } else {
-                // 404
-                assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
-            }
-        } catch (IkatsWebClientException e) {
-            throw new Exception("Failure: get functional ID for tsuid=" + tsuid, e);
-
+            assertEquals(expectedFuncId, res.getFuncId());
+        } else {
+            // 404
+            assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
         }
 
     }
@@ -417,6 +415,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
     /**
      * Test the import of meta data from a bad formatted CSV file
      * without update option => no meta created
+     *
      * @throws IkatsDaoMissingResource
      */
     @Test
@@ -436,6 +435,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
     /**
      * Test the import of meta data from a CSV file
      * with update option => meta are created
+     *
      * @throws IkatsDaoMissingResource
      * @throws IkatsDaoConflictException
      */
@@ -476,6 +476,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
     /**
      * Test the import of meta data from a CSV file
      * without update option => no meta are imported
+     *
      * @throws IkatsDaoException
      */
     @Test
@@ -536,6 +537,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
     /**
      * Test the import of meta data from a CSV file
      * containing metric without update option => meta are imported
+     *
      * @throws IkatsDaoException
      */
     @Test
@@ -578,6 +580,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
 
     /**
      * tests READ services on /metadata/types/
+     *
      * @throws IkatsWebClientException
      * @throws IkatsDaoException
      * @throws IkatsDaoInvalidValueException
@@ -592,7 +595,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         facade.persistMetaData("tsuidA01", "thatsastring", "blabla", "string");
         facade.persistMetaData("tsuidA02", "thatsanumber", "12", "number");
 
-        Response response = RequestSender.sendGETRequest(url, null);
+        Response response = RequestSender.sendGETRequest(url);
 
         getLogger().info(response.getStatus());
 
@@ -613,13 +616,10 @@ public class MetaDataRequestTest extends AbstractRequestTest {
      * Tests the import of a meta data file (CSV format) and checks if the
      * import count is equal to expectedImportCount
      *
-     * @param resourcePath
-     *            path of file (CSV) to send containing the meta data
-     * @param expectedImportCount
-     *            expected count of imported meta data
-     * @param update
-     *            if true, already existing metadata is updated
-     *            otherwise no metadata is imported if one of them already exists
+     * @param resourcePath        path of file (CSV) to send containing the meta data
+     * @param expectedImportCount expected count of imported meta data
+     * @param update              if true, already existing metadata is updated
+     *                            otherwise no metadata is imported if one of them already exists
      */
     private void checkImportMetadataFromCsv(String resourcePath, Integer expectedImportCount, boolean update) throws IkatsDaoMissingResource {
 
@@ -678,18 +678,14 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         } else {
             url = getAPIURL() + "/metadata/list?tsuid=" + tsuid;
         }
-        try {
-            response = RequestSender.sendGETRequest(url, "172.28.0.56");
-            result = response.readEntity(String.class);
-            getLogger().info(result);
-            getLogger().info(response.getStatus());
-            if (TSexists) {
-                assertEquals(response.getStatus(), 200);
-            } else {
-                assertEquals(response.getStatus(), 404);
-            }
-        } catch (IkatsWebClientException e) {
-            throw e;
+        response = RequestSender.sendGETRequest(url);
+        result = response.readEntity(String.class);
+        getLogger().info(result);
+        getLogger().info(response.getStatus());
+        if (TSexists) {
+            assertEquals(response.getStatus(), 200);
+        } else {
+            assertEquals(response.getStatus(), 404);
         }
         return result;
     }

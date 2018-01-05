@@ -29,7 +29,6 @@ package fr.cs.ikats.datamanager.client.opentsdb.generator;
 import java.text.ParseException;
 import java.util.Map;
 
-import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -40,7 +39,6 @@ import org.json.simple.JSONObject;
  */
 public class AdvancedJsonGenerator {
 
-    private static final Logger LOGGER = Logger.getLogger(AdvancedJsonGenerator.class);
     static final String DATA_SET_TAG_NAME = "dataset";
     static final int DIGITS_SECONDE = 10;
     static final int DIGITS_MILLISECONDE = 13;
@@ -96,23 +94,6 @@ public class AdvancedJsonGenerator {
     }
 
     /**
-     * check value format
-     *
-     * @param valToCheck
-     * @return always true for the moment.
-     */
-    private boolean checkVal(String valToCheck) {
-        // String correctedVal = valToCheck;
-        boolean checked = false;
-        // check number. prise en compte notation scifi
-        // if (Pattern.matches("^(\\+|-)?[0-9]+(\\.[0-9]+E(\\+|-)[0-9]{2})?$",
-        // valToCheck))
-        checked = true;
-
-        return checked;
-    }
-
-    /**
      * Converts input string to output JSON array acording to csv colums
      * configuration. Performs timestamp format check.
      *
@@ -139,17 +120,15 @@ public class AdvancedJsonGenerator {
             long maxDate = Long.MIN_VALUE;
 
             for (int i = 0; i < maxIndice; i++) {
-                if (checkVal(splittedLine[i].trim())) {
-                    date = lineReader.fillObject(p, splittedLine, i * lineReader.configuration.getColumnConfigurations().size());
-                    points.add(p.clone());
+                date = lineReader.fillObject(p, splittedLine, i * lineReader.configuration.getColumnConfigurations().size());
+                points.add(p.clone());
 
-                    /* setting temporary start and end dates during parsing */
-                    if (date < minDate) {
-                        minDate = date;
-                    }
-                    if (date > maxDate) {
-                        maxDate = date;
-                    }
+                /* setting temporary start and end dates during parsing */
+                if (date < minDate) {
+                    minDate = date;
+                }
+                if (date > maxDate) {
+                    maxDate = date;
                 }
             }
             /* update start and end dates attributes */

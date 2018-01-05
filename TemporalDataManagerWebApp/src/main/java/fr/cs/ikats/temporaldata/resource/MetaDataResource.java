@@ -138,7 +138,7 @@ public class MetaDataResource extends AbstractResource {
     public String updateMetaData(@PathParam("tsuid") String tsuid, @PathParam("name") String name, @PathParam("value") String value)
             throws ResourceNotFoundException, IkatsDaoConflictException, IkatsDaoException {
         try {
-            // since [#142998] result ought to be good or exception is raised
+            // result ought to be good or exception is raised
             Integer result = metadataManager.updateMetaData(tsuid, name, value);
 
             String streResult = result.toString();
@@ -328,21 +328,13 @@ public class MetaDataResource extends AbstractResource {
      * get a json representation of the metadata types
      *
      * @return a String : json file with one {metadata_name:metadata_type} per line.
-     * @throws ResourceNotFoundException if at least one metadata was not found: mismatched tsuid in
-     *                                   DAO layer
-     * @throws IkatsDaoException         another error raised by DAO layer
+     * @throws IkatsDaoException         error raised by DAO layer
      */
     @GET
     @Path("/types")
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String, String> getJsonMetaDataTypes() throws IkatsDaoException, WebApplicationException {
-        Map<String, String> result;
-        try {
-            result = metadataManager.getListTypes();
-        } catch (IkatsDaoException e) {
-            throw e;
-        }
-        return result;
+    public Map<String, String> getJsonMetaDataTypes() throws IkatsDaoException {
+        return metadataManager.getListTypes();
     }
 
     /**
@@ -389,12 +381,11 @@ public class MetaDataResource extends AbstractResource {
      * @param tsuid , the identifier of the TS in the TimeSeries storage system
      * @return an ImportResult with tsuid, number of success and summary set
      * @throws IkatsDaoException
-     * @throws IkatsDaoConflictException
      */
     @DELETE
     @Path("/funcId/{tsuid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public ApiResponse deleteFunctionalIdentifier(@PathParam("tsuid") String tsuid) throws IkatsDaoConflictException, IkatsDaoException {
+    public ApiResponse deleteFunctionalIdentifier(@PathParam("tsuid") String tsuid) throws IkatsDaoException {
         int added = metadataManager.deleteFunctionalIdentifier(tsuid);
         ImportResult result = new ImportResult();
         result.setTsuid(tsuid);

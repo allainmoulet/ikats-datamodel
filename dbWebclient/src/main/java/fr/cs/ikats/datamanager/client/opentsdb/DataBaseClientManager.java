@@ -90,11 +90,6 @@ public class DataBaseClientManager {
         private String propertyName;
         private String defaultValue;
 
-        ApplicationConfiguration(String propertyName, String defaultValue) {
-            this.propertyName = propertyName;
-            this.defaultValue = defaultValue;
-        }
-
         ApplicationConfiguration(String propertyName) {
             this.propertyName = propertyName;
             this.defaultValue = null;

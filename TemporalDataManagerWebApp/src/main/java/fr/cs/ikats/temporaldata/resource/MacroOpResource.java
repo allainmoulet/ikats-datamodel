@@ -44,8 +44,6 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.log4j.Logger;
-
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.workflow.Workflow;
@@ -57,7 +55,6 @@ import fr.cs.ikats.workflow.WorkflowFacade;
 @Path("mo")
 public class MacroOpResource extends AbstractResource {
 
-    private static Logger logger = Logger.getLogger(MetaDataResource.class);
     private WorkflowFacade Facade = new WorkflowFacade();
 
     /**

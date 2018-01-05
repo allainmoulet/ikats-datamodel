@@ -206,10 +206,6 @@ public class ProcessDataDAO extends DataBaseDAO {
             // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
             tx.commit();
         } catch (RuntimeException | NoSuchFieldException | IllegalAccessException e) {
-            // In next version: we ought to manage exceptions instead of returning null:
-            // =>  impact analysis + global refactoring: we need to correct each impacted service
-            //
-            // throw new IkatsDaoException("Error reading process Data for processId " + processId + " in database", e);
             LOGGER.error("Error reading process Data in database", e);
 
             if (tx != null) tx.rollback();

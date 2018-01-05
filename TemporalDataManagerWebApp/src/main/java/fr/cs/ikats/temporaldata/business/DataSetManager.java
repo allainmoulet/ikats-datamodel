@@ -39,7 +39,6 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
-import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
@@ -79,10 +78,6 @@ public class DataSetManager {
      */
     public TimeSerieResource getTimeSerieResource() {
         return new TimeSerieResource();
-    }
-
-    private MetaDataFacade getMetaDataFacade() {
-        return TemporalDataApplication.getApplicationConfiguration().getSpringContext().getBean(MetaDataFacade.class);
     }
 
     /**
@@ -220,7 +215,7 @@ public class DataSetManager {
             if (!tsNotRemovedWarnings.isEmpty()) {
                 LOGGER.warn(context + "Some of the timeseries were not deleted because they are attached to another dataset than " + datasetId + " : ");
                 for (String error : tsNotRemovedWarnings) {
-                    LOGGER.warn("- delete cancelled: " + tsNotRemovedWarnings);
+                    LOGGER.warn("- delete cancelled: " + error);
                 }
             }
 

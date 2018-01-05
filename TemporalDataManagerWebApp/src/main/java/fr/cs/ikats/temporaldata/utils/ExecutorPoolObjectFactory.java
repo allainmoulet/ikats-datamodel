@@ -35,26 +35,20 @@ import org.apache.commons.pool2.PooledObjectFactory;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 
 /**
- * ExecutorService pool factory. TODO : improve the object validation in order
+ * ExecutorService pool factory.
+ * TODO : improve the object validation in order
  * to be able to reuse the instances correctly.
- *
- *
  */
 public class ExecutorPoolObjectFactory implements PooledObjectFactory<ExecutorService> {
 
-    private int nbThreads;
-
     /**
      * constructor
-     * @param nbThreads number of thread for this pool
-     *
      */
-    public ExecutorPoolObjectFactory(int nbThreads) {
-        this.nbThreads = nbThreads;
+    public ExecutorPoolObjectFactory() {
     }
 
     @Override
-    public PooledObject<ExecutorService> makeObject() throws Exception {
+    public PooledObject<ExecutorService> makeObject() {
         ExecutorService service = Executors.newCachedThreadPool();
         DefaultPooledObject<ExecutorService> object = new DefaultPooledObject<ExecutorService>(service);
         return object;
@@ -76,11 +70,11 @@ public class ExecutorPoolObjectFactory implements PooledObjectFactory<ExecutorSe
     }
 
     @Override
-    public void activateObject(PooledObject<ExecutorService> p) throws Exception {
+    public void activateObject(PooledObject<ExecutorService> p) {
     }
 
     @Override
-    public void passivateObject(PooledObject<ExecutorService> p) throws Exception {
+    public void passivateObject(PooledObject<ExecutorService> p) {
     }
 
 }

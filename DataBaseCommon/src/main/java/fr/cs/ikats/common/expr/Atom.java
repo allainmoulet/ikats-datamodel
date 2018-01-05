@@ -27,23 +27,10 @@
 package fr.cs.ikats.common.expr;
 
 /**
- * TODO a finaliser ... la methode eval reste hypothetique*
  * le premier but des Expression: donnee definie de maniere reccursive
- * ... a voir: garder eval(), comment adapter
  */
 public class Atom<T> extends Expression<T> {
     private T atomicTerm;
-
-    /**
-     * STUB
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean eval() {
-        // TODO Auto-generated method stub
-        // evaluate atomicTerm
-        return false;
-    }
 
     public T getAtomicTerm() {
         return atomicTerm;

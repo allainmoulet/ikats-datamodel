@@ -362,8 +362,6 @@ public class MetaDataDAO extends DataBaseDAO {
                 result = criteria.list();
                 tx.commit();
             } else {
-                // Query q =
-                // session.createQuery("from MetaData where tsuid = :tsuid");
                 Query q = session.createQuery(MetaData.LIST_ALL_FOR_TSUID);
                 q.setString("tsuid", tsuid);
                 result = q.list();
@@ -519,10 +517,6 @@ public class MetaDataDAO extends DataBaseDAO {
         for (String includedTsuid : tsuidsInScope) {
             included.add(mapFunctionalIdentifier.get(includedTsuid));
         }
-        // TBC: excluded collection may be integrated in returned JSON ?
-        // List<FunctionalIdentifier> excluded = new
-        // ArrayList<FunctionalIdentifier>( scope );
-        // excluded.removeAll( included );
         return included;
     }
 
@@ -689,14 +683,6 @@ public class MetaDataDAO extends DataBaseDAO {
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
-
-            // Example request :
-
-            //  select tsfid.* from tsfunctionalidentifier tsfid
-            //    inner join timeseries_dataset tsds on tsds.tsuid = tsfid.tsuid
-            //    inner join tsmetadata m on m.tsuid = tsds.tsuid
-            //    where tsds.dataset_name = 'DS_AIRBUS_226'
-            //        and m.name = 'FlightId' and m.value = '918';
 
             Criteria critQuery = session.createCriteria(FunctionalIdentifier.class);
 

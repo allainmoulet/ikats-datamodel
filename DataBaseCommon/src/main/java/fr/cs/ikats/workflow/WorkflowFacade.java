@@ -29,7 +29,6 @@ package fr.cs.ikats.workflow;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
@@ -43,11 +42,6 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 @Component("WorkflowFacade")
 @Scope("singleton")
 public class WorkflowFacade {
-
-    /**
-     * Logger declaration
-     */
-    private static final Logger LOGGER = Logger.getLogger(WorkflowFacade.class);
 
     /**
      * DAO object to access the Workflow storage

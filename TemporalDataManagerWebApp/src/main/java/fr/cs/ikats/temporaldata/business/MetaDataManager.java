@@ -591,9 +591,6 @@ public class MetaDataManager {
         }
 
         // plug the restriction of size below
-        // instead of:
-        // return getMetaDataFacade().searchFuncId(lFuncIdentifiers,
-        // lFormula);
 
         List<List<FunctionalIdentifier>> lWellDimensionedTsIdLists = new ArrayList<List<FunctionalIdentifier>>();
         int currentSize = 0;

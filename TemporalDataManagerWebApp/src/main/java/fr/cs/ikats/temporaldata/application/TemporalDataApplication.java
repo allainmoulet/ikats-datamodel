@@ -66,7 +66,7 @@ public class TemporalDataApplication extends ResourceConfig {
         packages("fr.cs.ikats.temporaldata.resource").register(MultiPartFeature.class).register(JacksonFeature.class);
         packages("fr.cs.ikats.temporaldata.exception");
         // registering thread pool for import
-        ExecutorManager.getInstance().registerExecutorPool(ApplicationConfiguration.IMPORT_THREAD_POOL_NAME, getImportExecutorServiceSize(), getImportExecutorPoolSize());
+        ExecutorManager.getInstance().registerExecutorPool(ApplicationConfiguration.IMPORT_THREAD_POOL_NAME, getImportExecutorServiceSize());
         if (CONFIGURATION == null) {
             CONFIGURATION = new ApplicationConfiguration();
         }
@@ -80,15 +80,6 @@ public class TemporalDataApplication extends ResourceConfig {
      */
     private int getImportExecutorServiceSize() {
         return TemporalDataApplication.getApplicationConfiguration().getIntValue(ApplicationConfiguration.IMPORT_EXECUTOR_SERVICE_SIZE);
-    }
-
-    /**
-     * get the Import executor Pool Size.
-     *
-     * @return
-     */
-    private int getImportExecutorPoolSize() {
-        return TemporalDataApplication.getApplicationConfiguration().getIntValue(ApplicationConfiguration.IMPORT_EXECUTOR_POOL_SIZE);
     }
 
     /**

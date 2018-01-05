@@ -60,7 +60,6 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
         } catch (ConfigurationException e) {
             logger.error("Could not load configuration for {} from properties file {}", getClass().getName(), properties.getPropertiesFilename());
             logger.error("Exception: ", e);
-            // throw new IngestionException(e);
         }
     }
 

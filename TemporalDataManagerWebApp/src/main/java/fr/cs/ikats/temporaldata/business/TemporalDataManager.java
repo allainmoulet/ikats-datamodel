@@ -273,7 +273,6 @@ public class TemporalDataManager {
             String host = getHost();
             ImportResult importResult = null;
             try {
-                // json = jsonizer.next();
                 if (json != null && !json.isEmpty()) {
                     String url = "http://" + host + getURLDbApiBase() + getConfig().getStringValue(ApplicationConfiguration.URL_DB_API_IMPORT);
                     logger.debug("sending request to url " + url);
@@ -356,15 +355,14 @@ public class TemporalDataManager {
      * @throws ResourceNotFoundException    if lookup request returns status over 200
      */
     public String getTS(String metrique, MultivaluedMap<String, String> queryParams)
-            throws UnsupportedEncodingException, IkatsWebClientException, ResourceNotFoundException {
-        // FIXME 163211: TBC: suppress dead code getAllTS() and getTemporalDataManager().getTS() ...
+            throws UnsupportedEncodingException, ResourceNotFoundException {
+        // TODO: suppress dead code getAllTS() and getTemporalDataManager().getTS() ...
         // or else FIXME ugly name confusing with another method (getTS)  completely different
-        // !!! different semantic => different name !!!
         String url;
         Response response;
         url = "http://" + getHost() + getURLDbApiBase() + urlBuilder.generateLookupRequest(metrique, queryParams);
         logger.debug(url);
-        response = RequestSender.sendGETRequest(url, getHost());
+        response = RequestSender.sendGETRequest(url);
         if (response.getStatus() > 200) {
             throw new ResourceNotFoundException("Unable to find resource : " + response.readEntity(String.class));
         }
@@ -379,32 +377,15 @@ public class TemporalDataManager {
      * @throws IkatsWebClientException   if request cannot be send
      * @throws ResourceNotFoundException if tsuid does not exists
      */
-    public String getMetaData(String tsuid) throws IkatsWebClientException, ResourceNotFoundException {
+    public String getMetaData(String tsuid) throws ResourceNotFoundException {
         String url;
         Response response;
         url = "http://" + getHost() + getURLDbApiBase() + urlBuilder.generateUIDMetaRequest(tsuid);
         logger.debug(url);
-        response = RequestSender.sendGETRequest(url, getHost());
+        response = RequestSender.sendGETRequest(url);
         if (response.getStatus() > 200) {
             throw new ResourceNotFoundException("Unable to find TSUID : " + response.readEntity(String.class));
         }
-        // return "{\"tsuid\": \""+tsuid+"\",\"metric\": {\"uid\": \"00002A\",
-        // \"type\": \"METRIC\", \"name\": \"sys.cpu.0\", \"description\":
-        // \"System CPU Time\", \"notes\": \"\",\"created\": 1350425579,
-        // \"custom\": null, \"displayName\": \"\"},\"tags\": [{\"uid\":
-        // \"000001\",\"type\": \"TAGK\",\"name\": \"host\",\"description\":
-        // \"Server Hostname\",\"notes\": \"\",\"created\":
-        // 1350425579,\"custom\": null, \"displayName\": \"Hostname\" }, {
-        // \"uid\": \"000001\", \"type\": \"TAGV\", \"name\":
-        // \"web01.mysite.com\", \"description\": \"Website hosting server\",
-        // \"notes\": \"\", \"created\": 1350425579, \"custom\": null,
-        // \"displayName\": \"Web Server 01\" } ], \"description\": \"Measures
-        // CPU activity\", \"notes\": \"\", \"created\": 1350425579, \"units\":
-        // \"\", \"retention\": 0, \"max\": \"NaN\", \"min\": \"NaN\",
-        // \"custom\": { \"owner\": \"Jane Doe\", \"department\":
-        // \"Operations\", \"assetTag\": \"12345\" }, \"displayName\": \"\",
-        // \"dataType\": \"absolute\", \"lastReceived\": 1350425590,
-        // \"totalDatapoints\": 12532}";
 
         return response.readEntity(String.class);
 
@@ -429,7 +410,7 @@ public class TemporalDataManager {
         url = "http://" + getHost() + getURLDbApiBase()
                 + urlBuilder.generateQueryTSUIDUrl(tsuid, aggregationMethod, startDate, endDate, urlOptions, downSampler, downSamplerPeriod);
         logger.debug(url);
-        Response webResponse = RequestSender.sendGETRequest(url, getHost());
+        Response webResponse = RequestSender.sendGETRequest(url);
         return webResponse;
     }
 
@@ -449,7 +430,7 @@ public class TemporalDataManager {
         String tsuid = null;
         String url = "http://" + getHost() + getURLDbApiBase()
                 + urlBuilder.generateMetricQueryUrl(metric, tags, "sum", "count", "100y", Long.toString(startDate), Long.toString(endDate), "show_tsuids");
-        Response webResponse = RequestSender.sendGETRequest(url, getHost());
+        Response webResponse = RequestSender.sendGETRequest(url);
         String str = webResponse.readEntity(String.class);
         logger.debug("GET TSUID response : " + str);
         Matcher matcher = tsuidPattern.matcher(str);
@@ -515,7 +496,7 @@ public class TemporalDataManager {
         }
         logger.debug(url);
 
-        return RequestSender.sendGETRequest(url, host);
+        return RequestSender.sendGETRequest(url);
     }
 }
 

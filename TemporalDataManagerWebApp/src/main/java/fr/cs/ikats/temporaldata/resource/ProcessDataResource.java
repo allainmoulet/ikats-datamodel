@@ -130,7 +130,6 @@ public class ProcessDataResource extends AbstractResource {
     @Path("/id/download/{id}")
     public Response downloadProcessData(@PathParam("id") Integer id) throws ResourceNotFoundException, SQLException, IkatsDaoException {
 
-        // Response res = null;
         ProcessData result = processDataManager.getProcessPieceOfData(id);
 
         if (result == null) {

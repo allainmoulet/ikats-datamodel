@@ -241,7 +241,6 @@ public class SimpleJsonGenerator {
     }
 
     private boolean checkVal(String valToCheck) {
-        // String correctedVal = valToCheck;
         boolean checked = false;
         // check number. prise en compte notation scifi
         if (Pattern.matches("^(\\+|-)?[0-9]+(\\.[0-9]+e(\\+|-)[0-9]{2})?$", valToCheck))
@@ -286,7 +285,6 @@ public class SimpleJsonGenerator {
      * trouver un moyen de detecter un separateur interdit (, OU -)
      */
     private void lineToArray() {
-        // StrTokenizer st = null;
         String sep;
         if (listePoints.contains(";"))
             sep = ";";
@@ -341,13 +339,5 @@ public class SimpleJsonGenerator {
         this.mots_cles = mots_cles;
     }
 
-    // PointST point = new PointST(splittedLine[POSITION_METRIQUE],
-    // splittedLine[POSITION_TIME],
-    // Float.valueOf(splittedLine[POSITION_VAL]));
-    // if (this.nomEtiquette != null)
-    // point.addTag(this.nomEtiquette, splittedLine[POSITION_VAL_TAG]);
-    // else
-    // point.addTag(splittedLine[POSITION_NOM_TAG],
-    // splittedLine[POSITION_VAL_TAG]);
 }
 

@@ -47,8 +47,6 @@ import fr.cs.ikats.datamanager.DataManagerException;
  * be available for other requests.
  *
  * TODO : springify the class
- *
- *
  */
 public class ExecutorManager {
 
@@ -56,8 +54,6 @@ public class ExecutorManager {
      * private LOGGER instance
      */
     private Logger logger = Logger.getLogger(ExecutorManager.class);
-
-    private final static int DEFAULT_EXECUTOR_SERVICE_POOL_SIZE = 1;
 
     /**
      * map of executor pools
@@ -80,12 +76,10 @@ public class ExecutorManager {
      * ask for an executor service, will block until an executor is available
      * from the pool for the executorName.
      *
-     * @param executorName
-     *            name of the executor to ask.
+     * @param executorName name of the executor to ask.
      * @return the executorService from the pool
      * @throws DataManagerException
-     * @throws Exception
-     *             if executor cannot be borrowed from the pool.
+     * @throws Exception            if executor cannot be borrowed from the pool.
      */
     public ExecutorService getExecutorService(String executorName) throws DataManagerException {
         try {
@@ -99,11 +93,11 @@ public class ExecutorManager {
     }
 
     /**
-     * Manage the return of {@link ExecutorService} to the pool named {@value poolName}
+     * Manage the return of {@link ExecutorService} to the pool named poolName
      *
      * @param poolName
      * @param executorService
-     * @throws DataManagerException if one of argument is null or if the pool {@value poolName} is not found. 
+     * @throws DataManagerException if one of argument is null or if the pool is not found.
      */
     public void returnExecutorService(String poolName, ExecutorService executorService) throws DataManagerException {
 
@@ -121,15 +115,11 @@ public class ExecutorManager {
     }
 
     /**
+     * @param executor     the executor previously borrowed
+     * @param runnable     the runnalbe task to run
+     * @param executorName the name of the executor
      * @deprecated FIXME FTO voir à supprimer ou revoir la façon dont travaille l'executor manager... 1 pool par fichier d'import pourrait être plus efficace.
      * execute a Runnable into the executor.
-     *
-     * @param executor
-     *            the executor previously borrowed
-     * @param runnable
-     *            the runnalbe task to run
-     * @param executorName
-     *            the name of the executor
      */
     public void execute(ExecutorService executor, Runnable runnable, String executorName) {
         if (executor == null) {
@@ -142,17 +132,13 @@ public class ExecutorManager {
     }
 
     /**
+     * @param executor     the executor previously borrowed
+     * @param callable     the callable task to run
+     * @param executorName the name of the executor
+     * @param <T>          the result type of method call
+     * @return a list of execution result
      * @deprecated FIXME FTO voir à supprimer ou revoir la façon dont travaille l'executor manager... 1 pool par fichier d'import pourrait être plus efficace.
      * execute a Callable into the executor.
-     *
-     * @param executor
-     *            the executor previously borrowed
-     * @param callable
-     *            the callable task to run
-     * @param executorName
-     *            the name of the executor
-     * @param <T>  the result type of method call
-     * @return a list of execution result
      */
     public <T> Future<T> execute(ExecutorService executor, Callable<T> callable, String executorName) {
         if (executor == null) {
@@ -168,36 +154,13 @@ public class ExecutorManager {
      * add an ExecutorService pool into the Manager TODO : add a way to
      * parameter the pool For the moment, pool is 1 size fixed.
      *
-     * @param name
-     *            name of the executor
-     * @param nbThreads
-     *            number of threads the executor will manage
-     * @param poolSize
-     *            size of the executor pool
+     * @param name     name of the executor
+     * @param poolSize size of the executor pool
      */
-    public void registerExecutorPool(String name, int nbThreads, int poolSize) {
+    public void registerExecutorPool(String name, int poolSize) {
         logger.debug("registering executor " + name + " into manager");
-        GenericObjectPool<ExecutorService> pool = new GenericObjectPool<ExecutorService>(new ExecutorPoolObjectFactory(nbThreads));
+        GenericObjectPool<ExecutorService> pool = new GenericObjectPool<>(new ExecutorPoolObjectFactory());
         pool.setMaxTotal(poolSize);
-        pool.setTestOnReturn(true);
-        if (!executors.containsKey(name)) {
-            executors.put(name, pool);
-        }
-    }
-
-    /**
-     * add an ExecutorService pool into the Manager TODO : add a way to
-     * parameter the pool For the moment, pool is 1 size fixed.
-     *
-     * @param name
-     *            name of the executor
-     * @param nbThreads
-     *            number of threads the executor will manage
-     */
-    public void registerExecutorPool(String name, int nbThreads) {
-        logger.debug("registering executor " + name + " into manager");
-        GenericObjectPool<ExecutorService> pool = new GenericObjectPool<ExecutorService>(new ExecutorPoolObjectFactory(nbThreads));
-        pool.setMaxTotal(DEFAULT_EXECUTOR_SERVICE_POOL_SIZE);
         pool.setTestOnReturn(true);
         if (!executors.containsKey(name)) {
             executors.put(name, pool);
@@ -207,16 +170,11 @@ public class ExecutorManager {
     /**
      * call this method to bock until all running or submited task finish.
      *
-     * @param service
-     *            the executor
-     * @param name
-     *            the name of the executor
-     * @param delay
-     *            the delay to wait
-     * @param timeunit
-     *            timeunit of the delay
-     * @param remove
-     *            if true, remove definitly the named Executor from the Manager.
+     * @param service  the executor
+     * @param name     the name of the executor
+     * @param delay    the delay to wait
+     * @param timeunit timeunit of the delay
+     * @param remove   if true, remove definitly the named Executor from the Manager.
      */
     public void waitForExecutorTermination(ExecutorService service, String name, long delay, TimeUnit timeunit, boolean remove) {
         logger.info("Stopping Executor " + name);
@@ -243,7 +201,6 @@ public class ExecutorManager {
 
     /**
      * stop all executors
-     *
      */
     public void stopExecutors() {
         logger.debug("remove all pools from manager");
