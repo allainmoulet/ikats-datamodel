@@ -39,9 +39,10 @@ import org.slf4j.LoggerFactory;
 /**
  * Helper class with goal is to provide a "typed" configuration for IKATS.<br>
  * Each configuration property shall be defined in a {@link ConfigProperties} enumeration which also should define the properties file.<br>
- * This would be robust because each call to a configuration property is a constant widely available.<br> 
+ * This would be robust because each call to a configuration property is a constant widely available.<br>
  * <br>
- * In combination with {@link IkatsConfiguration} for the default implementation, that leads to define configuration into one java {@link Enum} only. 
+ * In combination with {@link IkatsConfiguration} for the default implementation, that leads to define configuration into one java {@link Enum} only.
+ *
  * @param <T> as an {@link Enum} implementing {@link ConfigProperties}
  */
 public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigProperties> extends CompositeConfiguration {
@@ -64,7 +65,7 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
     }
 
     /**
-     * Overriden implementation to check that the property is defined by the {@link IngestionConfig} enum.<br>
+     * Overriden implementation to check that the property is defined by the IngestionConfig enum.<br>
      * Avoid direct <code>getProperty(String key)</code> call with a key which is not present in the enum.
      */
     @Override
@@ -75,7 +76,7 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
             T valueEnum = getEnum((Class<T>) properties.getClass(), key);
             return getProperty(valueEnum);
         } catch (IllegalArgumentException | NullPointerException e) {
-            logger.debug("Property '{}' not found in {}", key, properties.getPropertiesFilename());
+            logger.debug("Property '{}' not found in {}", key, properties.getPropertiesFilename(), e);
         }
 
         return null;
@@ -83,6 +84,7 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 
     /**
      * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
+     *
      * @param propertyKey
      * @return
      */
@@ -102,6 +104,7 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 
     /**
      * Use a {@link MessageFormat} internally to format the configuration property
+     *
      * @param propertyKey
      * @param values
      * @return
@@ -117,6 +120,7 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 
     /**
      * Get the IKATS {@link ConfigProperties} enum constant that matches the <code>key</code>
+     *
      * @return the {@link ConfigProperties} matching constant
      */
     private T getEnum(Class<T> enumClass, String key) {
@@ -132,6 +136,7 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 
     /**
      * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
+     *
      * @see org.apache.commons.configuration2.AbstractConfiguration#getString(java.lang.String)
      */
     public String getString(T propertyKey) {
@@ -140,6 +145,7 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 
     /**
      * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
+     *
      * @see org.apache.commons.configuration2.AbstractConfiguration#getBoolean(java.lang.String)
      */
     public boolean getBoolean(T propertyKey) {
@@ -148,6 +154,7 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 
     /**
      * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
+     *
      * @see org.apache.commons.configuration2.AbstractConfiguration#getDouble(java.lang.String)
      */
     public double getDouble(T propertyKey) {
@@ -156,6 +163,7 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 
     /**
      * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
+     *
      * @see org.apache.commons.configuration2.AbstractConfiguration#getFloat(java.lang.String)
      */
     public float getFloat(T propertyKey) {
@@ -164,6 +172,7 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 
     /**
      * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
+     *
      * @see org.apache.commons.configuration2.AbstractConfiguration#getInt(java.lang.String)
      */
     public int getInt(T propertyKey) {
@@ -172,6 +181,7 @@ public abstract class AbstractIkatsConfiguration<T extends Enum<T> & ConfigPrope
 
     /**
      * Provide same behavior as the equivalent method in {@link AbstractConfiguration}, but for an IKATS {@link ConfigProperties} enum.
+     *
      * @see org.apache.commons.configuration2.AbstractConfiguration#getLong(java.lang.String)
      */
     public long getLong(T propertyKey) {

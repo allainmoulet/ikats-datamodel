@@ -240,6 +240,7 @@ public class DataSetManager {
                     timeS.removeTimeSeries(tsuid);
                 } catch (ResourceNotFoundException e) {
                     LOGGER.error("- failed to remove tsuid " + tsuid + " : does not exist in DB");
+                    tsRemoveError.add(new IkatsDaoException("- failed to remove tsuid " + tsuid + " : does not exist in DB", e));
                 } catch (IkatsDaoException e) {
                     LOGGER.error("- failed to remove associated metadata for tsuid=" + tsuid);
                     tsRemoveError.add(new IkatsDaoException("failed to remove associated metadata for tsuid " + tsuid, e));

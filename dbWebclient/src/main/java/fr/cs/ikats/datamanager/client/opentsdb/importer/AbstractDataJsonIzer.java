@@ -110,8 +110,7 @@ public abstract class AbstractDataJsonIzer implements IImportSerializer {
                 return false;
             }
         } catch (Exception e) {
-            LOGGER.info(e.getMessage());
-            //LOGGER.error("",e);
+            LOGGER.error("",e);
             return false;
         }
     }
@@ -185,7 +184,7 @@ public abstract class AbstractDataJsonIzer implements IImportSerializer {
             try {
                 reader.close();
             } catch (IOException e) {
-                // NOTING CAN BE DONE
+                LOGGER.error("",e);
             }
         }
     }

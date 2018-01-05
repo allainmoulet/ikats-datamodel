@@ -100,7 +100,7 @@ public class ApplicationConfiguration {
         try {
             config.addConfiguration(new PropertiesConfiguration(propertiesFile));
         } catch (ConfigurationException e) {
-            logger.error("Error loading properties file " + propertiesFile);
+            logger.error("Error loading properties file " + propertiesFile, e);
         }
 
     }

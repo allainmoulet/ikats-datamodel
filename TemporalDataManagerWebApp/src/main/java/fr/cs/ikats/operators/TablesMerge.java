@@ -372,6 +372,7 @@ public class TablesMerge {
                 // Try to get header with links
                 colHeaderElements = fromTable.getColumnsHeader().getDataWithLink();
             } catch (IkatsException e1) {
+                logger.info("no link managed in header", e1);
                 // Else manage header with no links
                 colHeaderElements = new ArrayList<TableElement>();
                 try {

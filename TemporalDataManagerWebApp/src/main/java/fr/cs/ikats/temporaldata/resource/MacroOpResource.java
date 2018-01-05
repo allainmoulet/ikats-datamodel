@@ -86,7 +86,7 @@ public class MacroOpResource extends AbstractResource {
         try {
             wf.setMacroOp(true);
         } catch (NullPointerException e) {
-            throw new IkatsDaoException("Wrong inputs");
+            throw new IkatsDaoException("Wrong inputs", e);
         }
 
         Integer wfId = Facade.persist(wf);

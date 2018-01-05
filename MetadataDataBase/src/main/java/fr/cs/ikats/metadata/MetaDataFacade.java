@@ -444,13 +444,13 @@ public class MetaDataFacade {
         } catch (IOException finalError) {
             String lineInfo = (line != null) ? line : "<empty line>";
             String contextError = "Unexpected interruption: importing MetaData CSV at [" + lineNumber + "]: " + lineInfo;
-            LOGGER.error(contextError);
+            LOGGER.error(contextError, finalError);
             throw new IOException(contextError);
         } finally {
             try {
                 reader.close();
             } catch (IOException e) {
-                // NOTHING CAN BE DONE.
+                LOGGER.error("", e);
             }
         }
         if (firstError != null) {
@@ -527,6 +527,7 @@ public class MetaDataFacade {
             getFunctionalIdentifierByFuncId(itemToTest);
             return true;
         } catch (IkatsDaoException e) {
+            LOGGER.error("", e);
             return false;
         }
     }

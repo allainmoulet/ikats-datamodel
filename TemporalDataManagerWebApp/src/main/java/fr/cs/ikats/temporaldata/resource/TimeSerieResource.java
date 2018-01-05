@@ -541,6 +541,7 @@ public class TimeSerieResource extends AbstractResource {
             try {
                 getMetadataManager().persistFunctionalIdentifier(importResult.getTsuid(), importResult.getFuncId());
             } catch (IkatsDaoConflictException e) {
+                logger.error("", e);
                 // Functional Identifier already exists : adding data to existing timeseries
             }
 
@@ -549,6 +550,7 @@ public class TimeSerieResource extends AbstractResource {
             try {
                 getMetadataManager().persistMetaData(importResult.getTsuid(), "metric", metric, "string");
             } catch (IkatsDaoConflictException e) {
+                logger.error("", e);
                 // metric already exists : adding data to existing timeseries
             }
 
@@ -559,6 +561,7 @@ public class TimeSerieResource extends AbstractResource {
                             "string");
                 }
             } catch (IkatsDaoConflictException e) {
+                logger.error("", e);
                 // Metadata already exists : adding data to existing timeseries
             }
 

@@ -74,7 +74,7 @@ import fr.cs.ikats.temporaldata.utils.Chronometer;
 
 /**
  * this class hosts all the operations on metadata : import and list <br/>
- * Since [#142998] Added IkatsDaoException management handling the MetaData
+ * Added IkatsDaoException management handling the MetaData
  * resources: see IkatsDaoException subclasses and IkatsDaoExceptionHandler.
  */
 @Path("metadata")
@@ -92,22 +92,15 @@ public class MetaDataResource extends AbstractResource {
     /**
      * Import a metadata for a tsuid.
      *
-     * @param tsuid
-     *            , the identifier of the TS in the TimeSeries storage system
-     * @param name
-     *            name of the metadata
-     * @param value
-     *            value of the metadata.
-     * @param dtype
-     *            data type of the metadata.
-     * @param details
-     *            if true, message is returned to the client, otherwise, only
-     *            the id
+     * @param tsuid   , the identifier of the TS in the TimeSeries storage system
+     * @param name    name of the metadata
+     * @param value   value of the metadata.
+     * @param dtype   data type of the metadata.
+     * @param details if true, message is returned to the client, otherwise, only
+     *                the id
      * @return the internal identifier.
-     * @throws IkatsDaoConflictException
-     *             dao conflict error with one MetaData in database
-     * @throws IkatsDaoException
-     *             another dao error.
+     * @throws IkatsDaoConflictException dao conflict error with one MetaData in database
+     * @throws IkatsDaoException         another dao error.
      */
     @POST
     @Path("/import/{tsuid}/{name}/{value}")
@@ -132,19 +125,13 @@ public class MetaDataResource extends AbstractResource {
     /**
      * import a metadata for a tsuid.
      *
-     * @param tsuid
-     *            , the identifier of the TS in the TimeSeries storage system
-     * @param name
-     *            name of the metadata
-     * @param value
-     *            value of the metadata.
+     * @param tsuid , the identifier of the TS in the TimeSeries storage system
+     * @param name  name of the metadata
+     * @param value value of the metadata.
      * @return the internal identifier.
-     * @throws ResourceNotFoundException
-     *             if nothing updated
-     * @throws IkatsDaoConflictException
-     *             update error raised on conflict with another MetaData
-     * @throws IkatsDaoException
-     *             another error from DAO
+     * @throws ResourceNotFoundException if nothing updated
+     * @throws IkatsDaoConflictException update error raised on conflict with another MetaData
+     * @throws IkatsDaoException         another error from DAO
      */
     @PUT
     @Path("/{tsuid}/{name}/{value}")
@@ -157,19 +144,16 @@ public class MetaDataResource extends AbstractResource {
             String streResult = result.toString();
             return streResult;
         } catch (IkatsDaoMissingResource e) {
-            // Note Kept
-            throw new ResourceNotFoundException(tsuid);
+            throw new ResourceNotFoundException(tsuid, e);
         }
     }
 
     /**
      * delete a all metadata + functional identifier for a tsuid.
      *
-     * @param tsuid
-     *            , the identifier of the TS in the TimeSeries storage system
+     * @param tsuid , the identifier of the TS in the TimeSeries storage system
      * @return an ImportResult with tsuid, number of success and summary set
-     * @throws IkatsDaoException
-     *             error raised by DAO layer
+     * @throws IkatsDaoException error raised by DAO layer
      */
     @DELETE
     @Path("/{tsuid}")
@@ -186,13 +170,10 @@ public class MetaDataResource extends AbstractResource {
     /**
      * delete a named metadata for a tsuid.
      *
-     * @param tsuid
-     *            , the identifier of the TS in the TimeSeries storage system
-     * @param name
-     *            the name ot metadata
+     * @param tsuid , the identifier of the TS in the TimeSeries storage system
+     * @param name  the name ot metadata
      * @return an ImportResult with tsuid, number of success and summary set
-     * @throws IkatsDaoException
-     *             error raised by DAO layer.
+     * @throws IkatsDaoException error raised by DAO layer.
      */
     @DELETE
     @Path("/{tsuid}/{name}")
@@ -209,21 +190,15 @@ public class MetaDataResource extends AbstractResource {
     /**
      * import a CSV file from inputStream read from multipart form.
      *
-     * @param fileis
-     *            input stream
-     * @param fileDisposition
-     *            file information
-     * @param details
-     *            indicates if response must contains details (human readable)
-     *            on the operation
-     * @param update
-     *            if true, already existing metadata is updated otherwise no
-     *            metadata is imported if one of them already exists
+     * @param fileis          input stream
+     * @param fileDisposition file information
+     * @param details         indicates if response must contains details (human readable)
+     *                        on the operation
+     * @param update          if true, already existing metadata is updated otherwise no
+     *                        metadata is imported if one of them already exists
      * @return an operation report with details or not.
-     * @throws IkatsDaoException
-     *             error raised by DAO layer.
-     * @throws IkatsException
-     *             another error raised executing the service
+     * @throws IkatsDaoException error raised by DAO layer.
+     * @throws IkatsException    another error raised executing the service
      */
     @POST
     @Path("/import/file")
@@ -251,13 +226,10 @@ public class MetaDataResource extends AbstractResource {
      * a "*" to return all metadata, one String value, or a comma separated list
      * of identifiers
      *
-     * @param tsuids
-     *            the requested tsuid, a comma separated list of values,
+     * @param tsuids the requested tsuid, a comma separated list of values,
      * @return a String : csv file with on metadata per line.
-     * @throws IkatsDaoMissingResource
-     *             dao error raised in case of unmatched TSUID
-     * @throws IkatsDaoException
-     *             other error raised by DAO layer
+     * @throws IkatsDaoMissingResource dao error raised in case of unmatched TSUID
+     * @throws IkatsDaoException       other error raised by DAO layer
      */
     @GET
     @Path("/list")
@@ -298,14 +270,11 @@ public class MetaDataResource extends AbstractResource {
      * a "*" to return all metadata, one String value, or a comma separated list
      * of identifiers
      *
-     * @param tsuids
-     *            the requested tsuid, a comma separated list of values,
+     * @param tsuids the requested tsuid, a comma separated list of values,
      * @return a String : csv file with on metadata per line.
-     * @throws ResourceNotFoundException
-     *             if at least one metadata was not found: mismatched tsuid in
-     *             DAO layer
-     * @throws IkatsDaoException
-     *             another error raised by DAO layer
+     * @throws ResourceNotFoundException if at least one metadata was not found: mismatched tsuid in
+     *                                   DAO layer
+     * @throws IkatsDaoException         another error raised by DAO layer
      */
     @GET
     @Path("/list/json")
@@ -356,14 +325,12 @@ public class MetaDataResource extends AbstractResource {
     }
 
     /**
-     * get a json representation of the metadata types 
+     * get a json representation of the metadata types
      *
      * @return a String : json file with one {metadata_name:metadata_type} per line.
-     * @throws ResourceNotFoundException
-     *             if at least one metadata was not found: mismatched tsuid in
-     *             DAO layer
-     * @throws IkatsDaoException
-     *             another error raised by DAO layer
+     * @throws ResourceNotFoundException if at least one metadata was not found: mismatched tsuid in
+     *                                   DAO layer
+     * @throws IkatsDaoException         another error raised by DAO layer
      */
     @GET
     @Path("/types")
@@ -382,8 +349,7 @@ public class MetaDataResource extends AbstractResource {
      * return a new Instance of OutputStreaming, used for streaming out the csv
      * file
      *
-     * @param excelBytes
-     *            the bytes to write
+     * @param excelBytes the bytes to write
      * @return
      */
     private StreamingOutput getOut(final String excelBytes) {
@@ -398,13 +364,10 @@ public class MetaDataResource extends AbstractResource {
     /**
      * import a FunctionalIdentifier for a tsuid.
      *
-     * @param tsuid
-     *            , the identifier of the TS in the TimeSeries storage system
-     * @param funcId
-     *            the functional identifier to store
+     * @param tsuid  , the identifier of the TS in the TimeSeries storage system
+     * @param funcId the functional identifier to store
      * @return an ImportResult
-     * @throws InvalidValueException
-     *             if funcId is not valid
+     * @throws InvalidValueException if funcId is not valid
      */
     @POST
     @Path("/funcId/{tsuid}/{funcId}")
@@ -423,8 +386,7 @@ public class MetaDataResource extends AbstractResource {
     /**
      * delete a FunctionalIdentifier for a tsuid.
      *
-     * @param tsuid
-     *            , the identifier of the TS in the TimeSeries storage system
+     * @param tsuid , the identifier of the TS in the TimeSeries storage system
      * @return an ImportResult with tsuid, number of success and summary set
      * @throws IkatsDaoException
      * @throws IkatsDaoConflictException
@@ -445,11 +407,9 @@ public class MetaDataResource extends AbstractResource {
      * Read the FunctionalIdentifier resource associated to the provided tsuid
      * value
      *
-     * @param tsuid
-     *            ts identifier
+     * @param tsuid ts identifier
      * @return matching
-     * @throws ResourceNotFoundJsonException
-     *             if no internalIdentifier found.
+     * @throws ResourceNotFoundJsonException if no internalIdentifier found.
      */
     @GET
     @Path("/funcId/{tsuid}")
@@ -468,16 +428,12 @@ public class MetaDataResource extends AbstractResource {
      * Read the list of resources FunctionalIdentifier matched by criteria
      * passed by form: tsuids or funcIds Note: consumes Form data
      *
-     * @param tsuids
-     *            the criteria list of tsuids: when search is from tsuids
-     * @param funcIds
-     *            the criteria list of funcIds: when search is from funcIds
+     * @param tsuids  the criteria list of tsuids: when search is from tsuids
+     * @param funcIds the criteria list of funcIds: when search is from funcIds
      * @return the filtered list of resources FunctionalIdentifier
-     * @throws ResourceNotFoundJsonException
-     *             if result is null or empty: not found
-     * @throws IkatsJsonException
-     *             error when search is incorrectly defined by client: bad
-     *             request
+     * @throws ResourceNotFoundJsonException if result is null or empty: not found
+     * @throws IkatsJsonException            error when search is incorrectly defined by client: bad
+     *                                       request
      */
     @POST
     @Path("/funcId")
@@ -496,16 +452,13 @@ public class MetaDataResource extends AbstractResource {
      * Read the list of resources FunctionalIdentifier matched by the filter.
      * Note: consumes JSON
      *
-     * @param filter
-     *            the filter defined by the json consumed. Note: see
-     *            FilterFunctionalIdentifiers class which is a mapping of
-     *            expected JSON content.
+     * @param filter the filter defined by the json consumed. Note: see
+     *               FilterFunctionalIdentifiers class which is a mapping of
+     *               expected JSON content.
      * @return the filtered list of resources FunctionalIdentifier
-     * @throws ResourceNotFoundJsonException
-     *             if result is null or empty: not found
-     * @throws IkatsJsonException
-     *             error when search is incorrectly defined by client: bad
-     *             request
+     * @throws ResourceNotFoundJsonException if result is null or empty: not found
+     * @throws IkatsJsonException            error when search is incorrectly defined by client: bad
+     *                                       request
      */
     @POST
     @Path("/funcId")
@@ -527,14 +480,11 @@ public class MetaDataResource extends AbstractResource {
     /**
      * implementation searching a FunctionalIdentifier list
      *
-     * @param filter
-     *            defined for searching records FunctionalIdentifier
+     * @param filter defined for searching records FunctionalIdentifier
      * @return response computed
-     * @throws ResourceNotFoundJsonException
-     *             if result is null or empty: not found
-     * @throws IkatsJsonException
-     *             error when search is incorrectly defined by client: bad
-     *             request
+     * @throws ResourceNotFoundJsonException if result is null or empty: not found
+     * @throws IkatsJsonException            error when search is incorrectly defined by client: bad
+     *                                       request
      */
     private List<FunctionalIdentifier> searchTsIds(FilterFunctionalIdentifiers filter) throws IkatsDaoException, IkatsJsonException {
         List<FunctionalIdentifier> res = null;
