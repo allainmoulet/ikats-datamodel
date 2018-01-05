@@ -27,19 +27,21 @@
 
 package fr.cs.ikats.ts.dataset;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.PreDestroy;
+
+import org.apache.log4j.Logger;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Component;
+
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.ts.dataset.dao.DataSetDAO;
 import fr.cs.ikats.ts.dataset.model.DataSet;
 import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
-import org.apache.log4j.Logger;
-import org.springframework.context.annotation.Scope;
-import org.springframework.stereotype.Component;
-
-import javax.annotation.PreDestroy;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * Management facade for datasets
@@ -88,7 +90,6 @@ public class DataSetFacade {
      * @param name        name of the dataset
      * @param description his description
      * @param tsuids      the list of tsuids
-     *
      * @return the identifier of the dataset
      */
     public String persistDataSet(String name, String description, List<String> tsuids) throws IkatsDaoException {
@@ -119,7 +120,6 @@ public class DataSetFacade {
      * get Dataset for TS
      *
      * @param name name of the dataset
-     *
      * @return the dataset
      */
     public DataSet getDataSet(String name) throws IkatsDaoMissingResource, IkatsDaoException {
@@ -130,7 +130,6 @@ public class DataSetFacade {
      * get Dataset Summary
      *
      * @param name name of the dataset
-     *
      * @return the dataset
      */
     public DataSet getDataSetSummary(String name) throws IkatsDaoMissingResource, IkatsDaoException {
@@ -141,7 +140,6 @@ public class DataSetFacade {
      * remove dataset for name
      *
      * @param name name of the dataset
-     *
      * @throws IkatsDaoException
      */
     public void removeDataSet(String name) throws IkatsDaoMissingResource, IkatsDaoException {
@@ -159,7 +157,6 @@ public class DataSetFacade {
 
     /**
      * @param tsuid the requested tsuid
-     *
      * @return the found list or null if empty
      */
     public List<String> getDataSetNamesForTsuid(String tsuid) throws IkatsDaoException {
@@ -181,7 +178,6 @@ public class DataSetFacade {
      *
      * @param datasetName the dataset name
      * @param tsuidList   the tsuid list defining the  removed links
-     *
      * @throws IkatsDaoException
      */
     public void removeTsLinks(String datasetName, List<String> tsuidList) throws IkatsDaoException {
@@ -209,7 +205,6 @@ public class DataSetFacade {
      * @param datasetName the name of the dataset to update
      * @param description the new description: specific values: null if unchanged, "" if emptied.
      * @param tsuidList   a list of tsuid to add to dataset, can be null
-     *
      * @return the number of TS added while updating
      */
     public int updateDataSet(String datasetName, String description, List<String> tsuidList) throws IkatsDaoMissingResource, IkatsDaoException {
@@ -235,7 +230,6 @@ public class DataSetFacade {
      * @param datasetName the name of the dataset to update: unique reference to existing dataset
      * @param description the new description: specific values: null if unchanged, "" if emptied.
      * @param tsuidList   a list of tsuid to add to dataset, can be null
-     *
      * @return the number of TS added while updating
      */
     public int updateInAppendMode(String datasetName, String description, List<String> tsuidList) throws IkatsDaoMissingResource, IkatsDaoException {
@@ -256,7 +250,6 @@ public class DataSetFacade {
      *
      * @param tsuid       the identifier of the time serie to add
      * @param datasetName the name of the dataset to update
-     *
      * @return the number of TS added while updating
      */
     public void updateInAppendMode(String tsuid, String datasetName) throws IkatsDaoMissingResource, IkatsDaoException {

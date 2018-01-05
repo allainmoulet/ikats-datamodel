@@ -26,8 +26,6 @@
 
 package fr.cs.ikats.temporaldata;
 
-import static org.junit.Assert.assertEquals;
-
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
@@ -57,6 +55,8 @@ import org.junit.Test;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.process.data.model.ProcessData;
 import fr.cs.ikats.temporaldata.business.ProcessDataManager;
+
+import static org.junit.Assert.assertEquals;
 
 /**
  *

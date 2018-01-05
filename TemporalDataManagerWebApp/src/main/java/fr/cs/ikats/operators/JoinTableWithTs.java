@@ -40,24 +40,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
-import fr.cs.ikats.temporaldata.business.DataSetManager;
-import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
-import fr.cs.ikats.temporaldata.business.MetaDataManager;
-import fr.cs.ikats.temporaldata.business.table.Table;
-import fr.cs.ikats.temporaldata.business.table.TableElement;
-import fr.cs.ikats.temporaldata.business.table.TableInfo;
-import fr.cs.ikats.temporaldata.business.table.TableManager;
-import fr.cs.ikats.temporaldata.business.table.TableInfo.DataLink;
-
 import org.apache.log4j.Logger;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.expr.SingleValueComparator;
 import fr.cs.ikats.lang.NaturalOrderComparator;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
+import fr.cs.ikats.temporaldata.business.DataSetManager;
+import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
+import fr.cs.ikats.temporaldata.business.MetaDataManager;
+import fr.cs.ikats.temporaldata.business.table.Table;
+import fr.cs.ikats.temporaldata.business.table.TableElement;
+import fr.cs.ikats.temporaldata.business.table.TableInfo;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.DataLink;
+import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;

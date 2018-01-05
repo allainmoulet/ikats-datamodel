@@ -24,13 +24,9 @@
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
- *
  */
 
 package fr.cs.ikats.operators;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,21 +35,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.cs.ikats.table.TableEntity;
 import org.apache.log4j.Logger;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.cs.ikats.operators.TablesMerge.Request;
+import fr.cs.ikats.table.TableEntity;
 import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
 import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class TablesMergeTest {
 
@@ -155,7 +153,7 @@ public class TablesMergeTest {
         table3 = buildTableFromCSVString("table3", TABLE3_CSV, false, false);
         table4 = buildTableFromCSVString("table4", TABLE4_CSV, false, false);
         table5 = buildTableFromCSVString("table5", TABLE5_CSV, true, false);
-        }
+    }
 
     /**
      * Construction check with 2 tables -> OK

@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,19 +10,18 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.temporaldata.resource;
@@ -92,7 +91,7 @@ public class MetaDataResource extends AbstractResource {
 
     /**
      * Import a metadata for a tsuid.
-     * 
+     *
      * @param tsuid
      *            , the identifier of the TS in the TimeSeries storage system
      * @param name
@@ -113,7 +112,7 @@ public class MetaDataResource extends AbstractResource {
     @POST
     @Path("/import/{tsuid}/{name}/{value}")
     public String importMetaData(@PathParam("tsuid") String tsuid, @PathParam("name") String name, @PathParam("value") String value,
-            @QueryParam("dtype") @DefaultValue("string") String dtype, @QueryParam("details") @DefaultValue("false") Boolean details)
+                                 @QueryParam("dtype") @DefaultValue("string") String dtype, @QueryParam("details") @DefaultValue("false") Boolean details)
             throws IkatsDaoConflictException, IkatsDaoException {
 
         // since [#142998] result ought to be good or exception is raised
@@ -132,7 +131,7 @@ public class MetaDataResource extends AbstractResource {
 
     /**
      * import a metadata for a tsuid.
-     * 
+     *
      * @param tsuid
      *            , the identifier of the TS in the TimeSeries storage system
      * @param name
@@ -157,8 +156,7 @@ public class MetaDataResource extends AbstractResource {
 
             String streResult = result.toString();
             return streResult;
-        }
-        catch (IkatsDaoMissingResource e) {
+        } catch (IkatsDaoMissingResource e) {
             // Note Kept
             throw new ResourceNotFoundException(tsuid);
         }
@@ -166,7 +164,7 @@ public class MetaDataResource extends AbstractResource {
 
     /**
      * delete a all metadata + functional identifier for a tsuid.
-     * 
+     *
      * @param tsuid
      *            , the identifier of the TS in the TimeSeries storage system
      * @return an ImportResult with tsuid, number of success and summary set
@@ -187,7 +185,7 @@ public class MetaDataResource extends AbstractResource {
 
     /**
      * delete a named metadata for a tsuid.
-     * 
+     *
      * @param tsuid
      *            , the identifier of the TS in the TimeSeries storage system
      * @param name
@@ -210,7 +208,7 @@ public class MetaDataResource extends AbstractResource {
 
     /**
      * import a CSV file from inputStream read from multipart form.
-     * 
+     *
      * @param fileis
      *            input stream
      * @param fileDisposition
@@ -232,7 +230,7 @@ public class MetaDataResource extends AbstractResource {
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @Produces(MediaType.TEXT_PLAIN)
     public String importMetaDataFile(@FormDataParam("file") InputStream fileis, @FormDataParam("file") FormDataContentDisposition fileDisposition,
-            @QueryParam("details") @DefaultValue("false") Boolean details, @QueryParam("update") @DefaultValue("false") Boolean update)
+                                     @QueryParam("details") @DefaultValue("false") Boolean details, @QueryParam("update") @DefaultValue("false") Boolean update)
             throws IkatsDaoException, IkatsException {
         Chronometer chrono = new Chronometer(fileDisposition.getFileName(), true);
 
@@ -252,7 +250,7 @@ public class MetaDataResource extends AbstractResource {
      * get a csv representation of the metadata for a given tsuid. tsuid can be
      * a "*" to return all metadata, one String value, or a comma separated list
      * of identifiers
-     * 
+     *
      * @param tsuids
      *            the requested tsuid, a comma separated list of values,
      * @return a String : csv file with on metadata per line.
@@ -263,7 +261,7 @@ public class MetaDataResource extends AbstractResource {
      */
     @GET
     @Path("/list")
-    @Produces({ "application/ms-excel" })
+    @Produces({"application/ms-excel"})
     public Response getMetaData(@QueryParam("tsuid") String tsuids) throws IkatsDaoMissingResource, IkatsDaoException {
 
         // Handle multiple tsuids separated by ','
@@ -277,19 +275,16 @@ public class MetaDataResource extends AbstractResource {
             if (tsuids.equals("*")) {
                 logger.info("listing all metadata in database");
                 filename = "metadata.csv";
-            }
-            else {
+            } else {
                 logger.info("listing metadata for " + tsuids);
                 if (tsuidslist.size() > 1) {
                     filename = "metadata.csv";
-                }
-                else {
+                } else {
                     filename = tsuids + "_metadata.csv";
                 }
             }
             response = Response.ok(getOut(csvStr)).header("Content-Disposition", "attachment;filename=" + filename).build();
-        }
-        catch (IkatsDaoMissingResource e) {
+        } catch (IkatsDaoMissingResource e) {
             // just to add a message in the logger ...
             // TODO TBC error level instead of warning ?
             logger.warn("Unable to find tsuid " + tsuids + " in database");
@@ -302,7 +297,7 @@ public class MetaDataResource extends AbstractResource {
      * get a csv representation of the metadata for a given tsuid. tsuid can be
      * a "*" to return all metadata, one String value, or a comma separated list
      * of identifiers
-     * 
+     *
      * @param tsuids
      *            the requested tsuid, a comma separated list of values,
      * @return a String : csv file with on metadata per line.
@@ -323,16 +318,14 @@ public class MetaDataResource extends AbstractResource {
         try {
             tsuidslist = new ArrayList<String>(Arrays.asList(tsuids.split(",")));
             result = metadataManager.getList(tsuidslist);
-        }
-        catch (IkatsDaoMissingResource e) {
+        } catch (IkatsDaoMissingResource e) {
             // ResourceNotFoundException is equivalent to
             // IkatsDaoMissingRessource
 
             // TODO low+TBC: replace ResourceNotFoundException by
             // IkatsDaoMissingRessource
             throw new ResourceNotFoundException(tsuids, e);
-        }
-        catch (IkatsDaoException otherE) {
+        } catch (IkatsDaoException otherE) {
             throw new IkatsDaoException("Getting MetaData list from TSUID list=" + tsuids, otherE);
         }
         return result;
@@ -349,24 +342,22 @@ public class MetaDataResource extends AbstractResource {
 
             List<String> tsuidslist = tsuids.getTsuids();
             result = metadataManager.getList(tsuidslist);
-        }
-        catch (IkatsDaoMissingResource e) {
+        } catch (IkatsDaoMissingResource e) {
             // ResourceNotFoundException is equivalent to
             // IkatsDaoMissingRessource
 
             // TODO low+TBC: replace ResourceNotFoundException by
             // IkatsDaoMissingRessource
             throw new ResourceNotFoundException(tsuids.toString(), e);
-        }
-        catch (IkatsDaoException otherE) {
+        } catch (IkatsDaoException otherE) {
             throw new IkatsDaoException("Getting MetaData list from TSUID list=" + tsuids, otherE);
         }
         return result;
     }
-    
+
     /**
      * get a json representation of the metadata types 
-     * 
+     *
      * @return a String : json file with one {metadata_name:metadata_type} per line.
      * @throws ResourceNotFoundException
      *             if at least one metadata was not found: mismatched tsuid in
@@ -377,13 +368,12 @@ public class MetaDataResource extends AbstractResource {
     @GET
     @Path("/types")
     @Produces(MediaType.APPLICATION_JSON)
-    public Map<String,String> getJsonMetaDataTypes() throws IkatsDaoException,WebApplicationException {
-        Map<String,String> result;
+    public Map<String, String> getJsonMetaDataTypes() throws IkatsDaoException, WebApplicationException {
+        Map<String, String> result;
         try {
             result = metadataManager.getListTypes();
-        }
-        catch (IkatsDaoException e) {
-            throw  e;
+        } catch (IkatsDaoException e) {
+            throw e;
         }
         return result;
     }
@@ -391,7 +381,7 @@ public class MetaDataResource extends AbstractResource {
     /**
      * return a new Instance of OutputStreaming, used for streaming out the csv
      * file
-     * 
+     *
      * @param excelBytes
      *            the bytes to write
      * @return
@@ -407,7 +397,7 @@ public class MetaDataResource extends AbstractResource {
 
     /**
      * import a FunctionalIdentifier for a tsuid.
-     * 
+     *
      * @param tsuid
      *            , the identifier of the TS in the TimeSeries storage system
      * @param funcId
@@ -432,12 +422,12 @@ public class MetaDataResource extends AbstractResource {
 
     /**
      * delete a FunctionalIdentifier for a tsuid.
-     * 
+     *
      * @param tsuid
      *            , the identifier of the TS in the TimeSeries storage system
      * @return an ImportResult with tsuid, number of success and summary set
-     * @throws IkatsDaoException 
-     * @throws IkatsDaoConflictException 
+     * @throws IkatsDaoException
+     * @throws IkatsDaoConflictException
      */
     @DELETE
     @Path("/funcId/{tsuid}")
@@ -454,7 +444,7 @@ public class MetaDataResource extends AbstractResource {
     /**
      * Read the FunctionalIdentifier resource associated to the provided tsuid
      * value
-     * 
+     *
      * @param tsuid
      *            ts identifier
      * @return matching
@@ -464,7 +454,7 @@ public class MetaDataResource extends AbstractResource {
     @GET
     @Path("/funcId/{tsuid}")
     @Produces(MediaType.APPLICATION_JSON)
-    public FunctionalIdentifier getFunctionalIdentifier(@PathParam("tsuid") String tsuid) throws IkatsDaoException ,
+    public FunctionalIdentifier getFunctionalIdentifier(@PathParam("tsuid") String tsuid) throws IkatsDaoException,
             ResourceNotFoundJsonException {
 
         FunctionalIdentifier internalIdentifiers = metadataManager.getFunctionalIdentifierByTsuid(tsuid);
@@ -477,7 +467,7 @@ public class MetaDataResource extends AbstractResource {
     /**
      * Read the list of resources FunctionalIdentifier matched by criteria
      * passed by form: tsuids or funcIds Note: consumes Form data
-     * 
+     *
      * @param tsuids
      *            the criteria list of tsuids: when search is from tsuids
      * @param funcIds
@@ -494,7 +484,7 @@ public class MetaDataResource extends AbstractResource {
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
     public List<FunctionalIdentifier> searchFunctionalIdentifiers(@FormParam("tsuids") List<String> tsuids,
-            @FormParam("funcIds") List<String> funcIds) throws IkatsDaoException, IkatsJsonException {
+                                                                  @FormParam("funcIds") List<String> funcIds) throws IkatsDaoException, IkatsJsonException {
 
         FilterFunctionalIdentifiers filter = new FilterFunctionalIdentifiers();
         filter.setTsuids(tsuids);
@@ -505,7 +495,7 @@ public class MetaDataResource extends AbstractResource {
     /**
      * Read the list of resources FunctionalIdentifier matched by the filter.
      * Note: consumes JSON
-     * 
+     *
      * @param filter
      *            the filter defined by the json consumed. Note: see
      *            FilterFunctionalIdentifiers class which is a mapping of
@@ -536,7 +526,7 @@ public class MetaDataResource extends AbstractResource {
 
     /**
      * implementation searching a FunctionalIdentifier list
-     * 
+     *
      * @param filter
      *            defined for searching records FunctionalIdentifier
      * @return response computed
@@ -550,15 +540,12 @@ public class MetaDataResource extends AbstractResource {
         List<FunctionalIdentifier> res = null;
         if ((!CollectionUtils.isNullOrEmpy(filter.getTsuids())) && (!CollectionUtils.isNullOrEmpy(filter.getFuncIds()))) {
             throw new IkatsJsonException("Forbidden: both funcIds and tsuids filters are defined: " + filter.toString());
-        }
-        else if (!CollectionUtils.isNullOrEmpy(filter.getTsuids())) {
+        } else if (!CollectionUtils.isNullOrEmpy(filter.getTsuids())) {
             res = metadataManager.getFunctionalIdentifierByTsuidList(filter.getTsuids());
 
-        }
-        else if (!CollectionUtils.isNullOrEmpy(filter.getFuncIds())) {
+        } else if (!CollectionUtils.isNullOrEmpy(filter.getFuncIds())) {
             res = metadataManager.getFunctionalIdentifierByFuncIdList(filter.getFuncIds());
-        }
-        else {
+        } else {
             // Return all Functional ids
             res = metadataManager.getAllFunctionalIdentifiers();
         }

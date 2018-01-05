@@ -465,7 +465,7 @@ public class TableManager {
      *
      * @param tableName the name of the table is its unique identifier
      * @return read resource TableInfo.
-     * @throws IkatsJsonException       failed to read consistent JSON format into TableInfo structure.
+     * @throws IkatsJsonException      failed to read consistent JSON format into TableInfo structure.
      * @throws IkatsDaoMissingResource the table name tableName is not matched in the database.
      */
     public TableInfo readFromDatabase(String tableName)

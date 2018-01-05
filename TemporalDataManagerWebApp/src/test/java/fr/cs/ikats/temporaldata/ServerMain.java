@@ -42,7 +42,6 @@ import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 
 /**
  * Main class.
- *
  */
 public class ServerMain {
     // Base URI the Grizzly HTTP server will listen on

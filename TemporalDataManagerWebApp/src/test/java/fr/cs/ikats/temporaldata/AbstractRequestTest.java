@@ -28,9 +28,6 @@
 
 package fr.cs.ikats.temporaldata;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
@@ -54,6 +51,9 @@ import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.temporaldata.application.ApplicationConfiguration;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
  * This superclass is designed for the junit tests of IKATS web services: it

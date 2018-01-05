@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,19 +10,18 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.common.dao.exception;
@@ -33,7 +32,7 @@ package fr.cs.ikats.common.dao.exception;
 public class IkatsDaoInvalidValueException extends IkatsDaoException {
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 6699220248971152655L;
 
@@ -41,7 +40,7 @@ public class IkatsDaoInvalidValueException extends IkatsDaoException {
      * Optional field: when user wants to specifically stock the column in this exception
      */
     private String column = null;
-    
+
     /**
      * Optional field: when user wants to specifically stock the value causing this exception
      */
@@ -80,9 +79,9 @@ public class IkatsDaoInvalidValueException extends IkatsDaoException {
     }
 
     /**
-     *  
+     *
      */
-    public IkatsDaoInvalidValueException() { 
+    public IkatsDaoInvalidValueException() {
     }
 
     /**
@@ -102,7 +101,7 @@ public class IkatsDaoInvalidValueException extends IkatsDaoException {
         this.column = column;
         this.value = value;
     }
-    
+
     /**
      * @param cause cause of error
      */
@@ -117,7 +116,7 @@ public class IkatsDaoInvalidValueException extends IkatsDaoException {
     public IkatsDaoInvalidValueException(String message, Throwable cause) {
         super(message, cause);
     }
-    
+
     /**
      * @param column column on error occures
      * @param value value causing the error
@@ -128,7 +127,7 @@ public class IkatsDaoInvalidValueException extends IkatsDaoException {
         this(message, cause);
         this.column = column;
         this.value = value;
-        
+
     }
 
     /**
@@ -152,6 +151,6 @@ public class IkatsDaoInvalidValueException extends IkatsDaoException {
     public IkatsDaoInvalidValueException(String column, Object value, String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
-    
+
 }
 

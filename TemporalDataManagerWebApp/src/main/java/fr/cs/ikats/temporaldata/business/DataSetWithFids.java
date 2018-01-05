@@ -54,10 +54,8 @@ public class DataSetWithFids {
     /**
      * public constructor
      *
-     * @param name
-     *            name of the dataset
-     * @param description
-     *            a short description of the dataset
+     * @param name        name of the dataset
+     * @param description a short description of the dataset
      */
     public DataSetWithFids(String name, String description, List<FunctionalIdentifier> fids) {
         this.name = name;
@@ -101,6 +99,7 @@ public class DataSetWithFids {
 
     /**
      * return a List of string with tsuids
+     *
      * @return a list
      */
     public List<String> getTsuidsAsString() {
@@ -115,6 +114,7 @@ public class DataSetWithFids {
 
     /**
      * Return the {@link FunctionalIdentifier} retrieved from a tsuid
+     *
      * @return a string for the fid
      */
     public String getFid(String tsuid) {
@@ -135,7 +135,6 @@ public class DataSetWithFids {
     }
 
     /**
-     *
      * @return String representation: detailed version with tsuids listed
      */
     public String toDetailedString() {

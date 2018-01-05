@@ -28,15 +28,6 @@
 
 package fr.cs.ikats.temporaldata;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.timeout;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,7 +46,6 @@ import org.glassfish.jersey.client.ClientConfig;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -74,6 +64,15 @@ import fr.cs.ikats.temporaldata.resource.TimeSerieResource;
 import fr.cs.ikats.ts.dataset.DataSetFacade;
 import fr.cs.ikats.ts.dataset.model.DataSet;
 import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.timeout;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Test on webService dataset operations. This class is using standard services from superclass AbstractRequestTest, and
@@ -445,9 +444,9 @@ public class DataSetRequestTest extends AbstractRequestTest {
     /**
      * launch a request for meta data import.
      *
-     * @param tsuid
-     * @param name
-     * @param value
+     * @param dataSetId
+     * @param description
+     * @param tsuids
      */
     private void launchDataSetImport(String dataSetId, String description, String tsuids) {
         String url = getAPIURL() + "/dataset/import/" + dataSetId;

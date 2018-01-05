@@ -27,20 +27,6 @@
 
 package fr.cs.ikats.temporaldata.resource;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.process.data.model.ProcessData;
-import fr.cs.ikats.temporaldata.business.ProcessDataManager;
-import fr.cs.ikats.temporaldata.business.ProcessDataManager.ProcessResultTypeEnum;
-import fr.cs.ikats.temporaldata.exception.IkatsException;
-import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
-import fr.cs.ikats.temporaldata.utils.Chronometer;
-import org.apache.log4j.Logger;
-import org.glassfish.jersey.media.multipart.*;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,6 +36,39 @@ import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.log4j.Logger;
+import org.glassfish.jersey.media.multipart.BodyPart;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
+
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.process.data.model.ProcessData;
+import fr.cs.ikats.temporaldata.business.ProcessDataManager;
+import fr.cs.ikats.temporaldata.business.ProcessDataManager.ProcessResultTypeEnum;
+import fr.cs.ikats.temporaldata.exception.IkatsException;
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
+import fr.cs.ikats.temporaldata.utils.Chronometer;
 
 /**
  * resource for ProcessData

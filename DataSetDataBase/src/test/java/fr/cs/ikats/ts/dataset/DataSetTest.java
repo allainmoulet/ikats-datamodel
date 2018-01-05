@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,26 +10,23 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.ts.dataset;
-
-import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,6 +45,8 @@ import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.ts.dataset.model.DataSet;
 import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 
+import static org.junit.Assert.assertEquals;
+
 /**
  * Test class for DataSet Facade
  */
@@ -60,13 +59,13 @@ public class DataSetTest extends CommonTest {
      * Test method for
      * {@link fr.cs.ikats.ts.dataset.DataSetFacade#persistDataSet(java.lang.String, java.lang.String, java.util.List)}
      * .
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      */
     @Test
     public void testPersistDataSetWithEntities() throws IkatsDaoException {
 
         String testCaseName = "testPersistDataSetWithEntities";
-        
+
         DataSetFacade facade = getDatasetFacade();
         String datasetNameTested = "dataSet1_" + testCaseName;
 
@@ -88,7 +87,7 @@ public class DataSetTest extends CommonTest {
     /**
      * Test error when tsuids are unknown: not saved in tsfunctionalidentifier
      * table
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      */
     @Test(expected = IkatsDaoException.class)
     public void testPersistDataSetWithEntities_DG() throws IkatsDaoException {
@@ -107,7 +106,7 @@ public class DataSetTest extends CommonTest {
         for (String tsuid : mapTsuidToFuncId.keySet()) {
             fidEntities.add(new FunctionalIdentifier(tsuid, mapTsuidToFuncId.get(tsuid)));
         }
-        
+
         // Should throw the IkatsDaoException
         facade.persistDataSetFromEntity(datasetNameTested, "Description courte du dataset cree depuis les entites", fidEntities);
     }
@@ -116,7 +115,7 @@ public class DataSetTest extends CommonTest {
      * Test method for
      * {@link fr.cs.ikats.ts.dataset.DataSetFacade#persistDataSet(java.lang.String, java.lang.String, java.util.List)}
      * .
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      */
     @Test
     public void testPersistDataSet() throws IkatsDaoException {
@@ -144,7 +143,7 @@ public class DataSetTest extends CommonTest {
     /**
      * Test error when tsuids are unknown: not saved in tsfunctionalidentifier
      * table
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      */
     @Test(expected = IkatsDaoException.class)
     public void testPersistDataSet_DG() throws IkatsDaoException {
@@ -259,13 +258,13 @@ public class DataSetTest extends CommonTest {
      * DG Test method for
      * {@link fr.cs.ikats.ts.dataset.DataSetFacade#updateDataSet(java.lang.String, java.lang.String, java.util.List)}
      * .
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      */
     @Test
     public void testUpdateDataSet() throws IkatsDaoException {
 
         String testCaseName = "testUpdateDataSet";
-        
+
         DataSetFacade facade = getDatasetFacade();
 
         HashMap<String, String> mapTsuidToFuncId = getTestedTsuidFidMap(new String[]{"tsuid1", "MAM", "toto"}, testCaseName);
@@ -340,8 +339,10 @@ public class DataSetTest extends CommonTest {
 
         // Tested service:
         List<String> tsuidsToRemove = new ArrayList<String>();
-        tsuids2.forEach(tsuid -> {if (tsuid.startsWith("toto") || tsuid.startsWith("titi")) tsuidsToRemove.add(tsuid);  } ); 
-        
+        tsuids2.forEach(tsuid -> {
+            if (tsuid.startsWith("toto") || tsuid.startsWith("titi")) tsuidsToRemove.add(tsuid);
+        });
+
         facade.removeTsLinks(dsname, tsuidsToRemove);
 
         DataSet updatedDataset = facade.getDataSet(dsname);
@@ -384,8 +385,7 @@ public class DataSetTest extends CommonTest {
         // ------- PRe-clean TU data -----------
         try {
             facade.removeDataSet(dsname);
-        }
-        catch (IkatsDaoMissingResource e) {
+        } catch (IkatsDaoMissingResource e) {
             // nothing to do: expected behaviour
         }
 
@@ -395,15 +395,13 @@ public class DataSetTest extends CommonTest {
         facade.removeDataSet(dsname);
         try {
             facade.getDataSet(dsname);
-        }
-        catch (IkatsDaoMissingResource e) {
+        } catch (IkatsDaoMissingResource e) {
             // nothing to do: expected behaviour
         }
 
         try {
             facade.removeDataSet(dsname);
-        }
-        catch (IkatsDaoMissingResource e) {
+        } catch (IkatsDaoMissingResource e) {
             // nothing to do: expected behaviour
         }
     }
@@ -477,8 +475,7 @@ public class DataSetTest extends CommonTest {
             for (DataSet ds : result) {
                 facade.removeDataSet(ds.getName());
             }
-        }
-        catch (IkatsDaoMissingResource e) {
+        } catch (IkatsDaoMissingResource e) {
             // Ok: no dataset found by facade.getAllDataSetSummary(): BD is cleaned
         }
 
@@ -532,12 +529,12 @@ public class DataSetTest extends CommonTest {
     public void testGetDataSetNamesForTsuid() throws IkatsDaoMissingResource, IkatsDaoException {
 
         String testCaseName = "testGetDataSetNamesForTsuid";
-        
+
         PreparedTsReferences preparedDataRefs_1_2 = new PreparedTsReferences(new String[]{"tsuid1", "tsuid2"},
-                                                                             testCaseName, true);
+                testCaseName, true);
 
         PreparedTsReferences preparedDataRefs_3_4 = new PreparedTsReferences(new String[]{"tsuid3", "tsuid4"},
-                                                                             testCaseName, true);
+                testCaseName, true);
 
 
         DataSetFacade facade = getDatasetFacade();

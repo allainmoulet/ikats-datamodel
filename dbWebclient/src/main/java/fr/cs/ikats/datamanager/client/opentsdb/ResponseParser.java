@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,20 +10,19 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.datamanager.client.opentsdb;
@@ -49,7 +48,7 @@ import fr.cs.ikats.datamanager.client.opentsdb.ApiResponse.Error;
 
 /**
  * this class parses the openTSDB response to a query/import request
- * 
+ *
  *
  */
 public class ResponseParser {
@@ -88,82 +87,81 @@ public class ResponseParser {
     public ResponseParser() {
     }
 
-	/**
-	 * parse opentsdb import response retrieve errors and return result
-	 * 
-	 * @param response
-	 *            the http response
-	 * @return the ImportResult
-	 * @throws IkatsWebClientException
-	 *             if request is in error
-	 * @throws ParseException 
-	 */
-	public static ImportResult parseImportResponse(Response response) throws IkatsWebClientException, ParseException {
-		// result recovery
-		ImportResult result = new ImportResult();
-		// Get the status code
-		int status = response.getStatus();
-		result.setStatusCode(status);
-		
-		ApiStatus apiStatus;
-		try {
-			apiStatus = ApiStatus.valueOf(status);
-		} catch (IllegalArgumentException e) {
-			// the response status is not compliant to OpenTSDB specification 
-			String error = "OpenTSDB returned a non managed HTTP code: " + status;
-			LOGGER.error(error);
-			result.setSummary("Unable to determine import status");
-			result.addError(Integer.toString(status), error);
-			return result;
-		}
-		
-		// extract response information in JSON object
-		JSONParser parser = new JSONParser();
-		JSONObject returnedJSON = (JSONObject) parser.parse(getJSONFromResponse(response));
+    /**
+     * parse opentsdb import response retrieve errors and return result
+     *
+     * @param response
+     *            the http response
+     * @return the ImportResult
+     * @throws IkatsWebClientException
+     *             if request is in error
+     * @throws ParseException
+     */
+    public static ImportResult parseImportResponse(Response response) throws IkatsWebClientException, ParseException {
+        // result recovery
+        ImportResult result = new ImportResult();
+        // Get the status code
+        int status = response.getStatus();
+        result.setStatusCode(status);
 
-		switch (apiStatus) {
-			case CODE_200:
-				// OpenTSDB should not return that code in case of /api/put request !
-				// seems to be a documentation bug : http://opentsdb.net/docs/build/html/api_http/put.html#response
-				LOGGER.warn("OpenTSDB returned a HTTP 200 code on /api/put request");
-				//result.addError(Integer.toString(status), "OpenTSDB returned a HTTP 200 code on /api/put request");
-				//break;
-			case CODE_204:
-				// All good !
-				result.setSummary("All points imported with no error");
-				result.setNumberOfSuccess(getNumberOfSuccess(returnedJSON));
-				break;
-			case CODE_400:
-				// Some points were not imported
-				long nbSuccess = getNumberOfSuccess(returnedJSON);
-				long nbFailed = getNumberOfFailed(returnedJSON);
-				JSONArray errors = (JSONArray) returnedJSON.get(KEY_ERRORS);
-				for (Object object : errors) {
-				    // Review#147170 pointWithErreur -> pointWithError
-				    JSONObject pointWithError = (JSONObject) object;
-				    result.addError(((Long) ((JSONObject) pointWithError.get(KEY_DATAPOINT)).get(KEY_TIMESTAMP)).toString(),
-				            (String) pointWithError.get(KEY_ERROR));
-				}
-				result.setSummary("Bad request when putting points : Success " + nbSuccess + "/ Failed " + nbFailed
-						+ " | Nb Errors details : " + errors.size());
-				break;
-			default:
-				// check if there is any error in the response
-				Error parseForError = parseForError(response);
-				if (parseForError != null) {
+        ApiStatus apiStatus;
+        try {
+            apiStatus = ApiStatus.valueOf(status);
+        } catch (IllegalArgumentException e) {
+            // the response status is not compliant to OpenTSDB specification
+            String error = "OpenTSDB returned a non managed HTTP code: " + status;
+            LOGGER.error(error);
+            result.setSummary("Unable to determine import status");
+            result.addError(Integer.toString(status), error);
+            return result;
+        }
 
-					// set error information in the results
-					result.setError(parseForError);
-					result.setSummary(parseForError.message);
-					
-				} 
-				else {
-					// Should not pass here due to call to ApiStatus.valueOf and its try/catch
-				}
-				break;
-		}
-		return result;
-	}
+        // extract response information in JSON object
+        JSONParser parser = new JSONParser();
+        JSONObject returnedJSON = (JSONObject) parser.parse(getJSONFromResponse(response));
+
+        switch (apiStatus) {
+            case CODE_200:
+                // OpenTSDB should not return that code in case of /api/put request !
+                // seems to be a documentation bug : http://opentsdb.net/docs/build/html/api_http/put.html#response
+                LOGGER.warn("OpenTSDB returned a HTTP 200 code on /api/put request");
+                //result.addError(Integer.toString(status), "OpenTSDB returned a HTTP 200 code on /api/put request");
+                //break;
+            case CODE_204:
+                // All good !
+                result.setSummary("All points imported with no error");
+                result.setNumberOfSuccess(getNumberOfSuccess(returnedJSON));
+                break;
+            case CODE_400:
+                // Some points were not imported
+                long nbSuccess = getNumberOfSuccess(returnedJSON);
+                long nbFailed = getNumberOfFailed(returnedJSON);
+                JSONArray errors = (JSONArray) returnedJSON.get(KEY_ERRORS);
+                for (Object object : errors) {
+                    // Review#147170 pointWithErreur -> pointWithError
+                    JSONObject pointWithError = (JSONObject) object;
+                    result.addError(((Long) ((JSONObject) pointWithError.get(KEY_DATAPOINT)).get(KEY_TIMESTAMP)).toString(),
+                            (String) pointWithError.get(KEY_ERROR));
+                }
+                result.setSummary("Bad request when putting points : Success " + nbSuccess + "/ Failed " + nbFailed
+                        + " | Nb Errors details : " + errors.size());
+                break;
+            default:
+                // check if there is any error in the response
+                Error parseForError = parseForError(response);
+                if (parseForError != null) {
+
+                    // set error information in the results
+                    result.setError(parseForError);
+                    result.setSummary(parseForError.message);
+
+                } else {
+                    // Should not pass here due to call to ApiStatus.valueOf and its try/catch
+                }
+                break;
+        }
+        return result;
+    }
 
     private static long getNumberOfSuccess(JSONObject obj) {
         long ret = 0L;
@@ -172,7 +170,7 @@ public class ResponseParser {
         }
         return ret;
     }
-    
+
     private static long getNumberOfFailed(JSONObject obj) {
         long ret = 0L;
         if (obj.get(KEY_FAILED) != null) {
@@ -185,7 +183,7 @@ public class ResponseParser {
      * analyse request response to retrieve values of a set of series
      * @param response the response
      * @param forTest true if only for test
-     * 
+     *
      * @return a QueryResult object
      * @throws IkatsWebClientException if request is in error
      */
@@ -199,7 +197,7 @@ public class ResponseParser {
             String tag2 = null;
             JSONObject points = null;
             String tsuid = null;
-            if(response.getStatus()<204) {
+            if (response.getStatus() < 204) {
                 Object resultObject = parser.parse(getJSONFromResponse(response));
                 if (resultObject instanceof JSONArray) {
                     JSONArray res = (JSONArray) resultObject;
@@ -217,20 +215,18 @@ public class ResponseParser {
                         }
                         if (!forTest && Pattern.matches("^[a-zA-Z]+[0-9]{1}$", tag1) && Pattern.matches("^[0-9]+$", tag2)) {
                             result.addSerie(tsuid, Integer.valueOf(tag1.substring(tag1.length() - 1) + tag2), points);
-                        }
-                        else {
+                        } else {
                             result.addSerie(tsuid, points);
                         }
                     }
                 }
             } else {
-                String msg = "Serveru returned an error "+response.getStatus()+" on request";
+                String msg = "Serveru returned an error " + response.getStatus() + " on request";
                 LOGGER.error(msg);
                 throw new IkatsWebClientException(msg);
             }
 
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             LOGGER.error("Error parsing the QueryReponse", e);
             throw new IkatsWebClientException(e.getMessage());
         }
@@ -241,7 +237,7 @@ public class ResponseParser {
      * analyse request response to retrieve all series for a given metric, by
      * meaning the tag number do not retrieve used values because bug in lookup
      * request
-     * 
+     *
      * @param response the response
      * @return a QueryResult object
      * @throws IkatsWebClientException if request is in error
@@ -262,8 +258,7 @@ public class ResponseParser {
                 }
             }
 
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             LOGGER.error("Error parsing the TsuidsReponse", e);
             throw new IkatsWebClientException(e.getMessage());
         }
@@ -272,7 +267,7 @@ public class ResponseParser {
 
     /**
      * analyse lookup request response (bugged in version 2.1RC1)
-     * 
+     *
      * @param response the response
      * @return a QueryMetaResult object
      * @throws IkatsWebClientException if request is in error
@@ -299,8 +294,7 @@ public class ResponseParser {
                     result.addSerie(tsuid, tag1, tag2);
                 }
             }
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             LOGGER.error("Error parsing the LookupReponse", e);
             throw new IkatsWebClientException("Error parsing the lookup response", e);
         }
@@ -310,7 +304,7 @@ public class ResponseParser {
     /**
      * TODO : NON UTILISABLE !!!! analyse la réponse de la requête pour
      * retrouver les metadata d'une série
-     * 
+     *
      * @param response the response
      * @return a QueryResult object : TODO create specific object
      * @throws IkatsWebClientException if request is in error
@@ -326,8 +320,7 @@ public class ResponseParser {
 
             result.addSerie(tsuid, null);
 
-        }
-        catch (ParseException e) {
+        } catch (ParseException e) {
             LOGGER.error("Error parsing the QueryTsmetaReponse", e);
             throw new IkatsWebClientException("Error parsing the QueryTsmetaReponse", e);
         }
@@ -343,8 +336,7 @@ public class ResponseParser {
         String str = "";
         if (response.hasEntity()) {
             str = response.readEntity(String.class);
-        }
-        else {
+        } else {
             str = response.getStatusInfo().getReasonPhrase();
         }
         return str;
@@ -356,37 +348,37 @@ public class ResponseParser {
      * @return
      * @throws IkatsWebClientException
      */
-	public static ApiResponse.Error parseForError(Response response) throws IkatsWebClientException {
+    public static ApiResponse.Error parseForError(Response response) throws IkatsWebClientException {
 
-		if (ApiStatus.isError(response.getStatus())) {
-			
-			// Test whether we receive a response content in JSON
-			MediaType mediaType = response.getMediaType();
-			if (mediaType != MediaType.APPLICATION_JSON_TYPE) {
-				throw new IkatsWebClientException("OpenTSDB doesn't return a JSON response for error");
-			}
-			
-			// Read the content as a string 
-			String content = response.readEntity(String.class);
-						
-			try {
-				ObjectMapper jsonMapper = new ObjectMapper();
-				Error errorContent = jsonMapper.readValue(content, ApiResponse.Error.class);
-				
-				return errorContent;
-				
-			} catch (JsonParseException | JsonMappingException e) {
-				throw new IkatsWebClientException("Error while parsing OpenTSDB JSON response", e);
-			} catch (IOException e) {
-				throw new IkatsWebClientException("System error while parsing OpenTSDB JSON response", e);
-			}
-			
-		} else {
-			
-			// The response is not an error, so we could not return anything
-			return null;
-		}
-	}
+        if (ApiStatus.isError(response.getStatus())) {
+
+            // Test whether we receive a response content in JSON
+            MediaType mediaType = response.getMediaType();
+            if (mediaType != MediaType.APPLICATION_JSON_TYPE) {
+                throw new IkatsWebClientException("OpenTSDB doesn't return a JSON response for error");
+            }
+
+            // Read the content as a string
+            String content = response.readEntity(String.class);
+
+            try {
+                ObjectMapper jsonMapper = new ObjectMapper();
+                Error errorContent = jsonMapper.readValue(content, ApiResponse.Error.class);
+
+                return errorContent;
+
+            } catch (JsonParseException | JsonMappingException e) {
+                throw new IkatsWebClientException("Error while parsing OpenTSDB JSON response", e);
+            } catch (IOException e) {
+                throw new IkatsWebClientException("System error while parsing OpenTSDB JSON response", e);
+            }
+
+        } else {
+
+            // The response is not an error, so we could not return anything
+            return null;
+        }
+    }
 
 }
 

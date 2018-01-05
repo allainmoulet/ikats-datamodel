@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,26 +10,21 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.temporaldata;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,9 +66,13 @@ import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.temporaldata.business.FilterFunctionalIdentifiers;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 /**
  * Test on webService metadata operations.
- * 
+ *
  */
 public class MetaDataRequestTest extends AbstractRequestTest {
 
@@ -89,9 +88,9 @@ public class MetaDataRequestTest extends AbstractRequestTest {
 
     /**
      * Test Import of metaData
-     * 
+     *
      * Since [#142998] corrected codes: 204 => 409
-     * @throws Exception 
+     * @throws Exception
      */
     @Test
     public void testImportMetaData() throws Exception {
@@ -118,7 +117,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
 
     /**
      * Test update of metaData
-     * 
+     *
      * Since [#142998] corrected codes: 204 => 409
      */
     @Test
@@ -140,9 +139,10 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         // Status.NOT_KNOWN : Update failed: unknown resource for TSUID
         assertEquals(404, launchMetaDataUpdate("unknownTSUID", "meta1", "value2"));
     }
+
     /**
      * testExportMetaDataCSVSynthetic tests the CSV synthetic format 
-     * @throws Exception 
+     * @throws Exception
      */
     @Test
     public void testExportMetaDataCSVSynthetic() throws Exception {
@@ -161,11 +161,11 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         assertTrue(response.contains("\nNO_FUNC_ID_ts1_4;value1;"));
         assertTrue(response.contains("\nFunctionalIdTs1;value2;value1"));
     }
-    
+
     /**
      * testReadMetaData tests the CSV format based on the following requests
      * "ts1,ts2,ts3" "*" "ts1,ts1"
-     * @throws Exception 
+     * @throws Exception
      */
     @Test
     public void testReadMetaData() throws Exception {
@@ -194,17 +194,17 @@ public class MetaDataRequestTest extends AbstractRequestTest {
     @Test
     public void testReadFunctionalIdentifiersForm() throws Exception {
 
-        launchReadFunctionalIdentifiers(false, new String[] { "tsuidM", "tsuidN", "tsuidO" }, new String[] { "funcM", "funcN", "funcO" });
+        launchReadFunctionalIdentifiers(false, new String[]{"tsuidM", "tsuidN", "tsuidO"}, new String[]{"funcM", "funcN", "funcO"});
     }
 
     /**
      * tests READ services on /metadata/funcId/ : consuming Json input
-     * @throws Exception 
+     * @throws Exception
      */
     @Test
     public void testReadFunctionalIdentifiersJson() throws Exception {
 
-        launchReadFunctionalIdentifiers(true, new String[] { "tsuidA", "tsuidB", "tsuidC" }, new String[] { "funcA", "funcB", "funcC" });
+        launchReadFunctionalIdentifiers(true, new String[]{"tsuidA", "tsuidB", "tsuidC"}, new String[]{"funcA", "funcB", "funcC"});
     }
 
     /**
@@ -232,16 +232,16 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         getFunctionalIdentifiersWithTsuids(isInputJson, importedTsuids, false, expectedRes);
 
         // expects status 404: nothing matched
-        getFunctionalIdentifiersWithTsuids(isInputJson, new String[] { "tsuidX", "tsuidY" }, true, new String[][] {});
+        getFunctionalIdentifiersWithTsuids(isInputJson, new String[]{"tsuidX", "tsuidY"}, true, new String[][]{});
 
         // expects status 200: partial match: found
-        getFunctionalIdentifiersWithTsuids(isInputJson, new String[] { "tsuidX", "tsuidY", importedTsuids[0] }, false,
-                new String[][] { { importedTsuids[0], importedFuncIds[0] } });
+        getFunctionalIdentifiersWithTsuids(isInputJson, new String[]{"tsuidX", "tsuidY", importedTsuids[0]}, false,
+                new String[][]{{importedTsuids[0], importedFuncIds[0]}});
     }
 
     /**
      * Tests filter on FunctionalIdentifiers with tsuids criteria
-     * 
+     *
      * @param tsuids
      * @param isResultEmpty
      * @param expectedFuncIdFound
@@ -282,8 +282,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
 
                 response = target.request().post(lEntity);
 
-            }
-            catch (Exception ePost) {
+            } catch (Exception ePost) {
                 getLogger().error(lPrefixeLog + "Error TU getFunctionalIds: posting request", ePost);
                 throw ePost;
             }
@@ -317,18 +316,15 @@ public class MetaDataRequestTest extends AbstractRequestTest {
 
                         assertEquals(resReferenceMap.get(functionalIdentifier.getTsuid()), functionalIdentifier.getFuncId());
                     }
-                }
-                else {
+                } else {
                     assertEquals(404, response.getStatus());
                 }
-            }
-            else {
+            } else {
                 throw new Exception("response is null");
             }
 
             getLogger().info(lPrefixeLog + response.getStatus());
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             throw new Exception("TU: " + lPrefixeLog + "POST /metadata/funcId/ with filter: " + lFilter.toString(), e);
         }
 
@@ -336,7 +332,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
 
     /**
      * Tests read of FunctionalIdentifiers matching the tsuid
-     * 
+     *
      * @param tsuid
      * @param funcIdExists
      * @param expectedFuncId
@@ -358,13 +354,11 @@ public class MetaDataRequestTest extends AbstractRequestTest {
                 getLogger().info(res);
 
                 assertEquals(expectedFuncId, res.getFuncId());
-            }
-            else {
+            } else {
                 // 404
                 assertEquals(Status.NOT_FOUND.getStatusCode(), response.getStatus());
             }
-        }
-        catch (IkatsWebClientException e) {
+        } catch (IkatsWebClientException e) {
             throw new Exception("Failure: get functional ID for tsuid=" + tsuid, e);
 
         }
@@ -375,8 +369,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         if (isJson) {
             Entity<FilterFunctionalIdentifiers> lEntityFilter = Entity.entity(filter, MediaType.APPLICATION_JSON_TYPE);
             return lEntityFilter;
-        }
-        else {
+        } else {
             Form form = new Form();
             if (filter.getTsuids() != null) {
                 for (String lTsuid : filter.getTsuids()) {
@@ -401,7 +394,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         if (name != null) {
             url = url + "/" + name;
         }
-        
+
         Response response = RequestSender.sendDELETERequest(url);
         ImportResult result = response.readEntity(ImportResult.class);
         assertEquals(expected, result.getNumberOfSuccess());
@@ -439,12 +432,12 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         // Test with errors in csv => no metadata imported
         checkImportMetadataFromCsv("/data/metadata_import.csv", 0, false);
     }
-    
+
     /**
      * Test the import of meta data from a CSV file
      * with update option => meta are created
      * @throws IkatsDaoMissingResource
-     * @throws IkatsDaoConflictException 
+     * @throws IkatsDaoConflictException
      */
     @Test
     public void testImportMetaDataCSVWithUpdate() throws IkatsDaoException, IkatsDaoMissingResource, IkatsDaoConflictException {
@@ -459,22 +452,22 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         // Fill in some functional Ids to allow the import
         String tsuid1 = testCaseName + "tsuid1";
         String funcId1 = testCaseName + "MAM1";
-       
+
         String tsuid2 = testCaseName + "tsuid2";
         String funcId2 = testCaseName + "MAM2";
-       
+
         String tsuid3 = testCaseName + "tsuid3";
         String funcId3 = testCaseName + "MAM3";
-        
+
         doFuncIdImport(tsuid1, funcId1, false, 1L);
         doFuncIdImport(tsuid2, funcId2, false, 1L);
         doFuncIdImport(tsuid3, funcId3, false, 1L);
-        
+
         assertEquals(200, launchMetaDataImport(tsuid1, "cycle", "aterrissage"));
 
         // Test with update : 6 metadata created + 1 metadata updated
         checkImportMetadataFromCsv("/data/metadata_import_update.csv", 7, true);
-        
+
         // check update of md
         String metaVal = facade.getMetaData(tsuid1, "cycle").getValue();
         assertEquals("decollage", metaVal);
@@ -483,7 +476,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
     /**
      * Test the import of meta data from a CSV file
      * without update option => no meta are imported
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      */
     @Test
     public void testImportMetaDataCSVWithoutUpdate() throws IkatsDaoException {
@@ -491,53 +484,50 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         String testCaseName = "testImportMetaDataCSVWithoutUpdate";
 
         MetaDataFacade facade = new MetaDataFacade();
-        
+
         // Fill in some functional Ids to allow the import
         String tsuid1 = testCaseName + "tsuid1";
         String funcId1 = testCaseName + "MAM1";
-       
+
         String tsuid2 = testCaseName + "tsuid2";
         String funcId2 = testCaseName + "MAM2";
-       
+
         String tsuid3 = testCaseName + "tsuid3";
         String funcId3 = testCaseName + "MAM3";
-        
+
         doFuncIdImport(tsuid1, funcId1, false, 1L);
         doFuncIdImport(tsuid2, funcId2, false, 1L);
         doFuncIdImport(tsuid3, funcId3, false, 1L);
-        
+
         assertEquals(200, launchMetaDataImport(tsuid1, "cycle", "aterrissage"));
 
         // Test without update : one metadata already exists => no metadata imported
         checkImportMetadataFromCsv("/data/metadata_import_no_update.csv", 0, false);
-        
+
         try {
             // check NON-import of md from file
             List<MetaData> metaList = facade.getMetaDataForTS(tsuid1);
             // check NON-update of md
             assertEquals("aterrissage", metaList.get(0).getValue());
-        }
-        catch (IkatsDaoMissingResource e) {
+        } catch (IkatsDaoMissingResource e) {
             getLogger().error("Exception catched : no metadata found => NOK");
             fail();
         }
-        
+
         try {
             // check NON-import of md from file
             List metaList = facade.getMetaDataForTS(tsuid2);
             fail();
-        }
-        catch (IkatsDaoMissingResource e) {
+        } catch (IkatsDaoMissingResource e) {
             // ok no metadata found
             getLogger().info("Exception catched : no metadata found => OK");
         }
-        
+
         try {
             // check NON-import of md from file
             List metaList = facade.getMetaDataForTS(tsuid3);
             fail();
-        }
-        catch (IkatsDaoMissingResource e) {
+        } catch (IkatsDaoMissingResource e) {
             // ok no metadata found
             getLogger().info("Exception catched : no metadata found => OK");
         }
@@ -546,7 +536,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
     /**
      * Test the import of meta data from a CSV file
      * containing metric without update option => meta are imported
-     * @throws IkatsDaoException 
+     * @throws IkatsDaoException
      */
     @Test
     public void testImportMetaDataCSVWithMetric() throws IkatsDaoException {
@@ -557,13 +547,13 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         // Fill in some functional Ids to allow the import
         String tsuid1 = testCaseName + "tsuid1";
         String funcId1 = testCaseName + "MAM1";
-       
+
         String tsuid2 = testCaseName + "tsuid2";
         String funcId2 = testCaseName + "MAM2";
-       
+
         String tsuid3 = testCaseName + "tsuid3";
         String funcId3 = testCaseName + "MAM3";
-        
+
         doFuncIdImport(tsuid1, funcId1, false, 1L);
         doFuncIdImport(tsuid2, funcId2, false, 1L);
         doFuncIdImport(tsuid3, funcId3, false, 1L);
@@ -576,7 +566,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         // + 1 funcid x 2 meta 
         // = 8 metadata imported (cf. csv file)
         checkImportMetadataFromCsv("/data/metadata_import_metric.csv", 6, false);
-        
+
         // check update of md for each tsuid
         List<MetaData> metaList = facade.getMetaDataForTS(tsuid1);
         assertEquals(3, metaList.size());
@@ -585,13 +575,13 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         List<MetaData> metaList3 = facade.getMetaDataForTS(tsuid3);
         assertEquals(3, metaList3.size());
     }
-    
+
     /**
      * tests READ services on /metadata/types/
-     * @throws IkatsWebClientException 
-     * @throws IkatsDaoException 
-     * @throws IkatsDaoInvalidValueException 
-     * @throws IkatsDaoConflictException 
+     * @throws IkatsWebClientException
+     * @throws IkatsDaoException
+     * @throws IkatsDaoInvalidValueException
+     * @throws IkatsDaoConflictException
      */
     @Test
     public void testReadMetadataTypes() throws IkatsWebClientException, IkatsDaoConflictException, IkatsDaoInvalidValueException, IkatsDaoException {
@@ -599,30 +589,30 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         String url = getAPIURL() + "/metadata/types/";
 
         MetaDataFacade facade = new MetaDataFacade();
-        facade.persistMetaData("tsuidA01", "thatsastring", "blabla","string");
-        facade.persistMetaData("tsuidA02", "thatsanumber", "12","number");
-        
+        facade.persistMetaData("tsuidA01", "thatsastring", "blabla", "string");
+        facade.persistMetaData("tsuidA02", "thatsanumber", "12", "number");
+
         Response response = RequestSender.sendGETRequest(url, null);
-        
+
         getLogger().info(response.getStatus());
-        
+
         // 200
         assertEquals(Status.OK.getStatusCode(), response.getStatus());
-       
-        Map<String,String> res = response.readEntity(new GenericType<Map<String,String>>() {
+
+        Map<String, String> res = response.readEntity(new GenericType<Map<String, String>>() {
         });
-        
+
         assertTrue(res.containsKey("thatsastring"));
-        assertEquals("string",res.get("thatsastring"));
-        
+        assertEquals("string", res.get("thatsastring"));
+
         assertTrue(res.containsKey("thatsanumber"));
-        assertEquals("number",res.get("thatsanumber"));
+        assertEquals("number", res.get("thatsanumber"));
     }
-    
+
     /**
      * Tests the import of a meta data file (CSV format) and checks if the
      * import count is equal to expectedImportCount
-     * 
+     *
      * @param resourcePath
      *            path of file (CSV) to send containing the meta data
      * @param expectedImportCount
@@ -638,8 +628,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         File file = null;
         try {
             file = resource.getFile();
-        }
-        catch (IOException e1) {
+        } catch (IOException e1) {
             e1.printStackTrace();
         }
 
@@ -652,15 +641,14 @@ public class MetaDataRequestTest extends AbstractRequestTest {
 
         // Send the import request
         WebTarget target = client.target(url).queryParam("details", "false").queryParam("update", update ? "true" : "false");
-       
+
         getLogger().info("sending url : " + url);
         Integer result = 0;
         Response response = null;
         try {
             response = target.request().post(Entity.entity(multipart, multipart.getMediaType()));
             result = response.readEntity(Integer.class);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             // in that case no meta imported => result = 0
         }
 
@@ -677,7 +665,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
 
     /**
      * display the metadata list for a given tsuid. Format is csv.
-     * 
+     *
      * @param tsuid
      */
     private String listMetaData(String tsuid, boolean TSexists, String format) throws Exception {
@@ -687,8 +675,7 @@ public class MetaDataRequestTest extends AbstractRequestTest {
         String result = "";
         if (format.equals("json")) {
             url = getAPIURL() + "/metadata/list/json?tsuid=" + tsuid;
-        }
-        else {
+        } else {
             url = getAPIURL() + "/metadata/list?tsuid=" + tsuid;
         }
         try {
@@ -698,12 +685,10 @@ public class MetaDataRequestTest extends AbstractRequestTest {
             getLogger().info(response.getStatus());
             if (TSexists) {
                 assertEquals(response.getStatus(), 200);
-            }
-            else {
+            } else {
                 assertEquals(response.getStatus(), 404);
             }
-        }
-        catch (IkatsWebClientException e) {
+        } catch (IkatsWebClientException e) {
             throw e;
         }
         return result;

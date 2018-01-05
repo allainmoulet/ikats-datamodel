@@ -98,12 +98,12 @@ public class TrainTestSplitTable {
 
     /**
      * Apply the operator to the {@link Request}, save the result.
+     *
      * @throws ResourceNotFoundException
      * @throws IkatsException
      * @throws IkatsDaoMissingResource
      * @throws InvalidValueException
      * @throws IkatsDaoConflictException
-     *
      * @throws IkatsOperatorException
      */
     public void apply() throws IkatsDaoMissingResource, IkatsException, ResourceNotFoundException, IkatsDaoConflictException, InvalidValueException {

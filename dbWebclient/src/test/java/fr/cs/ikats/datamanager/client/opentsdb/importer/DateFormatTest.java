@@ -26,13 +26,13 @@
 
 package fr.cs.ikats.datamanager.client.opentsdb.importer;
 
-import static org.junit.Assert.fail;
-
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.util.Date;
 
 import org.junit.Test;
+
+import static org.junit.Assert.fail;
 
 /**
  * test the internal DateFormat of the commonDatajsonizer.

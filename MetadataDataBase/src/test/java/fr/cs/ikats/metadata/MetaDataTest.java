@@ -28,6 +28,18 @@
 
 package fr.cs.ikats.metadata;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.hibernate.HibernateException;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
@@ -40,19 +52,12 @@ import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
-import org.hibernate.HibernateException;
-import org.hibernate.Query;
-import org.hibernate.Session;
-import org.hibernate.Transaction;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 
 /**
@@ -121,6 +126,7 @@ public class MetaDataTest {
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.lang.String)}
      * .
+     *
      * @throws IkatsDaoException
      * @throws IkatsDaoConflictException
      */
@@ -146,6 +152,7 @@ public class MetaDataTest {
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.lang.String)}
      * .
+     *
      * @throws IkatsDaoException
      * @throws IkatsDaoConflictException
      */
@@ -181,7 +188,6 @@ public class MetaDataTest {
     /**
      * @throws IkatsDaoException
      * @throws IkatsDaoMissingResource
-     *
      */
     @Test(expected = IkatsDaoMissingResource.class)
     public void testUpdateMetadataFailure() throws IkatsDaoMissingResource, IkatsDaoException {
@@ -192,6 +198,7 @@ public class MetaDataTest {
 
     /**
      * Test the failures of searchs by TSUIDs
+     *
      * @throws IkatsDaoException
      * @throws IkatsDaoMissingResource
      */
@@ -206,6 +213,7 @@ public class MetaDataTest {
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#persistMetaData(java.lang.String, java.lang.String, java.lang.String)}
      * .
+     *
      * @throws IkatsDaoException
      * @throws IkatsDaoConflictException
      */
@@ -224,6 +232,7 @@ public class MetaDataTest {
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#removeMetaDataForTS(java.lang.String)}
      * .
+     *
      * @throws IkatsDaoException
      * @throws IkatsDaoConflictException
      */
@@ -251,6 +260,7 @@ public class MetaDataTest {
      * Test method for
      * {@link fr.cs.ikats.metadata.MetaDataFacade#getMetaDataForTS(java.lang.String)}
      * .
+     *
      * @throws IkatsDaoException
      * @throws IkatsDaoConflictException
      */
@@ -272,7 +282,6 @@ public class MetaDataTest {
     /**
      * @throws IkatsDaoException
      * @throws IkatsDaoConflictException
-     *
      */
     @Test
     public void testCreateMetaDataFailure() throws IkatsDaoConflictException, IkatsDaoException {
@@ -314,6 +323,7 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on "in" operator with single item in operand list
+     *
      * @throws IkatsDaoException
      */
     @Test
@@ -383,6 +393,7 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on "in" operator with not right operand for "in"
+     *
      * @throws IkatsDaoException
      */
     @Test
@@ -446,6 +457,7 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on "in" operator with multiple items in operand list
+     *
      * @throws IkatsDaoException
      */
     @Test
@@ -514,6 +526,7 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on "not in" operator with multiple items in operand list
+     *
      * @throws IkatsDaoException
      */
     @Test
@@ -580,6 +593,7 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on mixed "in" and "not in" operators with multiple items in operand list
+     *
      * @throws IkatsDaoException
      */
     @Test
@@ -646,6 +660,7 @@ public class MetaDataTest {
 
     /**
      * Test the metadata filtering based on mixed "in" and "not in" operators with multiple items in operand list
+     *
      * @throws IkatsDaoException
      */
     @Test

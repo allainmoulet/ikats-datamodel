@@ -28,16 +28,19 @@
 
 package fr.cs.ikats.temporaldata;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.table.TableEntitySummary;
-import fr.cs.ikats.temporaldata.business.table.Table;
-import fr.cs.ikats.temporaldata.business.table.TableInfo;
-import fr.cs.ikats.temporaldata.business.table.TableManager;
-import fr.cs.ikats.temporaldata.exception.IkatsException;
-import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
-import fr.cs.ikats.temporaldata.exception.InvalidValueException;
-import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -48,15 +51,15 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
-import java.io.*;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.table.TableEntitySummary;
+import fr.cs.ikats.temporaldata.business.table.Table;
+import fr.cs.ikats.temporaldata.business.table.TableInfo;
+import fr.cs.ikats.temporaldata.business.table.TableManager;
+import fr.cs.ikats.temporaldata.exception.IkatsException;
+import fr.cs.ikats.temporaldata.exception.InvalidValueException;
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 
 import static org.junit.Assert.assertEquals;
 
@@ -76,7 +79,7 @@ public class TableRequestTest extends AbstractRequestTest {
     }
 
     /**
-     * Remove all data before and after running each test. 
+     * Remove all data before and after running each test.
      * (avoids to change the current tests and ensure that there will be no remaining data at the last test)
      *
      * @throws IkatsDaoException
@@ -141,6 +144,7 @@ public class TableRequestTest extends AbstractRequestTest {
     /**
      * test of table trainTestSplit use case
      * case : nominal (http code 200 returned)
+     *
      * @throws IOException
      */
     @Test
@@ -217,6 +221,7 @@ public class TableRequestTest extends AbstractRequestTest {
     /**
      * test of table creation from a csv file
      * case : nominal (http code 200 returned)
+     *
      * @throws IOException
      */
     @Test
@@ -235,6 +240,7 @@ public class TableRequestTest extends AbstractRequestTest {
     /**
      * test of table creation from a csv file
      * case : table name provided with illegal characters (http code 406 returned)
+     *
      * @throws IOException
      */
     @Test
@@ -253,6 +259,7 @@ public class TableRequestTest extends AbstractRequestTest {
     /**
      * test of table creation from a csv file
      * case : table already exists (http code 409 returned)
+     *
      * @throws IOException
      */
     @Test
@@ -278,6 +285,7 @@ public class TableRequestTest extends AbstractRequestTest {
     /**
      * test of table creation from a csv file
      * case : table contains doubloons (http code 400 returned)
+     *
      * @throws IOException
      */
     @Test
@@ -297,6 +305,7 @@ public class TableRequestTest extends AbstractRequestTest {
     /**
      * test of table creation from a csv file
      * case : table contains incorrect line length (http code 400 returned)
+     *
      * @throws IOException
      */
     @Test

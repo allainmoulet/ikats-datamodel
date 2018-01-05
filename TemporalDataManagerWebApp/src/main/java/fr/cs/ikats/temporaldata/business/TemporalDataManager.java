@@ -67,15 +67,18 @@ import fr.cs.ikats.temporaldata.utils.ExecutorManager;
 
 /**
  * the business layer for Temporal Data management.
- *
  */
 
 public class TemporalDataManager {
 
-    /** Timeout for atomic TS import, in milliseconds */
+    /**
+     * Timeout for atomic TS import, in milliseconds
+     */
     private static final int IMPORT_FULL_TS_TIMEOUT = 45000;
 
-    /** Wait time before checks between TS chunks, in milliseconds */
+    /**
+     * Wait time before checks between TS chunks, in milliseconds
+     */
     private static final long IMPORT_CHECK_TS_CHUNKS_WAIT = 1000;
 
     private static Logger logger = Logger.getLogger(TemporalDataManager.class);
@@ -137,11 +140,9 @@ public class TemporalDataManager {
      * FIXME : cette fonction ne valide pas un pattern de Fonctional Identifier IKATS, mais simplement les caractères autorisés pour les tags OpenTSDB
      * validate the funcId value for the given tsuid
      *
-     * @param funcId
-     *            the value to validate
+     * @param funcId the value to validate
      * @return true
-     * @throws InvalidValueException
-     *             if validation fails
+     * @throws InvalidValueException if validation fails
      */
     public boolean validateFuncId(String funcId) throws InvalidValueException {
         Matcher matcher = funcIdPattern.matcher(funcId);
@@ -155,21 +156,14 @@ public class TemporalDataManager {
     /**
      * launch all the necessary import tasks
      *
-     * @param metric
-     *            the metric name
-     * @param fileis
-     *            the input stream of data
-     * @param resultats
-     *            the results
-     * @param tags
-     *            the tags
-     * @param fileName
-     *            the imported file name
-     * @throws Exception
-     *             if problems occurred while launching tasks
-     * @throws ImportException
-     *             if data cannot be imported ( mostly problem of file format)
+     * @param metric    the metric name
+     * @param fileis    the input stream of data
+     * @param resultats the results
+     * @param tags      the tags
+     * @param fileName  the imported file name
      * @return a date array with start date and end date for this file
+     * @throws Exception            if problems occurred while launching tasks
+     * @throws ImportException      if data cannot be imported ( mostly problem of file format)
      * @throws DataManagerException
      * @throws IOException
      */
@@ -256,16 +250,16 @@ public class TemporalDataManager {
      */
     protected class ImportTSChunkTask implements Callable<ImportResult> {
 
-        /** JSON import data */
+        /**
+         * JSON import data
+         */
         private String json;
 
         /**
          * build the json input string from the given IImportSerializer
          *
-         * @param json
-         *            json input string
-         * @throws ImportException
-         *             if the task cannot be created
+         * @param json json input string
+         * @throws ImportException if the task cannot be created
          */
         public ImportTSChunkTask(String json) throws ImportException {
             this.json = json;
@@ -308,23 +302,15 @@ public class TemporalDataManager {
      * the Import tasks. generate an ImportResult with the following information
      * : tsuid, number of success, number of errors.
      *
-     * @param metric
-     *            the metric
-     * @param resultats
-     *            the Future Results from the tasks
-     * @param tags
-     *            the queryParams ( tags)
-     * @param startDate
-     *            date of the first imported point.
-     * @param endDate
-     *            date of the last imported point
+     * @param metric    the metric
+     * @param resultats the Future Results from the tasks
+     * @param tags      the queryParams ( tags)
+     * @param startDate date of the first imported point.
+     * @param endDate   date of the last imported point
      * @return an ImportResult
-     * @throws InterruptedException
-     *             if task result cannot be retrieved
-     * @throws ExecutionException
-     *             if task cannot be executed
-     * @throws IkatsWebClientException
-     *             if TSUID cannot be retrieved
+     * @throws InterruptedException    if task result cannot be retrieved
+     * @throws ExecutionException      if task cannot be executed
+     * @throws IkatsWebClientException if TSUID cannot be retrieved
      */
     public ImportResult parseImportResults(String metric, List<Future<ImportResult>> resultats, Map<String, String> tags, Long startDate,
                                            Long endDate) throws InterruptedException, ExecutionException, IkatsWebClientException {
@@ -362,17 +348,12 @@ public class TemporalDataManager {
     /**
      * Loop up the TS from database: based on look-up service of openTSDB server.
      *
-     * @param metrique
-     *            metrcic name
-     * @param queryParams
-     *            the queryParams
+     * @param metrique    metrcic name
+     * @param queryParams the queryParams
      * @return the JSON representation of the TS
-     * @throws UnsupportedEncodingException
-     *             if loookup request cannot be encoded
-     * @throws IkatsWebClientException
-     *             if lookup request fails
-     * @throws ResourceNotFoundException
-     *             if lookup request returns status over 200
+     * @throws UnsupportedEncodingException if loookup request cannot be encoded
+     * @throws IkatsWebClientException      if lookup request fails
+     * @throws ResourceNotFoundException    if lookup request returns status over 200
      */
     public String getTS(String metrique, MultivaluedMap<String, String> queryParams)
             throws UnsupportedEncodingException, IkatsWebClientException, ResourceNotFoundException {
@@ -393,13 +374,10 @@ public class TemporalDataManager {
     /**
      * get the opentsdb metadata for a tsuid
      *
-     * @param tsuid
-     *            the tsuid
+     * @param tsuid the tsuid
      * @return an object containiong
-     * @throws IkatsWebClientException
-     *             if request cannot be send
-     * @throws ResourceNotFoundException
-     *             if tsuid does not exists
+     * @throws IkatsWebClientException   if request cannot be send
+     * @throws ResourceNotFoundException if tsuid does not exists
      */
     public String getMetaData(String tsuid) throws IkatsWebClientException, ResourceNotFoundException {
         String url;
@@ -435,23 +413,15 @@ public class TemporalDataManager {
     /**
      * get the TS from data base for tsuid parameters.
      *
-     * @param tsuid
-     *            the requested tsuid
-     * @param startDate
-     *            the start date
-     * @param endDate
-     *            the end date
-     * @param urlOptions
-     *            other options
-     * @param aggregationMethod
-     *            the aggregation method ( can be null, sum is used)
-     * @param downSampler
-     *            downsampling
-     * @param downSamplerPeriod
-     *            the period
+     * @param tsuid             the requested tsuid
+     * @param startDate         the start date
+     * @param endDate           the end date
+     * @param urlOptions        other options
+     * @param aggregationMethod the aggregation method ( can be null, sum is used)
+     * @param downSampler       downsampling
+     * @param downSamplerPeriod the period
      * @return the Response
-     * @throws IkatsWebClientException
-     *             if lookup request fails
+     * @throws IkatsWebClientException if lookup request fails
      */
     public Response getTSFromTSUID(List<String> tsuid, String startDate, String endDate, String urlOptions, String aggregationMethod,
                                    String downSampler, String downSamplerPeriod) throws IkatsWebClientException {
@@ -465,20 +435,15 @@ public class TemporalDataManager {
 
     /**
      * get the TSUID for metric, tags and start/end date.
-     * request is done for counting the number of points 
+     * request is done for counting the number of points
      * in the interval [startDate .. endDate]
      *
-     * @param metric
-     *            the metric name
-     * @param startDate
-     *            the start date for counting the number of points of the timeseries
-     * @param endDate
-     *            the end date for counting the number of points of the timeseries
-     * @param tags
-     *            the tags
+     * @param metric    the metric name
+     * @param startDate the start date for counting the number of points of the timeseries
+     * @param endDate   the end date for counting the number of points of the timeseries
+     * @param tags      the tags
      * @return the TSUID
-     * @throws IkatsWebClientException
-     *             if request cannot be generated or sent
+     * @throws IkatsWebClientException if request cannot be generated or sent
      */
     public String getTSUID(String metric, Long startDate, Long endDate, String tags) throws IkatsWebClientException {
         String tsuid = null;
@@ -496,14 +461,10 @@ public class TemporalDataManager {
     }
 
     /**
-     *
-     * @param tsuid
-     *            the tsuid
+     * @param tsuid the tsuid
      * @return the deleted points
-     * @throws IkatsWebClientException
-     *             if errors
-     * @throws ResourceNotFoundException
-     *             if tsuid not found
+     * @throws IkatsWebClientException   if errors
+     * @throws ResourceNotFoundException if tsuid not found
      */
     public Response deleteTS(String tsuid) throws ResourceNotFoundException, IkatsWebClientException {
         ArrayList<String> listTsuid = new ArrayList<String>();
@@ -522,27 +483,17 @@ public class TemporalDataManager {
     /**
      * get the TS from database for the query parameters
      *
-     * @param metrique
-     *            the metric name
-     * @param startDate
-     *            the start date
-     * @param endDate
-     *            the end date
-     * @param urlOptions
-     *            other options
-     * @param tags
-     *            the tags to request
-     * @param aggregationMethod
-     *            aggragation method
-     * @param downSampler
-     *            downsampling
-     * @param downSamplerPeriod
-     *            the period
-     * @param downSamplingAdditionalInformation
-     *            if min/max/ sd must be added to the response.
-     * @throws IkatsWebClientException
-     *             if request cannot be generated or sent
+     * @param metrique                          the metric name
+     * @param startDate                         the start date
+     * @param endDate                           the end date
+     * @param urlOptions                        other options
+     * @param tags                              the tags to request
+     * @param aggregationMethod                 aggragation method
+     * @param downSampler                       downsampling
+     * @param downSamplerPeriod                 the period
+     * @param downSamplingAdditionalInformation if min/max/ sd must be added to the response.
      * @return the Response
+     * @throws IkatsWebClientException if request cannot be generated or sent
      */
     public Response getTS(String metrique, String startDate, String endDate, String urlOptions, String tags, String aggregationMethod,
                           String downSampler, String downSamplerPeriod, boolean downSamplingAdditionalInformation) throws IkatsWebClientException {

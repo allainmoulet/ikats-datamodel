@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,20 +10,19 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.temporaldata.business;
@@ -68,7 +67,7 @@ public class DataSetManager {
 
     /**
      * private method to get the DataSetFacade from Spring context.
-     * 
+     *
      * @return
      */
     public DataSetFacade getDataSetFacade() {
@@ -79,10 +78,10 @@ public class DataSetManager {
      * getter on new TimeSerieResource.
      */
     public TimeSerieResource getTimeSerieResource() {
-		return new TimeSerieResource();
-	}
+        return new TimeSerieResource();
+    }
 
-	private MetaDataFacade getMetaDataFacade() {
+    private MetaDataFacade getMetaDataFacade() {
         return TemporalDataApplication.getApplicationConfiguration().getSpringContext().getBean(MetaDataFacade.class);
     }
 
@@ -90,14 +89,14 @@ public class DataSetManager {
      * create dataset from low level values <br/>
      * Beware: precondition: the tsuids and functional identifiers must have
      * been created by importing ts
-     * 
+     *
      * @param dataSetId
      *            the dataset id
      * @param description
      *            the description
      * @param tsuids
      *            the tsuids
-     * 
+     *
      * @return the list of the internal id of the inserted metadata
      * @throws IkatsDaoException
      *             error saving the dataset
@@ -110,14 +109,14 @@ public class DataSetManager {
      * create dataset from list of FunctionalIdentifier <br/>
      * Beware: precondition: the tsuids and functional identifiers must have
      * been created by importing ts
-     * 
+     *
      * @param dataSetId
      *            the dataset id
      * @param description
      *            the description
      * @param funcIdentifiers
      *            the funcIdentifiers
-     * 
+     *
      * @return the list of the internal id of the inserted metadata
      */
     public String persistDataSetFromEntity(String dataSetId, String description, List<FunctionalIdentifier> funcIdentifiers) throws IkatsDaoException {
@@ -126,7 +125,7 @@ public class DataSetManager {
 
     /**
      * return the list of links from one dataset to its associated timeseries (0, or more).
-     * 
+     *
      * @param dataSetId
      *            the identifier
      * @return a list of LinkDatasetTimeSeries, null if dataset is not found.
@@ -143,7 +142,7 @@ public class DataSetManager {
 
     /**
      * return the dataset
-     * 
+     *
      * @param datasetName
      *            the identifier
      * @return null if dataset is not found.
@@ -152,6 +151,7 @@ public class DataSetManager {
         DataSet dataset = getDataSetFacade().getDataSet(datasetName);
         return dataset;
     }
+
     /**
      * Return the dataset summary
      *
@@ -167,7 +167,7 @@ public class DataSetManager {
 
     /**
      * remove the dataset with identifier datasetId
-     * 
+     *
      * @param datasetId
      *            the dataset to remove
      * @param deep
@@ -200,12 +200,10 @@ public class DataSetManager {
                 List<String> inDataSetNames = getContainers(tsuid);
                 if (inDataSetNames == null) {
                     throw new IkatsDaoConflictException("No dataset found for timeseries :" + tsuid);
-                }
-                else if ((inDataSetNames.size() == 1) && inDataSetNames.get(0).equals(datasetId)) {
+                } else if ((inDataSetNames.size() == 1) && inDataSetNames.get(0).equals(datasetId)) {
 
                     tsuidsToRemove.add(tsuid);
-                }
-                else {
+                } else {
                     // add an error : TS is in another dataset
                     StringBuilder builder = new StringBuilder();
                     for (String datasetName : inDataSetNames) {
@@ -240,15 +238,12 @@ public class DataSetManager {
                     getDataSetFacade().removeTSFromDataSet(tsuid, datasetId);
                     // then remove timeseries data + metadata from db
                     timeS.removeTimeSeries(tsuid);
-                }
-                catch (ResourceNotFoundException e) {
+                } catch (ResourceNotFoundException e) {
                     LOGGER.error("- failed to remove tsuid " + tsuid + " : does not exist in DB");
-                }
-                catch (IkatsDaoException e) {
+                } catch (IkatsDaoException e) {
                     LOGGER.error("- failed to remove associated metadata for tsuid=" + tsuid);
                     tsRemoveError.add(new IkatsDaoException("failed to remove associated metadata for tsuid " + tsuid, e));
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     LOGGER.error("- failed to remove tsuid=" + tsuid);
                     tsRemoveError.add(new IkatsDaoException("failed to delete TS for tsuid " + tsuid, e));
                 }
@@ -276,15 +271,15 @@ public class DataSetManager {
         // --------------------------------------------------------------------
         LOGGER.info(context + "step : remove dataset from database ");
         getDataSetFacade().removeDataSet(datasetId);
-        
+
         LOGGER.info(context + "... successfully ended");
 
         return Status.NO_CONTENT;
     }
 
-	/**
+    /**
      * get all the dataSet summary : Name and Description only.
-     * 
+     *
      * @return a list of dataset, empty if nothin matches
      */
     public List<DataSet> getAllDataSetSummary() throws IkatsDaoException {
@@ -294,7 +289,7 @@ public class DataSetManager {
 
     /**
      * list all the dataset which include the TS
-     * 
+     *
      * @param tsuid
      *            the ts to test
      * @return null list if no dataset contains the tsuid
@@ -305,7 +300,7 @@ public class DataSetManager {
 
     /**
      * delete the link betweend tsuid and datasetName
-     * 
+     *
      * @param tsuid
      *            the tsuid to detach from dataset
      * @param datasetName
@@ -337,11 +332,9 @@ public class DataSetManager {
             throws IkatsDaoInvalidValueException, IkatsDaoMissingResource, IkatsDaoException {
         if ("replace".equalsIgnoreCase(updateMode)) {
             return getDataSetFacade().updateDataSet(datasetName, description, tsuidList);
-        }
-        else if ("append".equalsIgnoreCase(updateMode)) {
+        } else if ("append".equalsIgnoreCase(updateMode)) {
             return getDataSetFacade().updateInAppendMode(datasetName, description, tsuidList);
-        }
-        else {
+        } else {
             throw new IkatsDaoInvalidValueException(
                     "Unexpected parameter for updateDataSet: updateMode: expected values are  \"replace\" or \"append\", value=" + updateMode);
         }

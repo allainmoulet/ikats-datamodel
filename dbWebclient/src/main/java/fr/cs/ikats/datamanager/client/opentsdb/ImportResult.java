@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,19 +10,18 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.datamanager.client.opentsdb;
@@ -32,8 +31,6 @@ import java.util.Map;
 
 /**
  * content result of an opentsdb import operation
- * 
- *
  */
 public class ImportResult extends ApiResponse {
 
@@ -44,16 +41,17 @@ public class ImportResult extends ApiResponse {
     private long startDate;
     private long endDate;
     private Map<String, String> errors;
-    
+
     /**
      * default constructor.
      */
     public ImportResult() {
         errors = new HashMap<String, String>();
     }
-    
+
     /**
      * Getter
+     *
      * @return the tsuid
      */
     public String getTsuid() {
@@ -62,6 +60,7 @@ public class ImportResult extends ApiResponse {
 
     /**
      * Setter
+     *
      * @param tsuid the tsuid to set
      */
     public void setTsuid(String tsuid) {
@@ -70,17 +69,18 @@ public class ImportResult extends ApiResponse {
 
     /**
      * couple of (key,error) to add
-     * @param key the error key
+     *
+     * @param key   the error key
      * @param error error
      */
     public void addError(String key, String error) {
         errors.put(key, error);
     }
 
-    /** 
+    /**
      * add an error to the map
-     * @param errors
-     *            map of errors to set
+     *
+     * @param errors map of errors to set
      */
     public void addErrors(Map<String, String> errors) {
         errors.putAll(errors);
@@ -88,6 +88,7 @@ public class ImportResult extends ApiResponse {
 
     /**
      * Getter
+     *
      * @return the numberOfSuccess
      */
     public long getNumberOfSuccess() {
@@ -96,8 +97,8 @@ public class ImportResult extends ApiResponse {
 
     /**
      * Setter
-     * @param numberOfSuccess
-     *            numberOfSuccess to set
+     *
+     * @param numberOfSuccess numberOfSuccess to set
      */
     public void setNumberOfSuccess(long numberOfSuccess) {
         this.numberOfSuccess = numberOfSuccess;
@@ -105,6 +106,7 @@ public class ImportResult extends ApiResponse {
 
     /**
      * Getter
+     *
      * @return the errors
      */
     public Map<String, String> getErrors() {
@@ -113,6 +115,7 @@ public class ImportResult extends ApiResponse {
 
     /**
      * Getter
+     *
      * @return the timeseries start date
      */
     public long getStartDate() {
@@ -121,8 +124,8 @@ public class ImportResult extends ApiResponse {
 
     /**
      * Setter
-     * @param startDate
-     *            the startDate to set
+     *
+     * @param startDate the startDate to set
      */
     public void setStartDate(long startDate) {
         this.startDate = startDate;
@@ -130,6 +133,7 @@ public class ImportResult extends ApiResponse {
 
     /**
      * Getter
+     *
      * @return the timeseries end date
      */
     public long getEndDate() {
@@ -138,8 +142,8 @@ public class ImportResult extends ApiResponse {
 
     /**
      * Setter
-     * @param endDate
-     *            the end_date to set
+     *
+     * @param endDate the end_date to set
      */
     public void setEndDate(long endDate) {
         this.endDate = endDate;
@@ -147,6 +151,7 @@ public class ImportResult extends ApiResponse {
 
     /**
      * Getter
+     *
      * @return the funcId
      */
     public String getFuncId() {
@@ -155,6 +160,7 @@ public class ImportResult extends ApiResponse {
 
     /**
      * Setter
+     *
      * @param funcId the funcId to set
      */
     public void setFuncId(String funcId) {
@@ -175,22 +181,22 @@ public class ImportResult extends ApiResponse {
         sb.append("numberOfSuccess=").append(this.numberOfSuccess).append(",");
         sb.append("summary=").append(this.getSummary()).append(",");
         sb.append("errors=").append(this.errors).append("]");
-      
+
         return sb.toString();
     }
 
-	/**
-	 * @return the numberOfFailed
-	 */
-	public long getNumberOfFailed() {
-		return numberOfFailed;
-	}
+    /**
+     * @return the numberOfFailed
+     */
+    public long getNumberOfFailed() {
+        return numberOfFailed;
+    }
 
-	/**
-	 * @param numberOfFailed the numberOfFailed to set
-	 */
-	public void setNumberOfFailed(long numberOfFailed) {
-		this.numberOfFailed = numberOfFailed;
-	}
+    /**
+     * @param numberOfFailed the numberOfFailed to set
+     */
+    public void setNumberOfFailed(long numberOfFailed) {
+        this.numberOfFailed = numberOfFailed;
+    }
 }
 

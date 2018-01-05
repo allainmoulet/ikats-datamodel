@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,19 +10,18 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.metadata.model;
@@ -42,8 +41,8 @@ import fr.cs.ikats.common.expr.SingleValueComparator;
  * <li>&lt;comparator&gt; is defined by this.comparator</li>
  * <li>&lt;right operand&gt; is this.value</li>
  * </ul>
- * 
- * 
+ *
+ *
  */
 public class MetadataCriterion {
 
@@ -59,21 +58,19 @@ public class MetadataCriterion {
 
     private String value;
 
-    public MetadataCriterion()
-    {
-        
+    public MetadataCriterion() {
+
     }
-    
-    public MetadataCriterion(String critName, String critOperator, String rightOperandValue )
-    {
+
+    public MetadataCriterion(String critName, String critOperator, String rightOperandValue) {
         metadataName = critName;
         comparator = critOperator;
         value = rightOperandValue;
     }
-    
+
     /**
      * Getter
-     * 
+     *
      * @return the metadataName
      */
     public String getMetadataName() {
@@ -82,7 +79,7 @@ public class MetadataCriterion {
 
     /**
      * Setter
-     * 
+     *
      * @param metadataName
      *            the metadataName to set
      */
@@ -92,7 +89,7 @@ public class MetadataCriterion {
 
     /**
      * Getter
-     * 
+     *
      * @return the comparator
      */
     public String getComparator() {
@@ -101,7 +98,7 @@ public class MetadataCriterion {
 
     /**
      * Setter
-     * 
+     *
      * @param comparator
      *            the comparator to set
      */
@@ -111,7 +108,7 @@ public class MetadataCriterion {
 
     /**
      * Getter on the raw value: string. See algo getTypedValue()
-     * 
+     *
      * @return the value
      */
     public String getValue() {
@@ -120,7 +117,7 @@ public class MetadataCriterion {
 
     /**
      * Setter
-     * 
+     *
      * @param value
      *            the value to set
      */
@@ -130,7 +127,7 @@ public class MetadataCriterion {
 
     @JsonIgnore
     public SingleValueComparator getTypedComparator() throws IkatsDaoInvalidValueException {
-        return SingleValueComparator.parseComparator( this.comparator );
+        return SingleValueComparator.parseComparator(this.comparator);
     }
 
     /**
@@ -147,16 +144,15 @@ public class MetadataCriterion {
 
     /**
      * Replace '*' by '%' for operator like
-     *                  
+     *
      */
     public void computeServerValue() throws IkatsDaoInvalidValueException {
-        if (( getTypedComparator() == SingleValueComparator.LIKE ) || ( getTypedComparator() == SingleValueComparator.NLIKE ))
-        {
+        if ((getTypedComparator() == SingleValueComparator.LIKE) || (getTypedComparator() == SingleValueComparator.NLIKE)) {
             String lValue = getValue();
             lValue = lValue.replace('*', '%');
-            setValue( lValue );
+            setValue(lValue);
         }
-        
+
     }
 }
 

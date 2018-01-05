@@ -27,9 +27,6 @@
 
 package fr.cs.ikats.temporaldata.exception;
 
-import org.apache.log4j.Logger;
-import org.glassfish.jersey.server.ParamException.PathParamException;
-
 import javax.ws.rs.NotAllowedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.WebApplicationException;
@@ -37,6 +34,9 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
+
+import org.apache.log4j.Logger;
+import org.glassfish.jersey.server.ParamException.PathParamException;
 
 /**
  * Handle exception and set BAD_REQUEST to the responses

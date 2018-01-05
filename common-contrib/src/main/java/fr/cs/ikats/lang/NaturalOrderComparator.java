@@ -49,7 +49,10 @@ package fr.cs.ikats.lang;
  3. This notice may not be removed or altered from any source distribution.
  */
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 public class NaturalOrderComparator implements Comparator {
     int compareRight(String a, String b) {

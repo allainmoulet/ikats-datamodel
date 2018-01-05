@@ -56,6 +56,7 @@ public class ApplicationLabels {
 
     /**
      * singleton instance getter
+     *
      * @return instance
      */
     public static ApplicationLabels getInstance() {
@@ -64,6 +65,7 @@ public class ApplicationLabels {
 
     /**
      * get message with label key.
+     *
      * @param label the label key
      * @return the label
      */
@@ -73,7 +75,8 @@ public class ApplicationLabels {
 
     /**
      * get Formated message with label key and params
-     * @param label key of the label 
+     *
+     * @param label  key of the label
      * @param params list of parameters to use to format the message
      * @return the formatted string.
      */

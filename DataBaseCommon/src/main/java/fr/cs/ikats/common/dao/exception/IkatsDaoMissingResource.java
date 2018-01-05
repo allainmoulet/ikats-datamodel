@@ -27,32 +27,32 @@
 package fr.cs.ikats.common.dao.exception;
 
 /**
- * Supertype of errors raised from DAO layer components.
+ * Subclass of IkatsDaoException: exceptions raised when a ressource is missing. 
  */
-public class IkatsDaoException extends Exception {
+public class IkatsDaoMissingResource extends IkatsDaoException {
 
     /**
      *
      */
-    private static final long serialVersionUID = -3946760439416930687L;
+    private static final long serialVersionUID = -6925941034613818210L;
 
     /**
-     *
+     * Subclass of IkatsDaoException: error raised when a ressource was not found
      */
-    public IkatsDaoException() {
+    public IkatsDaoMissingResource() {
     }
 
     /**
      * @param message
      */
-    public IkatsDaoException(String message) {
+    public IkatsDaoMissingResource(String message) {
         super(message);
     }
 
     /**
      * @param cause
      */
-    public IkatsDaoException(Throwable cause) {
+    public IkatsDaoMissingResource(Throwable cause) {
         super(cause);
     }
 
@@ -60,7 +60,7 @@ public class IkatsDaoException extends Exception {
      * @param message
      * @param cause
      */
-    public IkatsDaoException(String message, Throwable cause) {
+    public IkatsDaoMissingResource(String message, Throwable cause) {
         super(message, cause);
     }
 
@@ -70,7 +70,7 @@ public class IkatsDaoException extends Exception {
      * @param enableSuppression
      * @param writableStackTrace
      */
-    public IkatsDaoException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
+    public IkatsDaoMissingResource(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
     }
 

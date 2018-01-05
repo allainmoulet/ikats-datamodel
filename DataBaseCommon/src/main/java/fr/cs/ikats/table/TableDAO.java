@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,19 +10,18 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.table;
@@ -84,13 +83,11 @@ public class TableDAO extends DataBaseDAO {
             result = criteria.list();
 
             tx.commit();
-        }
-        catch (HibernateException e) {
+        } catch (HibernateException e) {
             if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
 
             // end the session
             session.close();
@@ -122,8 +119,7 @@ public class TableDAO extends DataBaseDAO {
             if (strict) {
                 // Strict match
                 criteria.add(Restrictions.eq("name", pattern));
-            }
-            else {
+            } else {
                 // The query shall be contained in the Name
                 String query = '%' + pattern.replace('*', '%') + '%';
                 criteria.add(Restrictions.like("name", query));
@@ -131,13 +127,11 @@ public class TableDAO extends DataBaseDAO {
             result = criteria.list();
 
             tx.commit();
-        }
-        catch (HibernateException e) {
+        } catch (HibernateException e) {
             if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
 
             // end the session
             session.close();
@@ -173,20 +167,17 @@ public class TableDAO extends DataBaseDAO {
                 LOGGER.error(msg);
                 tx.rollback();
                 throw new IkatsDaoMissingResource(msg);
-            }
-            else {
+            } else {
                 tx.commit();
             }
 
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             if (tx != null) {
                 tx.rollback();
             }
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             session.close();
         }
 
@@ -220,20 +211,17 @@ public class TableDAO extends DataBaseDAO {
                 LOGGER.error(msg);
                 tx.rollback();
                 throw new IkatsDaoMissingResource(msg);
-            }
-            else {
+            } else {
                 tx.commit();
             }
 
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             if (tx != null) {
                 tx.rollback();
             }
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             session.close();
         }
 
@@ -262,20 +250,17 @@ public class TableDAO extends DataBaseDAO {
 
             tableId = (Integer) session.save(tableEntity);
             tx.commit();
-        }
-        catch (ConstraintViolationException e) {
+        } catch (ConstraintViolationException e) {
             // try to rollback
             if (tx != null) tx.rollback();
             // Raise the exception into a specific IKATS one to allow its handling with IKATS specific handler for HTTP response  
             throw new IkatsDaoConflictException(e);
-        }
-        catch (HibernateException e) {
+        } catch (HibernateException e) {
             // try to rollback
             if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             // end the session
             session.close();
         }
@@ -305,20 +290,17 @@ public class TableDAO extends DataBaseDAO {
             session.update(tableEntity);
             tx.commit();
             updated = true;
-        }
-        catch (StaleStateException e) {
+        } catch (StaleStateException e) {
 
             String msg = "No match for TableEntity with id:" + tableEntity.getId();
             LOGGER.error(msg, e);
             rollbackAndThrowException(tx, new IkatsDaoMissingResource(msg, e));
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             // try to rollback
             if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             // end the session
             session.close();
         }
@@ -346,14 +328,12 @@ public class TableDAO extends DataBaseDAO {
             session.delete(tableEntity);
 
             tx.commit();
-        }
-        catch (HibernateException e) {
+        } catch (HibernateException e) {
             // try to rollback
             if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             // end the session
             session.close();
         }

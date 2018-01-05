@@ -33,7 +33,7 @@ import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
-import org.apache.log4j.Logger; 
+import org.apache.log4j.Logger;
 
 import fr.cs.ikats.temporaldata.utils.ServiceStatus;
 

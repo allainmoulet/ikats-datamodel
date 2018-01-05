@@ -56,6 +56,11 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.log4j.Logger;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.metadata.MetaDataFacade;
@@ -74,10 +79,6 @@ import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 import fr.cs.ikats.temporaldata.utils.Chronometer;
-import org.apache.log4j.Logger;
-import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
-import org.glassfish.jersey.media.multipart.FormDataMultiPart;
-import org.glassfish.jersey.media.multipart.FormDataParam;
 
 /**
  * resource for Table
@@ -248,7 +249,7 @@ public class TableResource extends AbstractResource {
                 String[] items = line.split(separator, -1);
                 // check table content consistency
                 if (items.length != columnHeaders.size()) {
-                    String context = "CSV line "+ lineNb + " : length does not fit headers size in file " + fileName;
+                    String context = "CSV line " + lineNb + " : length does not fit headers size in file " + fileName;
                     logger.error(context);
                     return Response.status(Response.Status.BAD_REQUEST).entity(context).build();
                 }

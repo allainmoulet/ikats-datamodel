@@ -128,7 +128,7 @@ public class MetaDataFacade {
      * @param value new value for this metadata
      * @return the id of the metadata or null if no update has been performed
      * @throws IkatsDaoConflictException in case of conflict with existing ( tsuid, name ) pair
-     * @throws IkatsDaoMissingResource  in case of missing MetaData
+     * @throws IkatsDaoMissingResource   in case of missing MetaData
      * @throws IkatsDaoException         if the meta doesn't exists or if database can't be accessed
      * @since [#142998] Manage IkatsDaoConflictException, IkatsDaoMissingRessource, IkatsDaoException
      */
@@ -218,7 +218,7 @@ public class MetaDataFacade {
      * @param csvLine the line
      * @return the internal identifier
      * @throws IkatsDaoConflictException conflict error with a Metadata already created.
-     * @throws IkatsDaoMissingResource  error on missing functional identifier resource: required here
+     * @throws IkatsDaoMissingResource   error on missing functional identifier resource: required here
      * @throws IkatsDaoException         other errors
      */
     public Integer persistMetaData(String csvLine) throws IkatsDaoConflictException, IkatsDaoMissingResource, IkatsDaoException {
@@ -235,7 +235,7 @@ public class MetaDataFacade {
      * @param tsuid the tsuid
      * @return List of MetaData
      * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid different from '*'
-     * @throws IkatsDaoException        any error raised by DAO layer.
+     * @throws IkatsDaoException       any error raised by DAO layer.
      */
     public List<MetaData> getMetaDataForTS(String tsuid) throws IkatsDaoMissingResource, IkatsDaoException {
         return dao.listForTS(tsuid);
@@ -317,7 +317,7 @@ public class MetaDataFacade {
      *
      * @param line
      * @return
-     * @throws IkatsDaoMissingResource      error when there is a missing functional identifier
+     * @throws IkatsDaoMissingResource       error when there is a missing functional identifier
      * @throws IkatsDaoInvalidValueException error when there is an invalid metadata type defined in the CSV
      */
     public MetaData getMetaDataFromCSV(String line)

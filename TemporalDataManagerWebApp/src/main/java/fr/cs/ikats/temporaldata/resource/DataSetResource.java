@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,20 +10,19 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.temporaldata.resource;
@@ -48,6 +47,8 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.apache.log4j.Logger;
+
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
@@ -55,7 +56,6 @@ import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.DataSetWithFids;
 import fr.cs.ikats.ts.dataset.model.DataSet;
-import org.apache.log4j.Logger;
 
 /**
  * data set resource class.
@@ -66,7 +66,7 @@ public class DataSetResource extends AbstractResource {
     private static Logger logger = Logger.getLogger(DataSetResource.class);
     /**
      * DatSet manager class containing business logic
-     */ 
+     */
     protected DataSetManager dataSetManager;
 
     /**
@@ -77,22 +77,22 @@ public class DataSetResource extends AbstractResource {
     }
 
     /**
-	 * Getter
-	 * @return the dataSetManager
-	 */
-	public final DataSetManager getDataSetManager() {
-		return dataSetManager;
-	}
+     * Getter
+     * @return the dataSetManager
+     */
+    public final DataSetManager getDataSetManager() {
+        return dataSetManager;
+    }
 
-	/**
-	 * Setter
-	 * @param dataSetManager the dataSetManager to set
-	 */
-	public final void setDataSetManager(DataSetManager dataSetManager) {
-		this.dataSetManager = dataSetManager;
-	}
+    /**
+     * Setter
+     * @param dataSetManager the dataSetManager to set
+     */
+    public final void setDataSetManager(DataSetManager dataSetManager) {
+        this.dataSetManager = dataSetManager;
+    }
 
-	/**
+    /**
      * get a summary of all dataset in database. including number of ts per dataset (optional)
      *
      * @return a json of DataSets (name, description, nb_ts)

@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,19 +10,18 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.datamanager.client.opentsdb;
@@ -59,9 +58,9 @@ public class QueryResult implements Serializable {
 
     /**
      * ajout serie en passant la clé de series
-     * 
-     * @param tsuid the tsuid
-     * @param key teh key of the serie
+     *
+     * @param tsuid      the tsuid
+     * @param key        teh key of the serie
      * @param datapoints the datapoints
      */
     public void addSerie(String tsuid, Integer key, Map<Object, Object> datapoints) {
@@ -71,9 +70,9 @@ public class QueryResult implements Serializable {
 
     /**
      * ajout serie. la gestion de la clé est geree en interne
-     * @param tsuid the tsuid
-     * @param datapoints datapoints 
-     * 
+     *
+     * @param tsuid      the tsuid
+     * @param datapoints datapoints
      */
     public void addSerie(String tsuid, Map<Object, Object> datapoints) {
         logger.debug("Add Serie " + tsuid + " containing " + datapoints.size() + " points  with key " + this.key);
@@ -104,6 +103,7 @@ public class QueryResult implements Serializable {
 
     /**
      * return the values
+     *
      * @return values of the serie
      */
     public String afficheValeurs() {
@@ -135,6 +135,7 @@ public class QueryResult implements Serializable {
 
     /**
      * get the number of points in serie
+     *
      * @param serieKey the key
      * @return an integer, or 0 if serie is not found.
      */
@@ -149,6 +150,7 @@ public class QueryResult implements Serializable {
 
     /**
      * get points for serie
+     *
      * @param serieKey the key
      * @return an array of objects
      */
@@ -158,6 +160,7 @@ public class QueryResult implements Serializable {
 
     /**
      * Geter
+     *
      * @return the tsuids
      */
     public List<String> getTsuids() {
@@ -165,7 +168,8 @@ public class QueryResult implements Serializable {
     }
 
     /**
-     * Getter 
+     * Getter
+     *
      * @param pos the position
      * @return the tsuid
      */
@@ -174,8 +178,7 @@ public class QueryResult implements Serializable {
     }
 
     /**
-     * @param tsuids
-     *            the tsuids to set
+     * @param tsuids the tsuids to set
      */
     public void setTsuids(List<String> tsuids) {
         this.tsuids = tsuids;
@@ -189,8 +192,7 @@ public class QueryResult implements Serializable {
     }
 
     /**
-     * @param tag
-     *            the tag to set
+     * @param tag the tag to set
      */
     public void setTag(String tag) {
         this.tag = tag;
@@ -198,7 +200,7 @@ public class QueryResult implements Serializable {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#hashCode()
      */
     @Override
@@ -211,7 +213,7 @@ public class QueryResult implements Serializable {
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see java.lang.Object#equals(java.lang.Object)
      */
     @Override
@@ -226,8 +228,7 @@ public class QueryResult implements Serializable {
         if (tsuids == null) {
             if (other.tsuids != null)
                 return false;
-        }
-        else if (!tsuids.equals(other.tsuids))
+        } else if (!tsuids.equals(other.tsuids))
             return false;
         return true;
     }
