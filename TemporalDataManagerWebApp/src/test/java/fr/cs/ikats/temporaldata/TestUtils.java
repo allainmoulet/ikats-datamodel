@@ -294,8 +294,8 @@ public class TestUtils {
 
         // Purpose of doImportStubbedOpenTSDB is to stub theses 2 lines:
         //
-        // long[] dates =getTemporalDataManager().launchImportTasks(metric, tsStream, resultats, tags, filename);
-        // importResult =getTemporalDataManager().parseImportResults(metric, resultats, tags, dates[0], dates[1]);
+        // long[] dates =getTemporalDataManager().launchImportTasks(metric, tsStream, resultats, tags, filename)
+        // importResult =getTemporalDataManager().parseImportResults(metric, resultats, tags, dates[0], dates[1])
 
         // stubbed funcId whether generated or not
         String testedFuncId = null;
@@ -337,7 +337,7 @@ public class TestUtils {
         // Preparing the request
         //
 
-        // TODO 163211 or later: Finally: inject mockedTdm into the TimeSerieResource,
+        // TODO : inject mockedTdm into the TimeSerieResource,
         // in the webapp tested by grizzly client (requires extra works setting up the test, injecting the mock ...)
         //
         //		Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
@@ -401,11 +401,11 @@ public class TestUtils {
             assertTrue(apiResponse instanceof ImportResult);
             result = (ImportResult) apiResponse;
 
-            // TODO 163211 or later: status should be read in Response
+            // TODO : status should be read in Response
             status = 200;
 
         } catch (ImportException e) {
-            //  TODO 163211 or later: status should be read in Response
+            //  TODO : status should be read in Response
             ImportExceptionHandler errorHandler = new ImportExceptionHandler();
             Response resp = errorHandler.toResponse(e);
             status = resp.getStatus();

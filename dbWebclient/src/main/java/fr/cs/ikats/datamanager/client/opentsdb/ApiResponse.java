@@ -90,7 +90,7 @@ public class ApiResponse implements Serializable {
     /**
      * Error elements returned in case of API code error response.
      */
-    class Error {
+    class Error implements Serializable {
         String message;
     }
 

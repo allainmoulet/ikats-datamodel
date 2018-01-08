@@ -193,7 +193,7 @@ public class DataBaseClientManager {
             sb.append(URLEncoder.encode("{", "UTF-8"));
             for (String tagName : queryParams.keySet()) {
                 for (String value : queryParams.get(tagName)) {
-                    if (queryParams.get(tagName).indexOf(value) > 0) {
+                    if (queryParams.get(tagName).indexOf(value) != 0) {
                         sb.append(",");
                     }
                     sb.append(tagName).append("%3D").append(value);

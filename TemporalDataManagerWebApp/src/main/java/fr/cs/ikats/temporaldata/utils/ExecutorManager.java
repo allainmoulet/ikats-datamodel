@@ -69,7 +69,7 @@ public class ExecutorManager {
      * private constructor
      */
     private ExecutorManager() {
-        executors = new HashMap<String, GenericObjectPool<ExecutorService>>();
+        executors = new HashMap<>();
     }
 
     /**
@@ -79,7 +79,6 @@ public class ExecutorManager {
      * @param executorName name of the executor to ask.
      * @return the executorService from the pool
      * @throws DataManagerException
-     * @throws Exception            if executor cannot be borrowed from the pool.
      */
     public ExecutorService getExecutorService(String executorName) throws DataManagerException {
         try {
@@ -176,7 +175,8 @@ public class ExecutorManager {
      * @param timeunit timeunit of the delay
      * @param remove   if true, remove definitly the named Executor from the Manager.
      */
-    public void waitForExecutorTermination(ExecutorService service, String name, long delay, TimeUnit timeunit, boolean remove) {
+    public void waitForExecutorTermination(ExecutorService service, String name, long delay, TimeUnit timeunit,
+                                           boolean remove) {
         logger.info("Stopping Executor " + name);
         if (executors.get(name) != null) {
             service.shutdown();
@@ -187,6 +187,7 @@ public class ExecutorManager {
                 }
             } catch (InterruptedException ie) {
                 logger.warn("Executor " + name + " interrupted", ie);
+                Thread.currentThread().interrupt();
             } finally {
                 executors.get(name).returnObject(service);
                 logger.debug("executor " + name + " returned into pool");
