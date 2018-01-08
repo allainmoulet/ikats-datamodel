@@ -235,14 +235,15 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
         try {
             tx = session.beginTransaction();
 
-            String queryString = "SELECT " + "tsfunctionalidentifier.tsuid as tsuid, "
-                    + "tsfunctionalidentifier.funcid as FuncId " + "FROM tsfunctionalidentifier, timeseries_dataset "
+            String queryString = "SELECT tsfunctionalidentifier.tsuid as tsuid, "
+                    + "tsfunctionalidentifier.funcid as FuncId FROM tsfunctionalidentifier, timeseries_dataset "
                     + "WHERE tsfunctionalidentifier.tsuid = timeseries_dataset.tsuid AND "
-                    + "timeseries_dataset.dataset_name = '" + datasetName + "'" + "ORDER BY FuncId";
+                    + "timeseries_dataset.dataset_name = ? ORDER BY FuncId";
 
             Query q = session.createSQLQuery(queryString).addScalar("tsuid", Hibernate.STRING)
                     .addScalar("tsuid", Hibernate.STRING).addScalar("FuncId", Hibernate.STRING)
-                    .setResultTransformer(Transformers.aliasToBean(FunctionalIdentifier.class));
+                    .setResultTransformer(Transformers.aliasToBean(FunctionalIdentifier.class))
+                    .setParameter(0, datasetName);
 
             result = (List<FunctionalIdentifier>) q.list();
 

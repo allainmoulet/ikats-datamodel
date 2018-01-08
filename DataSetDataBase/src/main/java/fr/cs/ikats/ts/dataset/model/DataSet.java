@@ -52,7 +52,9 @@ public class DataSet {
     /**
      * all dataset name and description request
      */
-    public final static String LIST_ALL_DATASETS = "SELECT tsdataset.name as name, tsdataset.description as description, COUNT(timeseries_dataset.tsuid) AS nb_ts FROM tsdataset, timeseries_dataset WHERE tsdataset.name = timeseries_dataset.dataset_name GROUP BY tsdataset.name, tsdataset.description";
+    public final static String LIST_ALL_DATASETS = "SELECT tsdataset.name as name, tsdataset.description as " +
+            "description, COUNT(timeseries_dataset.tsuid) AS nb_ts FROM tsdataset, timeseries_dataset WHERE " +
+            "tsdataset.name = timeseries_dataset.dataset_name GROUP BY tsdataset.name, tsdataset.description";
 
     /**
      * name of the dataset
