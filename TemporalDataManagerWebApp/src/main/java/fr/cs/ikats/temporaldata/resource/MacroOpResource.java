@@ -11,7 +11,7 @@
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -22,7 +22,6 @@
  *
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
- *
  */
 
 package fr.cs.ikats.temporaldata.resource;
@@ -81,12 +80,11 @@ public class MacroOpResource extends AbstractResource {
     public Response create(
             Workflow wf,
             @Context UriInfo uriInfo
-                          ) throws IkatsDaoException {
+    ) throws IkatsDaoException {
 
         try {
             wf.setMacroOp(true);
-        }
-        catch (NullPointerException e) {
+        } catch (NullPointerException e) {
             throw new IkatsDaoException("Wrong inputs");
         }
 
@@ -133,7 +131,7 @@ public class MacroOpResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response getMacroOp(
             @PathParam("id") Integer id
-                              ) throws IkatsDaoException {
+    ) throws IkatsDaoException {
 
         Workflow wf = Facade.getById(id);
 
@@ -172,7 +170,7 @@ public class MacroOpResource extends AbstractResource {
             Workflow wf,
             @Context UriInfo uriInfo,
             @PathParam("id") int id
-                                 ) throws IkatsDaoException, IkatsWebClientException {
+    ) throws IkatsDaoException, IkatsWebClientException {
 
         if (wf.getId() != null && id != wf.getId()) {
             throw new IkatsWebClientException("Mismatch in request with Id between URI and body part");
@@ -184,8 +182,7 @@ public class MacroOpResource extends AbstractResource {
 
         if (result) {
             return Response.status(Response.Status.OK).build();
-        }
-        else {
+        } else {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).build();
         }
     }
@@ -202,7 +199,7 @@ public class MacroOpResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public Response removeMacroOp(
             @PathParam("id") Integer id
-                                 ) throws IkatsDaoException {
+    ) throws IkatsDaoException {
         Facade.removeById(id);
         return Response.status(Response.Status.NO_CONTENT).build();
     }
