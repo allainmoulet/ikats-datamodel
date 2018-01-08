@@ -29,7 +29,7 @@ package fr.cs.ikats.common.expr;
 /**
  * le premier but des Expression: donnee definie de maniere reccursive
  */
-public class Atom<T> extends Expression<T> {
+public class Atom<T> extends Expression {
     private T atomicTerm;
 
     public T getAtomicTerm() {

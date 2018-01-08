@@ -29,7 +29,7 @@ package fr.cs.ikats.common.expr;
 /**
  * le premier but des Expression: donnee definie de maniere reccursive
  */
-public abstract class Expression<T> {
+public abstract class Expression {
 
     public enum ConnectorExpression {
         AND, OR

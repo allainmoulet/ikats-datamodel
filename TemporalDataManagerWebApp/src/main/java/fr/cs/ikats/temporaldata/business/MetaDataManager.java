@@ -571,7 +571,7 @@ public class MetaDataManager {
             List<MetadataCriterion> lCriteria)
             throws IkatsDaoException, IkatsException, ResourceNotFoundException {
 
-        Group<MetadataCriterion> lFormula = new Group<MetadataCriterion>();
+        Group lFormula = new Group();
         lFormula.setConnector(ConnectorExpression.AND);
         lFormula.setTerms(new ArrayList<>());
 

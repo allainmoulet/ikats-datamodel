@@ -744,7 +744,7 @@ public class MetaDataFacade {
      * @return the result
      * @throws IkatsDaoException
      */
-    public List<FunctionalIdentifier> searchFuncId(List<FunctionalIdentifier> scope, Group<MetadataCriterion> formula)
+    public List<FunctionalIdentifier> searchFuncId(List<FunctionalIdentifier> scope, Group formula)
             throws IkatsDaoException {
         return dao.searchFuncId(scope, formula);
     }

@@ -31,18 +31,18 @@ import java.util.List;
 /**
  * le premier but des Expression: donnee definie de maniere reccursive
  */
-public class Group<T> extends Expression<T> {
+public class Group extends Expression {
     private ConnectorExpression connector;
 
-    public List<Expression<T>> getTerms() {
+    public List<Expression> getTerms() {
         return terms;
     }
 
-    public void setTerms(List<Expression<T>> terms) {
+    public void setTerms(List<Expression> terms) {
         this.terms = terms;
     }
 
-    private List<Expression<T>> terms;
+    private List<Expression> terms;
 
     public ConnectorExpression getConnector() {
         return connector;

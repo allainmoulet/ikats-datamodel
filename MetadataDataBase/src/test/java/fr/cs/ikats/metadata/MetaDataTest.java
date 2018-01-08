@@ -302,7 +302,7 @@ public class MetaDataTest {
         }
     }
 
-    private void addCrit(Group<MetadataCriterion> formula, String critName, String critOperator, String rightOperandValue) {
+    private void addCrit(Group formula, String critName, String critOperator, String rightOperandValue) {
         MetadataCriterion crit = new MetadataCriterion(critName, critOperator, rightOperandValue);
         Atom<MetadataCriterion> atomCriterion = new Atom<MetadataCriterion>();
         atomCriterion.setAtomicTerm(crit);
@@ -359,11 +359,11 @@ public class MetaDataTest {
         addToScope(scope, "TS8", "FID8");
 
         // Formula
-        Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+        Group formula = new Group();
         formula.setConnector(Expression.ConnectorExpression.AND);
-        formula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
+        formula.setTerms(new ArrayList<>());
 
-        ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+        ArrayList<FunctionalIdentifier> expected = new ArrayList<>();
 
         // Preparing results
         addCrit(formula, "MD1", "in", "A");
@@ -429,9 +429,9 @@ public class MetaDataTest {
         addToScope(scope, "TS8", "FID8");
 
         // Formula
-        Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+        Group formula = new Group();
         formula.setConnector(Expression.ConnectorExpression.AND);
-        formula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
+        formula.setTerms(new ArrayList<>());
 
         // Preparing results
         addCrit(formula, "MD1", "in", "");
@@ -492,11 +492,11 @@ public class MetaDataTest {
         addToScope(scope, "TS8", "FID8");
 
         // Formula
-        Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+        Group formula = new Group();
         formula.setConnector(Expression.ConnectorExpression.AND);
-        formula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
+        formula.setTerms(new ArrayList<>());
 
-        ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+        ArrayList<FunctionalIdentifier> expected = new ArrayList<>();
 
         // Preparing results
         addCrit(formula, "MD1", "in", "A;B");
@@ -561,11 +561,11 @@ public class MetaDataTest {
         addToScope(scope, "TS8", "FID8");
 
         // Formula
-        Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+        Group formula = new Group();
         formula.setConnector(Expression.ConnectorExpression.AND);
-        formula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
+        formula.setTerms(new ArrayList<>());
 
-        ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+        ArrayList<FunctionalIdentifier> expected = new ArrayList<>();
 
         // Preparing results
         addCrit(formula, "MD2", "not in", "A");
@@ -628,11 +628,11 @@ public class MetaDataTest {
         addToScope(scope, "TS8", "FID8");
 
         // Formula
-        Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+        Group formula = new Group();
         formula.setConnector(Expression.ConnectorExpression.AND);
-        formula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
+        formula.setTerms(new ArrayList<>());
 
-        ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+        ArrayList<FunctionalIdentifier> expected = new ArrayList<>();
 
         // Preparing results
         addCrit(formula, "MD1", "in", "A;B");
@@ -695,11 +695,11 @@ public class MetaDataTest {
         addToScope(scope, "TS8", "FID8");
 
         // Formula
-        Group<MetadataCriterion> formula = new Group<MetadataCriterion>();
+        Group formula = new Group();
         formula.setConnector(Expression.ConnectorExpression.AND);
-        formula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
+        formula.setTerms(new ArrayList<>());
 
-        ArrayList<FunctionalIdentifier> expected = new ArrayList<FunctionalIdentifier>();
+        ArrayList<FunctionalIdentifier> expected = new ArrayList<>();
 
         // Preparing results
         addCrit(formula, "MD1", "in", "F");

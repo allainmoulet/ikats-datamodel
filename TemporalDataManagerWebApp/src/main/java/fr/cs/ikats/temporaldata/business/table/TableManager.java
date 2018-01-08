@@ -386,7 +386,7 @@ public class TableManager {
 
         // process table raw data
         // first concatenate table data content + headers in a single matrix
-        List<List<Object>> tableFullContent = new ArrayList<>();
+        ArrayList<List<Object>> tableFullContent = new ArrayList<>();
         String topCornerLeft;
         if (table.isHandlingColumnsHeader() && table.isHandlingRowsHeader()) {
             // case : top corner left including 2 headers value separated by "|"
