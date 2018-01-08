@@ -39,7 +39,7 @@ public class CollectionUtils {
      * @return true if the collection is null or empty
      */
     public static boolean isNullOrEmpy(Collection<?> coll) {
-        return (coll == null) || (coll.size() == 0);
+        return (coll == null) || (coll.isEmpty());
     }
 }
 

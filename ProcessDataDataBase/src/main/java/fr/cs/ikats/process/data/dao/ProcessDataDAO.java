@@ -50,22 +50,13 @@ import fr.cs.ikats.process.data.model.ProcessData;
  */
 public class ProcessDataDAO extends DataBaseDAO {
 
-    private static Logger LOGGER = Logger.getLogger(ProcessDataDAO.class);
-
-    /**
-     * public constructor
-     */
-    public ProcessDataDAO() {
-
-    }
-
+    private static Logger logger = Logger.getLogger(ProcessDataDAO.class);
 
     /**
      * persist the ProcessData
      *
      * @param ds   the process data
      * @param data data to save
-     *
      * @return the internal identifier if ProcessData has been correctly persisted,
      */
     public String persist(ProcessData ds, byte[] data) throws IkatsDaoException {
@@ -78,12 +69,14 @@ public class ProcessDataDAO extends DataBaseDAO {
 
             ds.setData(data);
             processDataId = (Integer) session.save(ds);
-            LOGGER.trace("ProcessData stored " + ds);
+            logger.trace("ProcessData stored " + ds);
 
             tx.commit();
         } catch (RuntimeException e) {
             // try to rollback
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             // Re-raise the original exception
             throw e;
         } finally {
@@ -98,7 +91,6 @@ public class ProcessDataDAO extends DataBaseDAO {
      * return a ProcessData instance from database, null if no ProcessData is found.
      *
      * @param id the internal id
-     *
      * @return a ProcessData or null if no ProcessData is found.
      */
     public ProcessData getProcessData(Integer id) throws IkatsDaoException {
@@ -108,13 +100,15 @@ public class ProcessDataDAO extends DataBaseDAO {
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
-            LOGGER.debug("Getting processId:" + id);
+            logger.debug("Getting processId:" + id);
 
             result = (ProcessData) session.get(ProcessData.class, id);
 
             tx.commit();
         } catch (RuntimeException e) {
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             throw e; // or display error message
         } finally {
             // end the session
@@ -128,7 +122,6 @@ public class ProcessDataDAO extends DataBaseDAO {
      * return a ProcessData instance from database, null if no ProcessData is found.
      *
      * @param processId identifier of the producer
-     *
      * @return a ProcessData or an empty list if no ProcessData is found or null if an HibernateException is raised.
      */
     public List<ProcessData> getProcessData(String processId) throws IkatsDaoException {
@@ -139,7 +132,7 @@ public class ProcessDataDAO extends DataBaseDAO {
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
-            LOGGER.debug("Getting processId:" + processId);
+            logger.debug("Getting processId:" + processId);
 
             Criteria criteria = session.createCriteria(ProcessData.class);
             criteria.add(Restrictions.eq("processId", processId));
@@ -147,7 +140,9 @@ public class ProcessDataDAO extends DataBaseDAO {
 
             tx.commit();
         } catch (RuntimeException e) {
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             throw e; // or display error message
         } finally {
             // end the session
@@ -155,7 +150,7 @@ public class ProcessDataDAO extends DataBaseDAO {
         }
 
         if ((result != null) && result.isEmpty()) {
-            LOGGER.debug("No process Data for processId=" + result + " found in database");
+            logger.debug("No process Data for processId=" + result + " found in database");
         }
 
         return result;
@@ -183,7 +178,7 @@ public class ProcessDataDAO extends DataBaseDAO {
             Properties p = (Properties) f.get(session.getSessionFactory());
 
             String dialect = p.getProperty("hibernate.dialect");
-            if (dialect.toString().equals("org.hibernate.dialect.PostgreSQLDialect")) {
+            if ("org.hibernate.dialect.PostgreSQLDialect".equals(dialect)) {
                 // For PostgreSQL
                 procDataTableMatchCrit = Restrictions.sqlRestriction("{alias}.processid ~ '^[a-zA-Z]+$'");
             } else {
@@ -206,15 +201,17 @@ public class ProcessDataDAO extends DataBaseDAO {
             // Read-only query. Transcation commit has implication but save transaction resource from IDLE state.
             tx.commit();
         } catch (RuntimeException | NoSuchFieldException | IllegalAccessException e) {
-            LOGGER.error("Error reading process Data in database", e);
+            logger.error("Error reading process Data in database", e);
 
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
         } finally {
             session.close();
         }
 
         if ((result != null) && result.isEmpty()) {
-            LOGGER.info("No process Data found in database");
+            logger.info("No process Data found in database");
         }
         return result;
     }
@@ -223,7 +220,6 @@ public class ProcessDataDAO extends DataBaseDAO {
      * remove the ProcessData from database.
      *
      * @param processId identifier of the producer
-     *
      * @throws IkatsDaoException if error occurs in database
      */
     public void removeAllProcessData(String processId) throws IkatsDaoException {
@@ -241,10 +237,12 @@ public class ProcessDataDAO extends DataBaseDAO {
             tx.commit();
         } catch (RuntimeException e) {
 
-            LOGGER.error("Error deleting ProcessData for " + processId, e);
+            logger.error("Error deleting ProcessData for " + processId, e);
 
             // try to rollback
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             // Re-raise the original exception
             throw new IkatsDaoException("Can't delete " + processId, e);
         } finally {

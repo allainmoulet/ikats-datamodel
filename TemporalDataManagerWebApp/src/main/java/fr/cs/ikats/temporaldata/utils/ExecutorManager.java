@@ -150,8 +150,8 @@ public class ExecutorManager {
     }
 
     /**
-     * add an ExecutorService pool into the Manager TODO : add a way to
-     * parameter the pool For the moment, pool is 1 size fixed.
+     * add an ExecutorService pool into the Manager .
+     * For the moment, pool is 1 size fixed.
      *
      * @param name     name of the executor
      * @param poolSize size of the executor pool

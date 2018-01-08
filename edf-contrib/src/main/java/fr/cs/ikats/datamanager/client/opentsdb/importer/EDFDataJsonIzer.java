@@ -58,8 +58,6 @@ public class EDFDataJsonIzer extends AbstractDataJsonIzer {
         return edfReader;
     }
 
-    // Review#147170 pourquoi non-Javadoc ? => javadoc
-
     /**
      * @see java.lang.Object#clone()
      */
@@ -79,8 +77,7 @@ public class EDFDataJsonIzer extends AbstractDataJsonIzer {
         configuration.addColumnConfiguration(null, "Long", null, true, false);
         configuration.addNonReadColumnConfiguration();
         configuration.addColumnConfiguration("quality", null, null, false, false);
-        SplittedLineReader reader = new SplittedLineReader(configuration);
-        return reader;
+        return new SplittedLineReader(configuration);
     }
 
 

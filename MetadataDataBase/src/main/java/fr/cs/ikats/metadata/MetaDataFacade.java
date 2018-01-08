@@ -65,7 +65,7 @@ public class MetaDataFacade {
     /**
      * the logger instance for this class
      */
-    private static final Logger LOGGER = Logger.getLogger(MetaDataFacade.class);
+    private static final Logger logger = Logger.getLogger(MetaDataFacade.class);
 
     /**
      * the DAO for access to MetaData storage
@@ -111,7 +111,7 @@ public class MetaDataFacade {
      * @throws IkatsDaoConflictException create error raised on conflict with another resource
      * @throws IkatsDaoException         another error from DAO
      */
-    public Integer persistMetaData(String tsuid, String name, String value) throws IkatsDaoConflictException, IkatsDaoException {
+    public Integer persistMetaData(String tsuid, String name, String value) throws IkatsDaoException {
         return persistMetaData(tsuid, name, value, MetaType.string);
     }
 
@@ -128,7 +128,7 @@ public class MetaDataFacade {
      * @since [#142998] Manage IkatsDaoConflictException, IkatsDaoMissingRessource, IkatsDaoException
      */
     public Integer updateMetaData(String tsuid, String name, String value)
-            throws IkatsDaoConflictException, IkatsDaoMissingResource, IkatsDaoException {
+            throws IkatsDaoException {
 
         // [#142998] do not need to test the results from facade/dao:
         // exception is raised if result is not good
@@ -154,7 +154,7 @@ public class MetaDataFacade {
      * @throws IkatsDaoException             another error from DAO
      */
     public Integer persistMetaData(String tsuid, String name, String value, String dtype)
-            throws IkatsDaoConflictException, IkatsDaoInvalidValueException, IkatsDaoException {
+            throws IkatsDaoException {
 
         MetaType enumType = null;
         try {
@@ -173,9 +173,10 @@ public class MetaDataFacade {
      * @param e
      * @throws IkatsDaoInvalidValueException
      */
-    private void throwInvalidDTypeException(String tsuid, String name, String dtype, Throwable e) throws IkatsDaoInvalidValueException {
-        throw new IkatsDaoInvalidValueException("Unexpected dtype=" + dtype + " for MetaData on tsuid=" + tsuid + " for name=" + name,
-                e);
+    private void throwInvalidDTypeException(String tsuid, String name, String dtype, Throwable e)
+            throws IkatsDaoInvalidValueException {
+        throw new IkatsDaoInvalidValueException("Unexpected dtype=" + dtype + " for MetaData on tsuid=" + tsuid +
+                " for name=" + name, e);
     }
 
     /**
@@ -190,7 +191,7 @@ public class MetaDataFacade {
      * @throws IkatsDaoConflictException create error raised on conflict with another resource
      * @throws IkatsDaoException         another error from DAO
      */
-    public Integer persistMetaData(String tsuid, String name, String value, MetaType dtype) throws IkatsDaoConflictException, IkatsDaoException {
+    public Integer persistMetaData(String tsuid, String name, String value, MetaType dtype) throws IkatsDaoException {
         MetaData metadata = new MetaData();
         metadata.setName(name);
         metadata.setTsuid(tsuid);
@@ -216,7 +217,7 @@ public class MetaDataFacade {
      * @throws IkatsDaoMissingResource   error on missing functional identifier resource: required here
      * @throws IkatsDaoException         other errors
      */
-    public Integer persistMetaData(String csvLine) throws IkatsDaoConflictException, IkatsDaoMissingResource, IkatsDaoException {
+    public Integer persistMetaData(String csvLine) throws IkatsDaoException {
 
         // raise error on CSV parsing failure
         MetaData md = getMetaDataFromCSV(csvLine);
@@ -232,7 +233,7 @@ public class MetaDataFacade {
      * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException       any error raised by DAO layer.
      */
-    public List<MetaData> getMetaDataForTS(String tsuid) throws IkatsDaoMissingResource, IkatsDaoException {
+    public List<MetaData> getMetaDataForTS(String tsuid) throws IkatsDaoException {
         return dao.listForTS(tsuid);
     }
 
@@ -254,7 +255,7 @@ public class MetaDataFacade {
      * @return the MetaData or null if not exists
      * @throws IkatsDaoConflictException error raised when multiple metadata are found.
      */
-    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoException, IkatsDaoConflictException {
+    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoException {
         return dao.getMD(tsuid, name);
     }
 
@@ -299,8 +300,8 @@ public class MetaDataFacade {
                 idFunc = funcId.getFuncId();
             }
         } catch (IkatsDaoException e) {
-            LOGGER.warn("Failed to retrieve functional ID associated to tsuid=" + tsuid, e);
-            LOGGER.warn(" => CSV MetaData:first column: TSUID instead of FUNCID");
+            logger.warn("Failed to retrieve functional ID associated to tsuid=" + tsuid, e);
+            logger.warn(" => CSV MetaData:first column: TSUID instead of FUNCID");
             idFunc = tsuid;
         }
         return idFunc + ";" + md.getName() + ";" + md.getValue();
@@ -316,7 +317,7 @@ public class MetaDataFacade {
      * @throws IkatsDaoInvalidValueException error when there is an invalid metadata type defined in the CSV
      */
     public MetaData getMetaDataFromCSV(String line)
-            throws IkatsDaoMissingResource, IkatsDaoInvalidValueException, IkatsDaoConflictException, IkatsDaoException {
+            throws IkatsDaoException {
 
         StringTokenizer tokenizer = new StringTokenizer(line, ";");
         MetaData md = null;
@@ -354,7 +355,7 @@ public class MetaDataFacade {
         } else {
             String msg = "Importing metadata row from CSV: unknown functional identifier [" + idFunc
                     + "] is not registered in database. Unable to retrieve the corresponding tsuid.";
-            LOGGER.error(msg);
+            logger.error(msg);
             throw new IkatsDaoMissingResource(msg);
         }
         return md;
@@ -423,8 +424,8 @@ public class MetaDataFacade {
                     msgCurrentLine = "Import: MetaData CSV line [" + lineNumber + "] is not correctly formated. Skipped: ";
                 }
                 if (errorWithCurrentLine != null) {
-                    LOGGER.error(msgCurrentLine);
-                    LOGGER.error("content=" + line, errorWithCurrentLine);
+                    logger.error(msgCurrentLine);
+                    logger.error("content=" + line, errorWithCurrentLine);
 
                     if (firstError == null) {
                         // service
@@ -438,13 +439,13 @@ public class MetaDataFacade {
         } catch (IOException finalError) {
             String lineInfo = (line != null) ? line : "<empty line>";
             String contextError = "Unexpected interruption: importing MetaData CSV at [" + lineNumber + "]: " + lineInfo;
-            LOGGER.error(contextError, finalError);
+            logger.error(contextError, finalError);
             throw new IOException(contextError);
         } finally {
             try {
                 reader.close();
             } catch (IOException e) {
-                LOGGER.error("", e);
+                logger.error("", e);
             }
         }
         if (firstError != null) {
@@ -471,8 +472,8 @@ public class MetaDataFacade {
      * @return a list of metadata objects
      * @throws Exception
      */
-    private List<MetaData> getMetaImportListFromCSV(String metricOrFuncId, ArrayList<String> metadataNames, ArrayList<String> metadataValues)
-            throws IkatsDaoException {
+    private List<MetaData> getMetaImportListFromCSV(String metricOrFuncId, ArrayList<String> metadataNames,
+                                                    ArrayList<String> metadataValues) throws IkatsDaoException {
         String separator = ";";
         String dataLineToProcess;
         List<MetaData> results = new ArrayList<MetaData>();
@@ -521,7 +522,7 @@ public class MetaDataFacade {
             getFunctionalIdentifierByFuncId(itemToTest);
             return true;
         } catch (IkatsDaoException e) {
-            LOGGER.error("", e);
+            logger.error("", e);
             return false;
         }
     }
@@ -575,7 +576,8 @@ public class MetaDataFacade {
      * @return the number of funcId actually stored in database
      * @throws IkatsDaoException
      */
-    public int persistFunctionalIdentifier(Map<String, String> ids) throws IkatsDaoException {
+    public int persistFunctionalIdentifier(Map<String, String> ids)
+            throws IkatsDaoException {
         int count = 0;
         for (String tsuid : ids.keySet()) {
             FunctionalIdentifier id = new FunctionalIdentifier();
@@ -585,7 +587,7 @@ public class MetaDataFacade {
                 int added = idDao.persist(id);
                 count = count + added;
             } catch (Exception e) {
-                LOGGER.error("Unable to insert functional identifier " + id.getFuncId(), e);
+                logger.error("Unable to insert functional identifier " + id.getFuncId(), e);
                 throw new IkatsDaoException(e);
             }
         }
@@ -601,7 +603,8 @@ public class MetaDataFacade {
      * @throws IkatsDaoConflictException
      * @throws IkatsDaoException
      */
-    public int persistFunctionalIdentifier(String tsuid, String funcid) throws IkatsDaoConflictException, IkatsDaoException {
+    public int persistFunctionalIdentifier(String tsuid, String funcid)
+            throws IkatsDaoException {
 
         int count = 0;
         FunctionalIdentifier id = new FunctionalIdentifier(tsuid, funcid);
@@ -623,7 +626,8 @@ public class MetaDataFacade {
      * @throws IkatsDaoConflictException
      * @throws IkatsDaoException
      */
-    public List<Integer> persist(List<MetaData> mdList, Boolean update) throws IkatsDaoConflictException, IkatsDaoException {
+    public List<Integer> persist(List<MetaData> mdList, Boolean update)
+            throws IkatsDaoException {
         return dao.persist(mdList, update);
     }
 
@@ -635,7 +639,8 @@ public class MetaDataFacade {
      * @throws IkatsDaoException
      * @throws IkatsDaoConflictException
      */
-    public int removeFunctionalIdentifier(List<String> tsuids) throws IkatsDaoConflictException, IkatsDaoException {
+    public int removeFunctionalIdentifier(List<String> tsuids)
+            throws IkatsDaoException {
         return idDao.remove(tsuids);
     }
 
@@ -645,7 +650,8 @@ public class MetaDataFacade {
      * @param tsuid the tsuid
      * @return a list of FunctionalIdentifier, or null if nothing is found.
      */
-    public FunctionalIdentifier getFunctionalIdentifierByTsuid(String tsuid) throws IkatsDaoException {
+    public FunctionalIdentifier getFunctionalIdentifierByTsuid(String tsuid)
+            throws IkatsDaoException {
         List<String> tsuids = new ArrayList<String>();
         tsuids.add(tsuid);
         FunctionalIdentifier result = null;
@@ -664,7 +670,7 @@ public class MetaDataFacade {
      * @see FunctionalIdentifierDAO#getFromFuncId(String)
      */
     public FunctionalIdentifier getFunctionalIdentifierByFuncId(String funcId)
-            throws IkatsDaoConflictException, IkatsDaoMissingResource, IkatsDaoException {
+            throws IkatsDaoException {
         return idDao.getFromFuncId(funcId);
     }
 
@@ -687,7 +693,8 @@ public class MetaDataFacade {
      * @param tsuids list of search criteria: tsuid values
      * @return a list of FunctionalIdentifier, or null if nothing is found.
      */
-    public List<FunctionalIdentifier> getFunctionalIdentifierByTsuidList(List<String> tsuids) throws IkatsDaoException {
+    public List<FunctionalIdentifier> getFunctionalIdentifierByTsuidList(List<String> tsuids)
+            throws IkatsDaoException {
 
         List<FunctionalIdentifier> results = idDao.list(tsuids);
         return results;
@@ -699,7 +706,8 @@ public class MetaDataFacade {
      * @param funcIds list of search criteria: functional ID values
      * @return a list of FunctionalIdentifier, or null if nothing is found.
      */
-    public List<FunctionalIdentifier> getFunctionalIdentifierByFuncIdList(List<String> funcIds) throws IkatsDaoException {
+    public List<FunctionalIdentifier> getFunctionalIdentifierByFuncIdList(List<String> funcIds)
+            throws IkatsDaoException {
 
         List<FunctionalIdentifier> results = idDao.listByFuncIds(funcIds);
         return results;
@@ -710,7 +718,8 @@ public class MetaDataFacade {
      *
      * @return a list of FunctionalIdentifier, or null if nothing is found.
      */
-    public List<FunctionalIdentifier> getFunctionalIdentifiersList() throws IkatsDaoException {
+    public List<FunctionalIdentifier> getFunctionalIdentifiersList()
+            throws IkatsDaoException {
 
         List<FunctionalIdentifier> results = idDao.listAll();
         return results;
@@ -721,7 +730,7 @@ public class MetaDataFacade {
      */
     @PreDestroy
     public void destroy() {
-        LOGGER.debug("Destroying MetaDataFacade");
+        logger.debug("Destroying MetaDataFacade");
         dao.stop();
         idDao.stop();
     }
@@ -735,7 +744,8 @@ public class MetaDataFacade {
      * @return the result
      * @throws IkatsDaoException
      */
-    public List<FunctionalIdentifier> searchFuncId(List<FunctionalIdentifier> scope, Group<MetadataCriterion> formula) throws IkatsDaoException {
+    public List<FunctionalIdentifier> searchFuncId(List<FunctionalIdentifier> scope, Group<MetadataCriterion> formula)
+            throws IkatsDaoException {
         return dao.searchFuncId(scope, formula);
     }
 
@@ -748,7 +758,8 @@ public class MetaDataFacade {
      * @return the result
      * @throws IkatsDaoException
      */
-    public List<FunctionalIdentifier> searchFuncId(String datasetName, List<MetadataCriterion> criteria) throws IkatsDaoException {
+    public List<FunctionalIdentifier> searchFuncId(String datasetName, List<MetadataCriterion> criteria)
+            throws IkatsDaoException {
         return dao.searchFuncId(datasetName, criteria);
     }
 

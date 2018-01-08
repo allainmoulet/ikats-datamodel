@@ -56,8 +56,7 @@ public class AirbusDataJsonIzer extends AbstractDataJsonIzer {
         ReaderConfiguration configuration = new ReaderConfiguration();
         configuration.addColumnConfiguration(null, null, getDateFormat(), false, true);
         configuration.addColumnConfiguration(null, "Long", null, true, false);
-        SplittedLineReader reader = new SplittedLineReader(configuration);
-        return reader;
+        return new SplittedLineReader(configuration);
     }
 
     /**

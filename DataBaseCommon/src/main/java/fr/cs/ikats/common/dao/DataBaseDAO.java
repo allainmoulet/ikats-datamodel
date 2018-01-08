@@ -44,7 +44,7 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoRollbackException;
  */
 public abstract class DataBaseDAO {
 
-    private static Logger LOGGER = Logger.getLogger(DataBaseDAO.class);
+    private static Logger logger = Logger.getLogger(DataBaseDAO.class);
     private AnnotationConfiguration configuration;
     private SessionFactory sessionFactory;
 
@@ -63,7 +63,7 @@ public abstract class DataBaseDAO {
      */
     public void completeConfiguration() {
         if (sessionFactory != null) {
-            LOGGER.error("Configuration is already complete, nothing done");
+            logger.error("Configuration is already complete, nothing done");
         } else {
             sessionFactory = configuration.buildSessionFactory();
         }
@@ -76,7 +76,7 @@ public abstract class DataBaseDAO {
      */
     public void addAnnotatedClass(Class<?> annotatedClass) {
         if (sessionFactory != null) {
-            LOGGER.error("Configuration is already complete, nothing done");
+            logger.error("Configuration is already complete, nothing done");
         } else {
             configuration.addAnnotatedClass(annotatedClass);
         }
@@ -104,7 +104,7 @@ public abstract class DataBaseDAO {
             result = sessionFactory.openSession();
         } else {
             String message = "Manager not initialize, call complete configuration first";
-            LOGGER.error(message);
+            logger.error(message);
             throw new IkatsDaoException(message);
         }
         return result;
@@ -124,7 +124,7 @@ public abstract class DataBaseDAO {
      * close the sessionFactory
      */
     public void stop() {
-        LOGGER.trace("Stopping DataBase Dao : " + getClass());
+        logger.trace("Stopping DataBase Dao : " + getClass());
         sessionFactory.close();
     }
 
@@ -162,7 +162,7 @@ public abstract class DataBaseDAO {
                 rolledBackTransaction.rollback();
             }
         } catch (HibernateException e) {
-            LOGGER.error(e);
+            logger.error(e);
             throw new IkatsDaoRollbackException(causeException);
         }
 

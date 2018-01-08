@@ -133,7 +133,6 @@ public class TimeSerieResource extends AbstractResource {
     @Produces(MediaType.APPLICATION_JSON)
     public String getTS(@PathParam("metrique") String metrique, @Context UriInfo uriInfo)
             throws ResourceNotFoundException {
-        // FIXME 163211: TBC: suppress dead code getTS() and getTemporalDataManager().getTS() ...
         String response = null;
         MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters(true);
         try {

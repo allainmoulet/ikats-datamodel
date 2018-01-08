@@ -38,7 +38,6 @@ import org.apache.log4j.Logger;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.temporaldata.application.TemporalDataApplication;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
@@ -56,13 +55,6 @@ public class DataSetManager {
      * the LOGGER instance for this class
      */
     private static final Logger LOGGER = Logger.getLogger(DataSetManager.class);
-
-    /**
-     * default constructor.
-     */
-    public DataSetManager() {
-
-    }
 
     /**
      * private method to get the DataSetFacade from Spring context.
@@ -85,16 +77,11 @@ public class DataSetManager {
      * Beware: precondition: the tsuids and functional identifiers must have
      * been created by importing ts
      *
-     * @param dataSetId
-     *            the dataset id
-     * @param description
-     *            the description
-     * @param tsuids
-     *            the tsuids
-     *
+     * @param dataSetId   the dataset id
+     * @param description the description
+     * @param tsuids      the tsuids
      * @return the list of the internal id of the inserted metadata
-     * @throws IkatsDaoException
-     *             error saving the dataset
+     * @throws IkatsDaoException error saving the dataset
      */
     public String persistDataSet(String dataSetId, String description, List<String> tsuids) throws IkatsDaoException {
         return getDataSetFacade().persistDataSet(dataSetId, description, tsuids);
@@ -105,13 +92,9 @@ public class DataSetManager {
      * Beware: precondition: the tsuids and functional identifiers must have
      * been created by importing ts
      *
-     * @param dataSetId
-     *            the dataset id
-     * @param description
-     *            the description
-     * @param funcIdentifiers
-     *            the funcIdentifiers
-     *
+     * @param dataSetId       the dataset id
+     * @param description     the description
+     * @param funcIdentifiers the funcIdentifiers
      * @return the list of the internal id of the inserted metadata
      */
     public String persistDataSetFromEntity(String dataSetId, String description, List<FunctionalIdentifier> funcIdentifiers) throws IkatsDaoException {
@@ -121,11 +104,10 @@ public class DataSetManager {
     /**
      * return the list of links from one dataset to its associated timeseries (0, or more).
      *
-     * @param dataSetId
-     *            the identifier
+     * @param dataSetId the identifier
      * @return a list of LinkDatasetTimeSeries, null if dataset is not found.
      */
-    public List<LinkDatasetTimeSeries> getDataSetContent(String dataSetId) throws IkatsDaoMissingResource, IkatsDaoException {
+    public List<LinkDatasetTimeSeries> getDataSetContent(String dataSetId) throws IkatsDaoException {
         List<LinkDatasetTimeSeries> result = null;
         DataSet dataset = getDataSetFacade().getDataSet(dataSetId);
         if (dataset != null) {
@@ -138,43 +120,37 @@ public class DataSetManager {
     /**
      * return the dataset
      *
-     * @param datasetName
-     *            the identifier
+     * @param datasetName the identifier
      * @return null if dataset is not found.
      */
-    public DataSet getDataSet(String datasetName) throws IkatsDaoMissingResource, IkatsDaoException {
-        DataSet dataset = getDataSetFacade().getDataSet(datasetName);
-        return dataset;
+    public DataSet getDataSet(String datasetName) throws IkatsDaoException {
+        return getDataSetFacade().getDataSet(datasetName);
     }
 
     /**
      * Return the dataset summary
      *
-     * @param datasetName
-     *            the identifier
+     * @param datasetName the identifier
      * @return null if dataset is not found.
      */
     public DataSet getDataSetSummary(String datasetName)
-            throws IkatsDaoMissingResource, IkatsDaoException {
-        DataSet dataset = getDataSetFacade().getDataSetSummary(datasetName);
-        return dataset;
+            throws IkatsDaoException {
+        return getDataSetFacade().getDataSetSummary(datasetName);
     }
 
     /**
      * remove the dataset with identifier datasetId
      *
-     * @param datasetId
-     *            the dataset to remove
-     * @param deep
-     *            boolean flag, optional (default false): true activates the
-     *            deletion of the timeseries linked to the dataset and their associated metadata
+     * @param datasetId the dataset to remove
+     * @param deep      boolean flag, optional (default false): true activates the
+     *                  deletion of the timeseries linked to the dataset and their associated metadata
      * @throws IkatsDaoException
      */
-    public Status removeDataSet(String datasetId, Boolean deep) throws IkatsDaoMissingResource, IkatsDaoException {
+    public Status removeDataSet(String datasetId, Boolean deep) throws IkatsDaoException {
 
         String context = "Removing dataset=" + datasetId + " : ";
-        List<String> tsuidsToRemove = new ArrayList<String>();
-        List<IkatsDaoException> tsRemoveError = new ArrayList<IkatsDaoException>();
+        List<String> tsuidsToRemove = new ArrayList<>();
+        List<IkatsDaoException> tsRemoveError = new ArrayList<>();
         if (Boolean.valueOf(deep)) {
 
             // 1: evaluate tsuidsToRemove
@@ -182,7 +158,7 @@ public class DataSetManager {
             context = "Removing dataset=" + datasetId + "(mode=DEEP) : ";
             LOGGER.info(context + "step : evaluate time series that can be removed ");
 
-            List<String> tsNotRemovedWarnings = new ArrayList<String>();
+            List<String> tsNotRemovedWarnings = new ArrayList<>();
 
             DataSet dataSet = getDataSet(datasetId);
             if (dataSet == null) {
@@ -286,8 +262,7 @@ public class DataSetManager {
     /**
      * list all the dataset which include the TS
      *
-     * @param tsuid
-     *            the ts to test
+     * @param tsuid the ts to test
      * @return null list if no dataset contains the tsuid
      */
     public List<String> getContainers(String tsuid) throws IkatsDaoException {
@@ -297,10 +272,8 @@ public class DataSetManager {
     /**
      * delete the link betweend tsuid and datasetName
      *
-     * @param tsuid
-     *            the tsuid to detach from dataset
-     * @param datasetName
-     *            the dataset
+     * @param tsuid       the tsuid to detach from dataset
+     * @param datasetName the dataset
      */
     public void removeTSFromDataSet(String tsuid, String datasetName) throws IkatsDaoException {
         getDataSetFacade().removeTSFromDataSet(tsuid, datasetName);
@@ -310,22 +283,18 @@ public class DataSetManager {
      * update the dataset, set the new description, and add the non already
      * contained ts into the dataset.
      *
-     * @param datasetName
-     *            the name of the dataset to update
-     * @param description
-     *            the new description
-     * @param tsuidList
-     *            a list of tsuid to add to dataset, can be null
-     * @param updateMode
-     *            use "replace" - the default value- when the updated dataset
-     *            will exactly contains the TS defined by tsuidList: content is
-     *            explicitely defined or use "append" when the updated dataset
-     *            is appended with the TS defined by tsuidList: its previous
-     *            content is preserved
+     * @param datasetName the name of the dataset to update
+     * @param description the new description
+     * @param tsuidList   a list of tsuid to add to dataset, can be null
+     * @param updateMode  use "replace" - the default value- when the updated dataset
+     *                    will exactly contains the TS defined by tsuidList: content is
+     *                    explicitely defined or use "append" when the updated dataset
+     *                    is appended with the TS defined by tsuidList: its previous
+     *                    content is preserved
      * @return the number of TS added while updating
      */
     public int updateDataSet(String datasetName, String description, List<String> tsuidList, String updateMode)
-            throws IkatsDaoInvalidValueException, IkatsDaoMissingResource, IkatsDaoException {
+            throws IkatsDaoException {
         if ("replace".equalsIgnoreCase(updateMode)) {
             return getDataSetFacade().updateDataSet(datasetName, description, tsuidList);
         } else if ("append".equalsIgnoreCase(updateMode)) {

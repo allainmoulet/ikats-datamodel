@@ -45,7 +45,6 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.common.expr.Atom;
-import fr.cs.ikats.common.expr.Expression;
 import fr.cs.ikats.common.expr.Expression.ConnectorExpression;
 import fr.cs.ikats.common.expr.Group;
 import fr.cs.ikats.common.expr.SingleValueComparator;
@@ -88,7 +87,7 @@ public class MetaDataManager {
      * @throws IkatsDaoException             another error from DAO
      */
     public Integer persistMetaData(String tsuid, String name, String value)
-            throws IkatsDaoConflictException, IkatsDaoInvalidValueException, IkatsDaoException {
+            throws IkatsDaoException {
         return getMetaDataFacade().persistMetaData(tsuid, name, value);
     }
 
@@ -105,7 +104,7 @@ public class MetaDataManager {
      * @throws IkatsDaoException             another error
      */
     public Integer persistMetaData(String tsuid, String name, String value, String dtype)
-            throws IkatsDaoConflictException, IkatsDaoInvalidValueException, IkatsDaoException {
+            throws IkatsDaoException {
         return getMetaDataFacade().persistMetaData(tsuid, name, value, dtype);
     }
 
@@ -120,7 +119,7 @@ public class MetaDataManager {
      * @throws IkatsDaoConflictException error raised by conflict with another row in database
      * @throws IkatsDaoException         another error
      */
-    public Integer persistMetaData(String tsuid, String name, String value, MetaType dtype) throws IkatsDaoConflictException, IkatsDaoException {
+    public Integer persistMetaData(String tsuid, String name, String value, MetaType dtype) throws IkatsDaoException {
         return getMetaDataFacade().persistMetaData(tsuid, name, value, dtype);
     }
 
@@ -136,7 +135,7 @@ public class MetaDataManager {
      * @throws IkatsDaoException         another error from DAO
      */
     public Integer updateMetaData(String tsuid, String name, String value)
-            throws IkatsDaoConflictException, IkatsDaoMissingResource, IkatsDaoException {
+            throws IkatsDaoException {
         return getMetaDataFacade().updateMetaData(tsuid, name, value);
     }
 
@@ -148,11 +147,8 @@ public class MetaDataManager {
      * @return found MetaData or else null.
      * @throws IkatsDaoConflictException error raised when multiple metadata are found
      */
-    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoException, IkatsDaoConflictException {
-
-        MetaData metadata = getMetaDataFacade().getMetaData(tsuid, name);
-
-        return metadata;
+    public MetaData getMetaData(String tsuid, String name) throws IkatsDaoException {
+        return getMetaDataFacade().getMetaData(tsuid, name);
     }
 
     /**
@@ -163,7 +159,6 @@ public class MetaDataManager {
      *               already exists
      * @return a list of internal identifiers
      * @throws IkatsException any other error
-     * @since [#142998] Handling IkatsDaoException: keep all the troubles
      */
     public List<Integer> persistMetaData(InputStream fileis, Boolean update) throws IkatsException {
 
@@ -206,7 +201,7 @@ public class MetaDataManager {
      * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException       any error raised by DAO layer.
      */
-    public String getListAsCSV(List<String> tsuids) throws IkatsDaoMissingResource, IkatsDaoException {
+    public String getListAsCSV(List<String> tsuids) throws IkatsDaoException {
         MetaDataFacade facade = getMetaDataFacade();
         String separator = ";";
         Map<String, Map<String, String>> exportedMap = new HashMap<>();
@@ -235,13 +230,13 @@ public class MetaDataManager {
             sb.append(separator);
             sb.append(metadataName);
         }
-        for (String key : exportedMap.keySet()) {
+        for (Map.Entry<String, Map<String, String>> entry : exportedMap.entrySet()) {
             sb.append("\n");
-            sb.append(key);
+            sb.append(entry.getKey());
             for (String meta : metadataNameList) {
                 sb.append(separator);
-                if (exportedMap.get(key).containsKey(meta)) {
-                    sb.append(exportedMap.get(key).get(meta));
+                if (entry.getValue().containsKey(meta)) {
+                    sb.append(entry.getValue().get(meta));
                 }
             }
         }
@@ -256,11 +251,11 @@ public class MetaDataManager {
      * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException       any error raised by DAO layer.
      */
-    public List<MetaData> getList(List<String> tsuids) throws IkatsDaoMissingResource, IkatsDaoException {
+    public List<MetaData> getList(List<String> tsuids) throws IkatsDaoException {
         MetaDataFacade facade = getMetaDataFacade();
 
         // List of metadata returned
-        List<MetaData> result = new ArrayList<MetaData>();
+        List<MetaData> result = new ArrayList<>();
 
         // Parse all tsuids and concat to the result
         for (String tsuid : tsuids) {
@@ -280,11 +275,11 @@ public class MetaDataManager {
      * @throws IkatsDaoMissingResource
      * @throws IkatsDaoException
      */
-    public Map<String, List<MetaData>> getMapGroupingByTsuid(Set<String> tsuids) throws IkatsDaoMissingResource, IkatsDaoException {
+    public Map<String, List<MetaData>> getMapGroupingByTsuid(Set<String> tsuids) throws IkatsDaoException {
         MetaDataFacade facade = getMetaDataFacade();
 
         // List of metadata returned
-        Map<String, List<MetaData>> result = new HashMap<String, List<MetaData>>();
+        Map<String, List<MetaData>> result = new HashMap<>();
 
         // Iterates on each tsuid in order to complete the map
         for (String tsuid : tsuids) {
@@ -300,7 +295,7 @@ public class MetaDataManager {
      * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException       any error raised by DAO layer.
      */
-    public Map<String, String> getListTypes() throws IkatsDaoMissingResource, IkatsDaoException {
+    public Map<String, String> getListTypes() throws IkatsDaoException {
         MetaDataFacade facade = getMetaDataFacade();
         return facade.getMetaDataTypes();
     }
@@ -313,7 +308,7 @@ public class MetaDataManager {
      * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException       any error raised by DAO layer.
      */
-    public Object getList(String tsuid) throws IkatsDaoMissingResource, IkatsDaoException {
+    public Object getList(String tsuid) throws IkatsDaoException {
         MetaDataFacade facade = getMetaDataFacade();
         return facade.getMetaDataForTS(tsuid);
     }
@@ -326,9 +321,9 @@ public class MetaDataManager {
      * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid different from '*'
      * @throws IkatsDaoException       any error raised by DAO layer.
      */
-    public String getListAsCSV(String tsuid) throws IkatsDaoMissingResource, IkatsDaoException {
+    public String getListAsCSV(String tsuid) throws IkatsDaoException {
         // Convert String to List<String>
-        List<String> tsuids = new ArrayList<String>();
+        List<String> tsuids = new ArrayList<>();
         tsuids.add(tsuid);
 
         return getListAsCSV(tsuids);
@@ -364,8 +359,8 @@ public class MetaDataManager {
      * @throws IkatsDaoException
      * @throws IkatsDaoConflictException
      */
-    public int deleteFunctionalIdentifier(String tsuid) throws IkatsDaoConflictException, IkatsDaoException {
-        List<String> tsuids = new ArrayList<String>();
+    public int deleteFunctionalIdentifier(String tsuid) throws IkatsDaoException {
+        List<String> tsuids = new ArrayList<>();
         tsuids.add(tsuid);
         return getMetaDataFacade().removeFunctionalIdentifier(tsuids);
     }
@@ -488,9 +483,9 @@ public class MetaDataManager {
      * @throws ResourceNotFoundException if table or column from table is not found
      */
     private List<MetadataCriterion> criteriaConverter(List<MetadataCriterion> criteria)
-            throws IkatsDaoException, SQLException, IkatsException, ResourceNotFoundException {
+            throws IkatsDaoException, IkatsException, ResourceNotFoundException {
 
-        ArrayList<MetadataCriterion> convertedCriteria = new ArrayList<MetadataCriterion>();
+        ArrayList<MetadataCriterion> convertedCriteria = new ArrayList<>();
 
         // Parsing every criterion to detect which one must be converted
         for (MetadataCriterion criterion : criteria) {
@@ -554,7 +549,7 @@ public class MetaDataManager {
      */
     List<FunctionalIdentifier> filterByMetaWithDatasetName(String datasetName,
                                                            List<MetadataCriterion> criteria)
-            throws IkatsDaoException, IkatsException, SQLException, ResourceNotFoundException {
+            throws IkatsDaoException, IkatsException, ResourceNotFoundException {
 
         List<MetadataCriterion> convertedCriteria = criteriaConverter(criteria);
 
@@ -574,11 +569,11 @@ public class MetaDataManager {
     List<FunctionalIdentifier> filterByMetaWithTsuidList(
             List<FunctionalIdentifier> tsuidList,
             List<MetadataCriterion> lCriteria)
-            throws IkatsDaoInvalidValueException, IkatsDaoException, IkatsException, SQLException, ResourceNotFoundException {
+            throws IkatsDaoException, IkatsException, ResourceNotFoundException {
 
         Group<MetadataCriterion> lFormula = new Group<MetadataCriterion>();
         lFormula.setConnector(ConnectorExpression.AND);
-        lFormula.setTerms(new ArrayList<Expression<MetadataCriterion>>());
+        lFormula.setTerms(new ArrayList<>());
 
         List<MetadataCriterion> convertedCriteria = criteriaConverter(lCriteria);
 
@@ -592,7 +587,7 @@ public class MetaDataManager {
 
         // plug the restriction of size below
 
-        List<List<FunctionalIdentifier>> lWellDimensionedTsIdLists = new ArrayList<List<FunctionalIdentifier>>();
+        List<List<FunctionalIdentifier>> lWellDimensionedTsIdLists = new ArrayList<>();
         int currentSize = 0;
         int maxsize = 100;
         List<FunctionalIdentifier> lCurrentListIdentifiers = null;
@@ -604,7 +599,7 @@ public class MetaDataManager {
         // creating samples of 100 funcId
         for (FunctionalIdentifier functionalIdentifier : tsuidList) {
             if ((currentSize == maxsize) || (currentSize == 0)) {
-                lCurrentListIdentifiers = new ArrayList<FunctionalIdentifier>();
+                lCurrentListIdentifiers = new ArrayList<>();
                 lWellDimensionedTsIdLists.add(lCurrentListIdentifiers);
                 currentSize = 0;
             }
@@ -612,7 +607,7 @@ public class MetaDataManager {
             currentSize++;
         }
 
-        List<FunctionalIdentifier> lResult = new ArrayList<FunctionalIdentifier>();
+        List<FunctionalIdentifier> lResult = new ArrayList<>();
         for (List<FunctionalIdentifier> currentWellDimensionedList : lWellDimensionedTsIdLists) {
             lResult.addAll(getMetaDataFacade().searchFuncId(currentWellDimensionedList, lFormula));
         }

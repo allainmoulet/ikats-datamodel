@@ -76,7 +76,7 @@ public class WorkflowFacade {
      * @throws IkatsDaoConflictException create error raised on conflict with another resource
      * @throws IkatsDaoException         another error from DAO
      */
-    public Integer persist(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException {
+    public Integer persist(Workflow wf) throws IkatsDaoException {
         return dao.persist(wf);
     }
 
@@ -108,7 +108,7 @@ public class WorkflowFacade {
      * @throws IkatsDaoMissingResource if there is no workflow matching the id
      * @throws IkatsDaoException        if any other exception occurs
      */
-    public Workflow getById(Integer id) throws IkatsDaoMissingResource, IkatsDaoException {
+    public Workflow getById(Integer id) throws IkatsDaoException {
         return dao.getById(id);
     }
 
@@ -123,7 +123,7 @@ public class WorkflowFacade {
      * @throws IkatsDaoConflictException if the new name is already used (not unique)
      * @throws IkatsDaoException         if any other exception occurs
      */
-    public boolean update(Integer id, String name, String description, String raw) throws IkatsDaoConflictException, IkatsDaoException {
+    public boolean update(Integer id, String name, String description, String raw) throws IkatsDaoException {
         Workflow wf = dao.getById(id);
         wf.setName(name);
         wf.setDescription(description);
@@ -139,7 +139,7 @@ public class WorkflowFacade {
      * @throws IkatsDaoConflictException if the new name is already used (not unique)
      * @throws IkatsDaoException         if any other exception occurs
      */
-    public boolean update(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException {
+    public boolean update(Workflow wf) throws IkatsDaoException {
         return dao.update(wf);
     }
 

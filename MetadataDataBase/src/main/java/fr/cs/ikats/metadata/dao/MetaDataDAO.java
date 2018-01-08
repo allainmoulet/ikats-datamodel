@@ -70,7 +70,7 @@ import fr.cs.ikats.metadata.model.MetadataCriterion;
  */
 public class MetaDataDAO extends DataBaseDAO {
 
-    private static final Logger LOGGER = Logger.getLogger(MetaDataDAO.class);
+    private static final Logger logger = Logger.getLogger(MetaDataDAO.class);
 
     /**
      * dtypes whose value is directly compared with value of MetadataCriterion
@@ -128,13 +128,13 @@ public class MetaDataDAO extends DataBaseDAO {
             mdInfo = md.toString();
             tx = session.beginTransaction();
             mdId = (Integer) session.save(md);
-            LOGGER.debug("Created " + mdInfo + " with value=" + md.getValue());
+            logger.debug("Created " + mdInfo + " with value=" + md.getValue());
 
             tx.commit();
         } catch (ConstraintViolationException e) {
 
             String msg = "Creating: " + mdInfo + ": already exists in base for same (TSUID, name)";
-            LOGGER.warn(msg);
+            logger.warn(msg);
 
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
         } catch (RuntimeException e) {
@@ -173,7 +173,7 @@ public class MetaDataDAO extends DataBaseDAO {
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
-            LOGGER.debug("MetaDataDAO::persist(Lis<MetaData>): started transaction [" + date + "] ...");
+            logger.debug("MetaDataDAO::persist(Lis<MetaData>): started transaction [" + date + "] ...");
             for (Iterator<MetaData> iterator = mdList.iterator(); iterator.hasNext(); ) {
                 currentRow = iterator.next();
                 if (update) {
@@ -184,7 +184,7 @@ public class MetaDataDAO extends DataBaseDAO {
                     if (result.size() == 0) {
                         // creation of metadata
                         mdId = (Integer) session.save(currentRow);
-                        LOGGER.trace("- ... created metadata id=" + mdId);
+                        logger.trace("- ... created metadata id=" + mdId);
                     } else {
                         // update of metadata
                         mdId = (Integer) result.get(0);
@@ -192,22 +192,22 @@ public class MetaDataDAO extends DataBaseDAO {
                         meta.setDType(currentRow.getDType());
                         meta.setValue(currentRow.getValue());
                         session.update(meta);
-                        LOGGER.trace("- ... updated metadata id=" + mdId);
+                        logger.trace("- ... updated metadata id=" + mdId);
                     }
                 } else {
                     // creation of metadata
                     mdId = (Integer) session.save(currentRow);
-                    LOGGER.trace("- ... created metadata id=" + mdId);
+                    logger.trace("- ... created metadata id=" + mdId);
                 }
                 lProcessedIds.add(mdId);
             }
-            LOGGER.debug("MetaDataDAO::persist(List<MetaData>) has successfully imported " + mdList.size() + " metadata rows");
+            logger.debug("MetaDataDAO::persist(List<MetaData>) has successfully imported " + mdList.size() + " metadata rows");
             tx.commit();
-            LOGGER.trace("MetaDataDAO::persist(List<MetaData>): committed transaction [" + date + "]");
+            logger.trace("MetaDataDAO::persist(List<MetaData>): committed transaction [" + date + "]");
         } catch (ConstraintViolationException e) {
             mdInfo = (currentRow != null) ? currentRow.toString() : "null";
             String msg = "Importing: " + mdInfo + ": ConstraintViolationException occurred: see the full error stack in the logs for further details";
-            LOGGER.error(msg);
+            logger.error(msg);
 
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
         } catch (RuntimeException e) {
@@ -247,13 +247,13 @@ public class MetaDataDAO extends DataBaseDAO {
             tx = session.beginTransaction();
             session.update(md);
             updated = true;
-            LOGGER.debug("Updated:" + mdInfo + " with value=" + md.getValue());
+            logger.debug("Updated:" + mdInfo + " with value=" + md.getValue());
 
             tx.commit();
         } catch (ConstraintViolationException e) {
 
             String msg = "Updating: " + mdInfo + ": already exists in base for same (TSUID, name)";
-            LOGGER.warn(msg);
+            logger.warn(msg);
 
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
         } catch (RuntimeException e) {
@@ -369,7 +369,7 @@ public class MetaDataDAO extends DataBaseDAO {
                 if (result == null || (result.isEmpty())) {
                     String msg = "Searching MetaData from tsuid=" + tsuid + ": no resource found, but should exist.";
 
-                    LOGGER.error(msg);
+                    logger.error(msg);
                     throw new IkatsDaoMissingResource(msg);
                 }
             }
@@ -573,7 +573,7 @@ public class MetaDataDAO extends DataBaseDAO {
             // raised by prepareFiltersCritQuery ...
             if (tx != null) tx.rollback();
             String msg = "Resource Not found, searching functional identifiers matched by metadata criteria";
-            LOGGER.error("NOT FOUND: " + msg);
+            logger.error("NOT FOUND: " + msg);
             throw new IkatsDaoMissingResource(msg, invalidCriterionException);
         } catch (RuntimeException e) {
             if (tx != null) tx.rollback();

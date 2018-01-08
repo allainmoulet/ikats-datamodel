@@ -163,9 +163,9 @@ public class TablesMergeTest {
 
         // Build the nominal request
         Request tableMergeRequest = new Request();
-        tableMergeRequest.joinOn = "join_key";
-        tableMergeRequest.outputTableName = "output_table_name";
-        tableMergeRequest.tableNames = new String[]{table1.getName(), table2.getName()};
+        tableMergeRequest.setJoinOn("join_key");
+        tableMergeRequest.setOutputTableName("output_table_name");
+        tableMergeRequest.setTableNames(new String[]{table1.getName(), table2.getName()});
 
         try {
             // Pass it to the constructor
@@ -182,10 +182,10 @@ public class TablesMergeTest {
     public final void testTablesMergeConstructorException() throws IkatsOperatorException {
 
         Request tableMergeRequest = new Request();
-        tableMergeRequest.joinOn = "join_key";
-        tableMergeRequest.outputTableName = "output_table_name";
+        tableMergeRequest.setJoinOn("join_key");
+        tableMergeRequest.setOutputTableName("output_table_name");
         // Will raise the exception because at least 2 tables are expected
-        tableMergeRequest.tableNames = new String[]{table1.getName()};
+        tableMergeRequest.setTableNames(new String[]{table1.getName()});
 
         new TablesMerge(tableMergeRequest);
     }
@@ -197,10 +197,10 @@ public class TablesMergeTest {
     public final void testTablesMergeConstructorExceptionNoTables() throws IkatsOperatorException {
 
         Request tableMergeRequest = new Request();
-        tableMergeRequest.joinOn = "join_key";
-        tableMergeRequest.outputTableName = "output_table_name";
+        tableMergeRequest.setJoinOn("join_key");
+        tableMergeRequest.setOutputTableName("output_table_name");
         // Will raise the exception because at least 2 tables are expected
-        tableMergeRequest.tableNames = null;
+        tableMergeRequest.setTableNames(null);
 
         new TablesMerge(tableMergeRequest);
     }
@@ -236,9 +236,9 @@ public class TablesMergeTest {
 
         // Build the nominal request
         Request tableMergeRequest = new Request();
-        tableMergeRequest.joinOn = "H1-2";
-        tableMergeRequest.outputTableName = outputTableName;
-        tableMergeRequest.tableNames = new String[]{table1.getName(), table2.getName()};
+        tableMergeRequest.setJoinOn("H1-2");
+        tableMergeRequest.setOutputTableName(outputTableName);
+        tableMergeRequest.setTableNames(new String[]{table1.getName(), table2.getName()});
 
         // pass it to the constructor
         TablesMerge tablesMergeOperator = new TablesMerge(tableMergeRequest);

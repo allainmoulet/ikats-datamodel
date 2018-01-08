@@ -84,7 +84,9 @@ public class TableDAO extends DataBaseDAO {
 
             tx.commit();
         } catch (HibernateException e) {
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             // Re-raise the original exception
             throw e;
         } finally {
@@ -107,7 +109,7 @@ public class TableDAO extends DataBaseDAO {
      *
      * @throws HibernateException if there is no TableEntity matching pattern
      */
-    public List<TableEntitySummary> findByName(String pattern, boolean strict) throws HibernateException {
+    public List<TableEntitySummary> findByName(String pattern, boolean strict) {
         List<TableEntitySummary> result = null;
 
         Session session = getSession();
@@ -128,7 +130,9 @@ public class TableDAO extends DataBaseDAO {
 
             tx.commit();
         } catch (HibernateException e) {
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             // Re-raise the original exception
             throw e;
         } finally {
@@ -238,7 +242,7 @@ public class TableDAO extends DataBaseDAO {
      *
      * @throws IkatsDaoConflictException if the table to append already exists
      */
-    public Integer persist(TableEntity tableEntity) throws HibernateException, IkatsDaoConflictException {
+    public Integer persist(TableEntity tableEntity) throws IkatsDaoConflictException {
         Integer tableId = null;
 
         Session session = getSession();
@@ -252,12 +256,16 @@ public class TableDAO extends DataBaseDAO {
             tx.commit();
         } catch (ConstraintViolationException e) {
             // try to rollback
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             // Raise the exception into a specific IKATS one to allow its handling with IKATS specific handler for HTTP response  
             throw new IkatsDaoConflictException(e);
         } catch (HibernateException e) {
             // try to rollback
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             // Re-raise the original exception
             throw e;
         } finally {
@@ -278,7 +286,7 @@ public class TableDAO extends DataBaseDAO {
      * @throws IkatsDaoConflictException if the table to update does not exist
      * @throws IkatsDaoException         if any other exception occurs
      */
-    public boolean update(TableEntity tableEntity) throws IkatsDaoConflictException, IkatsDaoException {
+    public boolean update(TableEntity tableEntity) throws IkatsDaoException {
         boolean updated = false;
 
         Session session = getSession();
@@ -297,7 +305,9 @@ public class TableDAO extends DataBaseDAO {
             rollbackAndThrowException(tx, new IkatsDaoMissingResource(msg, e));
         } catch (RuntimeException e) {
             // try to rollback
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             // Re-raise the original exception
             throw e;
         } finally {
@@ -315,7 +325,7 @@ public class TableDAO extends DataBaseDAO {
      *
      * @throws HibernateException if the table couldn't be removed
      */
-    public void removeById(Integer id) throws HibernateException {
+    public void removeById(Integer id) {
 
         Session session = getSession();
         Transaction tx = null;
@@ -330,7 +340,9 @@ public class TableDAO extends DataBaseDAO {
             tx.commit();
         } catch (HibernateException e) {
             // try to rollback
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             // Re-raise the original exception
             throw e;
         } finally {

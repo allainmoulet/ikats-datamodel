@@ -70,24 +70,48 @@ import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
  */
 public class TablesMerge {
 
-    static private final Logger logger = Logger.getLogger(TablesMerge.class);
-
     /**
      * Information to be provided to the {@link TablesMerge} operator
      */
     public static class Request {
 
-        public String[] tableNames;
-        public String joinOn;
-        public String outputTableName;
+        private String[] tableNames;
+        private String joinOn;
+        private String outputTableName;
 
         public Request() {
-            ; // default constructor
+            // default constructor
+        }
+
+        public String[] getTableNames() {
+            return tableNames;
+        }
+
+        public void setTableNames(String[] tableNames) {
+            this.tableNames = tableNames;
+        }
+
+        public String getJoinOn() {
+            return joinOn;
+        }
+
+        public void setJoinOn(String joinOn) {
+            this.joinOn = joinOn;
+        }
+
+        public String getOutputTableName() {
+            return outputTableName;
+        }
+
+        public void setOutputTableName(String outputTableName) {
+            this.outputTableName = outputTableName;
         }
     }
 
     private Request request;
     private TableManager tableManager;
+
+    static private final Logger logger = Logger.getLogger(TablesMerge.class);
 
     /**
      * Table Merge operator initialization
@@ -374,7 +398,7 @@ public class TablesMerge {
             } catch (IkatsException e1) {
                 logger.info("no link managed in header", e1);
                 // Else manage header with no links
-                colHeaderElements = new ArrayList<TableElement>();
+                colHeaderElements = new ArrayList<>();
                 try {
                     // An a new element to the headers
                     for (String stringHeader : fromTable.getColumnsHeader().getItems()) {

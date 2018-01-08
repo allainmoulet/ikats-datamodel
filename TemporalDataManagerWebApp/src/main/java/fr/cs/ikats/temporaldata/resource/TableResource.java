@@ -612,11 +612,11 @@ public class TableResource extends AbstractResource {
     public Response mergeTables(TablesMerge.Request request) throws InvalidValueException, IkatsDaoException {
 
         // check output table name validity
-        tableManager.validateTableName(request.outputTableName, "mergeTables");
+        tableManager.validateTableName(request.getOutputTableName(), "mergeTables");
 
         // check that outputTableName does not already exist
-        if (tableManager.existsInDatabase(request.outputTableName)) {
-            String context = "Table name already exists : " + request.outputTableName;
+        if (tableManager.existsInDatabase(request.getOutputTableName())) {
+            String context = "Table name already exists : " + request.getOutputTableName();
             logger.error(context);
             return Response.status(Response.Status.CONFLICT).entity(context).build();
         }
@@ -631,7 +631,7 @@ public class TableResource extends AbstractResource {
 
         try {
             // check tables existence
-            for (String tableName : request.tableNames) {
+            for (String tableName : request.getTableNames()) {
                 if (!tableManager.existsInDatabase(tableName)) {
                     String msg = "Table " + tableName + " not found";
                     return Response.status(Status.BAD_REQUEST).entity(msg).build();
@@ -645,7 +645,7 @@ public class TableResource extends AbstractResource {
         try {
             // Do the job and return the name of the table
             tablesMergeOperator.apply();
-            return Response.status(Status.OK).entity(request.outputTableName).build();
+            return Response.status(Status.OK).entity(request.getOutputTableName()).build();
         } catch (IkatsOperatorException | IkatsException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
         } catch (IkatsDaoConflictException e) {
