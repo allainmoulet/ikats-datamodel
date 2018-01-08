@@ -27,8 +27,9 @@
 
 package fr.cs.ikats.datamanager.client.opentsdb;
 
-// Review#147170 javadoc expliquant l'objectif et utilisation de la classe
-public class ApiResponse {
+import java.io.Serializable;
+
+public class ApiResponse implements Serializable {
 
     private String summary;
 
@@ -62,7 +63,7 @@ public class ApiResponse {
     }
 
     /**
-     * @param statusCode the statusCode to set
+     * @param reponseCode the statusCode to set
      */
     protected void setStatusCode(int reponseCode) {
         this.statusCode = reponseCode;
@@ -90,9 +91,7 @@ public class ApiResponse {
      * Error elements returned in case of API code error response.
      */
     class Error {
-        int code;
         String message;
-        String trace;
     }
 
 }

@@ -174,7 +174,7 @@ public class MetaDataFacade {
      * @throws IkatsDaoInvalidValueException
      */
     private void throwInvalidDTypeException(String tsuid, String name, String dtype, Throwable e) throws IkatsDaoInvalidValueException {
-        throw new IkatsDaoInvalidValueException("dtype", dtype, "Unexpected dtype=" + dtype + " for MetaData on tsuid=" + tsuid + " for name=" + name,
+        throw new IkatsDaoInvalidValueException("Unexpected dtype=" + dtype + " for MetaData on tsuid=" + tsuid + " for name=" + name,
                 e);
     }
 
