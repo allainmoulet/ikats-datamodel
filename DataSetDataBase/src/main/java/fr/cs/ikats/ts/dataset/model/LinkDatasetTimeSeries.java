@@ -239,5 +239,13 @@ public class LinkDatasetTimeSeries {
             return false;
         }
     }
+
+    /**
+     * Redefinition of hashCode method to be consistent with equals
+     */
+    @Override
+    public int hashCode() {
+        return this.getTsuid().hashCode() + this.getDatasetName().hashCode();
+    }
 }
 
