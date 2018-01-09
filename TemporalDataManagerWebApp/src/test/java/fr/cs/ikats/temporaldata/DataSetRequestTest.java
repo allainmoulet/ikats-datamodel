@@ -271,6 +271,7 @@ public class DataSetRequestTest extends AbstractRequestTest {
     /**
      * Beside testRemoveDataset(): the test testDeepRemoveDataSet() is checking if facade methods are correctly called
      * in order to complete deletion with timeseries tsuidX1 and tsuidX2 attached to the deleted dataset.
+     *
      * @throws IkatsDaoMissingResource
      * @throws IkatsDaoException
      * @throws IkatsWebClientException
@@ -325,7 +326,7 @@ public class DataSetRequestTest extends AbstractRequestTest {
         // works: partial solution before injecting mocked manager(s) into the webapp tested by grizzly client 
         // mockedDataSetManager.removeDataSet(dataSetId, true);
 
-        // TODO 163211 or later: Finally: inject mockedDataSetManager into DataSetResource, 
+        // TODO : Finally: inject mockedDataSetManager into DataSetResource,
         // in the webapp tested by grizzly client (requires extra works, new dependancies ...)
         //
         // => done presently: test directly on DataSetResource
@@ -467,12 +468,10 @@ public class DataSetRequestTest extends AbstractRequestTest {
     }
 
     /**
-     *
      * @param dataSetId
      * @param description
      * @param tsuids
-     * @param mode
-     *            "replace" or "append"
+     * @param mode        "replace" or "append"
      * @throws IkatsWebClientException
      */
     private void launchDataSetUpdate(String dataSetId, String description, String tsuids, String mode) throws IkatsWebClientException {
@@ -517,7 +516,7 @@ public class DataSetRequestTest extends AbstractRequestTest {
         Client client = utils.getClientWithJSONFeature();
 
 
-        // TODO 163211 stub the dataset content ... hard-coded host removed
+        // TODO stub the dataset content ... hard-coded host removed
         Response response = utils.sendGETRequest(mediaType, client, url);
         getLogger().info(url + " : response status" + response.getStatus());
         if (response.getStatus() <= 200) {

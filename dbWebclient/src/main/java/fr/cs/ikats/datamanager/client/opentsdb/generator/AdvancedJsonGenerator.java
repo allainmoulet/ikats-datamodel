@@ -165,8 +165,7 @@ public class AdvancedJsonGenerator {
     }
 
     /**
-     * split line into tokens. authorized separators : ; OR : OR space TODO :
-     * detect forbidden separator (, OU -)
+     * split line into tokens. authorized separators : ; OR : OR space
      */
     private void lineToArray() {
         String sep;

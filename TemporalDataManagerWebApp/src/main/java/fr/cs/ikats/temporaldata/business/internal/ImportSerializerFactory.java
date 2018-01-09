@@ -77,7 +77,7 @@ public class ImportSerializerFactory {
      * @param is       inputStream to serialize
      * @param tags     list of tags common to all the points in the input file
      * @return an instance of the serializer.
-     * @throws IOException if inputStream cannot be read FIXME changer le IOExection avec une exception d'un paakge fr.cs.ikats.common
+     * @throws IOException if inputStream cannot be read
      */
     public IImportSerializer getBetterSerializer(String fileName, String metric, InputStream is, Map<String, String> tags) throws IOException {
         List<IImportSerializer> newSerializerList = getObjects();

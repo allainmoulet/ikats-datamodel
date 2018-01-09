@@ -36,8 +36,6 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 
 /**
  * ExecutorService pool factory.
- * TODO : improve the object validation in order
- * to be able to reuse the instances correctly.
  */
 public class ExecutorPoolObjectFactory implements PooledObjectFactory<ExecutorService> {
 

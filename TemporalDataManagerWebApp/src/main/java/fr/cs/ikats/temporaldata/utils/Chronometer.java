@@ -114,7 +114,6 @@ public class Chronometer {
         if (TimeUnit.MILLISECONDS.equals(unit)) {
             return "[Duration : " + timeElapsed + " ms]";
         } else {
-            // FIXME FTO : provide conversio or remove that code and the unit parameter.
             return "[Duration : " + timeElapsed + " ms]";
         }
     }

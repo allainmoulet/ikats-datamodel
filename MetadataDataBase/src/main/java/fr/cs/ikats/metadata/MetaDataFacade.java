@@ -609,8 +609,6 @@ public class MetaDataFacade {
         int count = 0;
         FunctionalIdentifier id = new FunctionalIdentifier(tsuid, funcid);
         count = idDao.persist(id);
-        // TODO error management correction in DAO layer => simplify this
-        // code ...
         if (count == 0) {
             throw new IkatsDaoException("Unable to create FunctionalIdentifier tsduid=" + tsuid + " funcId=" + funcid);
         }

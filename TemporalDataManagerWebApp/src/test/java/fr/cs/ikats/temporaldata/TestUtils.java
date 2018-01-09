@@ -401,11 +401,9 @@ public class TestUtils {
             assertTrue(apiResponse instanceof ImportResult);
             result = (ImportResult) apiResponse;
 
-            // TODO : status should be read in Response
             status = 200;
 
         } catch (ImportException e) {
-            //  TODO : status should be read in Response
             ImportExceptionHandler errorHandler = new ImportExceptionHandler();
             Response resp = errorHandler.toResponse(e);
             status = resp.getStatus();

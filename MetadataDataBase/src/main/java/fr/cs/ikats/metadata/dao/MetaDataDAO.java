@@ -113,7 +113,7 @@ public class MetaDataDAO extends DataBaseDAO {
      *
      * @param md the metadata
      * @return the internal Id for this metadata
-     * @throws IkatsDaoException         any other error
+     * @throws IkatsDaoException any other error
      */
     public Integer persist(MetaData md) throws IkatsDaoException {
         Integer mdId = null;
@@ -226,7 +226,7 @@ public class MetaDataDAO extends DataBaseDAO {
      *
      * @param md the metadata
      * @return the internal Id for this metadata
-     * @throws IkatsDaoException         if the meta doesn't exists or if database can't be accessed
+     * @throws IkatsDaoException if the meta doesn't exists or if database can't be accessed
      */
     public boolean update(MetaData md) throws IkatsDaoException {
 

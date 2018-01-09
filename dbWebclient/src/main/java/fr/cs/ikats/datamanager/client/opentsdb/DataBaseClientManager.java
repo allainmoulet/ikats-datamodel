@@ -251,7 +251,6 @@ public class DataBaseClientManager {
                 sb.append(URLEncoder.encode(tagNameValueCriteria, "UTF-8"));
             } catch (UnsupportedEncodingException e) {
                 LOGGER.error("", e);
-                // TODO throw exception for 400 Error because tags are not valid
             }
         }
         return sb.toString();
@@ -271,7 +270,6 @@ public class DataBaseClientManager {
             sb.append(URLEncoder.encode(tags, "UTF-8"));
         } catch (UnsupportedEncodingException e) {
             LOGGER.error("", e);
-            // TODO throw exception for 400 Error because tags are not valid
         }
         return sb.toString();
     }

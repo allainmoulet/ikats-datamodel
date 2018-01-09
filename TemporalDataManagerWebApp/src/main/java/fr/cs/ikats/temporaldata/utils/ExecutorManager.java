@@ -46,7 +46,6 @@ import fr.cs.ikats.datamanager.DataManagerException;
  * the tasks. This method will also return the ExeuctorServices into the pool to
  * be available for other requests.
  *
- * TODO : springify the class
  */
 public class ExecutorManager {
 
@@ -117,7 +116,8 @@ public class ExecutorManager {
      * @param executor     the executor previously borrowed
      * @param runnable     the runnalbe task to run
      * @param executorName the name of the executor
-     * @deprecated FIXME FTO voir à supprimer ou revoir la façon dont travaille l'executor manager... 1 pool par fichier d'import pourrait être plus efficace.
+     * @deprecated FTO voir à supprimer ou revoir la façon dont travaille l'executor manager... 1 pool par fichier
+     * d'import pourrait être plus efficace.
      * execute a Runnable into the executor.
      */
     public void execute(ExecutorService executor, Runnable runnable, String executorName) {
@@ -136,7 +136,8 @@ public class ExecutorManager {
      * @param executorName the name of the executor
      * @param <T>          the result type of method call
      * @return a list of execution result
-     * @deprecated FIXME FTO voir à supprimer ou revoir la façon dont travaille l'executor manager... 1 pool par fichier d'import pourrait être plus efficace.
+     * @deprecated FTO voir à supprimer ou revoir la façon dont travaille l'executor manager... 1 pool par fichier
+     * d'import pourrait être plus efficace.
      * execute a Callable into the executor.
      */
     public <T> Future<T> execute(ExecutorService executor, Callable<T> callable, String executorName) {

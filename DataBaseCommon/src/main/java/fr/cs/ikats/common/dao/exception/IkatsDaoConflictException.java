@@ -27,7 +27,7 @@
 package fr.cs.ikats.common.dao.exception;
 
 /**
- * Subclass of IkatsDaoException, 
+ * Subclass of IkatsDaoException,
  * raised in case of database conflict on a resource.
  */
 public class IkatsDaoConflictException extends IkatsDaoException {
@@ -41,7 +41,6 @@ public class IkatsDaoConflictException extends IkatsDaoException {
      *
      */
     public IkatsDaoConflictException() {
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -49,7 +48,6 @@ public class IkatsDaoConflictException extends IkatsDaoException {
      */
     public IkatsDaoConflictException(String message) {
         super(message);
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -57,7 +55,6 @@ public class IkatsDaoConflictException extends IkatsDaoException {
      */
     public IkatsDaoConflictException(Throwable cause) {
         super(cause);
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -66,7 +63,6 @@ public class IkatsDaoConflictException extends IkatsDaoException {
      */
     public IkatsDaoConflictException(String message, Throwable cause) {
         super(message, cause);
-        // TODO Auto-generated constructor stub
     }
 
     /**
@@ -77,7 +73,6 @@ public class IkatsDaoConflictException extends IkatsDaoException {
      */
     public IkatsDaoConflictException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
         super(message, cause, enableSuppression, writableStackTrace);
-        // TODO Auto-generated constructor stub
     }
 
 }

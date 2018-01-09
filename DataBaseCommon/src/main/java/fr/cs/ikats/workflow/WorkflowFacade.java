@@ -62,7 +62,6 @@ public class WorkflowFacade {
     public void init() {
         dao = new WorkflowDAO();
         dao.init("/workflowHibernate.cfg.xml");
-        // TODO analyser 161722 pourquoi pas
         dao.addAnotatedPackage("fr.cs.ikats.workflow");
         dao.addAnnotatedClass(Workflow.class);
         dao.completeConfiguration();

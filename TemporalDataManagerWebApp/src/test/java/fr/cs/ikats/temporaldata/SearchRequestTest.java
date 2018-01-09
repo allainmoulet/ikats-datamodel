@@ -93,7 +93,6 @@ public class SearchRequestTest extends AbstractRequestTest {
     @Test
     public void testLookupNotFound() throws UnsupportedEncodingException, IkatsWebClientException {
 
-        // FIXME 163211 IF DEAD CODE => remove lookup + test ? => remove this whole file SearchRequestTest
         ResourceNotFoundException expectedException = new ResourceNotFoundException(
                 "Stubbed error: resource not found");
         try {
@@ -101,7 +100,7 @@ public class SearchRequestTest extends AbstractRequestTest {
             TemporalDataManager mockedTdm = Mockito.spy(TemporalDataManager.class);
             Mockito.doThrow(expectedException).when(mockedTdm).getTS(Mockito.anyString(), Mockito.any());
 
-            // TODO 163211 or later: inject mocledTdm into tested wepapp
+            // TODO : inject mockedTdm into tested wepapp
             // and then call the client ... and read String from Response
             // ... temporary solution: call the service directly
             TimeSerieResource services = new TimeSerieResource();

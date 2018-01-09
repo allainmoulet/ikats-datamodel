@@ -137,8 +137,8 @@ public class TemporalDataManager {
     }
 
     /**
-     * FIXME : cette fonction ne valide pas un pattern de Fonctional Identifier IKATS, mais simplement les caractères autorisés pour les tags OpenTSDB
-     * validate the funcId value for the given tsuid
+     * Validate the funcId value for the given tsuid
+     * This function does not validate a pattern for functional identifier, but simply characters allowed by Open Tsdb
      *
      * @param funcId the value to validate
      * @return true
@@ -171,7 +171,6 @@ public class TemporalDataManager {
                                     String fileName) throws ImportException, DataManagerException, IOException, InterruptedException {
 
         ExecutorService executorService = ExecutorManager.getInstance().getExecutorService(ApplicationConfiguration.IMPORT_THREAD_POOL_NAME);
-        // FIXME FTO : to be static. But getConfig has to be static.
         int numberOfPointsByImport = getConfig().getIntValue(ApplicationConfiguration.IMPORT_NB_POINTS_BY_BATCH);
 
         IImportSerializer jsonizer = null;
@@ -199,8 +198,6 @@ public class TemporalDataManager {
             }
             resultats.add(futureResult);
         }
-
-        // FIXME FTO voir si la portion de code suivante devrait former endpoints permettant un traitement asynchorne des retours d'import... 
 
         // to simulate the timeout with check at each loop for diff between time started and time now
         int timeout = IMPORT_FULL_TS_TIMEOUT;
@@ -356,8 +353,6 @@ public class TemporalDataManager {
      */
     public String getTS(String metrique, MultivaluedMap<String, String> queryParams)
             throws UnsupportedEncodingException, ResourceNotFoundException {
-        // TODO: suppress dead code getAllTS() and getTemporalDataManager().getTS() ...
-        // or else FIXME ugly name confusing with another method (getTS)  completely different
         String url;
         Response response;
         url = "http://" + getHost() + getURLDbApiBase() + urlBuilder.generateLookupRequest(metrique, queryParams);

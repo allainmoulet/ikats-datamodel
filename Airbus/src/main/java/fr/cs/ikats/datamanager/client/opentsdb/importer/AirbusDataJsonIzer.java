@@ -39,8 +39,7 @@ import fr.cs.ikats.datamanager.client.importer.IImportSerializer;
 import fr.cs.ikats.datamanager.client.opentsdb.generator.ReaderConfiguration;
 import fr.cs.ikats.datamanager.client.opentsdb.generator.SplittedLineReader;
 
-// Keep spring annotations @Component @Qualifier until TemporalDataManager 'import' services require them:
-// TODO annotations to be removed once these services are suppressed from TemporalDataManager
+// Keep spring annotations @Component @Qualifier until TemporalDataManager 'import' services require them
 @Component
 @Qualifier("Airbus")
 public class AirbusDataJsonIzer extends AbstractDataJsonIzer {

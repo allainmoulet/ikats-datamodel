@@ -27,7 +27,7 @@
 package fr.cs.ikats.operators;
 
 /**
- * Generic exception for operators 
+ * Generic exception for operators
  */
 public class IkatsOperatorException extends Exception {
 
@@ -44,13 +44,11 @@ public class IkatsOperatorException extends Exception {
     }
 
     /**
-     *
      * @param message
      * @param cause
      */
     public IkatsOperatorException(String message, Throwable cause) {
         super(message, cause);
-        // TODO Auto-generated constructor stub
     }
 }
 

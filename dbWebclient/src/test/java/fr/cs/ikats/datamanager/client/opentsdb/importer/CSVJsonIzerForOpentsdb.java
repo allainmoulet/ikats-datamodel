@@ -111,7 +111,6 @@ public class CSVJsonIzerForOpentsdb implements IImportSerializer {
 
     @Override
     public boolean test(String inputline) {
-        // TODO Auto-generated method stub
         return true;
     }
 

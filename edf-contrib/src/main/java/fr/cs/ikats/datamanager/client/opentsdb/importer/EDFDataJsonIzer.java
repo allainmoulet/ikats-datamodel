@@ -44,7 +44,6 @@ import fr.cs.ikats.datamanager.client.opentsdb.generator.ReaderConfiguration;
 import fr.cs.ikats.datamanager.client.opentsdb.generator.SplittedLineReader;
 
 // Keep spring annotations @Component @Qualifier until TemporalDataManager 'import' services require them:
-// TODO annotations to be removed once these services are suppressed from TemporalDataManager
 @Component
 @Qualifier("EDF")
 public class EDFDataJsonIzer extends AbstractDataJsonIzer {

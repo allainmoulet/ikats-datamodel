@@ -51,14 +51,6 @@ public class ImportRequestTestAirbus extends ImportRequestTest {
 
     private static Logger logger = Logger.getLogger(ImportRequestTest.class);
 
-    /**
-     *
-     */
-    public ImportRequestTestAirbus() {
-        // TODO Auto-generated constructor stub
-    }
-
-
     @Test
     public void importNewAPIForAirbusData() {
         Chronometer chrono = new Chronometer("import", true);

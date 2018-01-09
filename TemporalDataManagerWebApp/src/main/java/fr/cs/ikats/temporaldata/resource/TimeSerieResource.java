@@ -140,7 +140,6 @@ public class TimeSerieResource extends AbstractResource {
         } catch (UnsupportedEncodingException e) {
             throw new ResourceNotFoundException("Get TS returned exception", e);
         }
-        // TODO : ne pas renvoyer la reponse brute, mais un JSON standardisé
         return response;
     }
 
@@ -167,7 +166,6 @@ public class TimeSerieResource extends AbstractResource {
     @Path("/tsuid/{tsuid}")
     @Produces(MediaType.APPLICATION_JSON)
     public TSInfo getTSInfo(@PathParam("tsuid") String tsuid) throws IkatsDaoException, ResourceNotFoundException, IkatsException {
-        // FIXME 163211: TBC:  suppress dead code getTSInfo() and getTemporalDataManager().getTS() ...
         String response = null;
         response = getTemporalDataManager().getMetaData(tsuid);
 
@@ -209,7 +207,6 @@ public class TimeSerieResource extends AbstractResource {
     @Path("tsuid")
     @Produces(MediaType.APPLICATION_JSON)
     public List<TSInfo> getAllTS() throws ResourceNotFoundException, IkatsException {
-        // FIXME 163211: TBC: suppress dead code getAllTS() and getTemporalDataManager().getTS() ...
         String response = null;
         try {
             response = getTemporalDataManager().getTS("*", null);
@@ -262,7 +259,6 @@ public class TimeSerieResource extends AbstractResource {
                         @QueryParam("ag") String aggregationMethod, @QueryParam("ds") String downSampler,
                         @QueryParam("dp") String downSamplerPeriod,
                         @QueryParam("di") @DefaultValue("false") boolean downSamplingAdditionalInformation) {
-        // FIXME 163211 or later: To be confirmed: dead code ??? now ikats directly uses the opentsdb service.
         Chronometer chrono = new Chronometer("QueryResource:getTS", true);
         String response;
         try {

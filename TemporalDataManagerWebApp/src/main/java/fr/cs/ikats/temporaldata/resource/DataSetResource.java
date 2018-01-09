@@ -126,7 +126,7 @@ public class DataSetResource extends AbstractResource {
         String message = "Import sucessful : dataset stored with id " + result;
         logger.info(message);
 
-        // FIXME : URI devrait être à new URI("/dataset/" + datasetId) car c'est
+        // URI devrait être à new URI("/dataset/" + datasetId) car c'est
         // la loc de la resource crée qu'il faut renvoyer càd l'URI d'accès de
         // la ressource en mode GET.
         return Response.created(new URI("/dataset/import/" + datasetId)).entity(message).build();

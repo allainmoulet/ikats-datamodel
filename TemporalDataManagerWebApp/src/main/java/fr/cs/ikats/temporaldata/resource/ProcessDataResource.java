@@ -72,10 +72,6 @@ import fr.cs.ikats.temporaldata.utils.Chronometer;
 
 /**
  * resource for ProcessData
- * <p>
- * TODO [#143428] Correction sur la gestion des exceptions sur le gest. de
- * données.
- * <p>
  * ICI: refactoring exceptions: simplifier avec IkatsDaoException => revoir les
  * declaratons throws et les handlers sous-jacents afin
  * - d'unifier sous IkatsDaoException
@@ -177,8 +173,6 @@ public class ProcessDataResource extends AbstractResource {
     @Path("/id/{id}")
     @Produces(MediaType.MULTIPART_FORM_DATA)
     public Response getProcessData(@PathParam("id") Integer id) throws IkatsDaoException, ResourceNotFoundException, IkatsException {
-
-        // TODO : service a supprimer ??? PAS UTILISE
 
         ProcessData result = processDataManager.getProcessPieceOfData(id);
 

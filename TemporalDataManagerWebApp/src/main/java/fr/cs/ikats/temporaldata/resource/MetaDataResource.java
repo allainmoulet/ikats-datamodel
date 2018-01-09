@@ -258,8 +258,7 @@ public class MetaDataResource extends AbstractResource {
             response = Response.ok(getOut(csvStr)).header("Content-Disposition", "attachment;filename=" + filename).build();
         } catch (IkatsDaoMissingResource e) {
             // just to add a message in the logger ...
-            // TODO TBC error level instead of warning ?
-            logger.warn("Unable to find tsuid " + tsuids + " in database");
+            logger.error("Unable to find tsuid " + tsuids + " in database");
             throw e; // ... response encoded by IkatsDaoExceptionHandler
         }
         return response;
@@ -282,16 +281,13 @@ public class MetaDataResource extends AbstractResource {
     public List<MetaData> getJsonMetaData(@QueryParam("tsuid") String tsuids) throws ResourceNotFoundException, IkatsDaoException {
 
         // Handle multiple tsuids separated by ','
-        List<String> tsuidslist = new ArrayList<String>();
+        List<String> tsuidslist = new ArrayList<>();
         List<MetaData> result;
         try {
-            tsuidslist = new ArrayList<String>(Arrays.asList(tsuids.split(",")));
+            tsuidslist = new ArrayList<>(Arrays.asList(tsuids.split(",")));
             result = metadataManager.getList(tsuidslist);
         } catch (IkatsDaoMissingResource e) {
             // ResourceNotFoundException is equivalent to
-            // IkatsDaoMissingRessource
-
-            // TODO low+TBC: replace ResourceNotFoundException by
             // IkatsDaoMissingRessource
             throw new ResourceNotFoundException(tsuids, e);
         } catch (IkatsDaoException otherE) {
@@ -313,9 +309,6 @@ public class MetaDataResource extends AbstractResource {
             result = metadataManager.getList(tsuidslist);
         } catch (IkatsDaoMissingResource e) {
             // ResourceNotFoundException is equivalent to
-            // IkatsDaoMissingRessource
-
-            // TODO low+TBC: replace ResourceNotFoundException by
             // IkatsDaoMissingRessource
             throw new ResourceNotFoundException(tsuids.toString(), e);
         } catch (IkatsDaoException otherE) {

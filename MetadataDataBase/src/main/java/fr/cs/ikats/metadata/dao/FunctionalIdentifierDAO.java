@@ -57,7 +57,7 @@ public class FunctionalIdentifierDAO extends DataBaseDAO {
     private static final Logger LOGGER = Logger.getLogger(FunctionalIdentifierDAO.class);
 
     /**
-     * Maximum limit of the SQL 'IN' clause, that cause JDBC driver to hang. TODO think to move this elsewhere...
+     * Maximum limit of the SQL 'IN' clause, that cause JDBC driver to hang.
      */
     private static final int MAX_SQL_IN_CLAUSE_LIMIT = 20000;
 
