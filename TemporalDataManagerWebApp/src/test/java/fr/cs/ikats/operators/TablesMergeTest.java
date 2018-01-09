@@ -24,13 +24,9 @@
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
- *
  */
 
 package fr.cs.ikats.operators;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -39,21 +35,23 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import fr.cs.ikats.table.TableEntity;
 import org.apache.log4j.Logger;
-import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import fr.cs.ikats.operators.TablesMerge.Request;
+import fr.cs.ikats.table.TableEntity;
 import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
 import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 public class TablesMergeTest {
 
@@ -155,7 +153,7 @@ public class TablesMergeTest {
         table3 = buildTableFromCSVString("table3", TABLE3_CSV, false, false);
         table4 = buildTableFromCSVString("table4", TABLE4_CSV, false, false);
         table5 = buildTableFromCSVString("table5", TABLE5_CSV, true, false);
-        }
+    }
 
     /**
      * Construction check with 2 tables -> OK
@@ -165,9 +163,9 @@ public class TablesMergeTest {
 
         // Build the nominal request
         Request tableMergeRequest = new Request();
-        tableMergeRequest.joinOn = "join_key";
-        tableMergeRequest.outputTableName = "output_table_name";
-        tableMergeRequest.tableNames = new String[]{table1.getName(), table2.getName()};
+        tableMergeRequest.setJoinOn("join_key");
+        tableMergeRequest.setOutputTableName("output_table_name");
+        tableMergeRequest.setTableNames(new String[]{table1.getName(), table2.getName()});
 
         try {
             // Pass it to the constructor
@@ -184,10 +182,10 @@ public class TablesMergeTest {
     public final void testTablesMergeConstructorException() throws IkatsOperatorException {
 
         Request tableMergeRequest = new Request();
-        tableMergeRequest.joinOn = "join_key";
-        tableMergeRequest.outputTableName = "output_table_name";
+        tableMergeRequest.setJoinOn("join_key");
+        tableMergeRequest.setOutputTableName("output_table_name");
         // Will raise the exception because at least 2 tables are expected
-        tableMergeRequest.tableNames = new String[]{table1.getName()};
+        tableMergeRequest.setTableNames(new String[]{table1.getName()});
 
         new TablesMerge(tableMergeRequest);
     }
@@ -199,10 +197,10 @@ public class TablesMergeTest {
     public final void testTablesMergeConstructorExceptionNoTables() throws IkatsOperatorException {
 
         Request tableMergeRequest = new Request();
-        tableMergeRequest.joinOn = "join_key";
-        tableMergeRequest.outputTableName = "output_table_name";
+        tableMergeRequest.setJoinOn("join_key");
+        tableMergeRequest.setOutputTableName("output_table_name");
         // Will raise the exception because at least 2 tables are expected
-        tableMergeRequest.tableNames = null;
+        tableMergeRequest.setTableNames(null);
 
         new TablesMerge(tableMergeRequest);
     }
@@ -238,9 +236,9 @@ public class TablesMergeTest {
 
         // Build the nominal request
         Request tableMergeRequest = new Request();
-        tableMergeRequest.joinOn = "H1-2";
-        tableMergeRequest.outputTableName = outputTableName;
-        tableMergeRequest.tableNames = new String[]{table1.getName(), table2.getName()};
+        tableMergeRequest.setJoinOn("H1-2");
+        tableMergeRequest.setOutputTableName(outputTableName);
+        tableMergeRequest.setTableNames(new String[]{table1.getName(), table2.getName()});
 
         // pass it to the constructor
         TablesMerge tablesMergeOperator = new TablesMerge(tableMergeRequest);
@@ -249,7 +247,7 @@ public class TablesMergeTest {
         tablesMergeOperator.apply();
 
         // Direct connection to the database
-        TableEntity writtenData = tableManager.dao.getByName(outputTableName);
+        TableEntity writtenData = tableManager.getDao().getByName(outputTableName);
 
         // Check the record in database
         assertEquals(writtenData.getName(), outputTableName);

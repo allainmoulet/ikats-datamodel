@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,43 +10,44 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.temporaldata;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.datamanager.client.RequestSender;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.workflow.Workflow;
 import fr.cs.ikats.workflow.WorkflowFacade;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
 
@@ -81,7 +82,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
                 result = RequestSender.sendPOSTRequest(getAPIURL() + url, wfEntity);
                 break;
             case GET:
-                result = RequestSender.sendGETRequest(getAPIURL() + url, null);
+                result = RequestSender.sendGETRequest(getAPIURL() + url);
                 break;
             case PUT:
                 result = RequestSender.sendPUTRequest(getAPIURL() + url, wfEntity);
@@ -103,11 +104,11 @@ public class MacroOpResourceTest extends AbstractRequestTest {
      * @return the added workflow 
      * @throws IkatsDaoException if something fails
      */
-    private Workflow addWfToDb(Integer number) throws IkatsDaoException { 
+    private Workflow addWfToDb(Integer number) throws IkatsDaoException {
 
         Workflow wf = new Workflow();
 
-        wf.setName("Workflow_" + number.toString());  
+        wf.setName("Workflow_" + number.toString());
         wf.setDescription("Description about Workflow_" + number.toString());
         wf.setMacroOp(false);
         wf.setRaw("Raw content " + number.toString());
@@ -650,7 +651,8 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         response = callAPI(VERB.GET, "/mo/", null);
         List<Workflow> readMacroOpList = response.readEntity(new GenericType<List<Workflow>>() {
         });
-        assertEquals(2,readMacroOpList.size());    }
+        assertEquals(2, readMacroOpList.size());
+    }
 
     /**
      * Macro operator deletion - Robustness case - Bad Request
@@ -772,7 +774,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
 
         List<Workflow> readWorkflowList = response.readEntity(new GenericType<List<Workflow>>() {
         });
-        assertEquals(1,readWorkflowList.size());
+        assertEquals(1, readWorkflowList.size());
     }
 
     /**

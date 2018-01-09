@@ -28,7 +28,6 @@
 
 package fr.cs.ikats.temporaldata.business.table;
 
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;

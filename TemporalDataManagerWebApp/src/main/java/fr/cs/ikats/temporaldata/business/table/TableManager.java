@@ -51,7 +51,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.lang.NaturalOrderComparator;
 import fr.cs.ikats.table.TableDAO;
 import fr.cs.ikats.table.TableEntity;
@@ -88,10 +88,18 @@ public class TableManager {
      */
     private ObjectMapper jsonObjectMapper;
 
+    public TableDAO getDao() {
+        return dao;
+    }
+
+    public void setDao(TableDAO dao) {
+        this.dao = dao;
+    }
+
     /**
      * DAO object to access the Workflow storage
      */
-    public TableDAO dao;
+    private TableDAO dao;
 
     /**
      * Default constructor for default configuration of jsonObjectMapper.
@@ -378,7 +386,7 @@ public class TableManager {
 
         // process table raw data
         // first concatenate table data content + headers in a single matrix
-        List<List<Object>> tableFullContent = new ArrayList<>();
+        ArrayList<List<Object>> tableFullContent = new ArrayList<>();
         String topCornerLeft;
         if (table.isHandlingColumnsHeader() && table.isHandlingRowsHeader()) {
             // case : top corner left including 2 headers value separated by "|"
@@ -457,11 +465,11 @@ public class TableManager {
      *
      * @param tableName the name of the table is its unique identifier
      * @return read resource TableInfo.
-     * @throws IkatsJsonException       failed to read consistent JSON format into TableInfo structure.
-     * @throws IkatsDaoMissingRessource the table name tableName is not matched in the database.
+     * @throws IkatsJsonException      failed to read consistent JSON format into TableInfo structure.
+     * @throws IkatsDaoMissingResource the table name tableName is not matched in the database.
      */
     public TableInfo readFromDatabase(String tableName)
-            throws IkatsDaoMissingRessource, IkatsException {
+            throws IkatsDaoMissingResource, IkatsException {
 
         TableEntity dataTable = dao.getByName(tableName);
 

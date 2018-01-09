@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,31 +10,37 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.ts.dataset.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
-import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 /**
  * DataSet model class, link a named dataset with a list of tsuids.
@@ -46,7 +52,9 @@ public class DataSet {
     /**
      * all dataset name and description request
      */
-    public final static String LIST_ALL_DATASETS = "SELECT tsdataset.name as name, tsdataset.description as description, COUNT(timeseries_dataset.tsuid) AS nb_ts FROM tsdataset, timeseries_dataset WHERE tsdataset.name = timeseries_dataset.dataset_name GROUP BY tsdataset.name, tsdataset.description";
+    public final static String LIST_ALL_DATASETS = "SELECT tsdataset.name as name, tsdataset.description as " +
+            "description, COUNT(timeseries_dataset.tsuid) AS nb_ts FROM tsdataset, timeseries_dataset WHERE " +
+            "tsdataset.name = timeseries_dataset.dataset_name GROUP BY tsdataset.name, tsdataset.description";
 
     /**
      * name of the dataset
@@ -181,8 +189,7 @@ public class DataSet {
             for (LinkDatasetTimeSeries timeSeries : linksToTimeSeries) {
                 if (!lStart) {
                     lBuff.append(", ");
-                }
-                else {
+                } else {
                     lStart = false;
                 }
                 timeSeries.getFuncIdentifier();
@@ -203,20 +210,19 @@ public class DataSet {
      * <br/>
      * Using Hibernate: advised to implement equals: see §13.1.3
      * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
-     * 
+     *
      * {@inheritDoc}
      */
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof DataSet) {
             DataSet dsObj = (DataSet) obj;
-            return this.name.equals(dsObj.name); 
-        }
-        else {
+            return this.name.equals(dsObj.name);
+        } else {
             return false;
         }
     }
-    
+
     /**
      * Using Hibernate: advised to implement hashcode: see §13.1.3
      * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
@@ -224,8 +230,8 @@ public class DataSet {
      */
     @Override
     public int hashCode() {
-     
-    	return (""+ name + "DS").hashCode();
+
+        return ("" + name + "DS").hashCode();
     }
 
     public Long getNb_ts() {

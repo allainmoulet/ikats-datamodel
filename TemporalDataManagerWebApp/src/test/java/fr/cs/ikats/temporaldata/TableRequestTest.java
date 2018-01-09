@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,35 +10,37 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.temporaldata;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.table.TableEntitySummary;
-import fr.cs.ikats.temporaldata.business.table.Table;
-import fr.cs.ikats.temporaldata.business.table.TableInfo;
-import fr.cs.ikats.temporaldata.business.table.TableManager;
-import fr.cs.ikats.temporaldata.exception.IkatsException;
-import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
-import fr.cs.ikats.temporaldata.exception.InvalidValueException;
-import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Scanner;
+
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.WebTarget;
+import javax.ws.rs.core.Response;
+
 import org.glassfish.jersey.jackson.JacksonFeature;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
@@ -49,15 +51,15 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.client.WebTarget;
-import javax.ws.rs.core.Response;
-import java.io.*;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Scanner;
+import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.table.TableEntitySummary;
+import fr.cs.ikats.temporaldata.business.table.Table;
+import fr.cs.ikats.temporaldata.business.table.TableInfo;
+import fr.cs.ikats.temporaldata.business.table.TableManager;
+import fr.cs.ikats.temporaldata.exception.IkatsException;
+import fr.cs.ikats.temporaldata.exception.InvalidValueException;
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 
 import static org.junit.Assert.assertEquals;
 
@@ -65,7 +67,7 @@ import static org.junit.Assert.assertEquals;
  * JUNit class testing TableResource services.
  */
 public class TableRequestTest extends AbstractRequestTest {
-    
+
     @BeforeClass
     public static void setUpBeforClass() {
         AbstractRequestTest.setUpBeforClass(ImportRequestTest.class.getSimpleName());
@@ -77,9 +79,9 @@ public class TableRequestTest extends AbstractRequestTest {
     }
 
     /**
-     * Remove all data before and after running each test. 
+     * Remove all data before and after running each test.
      * (avoids to change the current tests and ensure that there will be no remaining data at the last test)
-     * 
+     *
      * @throws IkatsDaoException
      */
     @Before
@@ -87,7 +89,7 @@ public class TableRequestTest extends AbstractRequestTest {
     public void setUpAndTearDownTest() throws IkatsDaoException, ResourceNotFoundException {
         TableManager tableManager = new TableManager();
         List<TableEntitySummary> procDataTables = tableManager.listTables();
-        
+
         for (TableEntitySummary procDataTable : procDataTables) {
             tableManager.deleteFromDatabase(procDataTable.getName());
         }
@@ -125,16 +127,10 @@ public class TableRequestTest extends AbstractRequestTest {
         TableManager tableManager = new TableManager();
         TableInfo tableIn = tableManager.loadFromJson(jsonTableIn);
 
-        System.out.println("IN ...");
-        System.out.println(tableManager.serializeToJson(tableIn));
-
         doTs2Feature(tableName, "metric", "flightId", "outputTableTest", 200);
 
         String jsonTableOut = doGetDataDownload("outputTableTest");
         TableInfo tableOut = tableManager.loadFromJson(jsonTableOut);
-
-        System.out.println("OUT ...");
-        System.out.println(tableManager.serializeToJson(tableOut));
 
         assertEquals(Arrays.asList("flightId",
                 "M1_B1_OP1", "M1_B2_OP1", "M1_B1_OP2", "M1_B2_OP2",
@@ -148,7 +144,8 @@ public class TableRequestTest extends AbstractRequestTest {
     /**
      * test of table trainTestSplit use case
      * case : nominal (http code 200 returned)
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     @Test
     public void testTrainTestSplitNominal() throws IOException, IkatsException, InvalidValueException, IkatsDaoConflictException {
@@ -166,7 +163,7 @@ public class TableRequestTest extends AbstractRequestTest {
 
         // Checking only size of result as tables can not be accessed by rid
         assertEquals(2, ridList.size());
-        
+
     }
 
     /**
@@ -178,17 +175,17 @@ public class TableRequestTest extends AbstractRequestTest {
         String testCaseName = "testTableDownload";
 
         File file = getFileMatchingResource(testCaseName, "/data/test_import_table_nominal.csv");
-    
+
         getLogger().info("CSV table file : " + file.getAbsolutePath());
         String tableName = "testTableDownload";
         String url = getAPIURL() + "/table";
         doImport(url, file, "CSV", 200, "timestamp", tableName);
-    
+
         String jsonTable = doGetDataDownload(tableName);
         TableManager tableManager = new TableManager();
         TableInfo tableInfo = tableManager.loadFromJson(jsonTable);
         Table table = tableManager.initTable(tableInfo, false);
-    
+
         assertEquals(Arrays.asList("timestamp", "value"), table.getColumnsHeader().getItems(String.class));
         assertEquals(Arrays.asList(null,
                 "2015-12-10T14:55:30.5"
@@ -204,7 +201,7 @@ public class TableRequestTest extends AbstractRequestTest {
                 , "2015-12-10T14:56:37.5"
                 , "2015-12-10T14:56:59.0"
                 , "2015-12-10T14:56:40.5"), table.getRowsHeader().getItems(String.class));
-    
+
         assertEquals(Arrays.asList("6"
                 , "3"
                 , "2"
@@ -224,7 +221,8 @@ public class TableRequestTest extends AbstractRequestTest {
     /**
      * test of table creation from a csv file
      * case : nominal (http code 200 returned)
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     @Test
     public void testImportTablefromCSVFileNominal() throws IOException {
@@ -242,12 +240,13 @@ public class TableRequestTest extends AbstractRequestTest {
     /**
      * test of table creation from a csv file
      * case : table name provided with illegal characters (http code 406 returned)
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     @Test
     public void testImportTableIncorrectName() throws IOException {
         String testCaseName = "testImportTablefromCSVFile";
-        
+
         File file = getFileMatchingResource(testCaseName, "/data/test_import_table_nominal.csv");
 
         getLogger().info("CSV table file : " + file.getAbsolutePath());
@@ -260,7 +259,8 @@ public class TableRequestTest extends AbstractRequestTest {
     /**
      * test of table creation from a csv file
      * case : table already exists (http code 409 returned)
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     @Test
     public void testImportTableAlreadyExists() throws IOException {
@@ -285,7 +285,8 @@ public class TableRequestTest extends AbstractRequestTest {
     /**
      * test of table creation from a csv file
      * case : table contains doubloons (http code 400 returned)
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     @Test
     public void testImportTablefromCSVFileWithDoubloon() throws IOException {
@@ -304,7 +305,8 @@ public class TableRequestTest extends AbstractRequestTest {
     /**
      * test of table creation from a csv file
      * case : table contains incorrect line length (http code 400 returned)
-     * @throws IOException 
+     *
+     * @throws IOException
      */
     @Test
     public void testImportTablefromIncorrectCSVFile() throws IOException {
@@ -361,18 +363,17 @@ public class TableRequestTest extends AbstractRequestTest {
     }
 
     private String convertStreamToString(java.io.InputStream is) {
-        
+
         Scanner scanner = new Scanner(is);
         try {
             Scanner s = scanner.useDelimiter("\\A");
             return s.hasNext() ? s.next() : "";
-        }
-        finally {
+        } finally {
             // close resource(s) the scanner and its wrapper
             scanner.close();
         }
     }
-        
+
 
     private String doTs2Feature(String tableName, String metaName, String populationId, String outputTableName,
                                 int statusExpected) throws IOException {

@@ -40,24 +40,23 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
-import fr.cs.ikats.temporaldata.business.DataSetManager;
-import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
-import fr.cs.ikats.temporaldata.business.MetaDataManager;
-import fr.cs.ikats.temporaldata.business.table.Table;
-import fr.cs.ikats.temporaldata.business.table.TableElement;
-import fr.cs.ikats.temporaldata.business.table.TableInfo;
-import fr.cs.ikats.temporaldata.business.table.TableManager;
-import fr.cs.ikats.temporaldata.business.table.TableInfo.DataLink;
-
 import org.apache.log4j.Logger;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.expr.SingleValueComparator;
 import fr.cs.ikats.lang.NaturalOrderComparator;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
+import fr.cs.ikats.temporaldata.business.DataSetManager;
+import fr.cs.ikats.temporaldata.business.FilterOnTsWithMetadata;
+import fr.cs.ikats.temporaldata.business.MetaDataManager;
+import fr.cs.ikats.temporaldata.business.table.Table;
+import fr.cs.ikats.temporaldata.business.table.TableElement;
+import fr.cs.ikats.temporaldata.business.table.TableInfo;
+import fr.cs.ikats.temporaldata.business.table.TableInfo.DataLink;
+import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
@@ -77,7 +76,7 @@ public class JoinTableWithTs {
      */
     private static final Logger LOGGER = Logger.getLogger(JoinTableWithTs.class);
 
-    final static String MSG_TABLE_PROCESSING_CONTEXT = "[JoinTableWithTs step ''{0}'' on table='''{1}']";
+    static final String MSG_TABLE_PROCESSING_CONTEXT = "[JoinTableWithTs step ''{0}'' on table='''{1}']";
     static final String MSG_DAO_KO_JOIN_BY_METRICS = "Failed to apply operator in context=''{2}'': DAO error occured with dataset name=''{0}'' on metrics=''{1}''";
     static final String MSG_INVALID_METRICS_FOR_JOIN_BY_METRICS = "Invalid metrics value=''{0}'' with dataset name=''{1}'' context=''{2}''";
     static final String MSG_INVALID_TABLE_FOR_JOIN_BY_METRICS = "Invalid table in context=''{0}'' with dataset name=''{1}'' and metrics=''{2}''";
@@ -146,8 +145,7 @@ public class JoinTableWithTs {
      */
     public void apply(TableInfo tableInfo, String metrics, String dataset, String joinColName, String joinMetaName,
                       String targetColName, String outputTableName)
-            throws InvalidValueException, ResourceNotFoundException, IkatsException, IkatsDaoException,
-            IkatsDaoConflictException {
+            throws InvalidValueException, IkatsException, IkatsDaoException {
         String prefixeChrono = "JoinTableWithTs: init";
         Chronometer chrono = new Chronometer(prefixeChrono, true);
         try {
@@ -205,7 +203,6 @@ public class JoinTableWithTs {
             //
             processingContext = "loads the JSON content";
 
-            TableManager tableManager = new TableManager();
             processedTable = tableManager.initTable(tableInfo, false);
 
             processingContext = "check+prepare parameters";
@@ -218,7 +215,7 @@ public class JoinTableWithTs {
 
             String finalTargetName = targetColName == null ? "" : targetColName.trim();
 
-            if (outputTableName == null || outputTableName.equals("")) {
+            if (outputTableName == null || "".equals(outputTableName)) {
                 String msg = MessageFormat.format(JoinTableWithTs.MSG_INVALID_INPUT_ERROR_JOIN_BY_METRICS,
                         "outputTableName", "", dataset, metrics, getContext());
                 throw new InvalidValueException(msg);
@@ -292,7 +289,7 @@ public class JoinTableWithTs {
             // <join name> => Metric name => TSUID
             //
             List<String> listMetrics = Arrays.asList(preparedMetrics.split("\\s*;\\s*"));
-            Map<String, Map<String, FunctionalIdentifier>> joinMap = new HashMap<String, Map<String, FunctionalIdentifier>>();
+            Map<String, Map<String, FunctionalIdentifier>> joinMap = new HashMap<>();
 
             // set metricsInDataset: set of metrics in dataset selection
             Set<String> metricsInDataset = new HashSet<>();
@@ -312,7 +309,7 @@ public class JoinTableWithTs {
 
                     if (finalJoinByMetaName.equals(metaName)) {
                         joinIdentifier = metaData.getValue();
-                    } else if (metaName.equals("metric") && listMetrics.contains(metaData.getValue())) {
+                    } else if ("metric".equals(metaName) && listMetrics.contains(metaData.getValue())) {
                         metric = metaData.getValue();
                     }
                 }
@@ -323,7 +320,7 @@ public class JoinTableWithTs {
                     //
                     Map<String, FunctionalIdentifier> fromMetricToFuncId = joinMap.get(joinIdentifier);
                     if (fromMetricToFuncId == null) {
-                        fromMetricToFuncId = new HashMap<String, FunctionalIdentifier>();
+                        fromMetricToFuncId = new HashMap<>();
                         joinMap.put(joinIdentifier, fromMetricToFuncId);
 
                     }

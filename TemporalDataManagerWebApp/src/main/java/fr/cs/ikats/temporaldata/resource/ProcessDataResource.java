@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,38 +10,23 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.temporaldata.resource;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.process.data.model.ProcessData;
-import fr.cs.ikats.temporaldata.business.ProcessDataManager;
-import fr.cs.ikats.temporaldata.business.ProcessDataManager.ProcessResultTypeEnum;
-import fr.cs.ikats.temporaldata.exception.IkatsException;
-import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
-import fr.cs.ikats.temporaldata.utils.Chronometer;
-import org.apache.log4j.Logger;
-import org.glassfish.jersey.media.multipart.*;
-import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
-
-import javax.ws.rs.*;
-import javax.ws.rs.core.*;
-import javax.ws.rs.core.Response.ResponseBuilder;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,12 +37,41 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.FormParam;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.ResponseBuilder;
+import javax.ws.rs.core.StreamingOutput;
+import javax.ws.rs.core.UriInfo;
+
+import org.apache.log4j.Logger;
+import org.glassfish.jersey.media.multipart.BodyPart;
+import org.glassfish.jersey.media.multipart.FormDataBodyPart;
+import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
+import org.glassfish.jersey.media.multipart.FormDataMultiPart;
+import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.glassfish.jersey.media.multipart.file.StreamDataBodyPart;
+
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.process.data.model.ProcessData;
+import fr.cs.ikats.temporaldata.business.ProcessDataManager;
+import fr.cs.ikats.temporaldata.business.ProcessDataManager.ProcessResultTypeEnum;
+import fr.cs.ikats.temporaldata.exception.IkatsException;
+import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
+import fr.cs.ikats.temporaldata.utils.Chronometer;
+
 /**
  * resource for ProcessData
- * <p>
- * TODO [#143428] Correction sur la gestion des exceptions sur le gest. de
- * données.
- * <p>
  * ICI: refactoring exceptions: simplifier avec IkatsDaoException => revoir les
  * declaratons throws et les handlers sous-jacents afin
  * - d'unifier sous IkatsDaoException
@@ -90,7 +104,7 @@ public class ProcessDataResource extends AbstractResource {
     @GET
     @Path("/{processId}")
     @Produces(MediaType.APPLICATION_JSON)
-    public List<ProcessData> getProcessData(@PathParam("processId") String processId) throws ResourceNotFoundException {
+    public List<ProcessData> getProcessData(@PathParam("processId") String processId) throws IkatsDaoException, ResourceNotFoundException {
         List<ProcessData> result = processDataManager.getProcessData(processId);
         if (result == null) {
             throw new ResourceNotFoundException("No ProcessResult found for processId " + processId);
@@ -112,48 +126,33 @@ public class ProcessDataResource extends AbstractResource {
     @Path("/id/download/{id}")
     public Response downloadProcessData(@PathParam("id") Integer id) throws ResourceNotFoundException, SQLException, IkatsDaoException {
 
-        // Response res = null;
         ProcessData result = processDataManager.getProcessPieceOfData(id);
 
         if (result == null) {
             throw new ResourceNotFoundException("No ProcessResult found for processId " + id);
         }
 
-        try {
+        logger.info(result.toString());
 
-            logger.info(result.toString());
+        String fileName = result.getName();
+        ResponseBuilder responseBuilder;
 
-            String fileName = result.getName();
-            ResponseBuilder responseBuilder;
-
-            if (result.getDataType().equals(ProcessResultTypeEnum.ANY.toString())) {
-//                byte[] bytes = result.getData().getBytes(1, (int) result.getData().length());
-                byte[] bytes = result.getData();
-                logger.trace("Body written : " + Arrays.toString(bytes) + " END");
-                responseBuilder = Response.ok(bytes, MediaType.APPLICATION_OCTET_STREAM);
-            } else if (result.getDataType().equals(ProcessResultTypeEnum.JSON.toString())) {
-//                String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
-                String jsonString = new String(result.getData(), Charset.defaultCharset());
-                logger.trace("JSON String written : " + jsonString + " END");
-                responseBuilder = Response.ok(jsonString, MediaType.APPLICATION_JSON_TYPE);
-            } else {
-//                responseBuilder = Response.ok(getOut(result.getData().getBytes(1, (int) result.getData().length()))).header("Content-Disposition",
-//                        "attachment;filename=" + fileName);
-                responseBuilder = Response.ok(getOut(result.getData())).header("Content-Disposition", "attachment;filename=" + fileName);
-                if (result.getDataType().equals(ProcessResultTypeEnum.CSV.toString())) {
-                    responseBuilder.header("Content-Type", "application/ms-excel");
-                }
+        if (result.getDataType().equals(ProcessResultTypeEnum.ANY.toString())) {
+            byte[] bytes = result.getData();
+            logger.trace("Body written : " + Arrays.toString(bytes) + " END");
+            responseBuilder = Response.ok(bytes, MediaType.APPLICATION_OCTET_STREAM);
+        } else if (result.getDataType().equals(ProcessResultTypeEnum.JSON.toString())) {
+            String jsonString = new String(result.getData(), Charset.defaultCharset());
+            logger.trace("JSON String written : " + jsonString + " END");
+            responseBuilder = Response.ok(jsonString, MediaType.APPLICATION_JSON_TYPE);
+        } else {
+            responseBuilder = Response.ok(getOut(result.getData())).header("Content-Disposition", "attachment;filename=" + fileName);
+            if (result.getDataType().equals(ProcessResultTypeEnum.CSV.toString())) {
+                responseBuilder.header("Content-Type", "application/ms-excel");
             }
-
-            return responseBuilder.build();
-//        } catch (SQLException sqle) {
-//            logger.error("Failed: service downloadProcessData(): caught SQLException:", sqle);
-//            throw sqle;
-        } catch (Throwable e) {
-            IkatsDaoException ierror = new IkatsDaoException("Failed: service downloadProcessData(): caught unexpected Throwable:", e);
-            logger.error(ierror);
-            throw ierror;
         }
+
+        return responseBuilder.build();
 
     }
 
@@ -173,9 +172,7 @@ public class ProcessDataResource extends AbstractResource {
     @GET
     @Path("/id/{id}")
     @Produces(MediaType.MULTIPART_FORM_DATA)
-    public Response getProcessData(@PathParam("id") Integer id) throws ResourceNotFoundException, IkatsException, IOException, SQLException {
-
-        // TODO : service a supprimer ??? PAS UTILISE
+    public Response getProcessData(@PathParam("id") Integer id) throws IkatsDaoException, ResourceNotFoundException, IkatsException {
 
         ProcessData result = processDataManager.getProcessPieceOfData(id);
 
@@ -185,36 +182,13 @@ public class ProcessDataResource extends AbstractResource {
 
         final FormDataMultiPart multipart = new FormDataMultiPart();
 
-        try {
+        multipart.bodyPart(new BodyPart(result, MediaType.APPLICATION_JSON_TYPE));
 
-            multipart.bodyPart(new BodyPart(result, MediaType.APPLICATION_JSON_TYPE));
-
-            if (ProcessResultTypeEnum.valueOf(result.getDataType()).equals(ProcessResultTypeEnum.JSON)) {
-//                String jsonString = new String(result.getData().getBytes(1, (int) result.getData().length()));
-                String jsonString = new String(result.getData(), Charset.defaultCharset());
-                multipart.bodyPart(new BodyPart(jsonString, MediaType.APPLICATION_JSON_TYPE));
-            } else if (ProcessResultTypeEnum.valueOf(result.getDataType()).equals(ProcessResultTypeEnum.CSV)) {
-//                multipart.bodyPart(new StreamDataBodyPart("myFile.csv", result.getData().getBinaryStream()));
-                multipart.bodyPart(new StreamDataBodyPart("myFile.csv", new ByteArrayInputStream(result.getData())));
-            }
-//        } catch (SQLException sqle) {
-//            logger.error("Failed: service getProcessData(Integer): caught SQLException:", sqle);
-//            try {
-//                multipart.close();
-//            } catch (Throwable e) { // no more closing attempt
-//            }
-//
-//            throw sqle;
-        } catch (Throwable e) {
-            IkatsException ierror = new IkatsException("Failed: service getProcessData(Integer): caught unexpected Throwable:", e);
-            logger.error(ierror);
-
-            try {
-                multipart.close();
-            } catch (Throwable xe) { // no more closing attempt
-            }
-
-            throw ierror;
+        if (ProcessResultTypeEnum.valueOf(result.getDataType()).equals(ProcessResultTypeEnum.JSON)) {
+            String jsonString = new String(result.getData(), Charset.defaultCharset());
+            multipart.bodyPart(new BodyPart(jsonString, MediaType.APPLICATION_JSON_TYPE));
+        } else if (ProcessResultTypeEnum.valueOf(result.getDataType()).equals(ProcessResultTypeEnum.CSV)) {
+            multipart.bodyPart(new StreamDataBodyPart("myFile.csv", new ByteArrayInputStream(result.getData())));
         }
 
         return Response.ok(multipart).build();
@@ -257,11 +231,10 @@ public class ProcessDataResource extends AbstractResource {
      */
     @DELETE
     @Path("/{processId}")
-    public Response deleteProcessData(@PathParam("processId") String processId)  {
+    public Response deleteProcessData(@PathParam("processId") String processId) {
         try {
             processDataManager.removeProcessData(processId);
-        }
-        catch (IkatsDaoException e) {
+        } catch (IkatsDaoException e) {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
         }
         return Response.status(Response.Status.OK).build();
@@ -283,7 +256,7 @@ public class ProcessDataResource extends AbstractResource {
             @QueryParam("processId") String processId,
             @QueryParam("name") String name,
             byte[] data,
-            @Context UriInfo uriInfo) {
+            @Context UriInfo uriInfo) throws IkatsDaoException {
 
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         logger.info("ProcessId : " + processId);
@@ -313,7 +286,7 @@ public class ProcessDataResource extends AbstractResource {
             @FormDataParam("file") InputStream fileis,
             @FormDataParam("file") FormDataContentDisposition fileDisposition,
             FormDataMultiPart formData,
-            @Context UriInfo uriInfo) throws IkatsException {
+            @Context UriInfo uriInfo) throws IkatsDaoException, IkatsException {
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         String fileName = fileDisposition.getFileName();
         logger.info("Import result file : " + fileName);
@@ -357,7 +330,11 @@ public class ProcessDataResource extends AbstractResource {
     @Path("/{processId}/JSON")
     @Consumes(MediaType.APPLICATION_FORM_URLENCODED)
     @Produces(MediaType.APPLICATION_JSON)
-    public String importProcessResultAsJson(@PathParam("processId") String processId, @FormParam("name") String name, @FormParam("json") String json, @FormParam("size") String sizeParam, @Context UriInfo uriInfo) {
+    public String importProcessResultAsJson(@PathParam("processId") String processId,
+                                            @FormParam("name") String name,
+                                            @FormParam("json") String json,
+                                            @FormParam("size") String sizeParam,
+                                            @Context UriInfo uriInfo) throws IkatsDaoException, IOException {
 
         Chronometer chrono = new Chronometer(uriInfo.getPath(), true);
         logger.info("processId : " + processId);
@@ -365,14 +342,8 @@ public class ProcessDataResource extends AbstractResource {
         String type = "JSON";
         InputStream is = new ByteArrayInputStream(json.getBytes());
         String id;
-        try {
-            id = processDataManager.importProcessData(is, size, processId, type, name);
-        } catch (IOException e) {
-            // that catch should never be raised because the InputStream is managed from a ByteArrayInputStream in memory.
-            throw new Error("Could not import result", e);
-        } finally {
-            chrono.stop(logger);
-        }
+        id = processDataManager.importProcessData(is, size, processId, type, name);
+        chrono.stop(logger);
         return id;
     }
 

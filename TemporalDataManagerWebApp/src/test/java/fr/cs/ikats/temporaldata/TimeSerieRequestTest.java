@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,26 +10,22 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.temporaldata;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -65,6 +61,9 @@ import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.TemporalDataManager;
 import fr.cs.ikats.temporaldata.resource.TimeSerieResource;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+
 /**
  * Test on webService timeseries operations.
  */
@@ -86,7 +85,7 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
     @Test
     public void testDeleteTS() throws Exception {
         String testCaseName = "testDeleteTS";
-            
+
         File file = utils.getTestFile(testCaseName, "/data/test_import.csv");
 
         // Prepare input: meta + funcId are saved
@@ -97,40 +96,40 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
 
         // stub for unknown tsuid
         String unknownTsuid = "xxx";
-        
+
         Response stubbedNotFound = Response.status(Status.NOT_FOUND).entity("Stub for opentsdb answer").build();
-       
+
         // status == 200 for delete ts in api opentsdb
         Response stubbedDeleted = Response.status(Status.OK).entity("Stub for deleted by Opentsdb").build();
         // status == 204 for delete ts in IKATS
         Response expectedDeleted = Response.status(Status.NO_CONTENT).entity("Expected ikats response").build();
-         
-        
-        TemporalDataManager mockedTdm = Mockito.spy( new TemporalDataManager() );
-        Mockito.doReturn( stubbedDeleted ).when( mockedTdm).deleteTS( tsuidStubbed );
-		Mockito.doReturn( stubbedNotFound ).when( mockedTdm).deleteTS( unknownTsuid );
-        
-		TimeSerieResource services = new TimeSerieResource();
-		services.setTemporalDataManager( mockedTdm );
-		
-		// Test1: delete TS not found
-		// Note: presently service returns status 204
-		Response resUnknown = services.removeTimeSeries(unknownTsuid);
-		assertTrue( resUnknown.getStatus() == expectedDeleted.getStatus() );
-		
-		// Test2: delete TS
-		Response resDeleted = services.removeTimeSeries(tsuidStubbed);
-		assertTrue( resDeleted.getStatus() == expectedDeleted.getStatus() );
-		
-		// check that metadata are deleted for the deleted TSUID ...
-		url = getAPIURL() + "/metadata/list/json?tsuid=" + tsuidStubbed;
-		Response response = utils.sendGETRequest(MediaType.APPLICATION_JSON, url);
-		assertTrue( response.getStatus() == Status.NOT_FOUND.getStatusCode() );
-		
-		// check that the funcId is deleted
-		String url2 = getAPIURL() + "/metadata/funcId/" + tsuidStubbed;
-		response = utils.sendGETRequest(MediaType.APPLICATION_JSON, url2);
-		assertTrue( response.getStatus() == Status.NOT_FOUND.getStatusCode() );
+
+
+        TemporalDataManager mockedTdm = Mockito.spy(new TemporalDataManager());
+        Mockito.doReturn(stubbedDeleted).when(mockedTdm).deleteTS(tsuidStubbed);
+        Mockito.doReturn(stubbedNotFound).when(mockedTdm).deleteTS(unknownTsuid);
+
+        TimeSerieResource services = new TimeSerieResource();
+        services.setTemporalDataManager(mockedTdm);
+
+        // Test1: delete TS not found
+        // Note: presently service returns status 204
+        Response resUnknown = services.removeTimeSeries(unknownTsuid);
+        assertTrue(resUnknown.getStatus() == expectedDeleted.getStatus());
+
+        // Test2: delete TS
+        Response resDeleted = services.removeTimeSeries(tsuidStubbed);
+        assertTrue(resDeleted.getStatus() == expectedDeleted.getStatus());
+
+        // check that metadata are deleted for the deleted TSUID ...
+        url = getAPIURL() + "/metadata/list/json?tsuid=" + tsuidStubbed;
+        Response response = utils.sendGETRequest(MediaType.APPLICATION_JSON, url);
+        assertTrue(response.getStatus() == Status.NOT_FOUND.getStatusCode());
+
+        // check that the funcId is deleted
+        String url2 = getAPIURL() + "/metadata/funcId/" + tsuidStubbed;
+        response = utils.sendGETRequest(MediaType.APPLICATION_JSON, url2);
+        assertTrue(response.getStatus() == Status.NOT_FOUND.getStatusCode());
     }
 
     @Test
@@ -187,7 +186,7 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
         response = utils.sendGETRequest(url);
         assertEquals(response.getStatus(), 404);
     }
-    
+
     @Test
     public void testSearchTsMatchingMetadataCriteria() {
         String testCaseName = "testSearchTsMatchingMetadataCriteria";
@@ -239,7 +238,7 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
         MetadataCriterion critString = new MetadataCriterion("FlightIdentifier", SingleValueComparator.LIKE.getText(), "%3%");
 
         // => should return ts3
-        FunctionalIdentifier[] expectedFuncIdFound = new FunctionalIdentifier[] { new FunctionalIdentifier(ts3, "f_" + ts3) };
+        FunctionalIdentifier[] expectedFuncIdFound = new FunctionalIdentifier[]{new FunctionalIdentifier(ts3, "f_" + ts3)};
 
         // POST resquest ...
         ArrayList<MetadataCriterion> listCrit = new ArrayList<MetadataCriterion>();
@@ -270,17 +269,17 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
         for (FunctionalIdentifier functionalIdentifier : res) {
             getLogger().info(testCaseName + " : result item=" + functionalIdentifier);
         }
-        getLogger().info(  MetaType.string.name() );
-        getLogger().info(  MetaType.date.name() );
-        getLogger().info(  MetaType.number.name() );
-        getLogger().info(  MetaType.complex.name() );
+        getLogger().info(MetaType.string.name());
+        getLogger().info(MetaType.date.name());
+        getLogger().info(MetaType.number.name());
+        getLogger().info(MetaType.complex.name());
 
         // check expected result
         assertEquals(expectedFuncIdFound.length, res.size());
         assertEquals(expectedFuncIdFound[0].getTsuid(), res.get(0).getTsuid());
         assertEquals(expectedFuncIdFound[0].getFuncId(), res.get(0).getFuncId());
     }
-    
+
     @Test
     public void testSearchTsMatchingMetadataCriteria_2() {
         String testCaseName = "testSearchTsMatchingMetadataCriteria_2";
@@ -321,7 +320,7 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
         scope.add(new FunctionalIdentifier(ts3, "f_" + ts3));
 
         lFilter.setTsList(scope);
-        
+
         // discarding ts3 + ts4: start <> startdate + 10
         MetadataCriterion critDate = new MetadataCriterion("ikats_start_date", SingleValueComparator.NEQUAL.getText(), "" + (startdate + 10));
 
@@ -332,7 +331,7 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
         MetadataCriterion critString = new MetadataCriterion("FlightIdentifier", SingleValueComparator.EQUAL.getText(), "1111");
 
         // => should return ts1 
-        FunctionalIdentifier[] expectedFuncIdFound = new FunctionalIdentifier[] { new FunctionalIdentifier(ts1, "f_" + ts1) };
+        FunctionalIdentifier[] expectedFuncIdFound = new FunctionalIdentifier[]{new FunctionalIdentifier(ts1, "f_" + ts1)};
 
         // POST resquest ...
         ArrayList<MetadataCriterion> listCrit = new ArrayList<MetadataCriterion>();
@@ -363,12 +362,12 @@ public class TimeSerieRequestTest extends AbstractRequestTest {
         for (FunctionalIdentifier functionalIdentifier : res) {
             getLogger().info(testCaseName + " : result item=" + functionalIdentifier);
         }
-        
+
         // check expected result
-        assertEquals(expectedFuncIdFound.length, res.size());             
+        assertEquals(expectedFuncIdFound.length, res.size());
         assertEquals(expectedFuncIdFound[0].getTsuid(), res.get(0).getTsuid());
         assertEquals(expectedFuncIdFound[0].getFuncId(), res.get(0).getFuncId());
     }
-    
+
 }
 

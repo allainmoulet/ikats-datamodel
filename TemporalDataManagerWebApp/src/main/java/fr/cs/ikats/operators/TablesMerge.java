@@ -35,13 +35,13 @@ import java.util.List;
 import org.apache.log4j.Logger;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableElement;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
-import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.business.table.TableInfo.DataLink;
 import fr.cs.ikats.temporaldata.business.table.TableInfo.Header;
+import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
@@ -70,24 +70,48 @@ import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
  */
 public class TablesMerge {
 
-    static private final Logger logger = Logger.getLogger(TablesMerge.class);
-
     /**
      * Information to be provided to the {@link TablesMerge} operator
      */
     public static class Request {
 
-        public String[] tableNames;
-        public String joinOn;
-        public String outputTableName;
+        private String[] tableNames;
+        private String joinOn;
+        private String outputTableName;
 
         public Request() {
-            ; // default constructor
+            // default constructor
+        }
+
+        public String[] getTableNames() {
+            return tableNames;
+        }
+
+        public void setTableNames(String[] tableNames) {
+            this.tableNames = tableNames;
+        }
+
+        public String getJoinOn() {
+            return joinOn;
+        }
+
+        public void setJoinOn(String joinOn) {
+            this.joinOn = joinOn;
+        }
+
+        public String getOutputTableName() {
+            return outputTableName;
+        }
+
+        public void setOutputTableName(String outputTableName) {
+            this.outputTableName = outputTableName;
         }
     }
 
     private Request request;
     private TableManager tableManager;
+
+    static private final Logger logger = Logger.getLogger(TablesMerge.class);
 
     /**
      * Table Merge operator initialization
@@ -129,7 +153,7 @@ public class TablesMerge {
             firstTable = tableManager.initTable(tableManager.readFromDatabase(tableNameToRead), false);
             tableNameToRead = this.request.tableNames[1];
             secondTable = tableManager.initTable(tableManager.readFromDatabase(tableNameToRead), false);
-        } catch (IkatsDaoMissingRessource e) {
+        } catch (IkatsDaoMissingResource e) {
             String msg = "Table " + tableNameToRead + " not found in database";
             throw new IkatsOperatorException(msg, e);
         }
@@ -151,9 +175,9 @@ public class TablesMerge {
     /**
      * Operator processing for the merge
      *
-     * @param tableInfo1 the reference table to join on
-     * @param tableInfo2 the second table where columns should match
-     * @param joinOn the join key
+     * @param tableInfo1      the reference table to join on
+     * @param tableInfo2      the second table where columns should match
+     * @param joinOn          the join key
      * @param outputTableName the result table name
      * @return the merged table
      * @throws IkatsOperatorException if table is badly formatted
@@ -174,16 +198,13 @@ public class TablesMerge {
                 if (firstTable.getColumnsHeader() != null) {
                     joinKey = firstTable.getColumnsHeader().getItems().get(0);
                 }
-            }
-            catch (IkatsException e) {
+            } catch (IkatsException e) {
                 throw new IkatsOperatorException("The table '" + firstTable.getName() + "' has no column", e);
             }
-        }
-        else {
+        } else {
             try {
                 joinIndexOnFirstTable = firstTable.getIndexColumnHeader(joinKey);
-            }
-            catch (IkatsException e) {
+            } catch (IkatsException e) {
                 throw new IkatsOperatorException("Join column '" + joinKey + "' not found in table '" + firstTable.getName() + "'. Additional info: " + e.getMessage(), e);
             }
 
@@ -204,8 +225,7 @@ public class TablesMerge {
             // column in the current table
             try {
                 joinIndexInSecondTable = secondTable.getIndexColumnHeader(joinKey);
-            }
-            catch (IkatsException e) {
+            } catch (IkatsException e) {
                 // Exception is synonym of not found
                 // INNER JOIN could not be realized
                 throw new IkatsOperatorException("Join column not found in the second table", e);
@@ -218,15 +238,14 @@ public class TablesMerge {
 
         try {
             columnValues = secondTable.getColumn(joinIndexInSecondTable, String.class);
-        }
-        catch (IkatsException | ResourceNotFoundException e) {
+        } catch (IkatsException | ResourceNotFoundException e) {
             logger.error("Can't get the column data at index " + joinIndexInSecondTable + " for table " + secondTable.getName(), e);
             // Do nothing here because joinFound is already false
         }
 
         // -- Initialize the result/merged table
-        boolean withColHeaders = firstTable.isHandlingColumnsHeader() | secondTable.isHandlingColumnsHeader();
-        boolean withRowHeaders = firstTable.isHandlingRowsHeader() | secondTable.isHandlingRowsHeader();
+        boolean withColHeaders = firstTable.isHandlingColumnsHeader() || secondTable.isHandlingColumnsHeader();
+        boolean withRowHeaders = firstTable.isHandlingRowsHeader() || secondTable.isHandlingRowsHeader();
 
         Table resultTable = tableManager.initEmptyTable(withColHeaders, withRowHeaders);
         resultTable.setName(outputTableName);
@@ -247,8 +266,7 @@ public class TablesMerge {
                     firstTableRowData.add(headerLine);
                 }
                 firstTableRowData.addAll(firstTable.getRow(i, TableElement.class));
-            }
-            catch (IkatsException | ResourceNotFoundException e) {
+            } catch (IkatsException | ResourceNotFoundException e) {
                 logger.error("Can't get the row at index " + i + " for table " + firstTable.getName());
                 throw new IkatsOperatorException("Can't get the row at index " + i + " for table " + firstTable.getName(), e);
             }
@@ -263,8 +281,7 @@ public class TablesMerge {
                     if (joinValue.equals(columnValues.get(k))) {
                         if (secondTable.isHandlingColumnsHeader()) {
                             rowIndexForMerge = k + 1;
-                        }
-                        else {
+                        } else {
                             rowIndexForMerge = k;
                         }
                         joinFound = true;
@@ -299,8 +316,7 @@ public class TablesMerge {
 
                 // Finally append the new row
                 resultTable.appendRow(firstTableRowData);
-            }
-            catch (IkatsException | ResourceNotFoundException e) {
+            } catch (IkatsException | ResourceNotFoundException e) {
                 logger.error("Can't get the row at index " + rowIndexForMerge + " for table " + secondTable.getName());
                 throw new IkatsOperatorException("Can't get the row at index " + rowIndexForMerge + " for table " + secondTable.getName(), e);
             }
@@ -308,7 +324,7 @@ public class TablesMerge {
         }
 
         // -- Set the result table columns header from the first and second table
-            // Put only the headers if we got some data in the table
+        // Put only the headers if we got some data in the table
         if (resultTable.getRowCount(false) > 0 && withColHeaders) {
             reportTableColumnsHeader(firstTable, resultTable, -1);
             reportTableColumnsHeader(secondTable, resultTable, joinIndexInSecondTable);
@@ -380,8 +396,9 @@ public class TablesMerge {
                 // Try to get header with links
                 colHeaderElements = fromTable.getColumnsHeader().getDataWithLink();
             } catch (IkatsException e1) {
+                logger.info("no link managed in header", e1);
                 // Else manage header with no links
-                colHeaderElements = new ArrayList<TableElement>();
+                colHeaderElements = new ArrayList<>();
                 try {
                     // An a new element to the headers
                     for (String stringHeader : fromTable.getColumnsHeader().getItems()) {

@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,19 +10,18 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.table;
@@ -42,7 +41,7 @@ import org.hibernate.exception.ConstraintViolationException;
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 
 public class TableDAO extends DataBaseDAO {
 
@@ -84,13 +83,13 @@ public class TableDAO extends DataBaseDAO {
             result = criteria.list();
 
             tx.commit();
-        }
-        catch (HibernateException e) {
-            if (tx != null) tx.rollback();
+        } catch (HibernateException e) {
+            if (tx != null) {
+                tx.rollback();
+            }
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
 
             // end the session
             session.close();
@@ -110,7 +109,7 @@ public class TableDAO extends DataBaseDAO {
      *
      * @throws HibernateException if there is no TableEntity matching pattern
      */
-    public List<TableEntitySummary> findByName(String pattern, boolean strict) throws HibernateException {
+    public List<TableEntitySummary> findByName(String pattern, boolean strict) {
         List<TableEntitySummary> result = null;
 
         Session session = getSession();
@@ -122,8 +121,7 @@ public class TableDAO extends DataBaseDAO {
             if (strict) {
                 // Strict match
                 criteria.add(Restrictions.eq("name", pattern));
-            }
-            else {
+            } else {
                 // The query shall be contained in the Name
                 String query = '%' + pattern.replace('*', '%') + '%';
                 criteria.add(Restrictions.like("name", query));
@@ -131,13 +129,13 @@ public class TableDAO extends DataBaseDAO {
             result = criteria.list();
 
             tx.commit();
-        }
-        catch (HibernateException e) {
-            if (tx != null) tx.rollback();
+        } catch (HibernateException e) {
+            if (tx != null) {
+                tx.rollback();
+            }
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
 
             // end the session
             session.close();
@@ -154,9 +152,9 @@ public class TableDAO extends DataBaseDAO {
      *
      * @return The TableEntity matching this id
      *
-     * @throws IkatsDaoMissingRessource if there is no TableEntity matching the id
+     * @throws IkatsDaoMissingResource if there is no TableEntity matching the id
      */
-    public TableEntity getById(Integer id) throws IkatsDaoMissingRessource {
+    public TableEntity getById(Integer id) throws IkatsDaoMissingResource {
         TableEntity result = null;
 
         Session session = getSession();
@@ -172,21 +170,18 @@ public class TableDAO extends DataBaseDAO {
                 String msg = "Table " + id + " not found";
                 LOGGER.error(msg);
                 tx.rollback();
-                throw new IkatsDaoMissingRessource(msg);
-            }
-            else {
+                throw new IkatsDaoMissingResource(msg);
+            } else {
                 tx.commit();
             }
 
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             if (tx != null) {
                 tx.rollback();
             }
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             session.close();
         }
 
@@ -201,9 +196,9 @@ public class TableDAO extends DataBaseDAO {
      *
      * @return The TableEntity matching this name
      *
-     * @throws IkatsDaoMissingRessource if there is no TableEntity matching the name
+     * @throws IkatsDaoMissingResource if there is no TableEntity matching the name
      */
-    public TableEntity getByName(String name) throws IkatsDaoMissingRessource {
+    public TableEntity getByName(String name) throws IkatsDaoMissingResource {
         TableEntity result = null;
 
         Session session = getSession();
@@ -219,21 +214,18 @@ public class TableDAO extends DataBaseDAO {
                 String msg = "Table " + name + " not found";
                 LOGGER.error(msg);
                 tx.rollback();
-                throw new IkatsDaoMissingRessource(msg);
-            }
-            else {
+                throw new IkatsDaoMissingResource(msg);
+            } else {
                 tx.commit();
             }
 
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             if (tx != null) {
                 tx.rollback();
             }
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             session.close();
         }
 
@@ -250,7 +242,7 @@ public class TableDAO extends DataBaseDAO {
      *
      * @throws IkatsDaoConflictException if the table to append already exists
      */
-    public Integer persist(TableEntity tableEntity) throws HibernateException, IkatsDaoConflictException {
+    public Integer persist(TableEntity tableEntity) throws IkatsDaoConflictException {
         Integer tableId = null;
 
         Session session = getSession();
@@ -262,20 +254,21 @@ public class TableDAO extends DataBaseDAO {
 
             tableId = (Integer) session.save(tableEntity);
             tx.commit();
-        }
-        catch (ConstraintViolationException e) {
+        } catch (ConstraintViolationException e) {
             // try to rollback
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             // Raise the exception into a specific IKATS one to allow its handling with IKATS specific handler for HTTP response  
             throw new IkatsDaoConflictException(e);
-        }
-        catch (HibernateException e) {
+        } catch (HibernateException e) {
             // try to rollback
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             // end the session
             session.close();
         }
@@ -293,7 +286,7 @@ public class TableDAO extends DataBaseDAO {
      * @throws IkatsDaoConflictException if the table to update does not exist
      * @throws IkatsDaoException         if any other exception occurs
      */
-    public boolean update(TableEntity tableEntity) throws IkatsDaoConflictException, IkatsDaoException {
+    public boolean update(TableEntity tableEntity) throws IkatsDaoException {
         boolean updated = false;
 
         Session session = getSession();
@@ -305,20 +298,19 @@ public class TableDAO extends DataBaseDAO {
             session.update(tableEntity);
             tx.commit();
             updated = true;
-        }
-        catch (StaleStateException e) {
+        } catch (StaleStateException e) {
 
             String msg = "No match for TableEntity with id:" + tableEntity.getId();
             LOGGER.error(msg, e);
-            rollbackAndThrowException(tx, new IkatsDaoMissingRessource(msg, e));
-        }
-        catch (RuntimeException e) {
+            rollbackAndThrowException(tx, new IkatsDaoMissingResource(msg, e));
+        } catch (RuntimeException e) {
             // try to rollback
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             // end the session
             session.close();
         }
@@ -333,7 +325,7 @@ public class TableDAO extends DataBaseDAO {
      *
      * @throws HibernateException if the table couldn't be removed
      */
-    public void removeById(Integer id) throws HibernateException {
+    public void removeById(Integer id) {
 
         Session session = getSession();
         Transaction tx = null;
@@ -346,14 +338,14 @@ public class TableDAO extends DataBaseDAO {
             session.delete(tableEntity);
 
             tx.commit();
-        }
-        catch (HibernateException e) {
+        } catch (HibernateException e) {
             // try to rollback
-            if (tx != null) tx.rollback();
+            if (tx != null) {
+                tx.rollback();
+            }
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             // end the session
             session.close();
         }

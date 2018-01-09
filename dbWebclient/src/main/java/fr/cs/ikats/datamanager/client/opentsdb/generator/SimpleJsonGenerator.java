@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,19 +10,18 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.datamanager.client.opentsdb.generator;
@@ -39,8 +38,6 @@ import fr.cs.ikats.datamanager.DataManagerException;
 
 /**
  * generate a Json import request from a list of points
- * 
- * 
  */
 public class SimpleJsonGenerator {
 
@@ -98,41 +95,36 @@ public class SimpleJsonGenerator {
     private String jeuDonnees;
 
     /**
-     * @param periodique
-     *            the periodique to set
+     * @param periodique the periodique to set
      */
     public void setPeriodique(Boolean periodique) {
         this.periodique = periodique;
     }
 
     /**
-     * @param nomEtiquette
-     *            the nomEtiquette to set
+     * @param nomEtiquette the nomEtiquette to set
      */
     public void setNomEtiquette(String nomEtiquette) {
         this.nomEtiquette = nomEtiquette;
     }
 
     /**
-     * @param jeuDonnees
-     *            the jeuDonnees to set
+     * @param jeuDonnees the jeuDonnees to set
      */
     public void setJeuDonnees(String jeuDonnees) {
         this.jeuDonnees = jeuDonnees;
     }
 
     /**
-	 * 
-	 */
+     *
+     */
     protected SimpleJsonGenerator() {
-        mots_cles = new ArrayList<String>();
+        mots_cles = new ArrayList<>();
     }
 
     /**
-     * 
-     * @param period
-     *            periode de la sequence en seconde; si &lt;=0, on suppose que les
-     *            timestamps sont renseignés pour chaque point
+     * @param period periode de la sequence en seconde; si &lt;=0, on suppose que les
+     *               timestamps sont renseignés pour chaque point
      */
     public SimpleJsonGenerator(int period) {
         this();
@@ -140,12 +132,10 @@ public class SimpleJsonGenerator {
     }
 
     /**
-     * 
      * @param dataSet the dataset
-     * @param period periode de la sequence en seconde; si &lt;=0, on suppose que les timestamps sont renseignés pour chaque point
-     * @param tagName
-     *            nom de l'etiquette principale; si etiquettes multiples, les
-     *            noms des etiquettes doivent etre presents dans la sequence
+     * @param period  periode de la sequence en seconde; si &lt;=0, on suppose que les timestamps sont renseignés pour chaque point
+     * @param tagName nom de l'etiquette principale; si etiquettes multiples, les
+     *                noms des etiquettes doivent etre presents dans la sequence
      */
     public SimpleJsonGenerator(String dataSet, int period, String tagName) {
         this(period);
@@ -155,10 +145,11 @@ public class SimpleJsonGenerator {
 
     /**
      * generate JSON
+     *
      * @param input the input string
-     * @return a string 
-     * @throws DataManagerException 
-     * @throws Exception if error occurs
+     * @return a string
+     * @throws DataManagerException
+     * @throws Exception            if error occurs
      */
     @SuppressWarnings("unchecked")
     public String generate(String input) throws DataManagerException {
@@ -187,8 +178,7 @@ public class SimpleJsonGenerator {
                     p.put(KEY_VAL, splittedLine[POSITION_VAL + i]);
                     points.add(p.clone());
                 }
-            }
-            else {
+            } else {
                 if (checkVal(splittedLine[POSITION_VAL + i * 2].trim())) {
                     p.put(KEY_TIME, splittedLine[POSITION_TIME + i * 2]);
                     p.put(KEY_VAL, splittedLine[POSITION_VAL + i * 2]);
@@ -202,9 +192,8 @@ public class SimpleJsonGenerator {
     /**
      * prerequis : le nom du metrique dans le fichier est de la forme
      * nom1_(nom2)_mainTagValue_numero
-     * 
-     * @param p
-     *            objet point
+     *
+     * @param p objet point
      */
     @SuppressWarnings("unchecked")
     private void initTags(JSONObject p) {
@@ -216,15 +205,14 @@ public class SimpleJsonGenerator {
         // cas d'un nom de metrique specifique (contient un mot key; SPECIFIQUE
         // POC !!!)
         if (mots_cles.contains(metricParts[0])) { // le dernier element de
-                                                  // metricParts correspond au
-                                                  // tag principal
+            // metricParts correspond au
+            // tag principal
             numSerie = "00000";
             mainTagValue = metricParts[nbParts - 1];
             metricName.append(metricParts[0].toLowerCase()).append('.').append(metricParts[1]);
 
-        }
-        else { // le dernier element de metricParts correspond au tag secondaire
-               // et l'avant dernier au tag principal
+        } else { // le dernier element de metricParts correspond au tag secondaire
+            // et l'avant dernier au tag principal
             numSerie = metricParts[nbParts - 1];
             mainTagValue = metricParts[nbParts - 2];
             if (jeuDonnees != null)
@@ -244,7 +232,6 @@ public class SimpleJsonGenerator {
     }
 
     private boolean checkVal(String valToCheck) {
-        // String correctedVal = valToCheck;
         boolean checked = false;
         // check number. prise en compte notation scifi
         if (Pattern.matches("^(\\+|-)?[0-9]+(\\.[0-9]+e(\\+|-)[0-9]{2})?$", valToCheck))
@@ -258,15 +245,13 @@ public class SimpleJsonGenerator {
      * verifie si presence de plusieurs timestamps dans la ligne. si oui, flag
      * periodique à false ne foctionne que si POSITION_TIME et POSITION_VAL
      * correspondent à la réalité de l'entrée
-     * @throws DataManagerException 
-     * 
-     * @throws IkatsImportException
+     *
+     * @throws DataManagerException
      */
     private void checkCoherence() throws DataManagerException {
         // detection si serie avec 1 timestamp par point ou non. Dans le cas ou
         // 1 timestamp/point(non periodique),
         // on suppose que les 4 1ers digits sont egaux
-        // TODO : ameliorer !!
         if (splittedLine[POSITION_VAL + 1].length() == splittedLine[POSITION_TIME].length()
                 && splittedLine[POSITION_VAL + 1].substring(0, 4).equals(splittedLine[POSITION_TIME].substring(0, 4)))
             this.periodique = Boolean.FALSE;
@@ -276,8 +261,7 @@ public class SimpleJsonGenerator {
         if (splittedLine[POSITION_TIME].length() > DIGITS_SECONDE) {
             setPrecision(DIGITS_MILLISECONDE);
             setPeriode(this.periode * 1000);
-        }
-        else {
+        } else {
             setPrecision(DIGITS_SECONDE);
         }
         if ((this.nomEtiquette == null && POSITION_NOM_TAG < 0) || (this.periodique && this.periode <= 0)) {
@@ -286,11 +270,9 @@ public class SimpleJsonGenerator {
     }
 
     /**
-     * explose la ligne en tokens. Separateurs autorises : ; OU : OU space TODO
-     * trouver un moyen de detecter un separateur interdit (, OU -)
+     * explose la ligne en tokens. Separateurs autorises : ; OU : OU space
      */
     private void lineToArray() {
-        // StrTokenizer st = null;
         String sep;
         if (listePoints.contains(";"))
             sep = ";";
@@ -309,8 +291,7 @@ public class SimpleJsonGenerator {
     }
 
     /**
-     * @param precision
-     *            the precision to set
+     * @param precision the precision to set
      */
     public void setPrecision(int precision) {
     }
@@ -323,8 +304,7 @@ public class SimpleJsonGenerator {
     }
 
     /**
-     * @param periode
-     *            the periode to set
+     * @param periode the periode to set
      */
     public void setPeriode(int periode) {
         this.periode = periode;
@@ -338,20 +318,11 @@ public class SimpleJsonGenerator {
     }
 
     /**
-     * @param mots_cles
-     *            the mots_cles to set
+     * @param mots_cles the mots_cles to set
      */
     public void setMots_cles(List<String> mots_cles) {
         this.mots_cles = mots_cles;
     }
 
-    // PointST point = new PointST(splittedLine[POSITION_METRIQUE],
-    // splittedLine[POSITION_TIME],
-    // Float.valueOf(splittedLine[POSITION_VAL]));
-    // if (this.nomEtiquette != null)
-    // point.addTag(this.nomEtiquette, splittedLine[POSITION_VAL_TAG]);
-    // else
-    // point.addTag(splittedLine[POSITION_NOM_TAG],
-    // splittedLine[POSITION_VAL_TAG]);
 }
 

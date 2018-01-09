@@ -1,7 +1,5 @@
 package fr.cs.ikats.operators;
 
-import static org.junit.Assert.*;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
@@ -22,6 +20,8 @@ import fr.cs.ikats.temporaldata.exception.IkatsException;
 import fr.cs.ikats.temporaldata.exception.InvalidValueException;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 
+import static org.junit.Assert.assertEquals;
+
 
 public class TrainTestSplitTableTest {
 
@@ -38,7 +38,7 @@ public class TrainTestSplitTableTest {
      */
     @Test
     public void testRandomSplitTable() throws Exception {
-    
+
         String tableContent = "MainId;Target\n"
                 + "125;A\n"
                 + "1;A\n"
@@ -51,13 +51,13 @@ public class TrainTestSplitTableTest {
                 + "7;D\n"
                 + "8;D\n";
         double tableContentSize = 10;
-    
+
         Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
-    
+
         List<Table> result;
         double repartitionRate = 0.56;
         result = new TrainTestSplitTable().randomSplitTable(tableIn, repartitionRate);
-    
+
         // checking repartition rate in result
         assertEquals(Math.round(tableContentSize * repartitionRate), result.get(0).getRowCount(false));
         assertEquals(Math.round((tableContentSize * (1 - repartitionRate))), result.get(1).getRowCount(false));
@@ -68,7 +68,7 @@ public class TrainTestSplitTableTest {
      */
     @Test
     public void testRandomSplitTableWithRowHeader() throws Exception {
-    
+
         TableManager tableManager = new TableManager();
         String tableJson = "{\"table_desc\":" +
                 "{\"title\":\"max_test_traintestsplit\"," +
@@ -82,21 +82,21 @@ public class TrainTestSplitTableTest {
                 "[null,\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\"]}}," +
                 "\"content\":" +
                 "{\"cells\":[[\"1\"],[\"1\"],[\"1\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"]]}}";
-    
+
         double tableContentSize = 10;
-    
+
         TableInfo tableInfo = tableManager.loadFromJson(tableJson);
         Table tableIn = tableManager.initTable(tableInfo, false);
-    
-    
+
+
         List<Table> result;
         double repartitionRate = 0.6;
         result = new TrainTestSplitTable().randomSplitTable(tableIn, repartitionRate);
-    
+
         // checking repartition rate in result
         assertEquals(Math.round(tableContentSize * repartitionRate), result.get(0).getRowCount(false));
         assertEquals(Math.round((tableContentSize * (1 - repartitionRate))), result.get(1).getRowCount(false));
-    
+
     }
 
     /**
@@ -109,7 +109,7 @@ public class TrainTestSplitTableTest {
      */
     @Test
     public void testTrainTestSplitTableNominal() throws Exception {
-    
+
         String tableContent = "MainId;Target\n"
                 + "125;A\n"
                 + "1;A\n"
@@ -121,13 +121,13 @@ public class TrainTestSplitTableTest {
                 + "6;D\n"
                 + "7;D\n"
                 + "8;D\n";
-    
+
         Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
-    
+
         List<Table> result;
         double repartitionRate = 0.56;
         result = new TrainTestSplitTable().trainTestSplitTable(tableIn, "Target", repartitionRate);
-    
+
         // Collect all classes of each table result to check repartition rate
         List<Object> classList1 = new ArrayList<>();
         List<Object> classList2 = new ArrayList<>();
@@ -139,7 +139,7 @@ public class TrainTestSplitTableTest {
         assertEquals(1, Collections.frequency(classList1, "B"));
         assertEquals(1, Collections.frequency(classList1, "C"));
         assertEquals(2, Collections.frequency(classList1, "D"));
-    
+
         for (int i = 0; i < result.get(1).getContentData().size(); i++) {
             classList2.add(result.get(1).getContentData().get(i).get(1));
         }
@@ -160,7 +160,7 @@ public class TrainTestSplitTableTest {
      */
     @Test
     public void testTrainTestSplitTableSingleClass() throws Exception {
-    
+
         String tableContent = "MainId;Target\n"
                 + "125;A\n"
                 + "1;A\n"
@@ -171,13 +171,13 @@ public class TrainTestSplitTableTest {
                 + "42;A\n"
                 + "6;A\n"
                 + "7;A\n";
-    
+
         Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
-    
+
         List<Table> result;
         double repartitionRate = 0.24;
         result = new TrainTestSplitTable().trainTestSplitTable(tableIn, "Target", repartitionRate);
-    
+
         // Collect all classes of each table result to check repartition rate
         List<Object> classList1 = new ArrayList<>();
         List<Object> classList2 = new ArrayList<>();
@@ -186,13 +186,13 @@ public class TrainTestSplitTableTest {
         }
         // checking repartition rate of each class in result
         assertEquals(2, Collections.frequency(classList1, "A"));
-    
+
         for (int i = 0; i < result.get(1).getContentData().size(); i++) {
             classList2.add(result.get(1).getContentData().get(i).get(1));
         }
         // checking repartition rate of each class in result
         assertEquals(7, Collections.frequency(classList2, "A"));
-    
+
     }
 
     /**
@@ -205,7 +205,7 @@ public class TrainTestSplitTableTest {
      */
     @Test
     public void testTrainTestSplitTableTooHighRepartition() throws Exception {
-    
+
         String tableContent = "MainId;Target\n"
                 + "125;A\n"
                 + "1;A\n"
@@ -216,13 +216,13 @@ public class TrainTestSplitTableTest {
                 + "42;A\n"
                 + "6;A\n"
                 + "7;A\n";
-    
+
         Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
-    
+
         List<Table> result;
         double repartitionRate = 1.01;
         result = new TrainTestSplitTable().trainTestSplitTable(tableIn, "Target", repartitionRate);
-    
+
         // Collect all classes of each table result to check repartition rate
         List<Object> classList1 = new ArrayList<>();
         List<Object> classList2 = new ArrayList<>();
@@ -231,13 +231,13 @@ public class TrainTestSplitTableTest {
         }
         // checking repartition rate of each class in result
         assertEquals(9, Collections.frequency(classList1, "A"));
-    
+
         for (int i = 0; i < result.get(1).getContentData().size(); i++) {
             classList2.add(result.get(1).getContentData().get(i).get(1));
         }
         // checking repartition rate of each class in result
         assertEquals(0, Collections.frequency(classList2, "A"));
-    
+
     }
 
     /**
@@ -250,7 +250,7 @@ public class TrainTestSplitTableTest {
      */
     @Test
     public void testTrainTestSplitTableTooLowRepartition() throws Exception {
-    
+
         String tableContent = "MainId;Target\n"
                 + "125;A\n"
                 + "1;A\n"
@@ -261,13 +261,13 @@ public class TrainTestSplitTableTest {
                 + "42;A\n"
                 + "6;A\n"
                 + "7;A\n";
-    
+
         Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
-    
+
         List<Table> result;
         double repartitionRate = -0.01;
         result = new TrainTestSplitTable().trainTestSplitTable(tableIn, "Target", repartitionRate);
-    
+
         // Collect all classes of each table result to check repartition rate
         List<Object> classList1 = new ArrayList<>();
         List<Object> classList2 = new ArrayList<>();
@@ -276,13 +276,13 @@ public class TrainTestSplitTableTest {
         }
         // checking repartition rate of each class in result
         assertEquals(0, Collections.frequency(classList1, "A"));
-    
+
         for (int i = 0; i < result.get(1).getContentData().size(); i++) {
             classList2.add(result.get(1).getContentData().get(i).get(1));
         }
         // checking repartition rate of each class in result
         assertEquals(9, Collections.frequency(classList2, "A"));
-    
+
     }
 
     /**
@@ -293,7 +293,7 @@ public class TrainTestSplitTableTest {
      */
     @Test
     public void testTrainTestSplitTableWithRowHeader() throws Exception {
-    
+
         TableManager tableManager = new TableManager();
         String tableJson = "{\"table_desc\":" +
                 "{\"title\":\"max_test_traintestsplit\"," +
@@ -307,14 +307,14 @@ public class TrainTestSplitTableTest {
                 "[null,\"0\",\"1\",\"2\",\"3\",\"4\",\"5\",\"6\",\"7\",\"8\",\"9\"]}}," +
                 "\"content\":" +
                 "{\"cells\":[[\"1\"],[\"1\"],[\"1\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"],[\"0\"]]}}";
-    
+
         TableInfo tableInfo = tableManager.loadFromJson(tableJson);
         Table table = tableManager.initTable(tableInfo, false);
-    
+
         List<Table> result;
         double repartitionRate = 0.56;
         result = new TrainTestSplitTable().trainTestSplitTable(table, "target", repartitionRate);
-    
+
         // collect all classes of each table result to check repartition rate
         List<Object> classList1 = new ArrayList<>();
         List<Object> classList2 = new ArrayList<>();
@@ -327,11 +327,11 @@ public class TrainTestSplitTableTest {
         // checking repartition rate of each class in result
         assertEquals(4, Collections.frequency(classList1, "0"));
         assertEquals(2, Collections.frequency(classList1, "1"));
-    
+
         // checking repartition rate of each class in result
         assertEquals(3, Collections.frequency(classList2, "0"));
         assertEquals(1, Collections.frequency(classList2, "1"));
-    
+
     }
 
     /**
@@ -344,7 +344,7 @@ public class TrainTestSplitTableTest {
      */
     @Test(expected = ResourceNotFoundException.class)
     public void testTrainTestSplitTableWrongTarget() throws Exception {
-    
+
         String tableContent = "MainId;Target\n"
                 + "125;A\n"
                 + "1;A\n"
@@ -356,13 +356,13 @@ public class TrainTestSplitTableTest {
                 + "6;D\n"
                 + "7;D\n"
                 + "8;D\n";
-    
+
         Table tableIn = tableFromCSV("tableTestIn", tableContent, false);
-    
+
         double repartitionRate = 0.56;
         new TrainTestSplitTable().trainTestSplitTable(tableIn, "WrongTarget", repartitionRate);
     }
-    
+
     /**
      * Convert a CSV to Table object
      *

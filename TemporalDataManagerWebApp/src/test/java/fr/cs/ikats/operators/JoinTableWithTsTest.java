@@ -28,10 +28,6 @@
 
 package fr.cs.ikats.operators;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,8 +35,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import fr.cs.ikats.table.TableDAO;
-import fr.cs.ikats.table.TableEntity;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -48,14 +42,19 @@ import org.junit.Test;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.junit.CommonTest;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
+import fr.cs.ikats.table.TableEntity;
 import fr.cs.ikats.temporaldata.business.DataSetManager;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableElement;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
-import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.business.table.TableInfo.DataLink;
+import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests the operator JoinTableWithTs
@@ -206,7 +205,7 @@ public class JoinTableWithTsTest extends CommonTest {
 
         // using DAO for Table:
         try {
-            TableEntity writtenData = tableManager.dao.getByName(OUTPUT_TABLE_NAME);
+            TableEntity writtenData = tableManager.getDao().getByName(OUTPUT_TABLE_NAME);
 
             assertEquals(writtenData.getName(), OUTPUT_TABLE_NAME);
 

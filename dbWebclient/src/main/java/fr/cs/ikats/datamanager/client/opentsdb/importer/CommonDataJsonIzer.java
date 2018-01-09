@@ -48,7 +48,6 @@ import fr.cs.ikats.datamanager.client.opentsdb.generator.SplittedLineReader;
  * 
  *
  */
-// Review#147170 expliquer l'usage du @Qualifier "Common"
 @Component
 @Qualifier("Common")
 public class CommonDataJsonIzer extends AbstractDataJsonIzer {
@@ -68,8 +67,6 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
     public IImportSerializer clone() {
         return new CommonDataJsonIzer();
     }
-    // Review#147170 javadoc incomplete ci dessous: merite d'etre completee
-    // Review#147170  - format attendu <timestamp> <sep> <valeur> ...
     /**
      * defines csv input columns content timestamp format :
      * 2013-05-03T05:30:34,8 yyyy-MM-ddThh:mm:ss.S
@@ -93,7 +90,6 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
             @Override
             public Date parse(String source, ParsePosition pos) {
                 Date date = null;
-                try {
                     DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
                     format.setTimeZone(TimeZone.getTimeZone("GMT"));
                     date = format.parse(source, pos);
@@ -117,10 +113,6 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
                         format.setTimeZone(TimeZone.getTimeZone("GMT"));
                         date = format.parse(source, pos);
                     }
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
                 return date;
             }
 

@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,30 +10,51 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
  * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.metadata.dao;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.log4j.Logger;
+import org.hibernate.Criteria;
+import org.hibernate.NonUniqueResultException;
+import org.hibernate.Query;
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.criterion.Conjunction;
+import org.hibernate.criterion.Junction;
+import org.hibernate.criterion.Order;
+import org.hibernate.criterion.Projections;
+import org.hibernate.criterion.Restrictions;
+import org.hibernate.exception.ConstraintViolationException;
 
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.common.expr.Atom;
 import fr.cs.ikats.common.expr.Expression;
 import fr.cs.ikats.common.expr.Expression.ConnectorExpression;
@@ -43,12 +64,6 @@ import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
-import org.apache.log4j.Logger;
-import org.hibernate.*;
-import org.hibernate.criterion.*;
-import org.hibernate.exception.ConstraintViolationException;
-
-import java.util.*;
 
 /**
  * DAO class for MetaData model class
@@ -98,13 +113,12 @@ public class MetaDataDAO extends DataBaseDAO {
      *
      * @param md the metadata
      * @return the internal Id for this metadata
-     * @throws IkatsDaoConflictException conflict error with existing metadata
-     * @throws IkatsDaoException         any other error
+     * @throws IkatsDaoException any other error
      */
-    public Integer persist(MetaData md) throws IkatsDaoConflictException, IkatsDaoException {
+    public Integer persist(MetaData md) throws IkatsDaoException {
         Integer mdId = null;
         String mdInfo = "null";
-        
+
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -117,19 +131,17 @@ public class MetaDataDAO extends DataBaseDAO {
 
             tx.commit();
         } catch (ConstraintViolationException e) {
-            
+
             String msg = "Creating: " + mdInfo + ": already exists in base for same (TSUID, name)";
             LOGGER.warn(msg);
-            
+
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             // try to rollback
             if (tx != null && !tx.wasRolledBack()) tx.rollback();
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             // end the session
             session.close();
         }
@@ -146,16 +158,15 @@ public class MetaDataDAO extends DataBaseDAO {
      * @param update if true, already existing metadata is updated otherwise no
      *               metadata is persisted if one of them already exists
      * @return a list of imported metadata identifiers in db
-     * @throws IkatsDaoConflictException
      * @throws IkatsDaoException
      */
-    public List<Integer> persist(List<MetaData> mdList, Boolean update) throws IkatsDaoConflictException, IkatsDaoException {
+    public List<Integer> persist(List<MetaData> mdList, Boolean update) throws IkatsDaoException {
         Integer mdId = null;
         String mdInfo = "null";
         MetaData currentRow = null;
         List<Integer> lProcessedIds = new ArrayList<Integer>();
         Long date = (new Date()).getTime();
-        
+
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -166,7 +177,7 @@ public class MetaDataDAO extends DataBaseDAO {
                 if (update) {
                     // check if metadata already exists
                     String queryStr = "select id from tsmetadata where name = '" + currentRow.getName() + "' and tsuid ='" + currentRow.getTsuid()
-                    + "'";
+                            + "'";
                     List<?> result = session.createSQLQuery(queryStr).list();
                     if (result.size() == 0) {
                         // creation of metadata
@@ -191,21 +202,18 @@ public class MetaDataDAO extends DataBaseDAO {
             LOGGER.debug("MetaDataDAO::persist(List<MetaData>) has successfully imported " + mdList.size() + " metadata rows");
             tx.commit();
             LOGGER.trace("MetaDataDAO::persist(List<MetaData>): committed transaction [" + date + "]");
-        }
-        catch (ConstraintViolationException e) {
+        } catch (ConstraintViolationException e) {
             mdInfo = (currentRow != null) ? currentRow.toString() : "null";
             String msg = "Importing: " + mdInfo + ": ConstraintViolationException occurred: see the full error stack in the logs for further details";
             LOGGER.error(msg);
-            
+
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             // try to rollback
             if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             // end the session
             session.close();
         }
@@ -218,16 +226,13 @@ public class MetaDataDAO extends DataBaseDAO {
      *
      * @param md the metadata
      * @return the internal Id for this metadata
-     * @throws IkatsDaoConflictException in case of conflict with existing ( tsuid, name ) pair
-     * @throws IkatsDaoException         if the meta doesn't exists or if database can't be accessed
-     * @since [#142998] manage IkatsDaoConflictException, IkatsDaoException and
-     * method rollbackAndThrowException
+     * @throws IkatsDaoException if the meta doesn't exists or if database can't be accessed
      */
-    public boolean update(MetaData md) throws IkatsDaoConflictException, IkatsDaoException {
+    public boolean update(MetaData md) throws IkatsDaoException {
 
         String mdInfo = null;
         boolean updated = false;
-        
+
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -241,19 +246,17 @@ public class MetaDataDAO extends DataBaseDAO {
 
             tx.commit();
         } catch (ConstraintViolationException e) {
-            
+
             String msg = "Updating: " + mdInfo + ": already exists in base for same (TSUID, name)";
             LOGGER.warn(msg);
-            
+
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             // try to rollback
             if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             // end the session
             session.close();
         }
@@ -270,7 +273,7 @@ public class MetaDataDAO extends DataBaseDAO {
      */
     public int remove(String tsuid) throws IkatsDaoException {
         int result = 0;
-        
+
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -282,14 +285,12 @@ public class MetaDataDAO extends DataBaseDAO {
             result = query.executeUpdate();
 
             tx.commit();
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             // try to rollback
             if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             // end the session
             session.close();
         }
@@ -307,7 +308,7 @@ public class MetaDataDAO extends DataBaseDAO {
      */
     public int remove(String tsuid, String name) throws IkatsDaoException {
         int result = 0;
-        
+
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -320,14 +321,12 @@ public class MetaDataDAO extends DataBaseDAO {
             result = query.executeUpdate();
 
             tx.commit();
-        }
-        catch (RuntimeException e) {
+        } catch (RuntimeException e) {
             // try to rollback
             if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
-        }
-        finally {
+        } finally {
             // end the session
             session.close();
         }
@@ -340,12 +339,12 @@ public class MetaDataDAO extends DataBaseDAO {
      *
      * @param tsuid the ts identifier
      * @return the list if any result found.
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid
-     *                                  different from '*'
-     * @throws IkatsDaoException        other errors
+     * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid
+     *                                 different from '*'
+     * @throws IkatsDaoException       other errors
      */
     @SuppressWarnings("unchecked")
-    public List<MetaData> listForTS(String tsuid) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public List<MetaData> listForTS(String tsuid) throws IkatsDaoException {
         List<MetaData> result = null;
 
         Session session = getSession();
@@ -358,26 +357,23 @@ public class MetaDataDAO extends DataBaseDAO {
                 result = criteria.list();
                 tx.commit();
             } else {
-                // Query q =
-                // session.createQuery("from MetaData where tsuid = :tsuid");
                 Query q = session.createQuery(MetaData.LIST_ALL_FOR_TSUID);
                 q.setString("tsuid", tsuid);
                 result = q.list();
                 tx.commit();
                 if (result == null || (result.isEmpty())) {
                     String msg = "Searching MetaData from tsuid=" + tsuid + ": no resource found, but should exist.";
-                    
+
                     LOGGER.error(msg);
-                    throw new IkatsDaoMissingRessource(msg);
+                    throw new IkatsDaoMissingResource(msg);
                 }
             }
         } catch (RuntimeException e) {
-			if (tx != null)
-				tx.rollback();
-			throw e; // or display error message
-		}
-        finally {
-            
+            if (tx != null)
+                tx.rollback();
+            throw e; // or display error message
+        } finally {
+
             // end the session
             session.close();
         }
@@ -389,13 +385,13 @@ public class MetaDataDAO extends DataBaseDAO {
      * get list of metadata/type couples.
      *
      * @return the list if any result found.
-     * @throws IkatsDaoMissingRessource error raised when no matching resource is found, for a tsuid
-     *                                  different from '*'
-     * @throws IkatsDaoException        other errors
+     * @throws IkatsDaoMissingResource error raised when no matching resource is found, for a tsuid
+     *                                 different from '*'
+     * @throws IkatsDaoException       other errors
      */
-    public Map<String, String> listTypes() throws IkatsDaoMissingRessource, IkatsDaoException {
+    public Map<String, String> listTypes() throws IkatsDaoException {
         Map<String, String> result = new HashMap<>();
-        
+
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -407,15 +403,14 @@ public class MetaDataDAO extends DataBaseDAO {
                 Object[] obj_result = (Object[]) result_elem;
                 result.put((String) obj_result[0], (String) obj_result[1]);
             }
-            
+
             tx.commit();
-            
+
         } catch (RuntimeException e) {
-			if (tx != null)
-				tx.rollback();
-			throw e; // or display error message
-		}
-        finally {
+            if (tx != null)
+                tx.rollback();
+            throw e; // or display error message
+        } finally {
             // end the session
             session.close();
         }
@@ -429,14 +424,13 @@ public class MetaDataDAO extends DataBaseDAO {
      * @param tsuid the ts identifier
      * @param name  the name of the metadata
      * @return the list if any result found, null otherwise.
-     * 
      * @throws IkatsDaoConflictException error raised when multiple metadata are found
      */
-    public MetaData getMD(String tsuid, String name) throws IkatsDaoConflictException {
+    public MetaData getMD(String tsuid, String name) throws IkatsDaoException {
 
         MetaData result = null;
         String pairCriteria = "null";
-        
+
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -447,21 +441,19 @@ public class MetaDataDAO extends DataBaseDAO {
             q.setString("tsuid", tsuid);
             q.setString("name", name);
             result = (MetaData) q.uniqueResult();
-            
+
             tx.commit();
-        }
-        catch (NonUniqueResultException multipleResults) {
+        } catch (NonUniqueResultException multipleResults) {
             // Re-raise the original exception
-        	if (tx != null)
-				tx.rollback();
-			throw new IkatsDaoConflictException("Multiple MetaData are matching the criteria: " + pairCriteria, multipleResults);
-        }
-        catch (RuntimeException e) {
-        	if (tx != null)
-				tx.rollback();
+            if (tx != null)
+                tx.rollback();
+            throw new IkatsDaoConflictException("Multiple MetaData are matching the criteria: "
+                    + pairCriteria, multipleResults);
+        } catch (RuntimeException e) {
+            if (tx != null)
+                tx.rollback();
             throw e;
-        }
-        finally {
+        } finally {
             // end the session
             session.close();
         }
@@ -481,12 +473,14 @@ public class MetaDataDAO extends DataBaseDAO {
      * @return the result is the subset accepted by the filter
      * @throws IkatsDaoException
      */
-    public List<FunctionalIdentifier> searchFuncId(List<FunctionalIdentifier> scope, Group<MetadataCriterion> formula) throws IkatsDaoException {
+    public List<FunctionalIdentifier> searchFuncId(List<FunctionalIdentifier> scope, Group formula)
+            throws IkatsDaoException {
 
         // only AND connector allowed
-        if (ConnectorExpression.AND != formula.connector) {
+        if (ConnectorExpression.AND != formula.getConnector()) {
             throw new IkatsDaoInvalidValueException(
-                    "searchFuncId expects ConnectorExpression.AND: not yet implemented connector " + formula.connector);
+                    "searchFuncId expects ConnectorExpression.AND: not yet implemented connector "
+                            + formula.getConnector());
         }
 
         // step 1:
@@ -495,8 +489,8 @@ public class MetaDataDAO extends DataBaseDAO {
 
         // step2:
         // prepare initial scope: tsuid list
-        List<String> tsuidsInScope = new ArrayList<String>();
-        Map<String, FunctionalIdentifier> mapFunctionalIdentifier = new HashMap<String, FunctionalIdentifier>();
+        List<String> tsuidsInScope = new ArrayList<>();
+        Map<String, FunctionalIdentifier> mapFunctionalIdentifier = new HashMap<>();
         for (FunctionalIdentifier tsId : scope) {
             String tsuid = tsId.getTsuid();
             tsuidsInScope.add(tsuid);
@@ -517,14 +511,10 @@ public class MetaDataDAO extends DataBaseDAO {
 
         // step4: encode the result
         //
-        List<FunctionalIdentifier> included = new ArrayList<FunctionalIdentifier>();
+        List<FunctionalIdentifier> included = new ArrayList<>();
         for (String includedTsuid : tsuidsInScope) {
             included.add(mapFunctionalIdentifier.get(includedTsuid));
         }
-        // TBC: excluded collection may be integrated in returned JSON ?
-        // List<FunctionalIdentifier> excluded = new
-        // ArrayList<FunctionalIdentifier>( scope );
-        // excluded.removeAll( included );
         return included;
     }
 
@@ -544,7 +534,7 @@ public class MetaDataDAO extends DataBaseDAO {
             return tsuidsInScope;
         }
 
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         ConnectorExpression lOperator = ConnectorExpression.AND;
 
         Session session = getSession();
@@ -554,43 +544,40 @@ public class MetaDataDAO extends DataBaseDAO {
 
             Criteria sessionCriteria = session.createCriteria(MetaData.class);
             Junction lGroupJunction;
-            
+
             if (lOperator == ConnectorExpression.AND) {
                 lGroupJunction = Restrictions.conjunction();
                 lGroupJunction.add(Restrictions.in("tsuid", tsuidsInScope));
                 sessionCriteria.add(lGroupJunction);
-                
+
                 // Create the subquery from the filters
                 Conjunction filtersCritQuery = prepareFiltersCritQuery(criteria);
-                
-                
+
+
                 sessionCriteria.add(filtersCritQuery);
             } else {
                 // try to rollback
                 if (tx != null) tx.rollback();
                 throw new IkatsDaoException("Not yet implemented: operator OR grouping  expressions of metadata criterion");
             }
-            
+
             sessionCriteria.setProjection(Projections.projectionList().add(Projections.groupProperty("tsuid")));
             sessionCriteria.addOrder(Order.asc("tsuid"));
-            
+
             result = (List<String>) sessionCriteria.list();
-            
+
             tx.commit();
-        }
-        catch (IkatsDaoInvalidValueException invalidCriterionException) {
-        	// raised by prepareFiltersCritQuery ...
-        	if (tx != null) tx.rollback();
+        } catch (IkatsDaoInvalidValueException invalidCriterionException) {
+            // raised by prepareFiltersCritQuery ...
+            if (tx != null) tx.rollback();
             String msg = "Resource Not found, searching functional identifiers matched by metadata criteria";
             LOGGER.error("NOT FOUND: " + msg);
-            throw new IkatsDaoMissingRessource(msg, invalidCriterionException);
-        }
-        catch (RuntimeException e) {
-        	if (tx != null) tx.rollback();
+            throw new IkatsDaoMissingResource(msg, invalidCriterionException);
+        } catch (RuntimeException e) {
+            if (tx != null) tx.rollback();
             throw e;
-        }
-        finally {
-           
+        } finally {
+
             // end the session
             session.close();
         }
@@ -687,45 +674,35 @@ public class MetaDataDAO extends DataBaseDAO {
      */
     public List<FunctionalIdentifier> searchFuncId(String datasetName, List<MetadataCriterion> criteria)
             throws IkatsDaoException {
-        
+
         List<FunctionalIdentifier> result = null;
-        
+
         Session session = getSession();
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
 
-            // Example request :
-            
-            //  select tsfid.* from tsfunctionalidentifier tsfid
-            //    inner join timeseries_dataset tsds on tsds.tsuid = tsfid.tsuid
-            //    inner join tsmetadata m on m.tsuid = tsds.tsuid
-            //    where tsds.dataset_name = 'DS_AIRBUS_226'
-            //        and m.name = 'FlightId' and m.value = '918';
-            
             Criteria critQuery = session.createCriteria(FunctionalIdentifier.class);
-            
+
             critQuery
-            .createAlias("LinkDatasetTimeSeries", "tsds", Criteria.INNER_JOIN)
-            .add(Restrictions.eqProperty("tsds.tsuid", "FunctionalIdentifier.tsuid"))
-            .createAlias("MetaData", "md", Criteria.INNER_JOIN)
-            .add(Restrictions.eq("md.tsuid", "tsds.tsuid"))
-            .add(Restrictions.eq("tsds.dataset", datasetName));
-            
+                    .createAlias("LinkDatasetTimeSeries", "tsds", Criteria.INNER_JOIN)
+                    .add(Restrictions.eqProperty("tsds.tsuid", "FunctionalIdentifier.tsuid"))
+                    .createAlias("MetaData", "md", Criteria.INNER_JOIN)
+                    .add(Restrictions.eq("md.tsuid", "tsds.tsuid"))
+                    .add(Restrictions.eq("tsds.dataset", datasetName));
+
             // Loop over the criteria to eval metadata name with value
             Conjunction filtersCritQuery = prepareFiltersCritQuery(criteria);
             critQuery.add(filtersCritQuery);
-            
+
             result = (List<FunctionalIdentifier>) critQuery.list();
-            
+
             tx.commit();
-        }
-        catch (RuntimeException e) {
-        	if (tx != null) tx.rollback();
+        } catch (RuntimeException e) {
+            if (tx != null) tx.rollback();
             throw e;
-        }
-        finally {
-            
+        } finally {
+
             // end the session
             session.close();
         }
@@ -741,19 +718,20 @@ public class MetaDataDAO extends DataBaseDAO {
      *                with AND operator
      * @return
      */
-    private Map<String, List<MetadataCriterion>> initMapGroupingSameMetadataName(Group<MetadataCriterion> formula)
+    @SuppressWarnings("unchecked")
+    private Map<String, List<MetadataCriterion>> initMapGroupingSameMetadataName(Group formula)
             throws IkatsDaoException {
 
-        Map<String, List<MetadataCriterion>> map = new HashMap<String, List<MetadataCriterion>>();
+        Map<String, List<MetadataCriterion>> map = new HashMap<>();
 
-        for (Expression<MetadataCriterion> expression : formula.terms) {
+        for (Expression expression : formula.getTerms()) {
             if (expression instanceof Atom<?>) {
                 Atom<MetadataCriterion> atomMetaCriterion = (Atom<MetadataCriterion>) expression;
-                MetadataCriterion metaCriterion = atomMetaCriterion.atomicTerm;
+                MetadataCriterion metaCriterion = atomMetaCriterion.getAtomicTerm();
                 String criterionPropertyName = metaCriterion.getMetadataName();
                 List<MetadataCriterion> mapValue = map.get(criterionPropertyName);
                 if (mapValue == null) {
-                    mapValue = new ArrayList<MetadataCriterion>();
+                    mapValue = new ArrayList<>();
                     map.put(criterionPropertyName, mapValue);
                 }
 
@@ -775,7 +753,7 @@ public class MetaDataDAO extends DataBaseDAO {
     @SuppressWarnings("unchecked")
     public List<String> getListFuncIdFromMetric(String metric) throws IkatsDaoException {
         List<String> result = null;
-        
+
         Session session = getSession();
         Transaction tx = null;
         try {
@@ -786,15 +764,12 @@ public class MetaDataDAO extends DataBaseDAO {
             Query query = session.createQuery(hql);
             query.setString("mid", metric);
             result = query.list();
-            
+
             tx.commit();
-        }
-        catch (RuntimeException e) {
-        	if (tx != null) tx.rollback();
+        } catch (RuntimeException e) {
+            if (tx != null) tx.rollback();
             throw e;
-        }
-        
-        finally {
+        } finally {
             // end the session
             session.close();
         }

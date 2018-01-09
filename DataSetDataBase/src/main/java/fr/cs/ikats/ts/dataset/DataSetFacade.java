@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,37 +10,37 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.ts.dataset;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
-import fr.cs.ikats.metadata.model.FunctionalIdentifier;
-import fr.cs.ikats.ts.dataset.dao.DataSetDAO;
-import fr.cs.ikats.ts.dataset.model.DataSet;
-import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.annotation.PreDestroy;
+
 import org.apache.log4j.Logger;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PreDestroy;
-import java.util.ArrayList;
-import java.util.List;
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.metadata.model.FunctionalIdentifier;
+import fr.cs.ikats.ts.dataset.dao.DataSetDAO;
+import fr.cs.ikats.ts.dataset.model.DataSet;
+import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 
 /**
  * Management facade for datasets
@@ -89,11 +89,10 @@ public class DataSetFacade {
      * @param name        name of the dataset
      * @param description his description
      * @param tsuids      the list of tsuids
-     *
      * @return the identifier of the dataset
      */
     public String persistDataSet(String name, String description, List<String> tsuids) throws IkatsDaoException {
-        List<LinkDatasetTimeSeries> ts = new ArrayList<LinkDatasetTimeSeries>();
+        List<LinkDatasetTimeSeries> ts = new ArrayList<>();
         for (String tsuid : tsuids) {
             ts.add(new LinkDatasetTimeSeries(tsuid, name));
         }
@@ -104,7 +103,7 @@ public class DataSetFacade {
     public String persistDataSetFromEntity(String name, String description,
                                            List<FunctionalIdentifier> funcIdList) throws IkatsDaoException {
 
-        List<LinkDatasetTimeSeries> ts = new ArrayList<LinkDatasetTimeSeries>();
+        List<LinkDatasetTimeSeries> ts = new ArrayList<>();
         DataSet md = new DataSet(name, description, ts);
         for (FunctionalIdentifier fid : funcIdList) {
             LinkDatasetTimeSeries asso = new LinkDatasetTimeSeries(fid, md);
@@ -120,10 +119,10 @@ public class DataSetFacade {
      * get Dataset for TS
      *
      * @param name name of the dataset
-     *
      * @return the dataset
+     * @throws IkatsDaoException
      */
-    public DataSet getDataSet(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public DataSet getDataSet(String name) throws IkatsDaoException {
         return dao.getDataSet(name);
     }
 
@@ -131,10 +130,10 @@ public class DataSetFacade {
      * get Dataset Summary
      *
      * @param name name of the dataset
-     *
      * @return the dataset
+     * @throws IkatsDaoException
      */
-    public DataSet getDataSetSummary(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public DataSet getDataSetSummary(String name) throws IkatsDaoException {
         return dao.getDataSetSummary(name);
     }
 
@@ -142,10 +141,9 @@ public class DataSetFacade {
      * remove dataset for name
      *
      * @param name name of the dataset
-     *
      * @throws IkatsDaoException
      */
-    public void removeDataSet(String name) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public void removeDataSet(String name) throws IkatsDaoException {
         dao.removeDataSet(name);
     }
 
@@ -153,6 +151,7 @@ public class DataSetFacade {
      * Despite its name: returns all the datasets
      *
      * @return all the datasets
+     * @throws IkatsDaoException
      */
     public List<DataSet> getAllDataSetSummary() throws IkatsDaoException {
         return dao.getAllDataSets();
@@ -160,8 +159,8 @@ public class DataSetFacade {
 
     /**
      * @param tsuid the requested tsuid
-     *
      * @return the found list or null if empty
+     * @throws IkatsDaoException
      */
     public List<String> getDataSetNamesForTsuid(String tsuid) throws IkatsDaoException {
         return dao.getDataSetNamesForTsuid(tsuid);
@@ -172,6 +171,7 @@ public class DataSetFacade {
      *
      * @param tsuid       the tsuid to detach from dataset
      * @param datasetName the dataset
+     * @throws IkatsDaoException
      */
     public void removeTSFromDataSet(String tsuid, String datasetName) throws IkatsDaoException {
         dao.removeTSFromDataSet(tsuid, datasetName);
@@ -182,12 +182,11 @@ public class DataSetFacade {
      *
      * @param datasetName the dataset name
      * @param tsuidList   the tsuid list defining the  removed links
-     *
      * @throws IkatsDaoException
      */
     public void removeTsLinks(String datasetName, List<String> tsuidList) throws IkatsDaoException {
 
-        ArrayList<LinkDatasetTimeSeries> listTsLinkEntities = new ArrayList<LinkDatasetTimeSeries>();
+        ArrayList<LinkDatasetTimeSeries> listTsLinkEntities = new ArrayList<>();
         for (String tsuid : tsuidList) {
 
             listTsLinkEntities.add(new LinkDatasetTimeSeries(tsuid, datasetName));
@@ -201,7 +200,6 @@ public class DataSetFacade {
      */
     @PreDestroy
     public void destroy() {
-        System.out.println("Destroying DataSetFacade");
         dao.stop();
     }
 
@@ -211,14 +209,13 @@ public class DataSetFacade {
      * @param datasetName the name of the dataset to update
      * @param description the new description: specific values: null if unchanged, "" if emptied.
      * @param tsuidList   a list of tsuid to add to dataset, can be null
-     *
      * @return the number of TS added while updating
      */
-    public int updateDataSet(String datasetName, String description, List<String> tsuidList) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public int updateDataSet(String datasetName, String description, List<String> tsuidList) throws IkatsDaoException {
         DataSet theDataset = dao.getDataSet(datasetName);
         String theDescription = (description != null) ? description : theDataset.getDescription();
 
-        List<LinkDatasetTimeSeries> tsList = new ArrayList<LinkDatasetTimeSeries>();
+        List<LinkDatasetTimeSeries> tsList = new ArrayList<>();
         for (String tsuid : tsuidList) {
             LinkDatasetTimeSeries ts = new LinkDatasetTimeSeries(tsuid, datasetName);
             tsList.add(ts);
@@ -237,14 +234,13 @@ public class DataSetFacade {
      * @param datasetName the name of the dataset to update: unique reference to existing dataset
      * @param description the new description: specific values: null if unchanged, "" if emptied.
      * @param tsuidList   a list of tsuid to add to dataset, can be null
-     *
      * @return the number of TS added while updating
      */
-    public int updateInAppendMode(String datasetName, String description, List<String> tsuidList) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public int updateInAppendMode(String datasetName, String description, List<String> tsuidList) throws IkatsDaoException {
         DataSet theDataset = dao.getDataSet(datasetName);
         String theDescription = (description != null) ? description : theDataset.getDescription();
 
-        List<LinkDatasetTimeSeries> tsList = new ArrayList<LinkDatasetTimeSeries>();
+        List<LinkDatasetTimeSeries> tsList = new ArrayList<>();
         for (String tsuid : tsuidList) {
             LinkDatasetTimeSeries ts = new LinkDatasetTimeSeries(tsuid, datasetName);
             tsList.add(ts);
@@ -258,10 +254,8 @@ public class DataSetFacade {
      *
      * @param tsuid       the identifier of the time serie to add
      * @param datasetName the name of the dataset to update
-     *
-     * @return the number of TS added while updating
      */
-    public void updateInAppendMode(String tsuid, String datasetName) throws IkatsDaoMissingRessource, IkatsDaoException {
+    public void updateInAppendMode(String tsuid, String datasetName) throws IkatsDaoException {
         dao.updateAddOneTimeseries(tsuid, datasetName);
     }
 }

@@ -2,7 +2,7 @@
  * LICENSE:
  * --------
  * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
+ *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
  * distributed with this work for additional information
@@ -10,20 +10,19 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
  * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
  * KIND, either express or implied. See the License for the
  * specific language governing permissions and limitations
  * under the License.
- * 
+ *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
  * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
- * 
  */
 
 package fr.cs.ikats.temporaldata.business;
@@ -65,7 +64,8 @@ public class ProcessDataManager {
      *
      * @throws IOException In case of error when reading fileis
      */
-    public String importProcessData(InputStream fileis, Long fileLength, String processId, String dataType, String name) throws IOException {
+    public String importProcessData(InputStream fileis, Long fileLength, String processId, String dataType, String name)
+            throws IkatsDaoException, IOException {
         ProcessData data = new ProcessData(processId, dataType, name);
         return getProcessDataFacade().importProcessData(data, fileis, fileLength.intValue());
     }
@@ -79,7 +79,7 @@ public class ProcessDataManager {
      *
      * @return the internal identifier of the result.
      */
-    public String importProcessData(String processId, String name, byte[] data) {
+    public String importProcessData(String processId, String name, byte[] data) throws IkatsDaoException {
         ProcessData processData = new ProcessData(processId, "ANY", name);
         return getProcessDataFacade().importProcessData(processData, data);
     }
@@ -95,7 +95,7 @@ public class ProcessDataManager {
      *
      * @return the internal identifier of the result.
      */
-    public String importProcessData(String processId, String name, byte[] data, ProcessResultTypeEnum type) {
+    public String importProcessData(String processId, String name, byte[] data, ProcessResultTypeEnum type) throws IkatsDaoException {
         ProcessData processData = new ProcessData(processId, type.toString(), name);
         return getProcessDataFacade().importProcessData(processData, data);
     }
@@ -126,7 +126,7 @@ public class ProcessDataManager {
      *
      * @return null if nothing is found.
      */
-    public ProcessData getProcessPieceOfData(int id) {
+    public ProcessData getProcessPieceOfData(int id) throws IkatsDaoException {
         return getProcessDataFacade().getProcessPieceOfData(id);
     }
 
@@ -137,7 +137,7 @@ public class ProcessDataManager {
      *
      * @return null if not processResult is found.
      */
-    public List<ProcessData> getProcessData(String processId) {
+    public List<ProcessData> getProcessData(String processId) throws IkatsDaoException {
         return getProcessDataFacade().getProcessData(processId);
     }
 
@@ -146,7 +146,7 @@ public class ProcessDataManager {
      *
      * @return the list of all tables. null returned only in case of error.
      */
-    public List<ProcessData> listTables() {
+    public List<ProcessData> listTables() throws IkatsDaoException {
         return getProcessDataFacade().listTables();
     }
 
