@@ -125,7 +125,7 @@ public class MetaDataFacade {
      * @throws IkatsDaoConflictException in case of conflict with existing ( tsuid, name ) pair
      * @throws IkatsDaoMissingResource   in case of missing MetaData
      * @throws IkatsDaoException         if the meta doesn't exists or if database can't be accessed
-     * @since [#142998] Manage IkatsDaoConflictException, IkatsDaoMissingRessource, IkatsDaoException
+     * @since [#142998] Manage IkatsDaoConflictException, IkatsDaoMissingResource, IkatsDaoException
      */
     public Integer updateMetaData(String tsuid, String name, String value)
             throws IkatsDaoException {
