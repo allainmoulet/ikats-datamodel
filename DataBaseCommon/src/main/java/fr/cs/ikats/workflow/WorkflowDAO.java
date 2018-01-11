@@ -65,15 +65,15 @@ public class WorkflowDAO extends DataBaseDAO {
      * @throws IkatsDaoMissingResource if there is no workflow/Macro Operator
      * @throws IkatsDaoException        if any other exception occurs
      */
-    List<Workflow> listAll(Boolean isMacroOp) throws IkatsDaoException {
-        List<Workflow> result = null;
+    List<WorkflowEntitySummary> listAll(Boolean isMacroOp) throws IkatsDaoException {
+        List<WorkflowEntitySummary> result = null;
 
         Session session = getSession();
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
 
-            Criteria criteria = session.createCriteria(Workflow.class);
+            Criteria criteria = session.createCriteria(WorkflowEntitySummary.class);
             criteria.add(Restrictions.eq("isMacroOp", isMacroOp));
             result = criteria.list();
 
@@ -115,9 +115,7 @@ public class WorkflowDAO extends DataBaseDAO {
             tx.commit();
         } catch (RuntimeException e) {
             // try to rollback
-            if (tx != null) {
-                tx.rollback();
-            }
+            if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
         } finally {
@@ -148,7 +146,7 @@ public class WorkflowDAO extends DataBaseDAO {
             criteria.add(Restrictions.eq("id", id));
             List<Workflow> resultList = criteria.list();
 
-            if (resultList == null || (resultList.isEmpty())) {
+            if (resultList == null || (resultList.size() == 0)) {
                 String msg = "Searching workflow from id=" + id + ": no resource found, but should exist.";
                 LOGGER.error(msg);
                 rollbackAndThrowException(tx, new IkatsDaoMissingResource(msg));
@@ -158,9 +156,7 @@ public class WorkflowDAO extends DataBaseDAO {
 
             tx.commit();
         } catch (RuntimeException e) {
-            if (tx != null) {
-                tx.rollback();
-            }
+            if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
         } finally {
@@ -178,7 +174,7 @@ public class WorkflowDAO extends DataBaseDAO {
      * @throws IkatsDaoConflictException if the workflow/Macro Operator to append already exists
      * @throws IkatsDaoException         if any other exception occurs
      */
-    public Integer persist(Workflow wf) throws IkatsDaoException {
+    public Integer persist(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException {
         Integer wfId = null;
 
         Session session = getSession();
@@ -193,9 +189,7 @@ public class WorkflowDAO extends DataBaseDAO {
             tx.commit();
         } catch (RuntimeException e) {
             // try to rollback
-            if (tx != null) {
-                tx.rollback();
-            }
+            if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
         } finally {
@@ -214,7 +208,7 @@ public class WorkflowDAO extends DataBaseDAO {
      * @throws IkatsDaoConflictException if the workflow/Macro Operator to update does not exist
      * @throws IkatsDaoException         if any other exception occurs
      */
-    public boolean update(Workflow wf) throws IkatsDaoException {
+    public boolean update(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException {
         boolean updated = false;
 
         Session session = getSession();
@@ -233,9 +227,7 @@ public class WorkflowDAO extends DataBaseDAO {
             rollbackAndThrowException(tx, new IkatsDaoMissingResource(msg, e));
         } catch (RuntimeException e) {
             // try to rollback
-            if (tx != null) {
-                tx.rollback();
-            }
+            if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
         } finally {
@@ -273,9 +265,7 @@ public class WorkflowDAO extends DataBaseDAO {
             tx.commit();
         } catch (RuntimeException e) {
             // try to rollback
-            if (tx != null) {
-                tx.rollback();
-            }
+            if (tx != null) tx.rollback();
             // Re-raise the original exception
             throw e;
         } finally {

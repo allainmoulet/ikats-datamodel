@@ -288,7 +288,7 @@ public class MetaDataResource extends AbstractResource {
             result = metadataManager.getList(tsuidslist);
         } catch (IkatsDaoMissingResource e) {
             // ResourceNotFoundException is equivalent to
-            // IkatsDaoMissingRessource
+            // IkatsDaoMissingResource
             throw new ResourceNotFoundException(tsuids, e);
         } catch (IkatsDaoException otherE) {
             throw new IkatsDaoException("Getting MetaData list from TSUID list=" + tsuids, otherE);
@@ -309,7 +309,7 @@ public class MetaDataResource extends AbstractResource {
             result = metadataManager.getList(tsuidslist);
         } catch (IkatsDaoMissingResource e) {
             // ResourceNotFoundException is equivalent to
-            // IkatsDaoMissingRessource
+            // IkatsDaoMissingResource
             throw new ResourceNotFoundException(tsuids.toString(), e);
         } catch (IkatsDaoException otherE) {
             throw new IkatsDaoException("Getting MetaData list from TSUID list=" + tsuids, otherE);

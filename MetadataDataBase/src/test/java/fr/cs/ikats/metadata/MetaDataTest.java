@@ -193,7 +193,7 @@ public class MetaDataTest {
     public void testUpdateMetadataFailure() throws IkatsDaoMissingResource, IkatsDaoException {
         MetaDataFacade facade = new MetaDataFacade();
         facade.updateMetaData("tsuidF01", "MDFailedUpdateWithoutCreate", "value");
-        fail("IkatsDaoMissingRessource should be raised");
+        fail("IkatsDaoMissingResource should be raised");
     }
 
     /**

@@ -47,6 +47,7 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.datamanager.client.RequestSender;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.workflow.Workflow;
+import fr.cs.ikats.workflow.WorkflowEntitySummary;
 import fr.cs.ikats.workflow.WorkflowFacade;
 
 import static org.junit.Assert.assertEquals;
@@ -170,7 +171,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         String expectedId = matcher.group(1);
         assertEquals(getAPIURL() + "/wf/" + expectedId, headerLocation.toString());
 
-        List<Workflow> workflowList = Facade.listAllWorkflows();
+        List<WorkflowEntitySummary> workflowList = Facade.listAllWorkflows();
         assertEquals(1, workflowList.size());
 
         Response response2 = callAPI(VERB.GET, "/wf/" + expectedId, wf);
@@ -213,7 +214,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         String expectedId = matcher.group(1);
         assertEquals(getAPIURL() + "/wf/" + expectedId, headerLocation.toString());
 
-        List<Workflow> workflowList = Facade.listAllWorkflows();
+        List<WorkflowEntitySummary> workflowList = Facade.listAllWorkflows();
         assertEquals(2, workflowList.size());
 
         Response response2 = callAPI(VERB.GET, "/wf/" + expectedId, wf);
@@ -314,46 +315,8 @@ public class WorkflowResourceTest extends AbstractRequestTest {
             assertEquals(wfList.get(i).getId(), readWorkflowList.get(i).getId());
             assertEquals(wfList.get(i).getName(), readWorkflowList.get(i).getName());
             assertEquals(wfList.get(i).getDescription(), readWorkflowList.get(i).getDescription());
-            assertEquals(null, readWorkflowList.get(i).getRaw());
         }
 
-
-    }
-
-    /**
-     * Workflow list All - Nominal case - with full content
-     *
-     * @throws Exception if test fails
-     */
-    @Test
-    public void listAll_full_200() throws Exception {
-
-        // PREPARE THE DATABASE
-        // Fill in the workflow db
-        List<Workflow> wfList = new ArrayList<>();
-        wfList.add(addWfToDb(1));
-        wfList.add(addWfToDb(2));
-        wfList.add(addWfToDb(3));
-
-        // PREPARE THE TEST
-        // Fill in the workflow db
-
-        // DO THE TEST
-        Response response = callAPI(VERB.GET, "/wf/?full=true", null);
-
-        // CHECK RESULTS
-        int status = response.getStatus();
-        assertEquals(200, status);
-
-        List<Workflow> readWorkflowList = response.readEntity(new GenericType<List<Workflow>>() {
-        });
-        assertEquals(wfList.size(), readWorkflowList.size());
-        for (int i = 0; i < wfList.size(); i++) {
-            assertEquals(wfList.get(i).getId(), readWorkflowList.get(i).getId());
-            assertEquals(wfList.get(i).getName(), readWorkflowList.get(i).getName());
-            assertEquals(wfList.get(i).getDescription(), readWorkflowList.get(i).getDescription());
-            assertEquals(wfList.get(i).getRaw(), readWorkflowList.get(i).getRaw());
-        }
 
     }
 

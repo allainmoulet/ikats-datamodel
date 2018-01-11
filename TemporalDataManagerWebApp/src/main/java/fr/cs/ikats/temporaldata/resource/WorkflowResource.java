@@ -30,23 +30,24 @@ import java.util.List;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
+import org.apache.log4j.Logger;
+
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.workflow.Workflow;
+import fr.cs.ikats.workflow.WorkflowEntitySummary;
 import fr.cs.ikats.workflow.WorkflowFacade;
 
 /**
@@ -55,6 +56,7 @@ import fr.cs.ikats.workflow.WorkflowFacade;
 @Path("wf")
 public class WorkflowResource extends AbstractResource {
 
+    private static Logger logger = Logger.getLogger(MetaDataResource.class);
     private WorkflowFacade Facade = new WorkflowFacade();
 
     /**
@@ -83,7 +85,7 @@ public class WorkflowResource extends AbstractResource {
         try {
             wf.setMacroOp(false);
         } catch (NullPointerException e) {
-            throw new IkatsDaoException("Wrong inputs", e);
+            throw new IkatsDaoException("Wrong inputs");
         }
 
         Integer wfId = Facade.persist(wf);
@@ -98,23 +100,14 @@ public class WorkflowResource extends AbstractResource {
     /**
      * Get the list of all workflow summary (raw content is not provided unless full is set to true)
      *
-     * @param full to indicate if the raw content shall be included in response
      * @return the workflow
      * @throws IkatsDaoException if any DAO exception occurs
      */
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listAll(
-            @QueryParam("full") @DefaultValue("false") Boolean full
-    ) throws IkatsDaoException {
+    public Response listAll() throws IkatsDaoException {
 
-        List<Workflow> result = Facade.listAllWorkflows();
-        if (!full) {
-            // Remove Raw content from data to reduce the payload
-            result.forEach(wf -> wf.setRaw(null));
-        }
-        // Internal flags must not be provided
-        result.forEach(wf -> wf.setMacroOp(null));
+        List<WorkflowEntitySummary> result = Facade.listAllWorkflows();
 
         Response.StatusType resultStatus = Response.Status.OK;
         if (result.size() == 0) {
