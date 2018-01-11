@@ -1,7 +1,7 @@
 /**
  * LICENSE:
  * --------
- * Copyright 2017 CS SYSTEMES D'INFORMATION
+ * Copyright 2017-2018 CS SYSTEMES D'INFORMATION
  *
  * Licensed to CS SYSTEMES D'INFORMATION under one
  * or more contributor license agreements. See the NOTICE file
@@ -11,7 +11,7 @@
  * "License"); you may not use this file except in compliance
  * with the License. You may obtain a copy of the License at
  *
- * http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing,
  * software distributed under the License is distributed on an
@@ -22,6 +22,8 @@
  *
  * @author Fabien TORAL <fabien.toral@c-s.fr>
  * @author Fabien TORTORA <fabien.tortora@c-s.fr>
+ * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
+ *
  */
 
 package fr.cs.ikats.common.dao.exception;
@@ -75,4 +77,3 @@ public class IkatsDaoException extends Exception {
     }
 
 }
-
