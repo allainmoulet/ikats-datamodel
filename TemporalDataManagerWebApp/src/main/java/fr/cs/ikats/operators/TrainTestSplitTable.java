@@ -172,9 +172,6 @@ public class TrainTestSplitTable {
         // Result initialization
         Table table1 = TableManager.initEmptyTable(withColHeaders, withRowHeaders);
         Table table2 = TableManager.initEmptyTable(withColHeaders, withRowHeaders);
-        List<Table> result = new ArrayList<>();
-        result.add(table1);
-        result.add(table2);
 
         // Extract rows at split indexes to generate output
         table1 = extractIndexes(table, table1, indexListOutput.get(0));
@@ -188,6 +185,9 @@ public class TrainTestSplitTable {
         table1.sortRowsByColumnValues(0, false);
         table2.sortRowsByColumnValues(0, false);
 
+        List<Table> result = new ArrayList<>();
+        result.add(table1);
+        result.add(table2);
         return result;
 
     }
