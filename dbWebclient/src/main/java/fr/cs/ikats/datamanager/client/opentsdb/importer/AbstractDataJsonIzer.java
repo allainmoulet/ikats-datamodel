@@ -151,9 +151,7 @@ public abstract class AbstractDataJsonIzer implements IImportSerializer {
                 throw new DataManagerException(pe.getMessage(), pe);
             }
             // set startDate and endDate from the generator.
-            if (this.startDate == 0L) {
-                this.startDate = generateur.getLowestTimeStampValue();
-            } else if (generateur.getLowestTimeStampValue() < this.startDate) {
+            if (this.startDate == 0L || generateur.getLowestTimeStampValue() < this.startDate) {
                 this.startDate = generateur.getLowestTimeStampValue();
             }
 

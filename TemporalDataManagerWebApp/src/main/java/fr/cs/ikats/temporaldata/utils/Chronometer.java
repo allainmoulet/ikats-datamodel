@@ -115,7 +115,7 @@ public class Chronometer {
         if (TimeUnit.MILLISECONDS.equals(unit)) {
             return "[Duration : " + timeElapsed + " ms]";
         } else {
-            return "[Duration : " + timeElapsed + " ms]";
+            return "[Duration : " + timeElapsed + " " + unit.name() + "]";
         }
     }
 

@@ -130,7 +130,7 @@ public abstract class AbstractWorkflowEntity {
     }
 
     /**
-     * Using Hibernate: advised to implement hashcode: see §13.1.3
+     * Using Hibernate: advised to implement hashcode and therefore equals: see §13.1.3
      * http://docs.jboss.org/hibernate/orm/3.6/reference/en-US/html_single/#transactions-demarcation
      * {@inheritDoc}
      */
@@ -140,4 +140,56 @@ public abstract class AbstractWorkflowEntity {
         // - do not involve raw: too big ...
         return ("" + name + isMacroOp + description + "Wkf").hashCode();
     }
+    
+    /**
+     * Following the {@link #hashCode()} rationale, overrides the {@link Object#equals(Object)}
+     */
+	@Override
+	public boolean equals(Object obj) {
+		// Same instance 
+		if (this == obj) {
+			return true;
+		}
+		
+		// compared to null -> false
+		if (obj == null) {
+			return false;
+		}
+		
+		// No the same Class -> false
+		if (getClass() != obj.getClass()) {
+			return false;
+		}
+		
+		// Previous checks lets us confident in casting
+		AbstractWorkflowEntity other = (AbstractWorkflowEntity) obj;
+		
+		// Check all properties equality
+		if (description == null) {
+			if (other.description != null) {
+				return false;
+			}
+		} else if (!description.equals(other.description)) {
+			return false;
+		}
+		
+		if (isMacroOp == null) {
+			if (other.isMacroOp != null) {
+				return false;
+			}
+		} else if (!isMacroOp.equals(other.isMacroOp)) {
+			return false;
+		}
+		
+		if (name == null) {
+			if (other.name != null) {
+				return false;
+			}
+		} else if (!name.equals(other.name)) {
+			return false;
+		}
+		
+		// Finally -> We're all good
+		return true;
+	}
 }
