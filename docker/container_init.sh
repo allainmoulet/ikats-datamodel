@@ -118,7 +118,7 @@ function send_war_to_tomcat {
   f="$(basename $WAR_FILE)"
   curl \
     --upload-file $f \
-    "http://$creds@$TOMCAT_HOST:$TOMCAT_PORT/manager/text/deploy?path=/${f%.*}"
+    "http://$creds@$TOMCAT_HOST:$TOMCAT_PORT/manager/text/deploy?path=/${f%.*}&update=true"
 }
 
 if [ "$#" -ne 2 ]
