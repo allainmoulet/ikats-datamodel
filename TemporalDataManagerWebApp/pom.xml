@@ -191,6 +191,33 @@
 					</execution>
 
 					<execution>
+						<id>template</id>
+						<configuration>
+							<outputDirectory>target/template</outputDirectory>
+							<webResources>
+								<resource>
+									<directory>src/main/template/resources</directory>
+									<targetPath>WEB-INF/classes</targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>src/main/template/webapp</directory>
+									<targetPath></targetPath>
+									<includes>
+										<include>**/*</include>
+									</includes>
+								</resource>
+							</webResources>
+						</configuration>
+						<goals>
+							<goal>war</goal>
+						</goals>
+					</execution>
+
+
+					<execution>
 						<id>local</id>
 						<configuration>
 							<outputDirectory>target/local</outputDirectory>
