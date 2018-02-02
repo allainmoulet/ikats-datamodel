@@ -8,15 +8,12 @@
 	<description>Main POM for IKATS</description>
 	<modules>
 		<module>../ikats-commons</module>
-		<module>../TemporalDataManagerWebApp</module>
-		<module>../common-contrib</module>
-		<module>../DataBaseCommon</module>
 		<module>../dbWebclient</module>
+		<module>../TemporalDataManagerWebApp</module>
+		<module>../DataBaseCommon</module>
 		<module>../MetadataDataBase</module>
 		<module>../DataSetDataBase</module>
 		<module>../ProcessDataDataBase</module>
-		<module>../edf-contrib</module>
-		<module>../Airbus</module>
 	</modules>
 
 	<properties>

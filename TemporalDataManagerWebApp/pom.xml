@@ -64,7 +64,7 @@
 					<execution>
 						<id>template</id>
 						<configuration>
-							<outputDirectory>target/template</outputDirectory>
+							<outputDirectory>${project.build.directory}/template</outputDirectory>
 							<webResources>
 								<resource>
 									<directory>src/main/template/resources</directory>
@@ -161,11 +161,7 @@
 			<artifactId>commons-pool2</artifactId>
 			<version>2.2</version>
 		</dependency>
-		<dependency>
-			<groupId>fr.cs.ikats</groupId>
-			<artifactId>${client.name}-contrib</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
+
 		<dependency>
 			<groupId>fr.cs.ikats</groupId>
 			<artifactId>metadata-database</artifactId>
@@ -177,6 +173,7 @@
 				</exclusion>
 			</exclusions>
 		</dependency>
+		
 		<dependency>
 			<groupId>postgresql</groupId>
 			<artifactId>postgresql</artifactId>
@@ -219,19 +216,13 @@
 			<artifactId>json-simple</artifactId>
 			<version>1.1.1</version>
 		</dependency>
+		
+		<!-- IKATS Dependencies -->
 		<dependency>
 			<groupId>fr.cs.ikats</groupId>
-			<artifactId>edf-contrib</artifactId>
+			<artifactId>db-web-client</artifactId>
 			<version>0.0.1-SNAPSHOT</version>
-			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>fr.cs.ikats</groupId>
-			<artifactId>airbus-contrib</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-			<scope>runtime</scope>
-		</dependency>
-
 
 		<!-- Tests -->
 		<dependency>
