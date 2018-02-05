@@ -13,11 +13,6 @@
 	</parent>
 	
 	<dependencies>
-		<dependency>
-			<groupId>fr.cs.ikats</groupId>
-			<artifactId>common-database</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
-		</dependency>
 
 		<dependency>
 			<groupId>org.springframework</groupId>
@@ -29,6 +24,19 @@
 			<groupId>javassist</groupId>
 			<artifactId>javassist</artifactId>
 			<version>3.4.GA</version>
+		</dependency>
+		
+		<!-- IKATS Dependencies -->
+		<dependency>
+			<groupId>fr.cs.ikats</groupId>
+			<artifactId>ikats-commons</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>fr.cs.ikats</groupId>
+		    <artifactId>common-database</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		
 	</dependencies>
