@@ -8,9 +8,9 @@
 
 	<parent>
 		<groupId>fr.cs.ikats</groupId>
-		<artifactId>ikats-main</artifactId>
+		<artifactId>ikats-base</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>../ikats-main</relativePath>
+		<relativePath>../</relativePath>
 	</parent>
 
 	<properties>
@@ -62,14 +62,14 @@
 			<version>4.10</version>
 			<scope>provided</scope>
 		</dependency>
-		
+
 		<!-- Logging -->
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
 			<version>1.2.12</version>
 		</dependency>
-		
+
 	</dependencies>
 
 </project>

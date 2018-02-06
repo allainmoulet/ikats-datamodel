@@ -9,7 +9,7 @@ MAINTAINER Germain GAU <germain.gau@c-s.fr>
 #########################################################
 
 ADD . /srcs
-WORKDIR /srcs/ikats-main
+WORKDIR /srcs
 RUN mvn package \
   -Dtarget=template \
   -DskipTests=true

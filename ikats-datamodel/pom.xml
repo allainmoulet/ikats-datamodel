@@ -7,9 +7,9 @@
 
 	<parent>
 		<groupId>fr.cs.ikats</groupId>
-		<artifactId>ikats-main</artifactId>
+		<artifactId>ikats-base</artifactId>
 		<version>0.0.1-SNAPSHOT</version>
-		<relativePath>../ikats-main</relativePath>
+		<relativePath>../</relativePath>
 	</parent>
 
 	<dependencies>
