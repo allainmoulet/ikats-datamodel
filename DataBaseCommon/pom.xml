@@ -73,6 +73,19 @@
             <version>4.2.0.RELEASE</version>
         </dependency>
 
+		<dependency>
+			<groupId>javassist</groupId>
+			<artifactId>javassist</artifactId>
+			<version>3.4.GA</version>
+		</dependency>
+		
+		<!-- IKATS Dependencies -->
+		<dependency>
+			<groupId>fr.cs.ikats</groupId>
+			<artifactId>ikats-commons</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
 	</dependencies>
     
 </project>
