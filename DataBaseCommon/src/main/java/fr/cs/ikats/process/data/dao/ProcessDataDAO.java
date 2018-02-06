@@ -53,14 +53,14 @@ public class ProcessDataDAO extends DataBaseDAO {
 
     private static Logger logger = Logger.getLogger(ProcessDataDAO.class);
 
-    /**
+	/**
      * persist the ProcessData
      *
      * @param ds   the process data
      * @param data data to save
      * @return the internal identifier if ProcessData has been correctly persisted,
      */
-    public String persist(ProcessData ds, byte[] data) throws IkatsDaoException {
+    public String persist(ProcessData ds, byte[] data) {
         Integer processDataId = null;
 
         Session session = getSession();

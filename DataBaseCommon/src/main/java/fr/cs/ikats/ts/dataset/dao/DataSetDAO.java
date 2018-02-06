@@ -53,15 +53,8 @@ import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
 public class DataSetDAO extends DataBaseDAO {
 
     private static final Logger LOGGER = Logger.getLogger(DataSetDAO.class);
-
-    /**
-     * public constructor
-     */
-    public DataSetDAO() {
-
-    }
-
-    /**
+	
+	/**
      * persist the dataset
      *
      * @param ds the dataset

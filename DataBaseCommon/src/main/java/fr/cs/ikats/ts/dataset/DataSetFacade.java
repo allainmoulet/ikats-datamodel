@@ -60,30 +60,7 @@ public class DataSetFacade {
      * DataSetFacade
      * the DAO for acces to MetaData storage
      */
-    private DataSetDAO dao;
-
-    /**
-     *
-     */
-    public DataSetFacade() {
-        init();
-    }
-
-    /**
-     * init the dao and its mapping : use the hibernate.cfg.xml file + add
-     * package and classes where annotations are set.
-     */
-    private void init() {
-        LOGGER.info("init of hibernate configuration with classpath resource file /dataSetHibernate.cfg.xml");
-        dao = new DataSetDAO();
-        dao.init("/dataSetHibernate.cfg.xml");
-
-        dao.addAnotatedPackage("fr.cs.ikats.ts.dataset.model");
-        dao.addAnnotatedClass(DataSet.class);
-        dao.addAnnotatedClass(LinkDatasetTimeSeries.class);
-        dao.completeConfiguration();
-
-    }
+    private DataSetDAO dao = new DataSetDAO();
 
     /**
      * persist dataset

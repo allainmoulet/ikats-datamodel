@@ -51,21 +51,7 @@ public class TableDAO extends DataBaseDAO {
      * Logger for TableDAO
      */
     private static final Logger LOGGER = Logger.getLogger(TableDAO.class);
-
-    private DatabaseManager instance;
-
-    public TableDAO() {
-        instance = DatabaseManager.getInstance();
-    }
-
-    /* (non-Javadoc)
-     * @see fr.cs.ikats.common.dao.DataBaseDAO#getSession()
-     */
-    @Override
-    public Session getSession() {
-        return instance.getSession();
-    }
-
+    
     /**
      * List all Tables
      *

@@ -59,25 +59,7 @@ public class ProcessDataFacade {
     /**
      * DataSetFacade the DAO for access to MetaData storage
      */
-    private ProcessDataDAO dao;
-
-    public ProcessDataFacade() {
-        init();
-    }
-
-    /**
-     * init the dao and its mapping : use the hibernate.cfg.xml file + add package and classes where annotations are
-     * set.
-     */
-    public void init() {
-        LOGGER.info("init of hibernate configuration with classpath resource file /processDataHibernate.cfg.xml");
-        dao = new ProcessDataDAO();
-        dao.init("/processDataHibernate.cfg.xml");
-
-        dao.addAnotatedPackage("fr.cs.ikats.process.data.model");
-        dao.addAnnotatedClass(ProcessData.class);
-        dao.completeConfiguration();
-    }
+    private ProcessDataDAO dao = new ProcessDataDAO();
 
     /**
      * @param data   processData

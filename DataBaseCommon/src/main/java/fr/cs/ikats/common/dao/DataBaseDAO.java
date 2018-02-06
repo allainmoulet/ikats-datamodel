@@ -32,9 +32,7 @@ package fr.cs.ikats.common.dao;
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
-import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.hibernate.cfg.AnnotationConfiguration;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
@@ -47,51 +45,11 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoRollbackException;
 public abstract class DataBaseDAO {
 
     private static Logger logger = Logger.getLogger(DataBaseDAO.class);
-    private AnnotationConfiguration configuration;
-    private SessionFactory sessionFactory;
 
-    /**
-     * init an AnnotationConfiguration with a minimal Hibernate.cfg.xml read from the classpath
-     *
-     * @param hibernateConfigurationFile the hibernate configuration file
-     */
-    public void init(String hibernateConfigurationFile) {
-        configuration = new AnnotationConfiguration().configure(hibernateConfigurationFile);
-    }
-
-    /**
-     * create the session factory from configuration. After call to this method,
-     * nothing can be changed in configuration
-     */
-    public void completeConfiguration() {
-        if (sessionFactory != null) {
-            logger.error("Configuration is already complete, nothing done");
-        } else {
-            sessionFactory = configuration.buildSessionFactory();
-        }
-    }
-
-    /**
-     * register an annotated class to the hibernate configuration
-     *
-     * @param annotatedClass the class with annotations
-     */
-    public void addAnnotatedClass(Class<?> annotatedClass) {
-        if (sessionFactory != null) {
-            logger.error("Configuration is already complete, nothing done");
-        } else {
-            configuration.addAnnotatedClass(annotatedClass);
-        }
-
-    }
-
-    /**
-     * register an annotated package to the hibernate configuration
-     *
-     * @param packageName complete name of the package
-     */
-    public void addAnotatedPackage(String packageName) {
-        configuration.addPackage(packageName);
+    private DatabaseManager instance;
+    
+    protected DataBaseDAO() {
+        instance = DatabaseManager.getInstance();
     }
 
     /**
@@ -100,26 +58,8 @@ public abstract class DataBaseDAO {
      *
      * @return a session.
      */
-    public Session getSession() throws IkatsDaoException {
-        Session result = null;
-        if (isReady()) {
-            result = sessionFactory.openSession();
-        } else {
-            String message = "Manager not initialize, call complete configuration first";
-            logger.error(message);
-            throw new IkatsDaoException(message);
-        }
-        return result;
-    }
-
-    /**
-     * check if configuration has been completed by testing sessionFactory
-     * instanciation
-     *
-     * @return true if session factory is not null
-     */
-    protected boolean isReady() {
-        return (sessionFactory != null);
+    public Session getSession() {
+        return instance.getSession();
     }
 
     /**
@@ -127,21 +67,7 @@ public abstract class DataBaseDAO {
      */
     public void stop() {
         logger.trace("Stopping DataBase Dao : " + getClass());
-        sessionFactory.close();
-    }
-
-    /**
-     * Return configured property
-     *
-     * @param propertyName
-     * @return configuration.getProperty(propertyName)
-     */
-    public String getAnnotationConfigurationProperty(String propertyName) {
-        if (configuration != null) {
-            return configuration.getProperty(propertyName);
-        } else {
-            return null;
-        }
+        instance.getSessionFactory().close();
     }
 
     /**
@@ -187,4 +113,5 @@ public abstract class DataBaseDAO {
         }
         return error;
     }
+    
 }

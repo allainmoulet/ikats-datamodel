@@ -30,6 +30,12 @@
 
 package fr.cs.ikats.metadata;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +48,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoInvalidValueException;
@@ -50,16 +55,11 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.common.expr.Atom;
 import fr.cs.ikats.common.expr.Expression;
 import fr.cs.ikats.common.expr.Group;
+import fr.cs.ikats.metadata.dao.MetaDataDAO;
 import fr.cs.ikats.metadata.model.FunctionalIdentifier;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.metadata.model.MetaData.MetaType;
 import fr.cs.ikats.metadata.model.MetadataCriterion;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 
 /**
@@ -73,8 +73,7 @@ public class MetaDataTest {
     // then in each test case: the hibernate config is re-run with:
     //   new MetaDataFacade()
     //
-    private static DataBaseDAO dao = new DataBaseDAO() {
-    };
+    private static MetaDataDAO dao;
 
     /**
      * Initializing the class
@@ -82,21 +81,8 @@ public class MetaDataTest {
     @BeforeClass
     public static void setUpBeforClass() {
 
-        // expects HSQLDB "IN-MEMORY" configuration for the Unit tests
-        dao.init("/metaDataHibernate.cfg.xml");
-
-        // test 'IN-MEMORY' case
-        String configuredConnectionUrl =
-                dao.getAnnotationConfigurationProperty("hibernate.connection.url");
-        if (!configuredConnectionUrl.startsWith("jdbc:hsqldb:mem:")) {
-            // avoid unwanted deletions with init_db()
-            dao = null;
-            throw new RuntimeException("Unit tests require that property [hibernate.connection.url] starts with [jdbc:hsqldb:mem] got: " + configuredConnectionUrl);
-        }
-
-        dao.addAnotatedPackage("fr.cs.ikats.metadata.model");
-        dao.addAnnotatedClass(MetaData.class);
-        dao.completeConfiguration();
+    	dao = new MetaDataDAO();
+    	
     }
 
     /**

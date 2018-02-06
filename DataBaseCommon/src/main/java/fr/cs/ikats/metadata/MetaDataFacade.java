@@ -72,36 +72,9 @@ public class MetaDataFacade {
     /**
      * the DAO for access to MetaData storage
      */
-    private MetaDataDAO dao;
+    private MetaDataDAO dao = new MetaDataDAO();
 
-    private FunctionalIdentifierDAO idDao;
-
-    /**
-     * Constructor
-     */
-    public MetaDataFacade() {
-        init();
-    }
-
-    /**
-     * init the dao and its mapping : use the hibernate.cfg.xml file + add package and classes where annotations are
-     * set.
-     */
-    public void init() {
-        dao = new MetaDataDAO();
-        dao.init("/metaDataHibernate.cfg.xml");
-
-        dao.addAnotatedPackage("fr.cs.ikats.metadata.model");
-        dao.addAnnotatedClass(MetaData.class);
-        dao.completeConfiguration();
-
-        idDao = new FunctionalIdentifierDAO();
-        idDao.init("/metaDataHibernate.cfg.xml");
-        idDao.addAnotatedPackage("fr.cs.ikats.metadata.model");
-        idDao.addAnnotatedClass(FunctionalIdentifier.class);
-        idDao.completeConfiguration();
-
-    }
+    private FunctionalIdentifierDAO idDao = new FunctionalIdentifierDAO();
 
     /**
      * Create MetaData in database for a given tsuid, name and value, with default dtype == MetaType.string

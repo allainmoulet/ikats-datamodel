@@ -48,27 +48,7 @@ public class WorkflowFacade {
     /**
      * DAO object to access the Workflow storage
      */
-    private WorkflowDAO dao;
-
-    /**
-     * Constructor
-     */
-    public WorkflowFacade() {
-
-        init();
-    }
-
-    /**
-     * Initialize the DAO
-     */
-    public void init() {
-        dao = new WorkflowDAO();
-        dao.init("/workflowHibernate.cfg.xml");
-        dao.addAnotatedPackage("fr.cs.ikats.workflow");
-        dao.addAnnotatedClass(Workflow.class);
-        dao.addAnnotatedClass(WorkflowEntitySummary.class);
-        dao.completeConfiguration();
-    }
+    private WorkflowDAO dao = new WorkflowDAO();
 
     /**
      * Create Workflow in database

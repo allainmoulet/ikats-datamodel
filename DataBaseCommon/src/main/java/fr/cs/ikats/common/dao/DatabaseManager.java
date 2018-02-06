@@ -26,7 +26,7 @@
  *
  */
 
-package fr.cs.ikats.table;
+package fr.cs.ikats.common.dao;
 
 import org.apache.log4j.Logger;
 import org.hibernate.HibernateException;
@@ -34,7 +34,15 @@ import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.AnnotationConfiguration;
 
-import fr.cs.ikats.common.dao.DataBaseDAO;
+import fr.cs.ikats.metadata.model.FunctionalIdentifier;
+import fr.cs.ikats.metadata.model.MetaData;
+import fr.cs.ikats.process.data.model.ProcessData;
+import fr.cs.ikats.table.TableEntity;
+import fr.cs.ikats.table.TableEntitySummary;
+import fr.cs.ikats.ts.dataset.model.DataSet;
+import fr.cs.ikats.ts.dataset.model.LinkDatasetTimeSeries;
+import fr.cs.ikats.workflow.Workflow;
+import fr.cs.ikats.workflow.WorkflowEntitySummary;
 
 /**
  * Manages the initialization of the database for entities through a singleton
@@ -57,7 +65,7 @@ public class DatabaseManager {
     /**
      * Create a management instance for the Hibernate session factory 
      */
-    private DatabaseManager() {
+    public DatabaseManager() {
         try {
             configuration = new AnnotationConfiguration().configure(HIBERNATE_CONFIG_FILE);
         } catch (HibernateException ex) {
@@ -65,6 +73,21 @@ public class DatabaseManager {
             throw new ExceptionInInitializerError(ex);
         }
 
+	    configuration.addPackage("fr.cs.ikats.ts.dataset.model");
+        configuration.addAnnotatedClass(DataSet.class);
+        configuration.addAnnotatedClass(LinkDatasetTimeSeries.class);
+        
+        configuration.addPackage("fr.cs.ikats.metadata.model");
+        configuration.addAnnotatedClass(MetaData.class);
+        configuration.addAnnotatedClass(FunctionalIdentifier.class);
+        
+        configuration.addPackage("fr.cs.ikats.process.data.model");
+        configuration.addAnnotatedClass(ProcessData.class);
+        
+        configuration.addPackage("fr.cs.ikats.workflow");
+        configuration.addAnnotatedClass(Workflow.class);
+        configuration.addAnnotatedClass(WorkflowEntitySummary.class);        
+        
         configuration.addPackage("fr.cs.ikats.table");
         configuration.addAnnotatedClass(TableEntity.class);
         configuration.addAnnotatedClass(TableEntitySummary.class);
@@ -88,4 +111,11 @@ public class DatabaseManager {
     public Session getSession() {
         return sessionFactory.openSession();
     }
+
+    /**
+     * @return the session factory
+     */
+	public SessionFactory getSessionFactory() {
+		return sessionFactory;
+	}
 }
