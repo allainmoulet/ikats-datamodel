@@ -186,7 +186,7 @@
 		<!-- IKATS Dependencies -->
 		<dependency>
 			<groupId>fr.cs.ikats</groupId>
-			<artifactId>common-database</artifactId>
+			<artifactId>ikats-datamodel</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
