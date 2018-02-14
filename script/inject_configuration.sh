@@ -32,36 +32,32 @@ function replace_variable_in {
 
 function fill_variables_in_war {
   echo "Unpacking the .war"
-  build_dir="$(dirname $WAR_FILE)"
-  cd $build_dir
+  tmp_dir=$(dirname $WAR_PATH)/tmp
+  war_file=$(basename $WAR_PATH)
+  mkdir -p $tmp_dir && cd $tmp_dir
 
-  jar xf $WAR_FILE \
-    && rm $WAR_FILE
+  jar xf ../$war_file
 
   echo "Setting environment variables"
   for v in "${env_variables[@]}"
   do
     test_for_variable $v
-    replace_variable_in $v $build_dir/WEB-INF/classes/*
+    replace_variable_in $v WEB-INF/classes/*.*
   done
   echo "repacking the .war"
-  cd $build_dir
 
-  fname=$(basename $WAR_FILE)
-  jar cf $fname . \
-    && mv $fname /tmp \
-    && rm -rf ./* \
-    && mv /tmp/$fname .
+  jar cf ../$war_file . \
+    && cd .. \
+    && rm -rf tmp
 }
 
-if [ "$#" -ne 2 ]
+if [ "$#" -ne 1 ]
 then
-  echo "Usage: $0 /sources_root_directory /package_file.war"
+  echo "Usage: $0 path/to/package_file.war"
   exit 2
 fi
 
-ROOT_DIRECTORY=$1
-WAR_FILE=$2
+WAR_PATH=$1
 
 env_variables=(
   "DB_HOST"

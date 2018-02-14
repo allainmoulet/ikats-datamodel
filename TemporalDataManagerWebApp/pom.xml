@@ -22,24 +22,15 @@
 	<build>
 		<finalName>TemporalDataManagerWebApp</finalName>
 		<plugins>
-
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-				<version>1.2.1</version>
-				<executions>
-					<execution>
-						<goals>
-							<goal>java</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<mainClass>fr.cs.ikats.temporaldata.ServerMain</mainClass>
-					<classpathScope>test</classpathScope>
-				</configuration>
-			</plugin>
-
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <version>2.7</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+            
 			<plugin>
 				<groupId>org.apache.tomcat.maven</groupId>
 				<artifactId>tomcat7-maven-plugin</artifactId>
@@ -48,8 +39,8 @@
 					<url>http://${server.url}/manager/text</url>
 					<server>${server.name}</server>
 					<path>/TemporalDataManagerWebApp</path>
-					<warFile>target/${target}/TemporalDataManagerWebApp.war</warFile>
-					<update>true</update>
+					<warFile>target/TemporalDataManagerWebApp.war</warFile>
+                    <update>true</update>
 				</configuration>
 			</plugin>
 
@@ -57,47 +48,41 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-war-plugin</artifactId>
 				<version>2.1.1</version>
-				<configuration>
-					<archiveClasses>true</archiveClasses>
-					<webResources>
-						<resource>
-							<directory>src/main/resources</directory>
-							<targetPath>WEB-INF/classes</targetPath>
-							<includes>
-								<include>**/*</include>
-							</includes>
-						</resource>
-					</webResources>
-
-				</configuration>
-				<executions>
-
-					<execution>
-						<id>template</id>
-						<configuration>
-							<outputDirectory>${project.build.directory}/template</outputDirectory>
-							<webResources>
-								<resource>
-									<directory>src/main/template/resources</directory>
-									<targetPath>WEB-INF/classes</targetPath>
-									<includes>
-										<include>**/*</include>
-									</includes>
-								</resource>
-								<resource>
-									<directory>src/main/template/webapp</directory>
-									<targetPath></targetPath>
-									<includes>
-										<include>**/*</include>
-									</includes>
-								</resource>
-							</webResources>
-						</configuration>
-						<goals>
-							<goal>war</goal>
-						</goals>
-					</execution>
-				</executions>
+					<executions>
+						<execution>
+							<id>default-war</id>
+							<goals>
+								<goal>war</goal>
+							</goals>
+                            <phase>package</phase>
+							<configuration>
+								<outputDirectory>${project.build.directory}</outputDirectory>
+								<webResources>
+									<resource>
+										<directory>src/main/resources</directory>
+										<targetPath>WEB-INF/classes</targetPath>
+										<includes>
+											<include>**/*</include>
+										</includes>
+									</resource>							
+									<resource>
+										<directory>src/main/template/resources</directory>
+										<targetPath>WEB-INF/classes</targetPath>
+										<includes>
+											<include>**/*</include>
+										</includes>
+									</resource>
+									<resource>
+										<directory>src/main/template/webapp</directory>
+										<targetPath></targetPath>
+										<includes>
+											<include>**/*</include>
+										</includes>
+									</resource>
+								</webResources>
+							</configuration>
+						</execution>
+					</executions>
 			</plugin>
 		</plugins>
 	</build>
