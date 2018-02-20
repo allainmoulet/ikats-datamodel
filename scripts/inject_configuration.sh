@@ -40,8 +40,8 @@ fill_variables_in_war() {
   echo "repacking the .war"
 
   zip -qr ../$war_file . \
+    && mv ../$war_file $WAR_PATH \
     && cd - \
-    && mv $war_file $WAR_PATH \
     && rm -rf $tmp_dir
 }
 
