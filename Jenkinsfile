@@ -52,13 +52,26 @@ pipeline {
 	        steps {
 		        script {
 					datamodelImage = docker.build("ikats-datamodel",
-							" --build-arg DB_HOST=${DB_HOST} --build-arg DB_PORT=${DB_PORT} --build-arg TSDB_HOST=${TSDB_HOST} --build-arg TSDB_PORT=${TSDB_PORT} --build-arg C3P0_ACQUIRE_INCREMENT=${C3P0_ACQUIRE_INCREMENT} --build-arg C3P0_MAX_SIZE=${C3P0_MAX_SIZE} --build-arg C3P0_IDLE_TEST_PERIOD=${C3P0_IDLE_TEST_PERIOD} --build-arg C3P0_MAX_STATEMENTS=${C3P0_MAX_STATEMENTS} --build-arg C3P0_MIN_SIZE=${C3P0_MIN_SIZE} --build-arg C3P0_TIMEOUT=${C3P0_TIMEOUT} .")
-							
+													"--build-arg DB_HOST=${DB_HOST} "
+													+ "--build-arg DB_PORT=${DB_PORT} "
+													+ "--build-arg TSDB_HOST=${TSDB_HOST} "
+													+ "--build-arg TSDB_PORT=${TSDB_PORT} "
+													+ "--build-arg C3P0_ACQUIRE_INCREMENT=${C3P0_ACQUIRE_INCREMENT} "
+													+ "--build-arg C3P0_MAX_SIZE=${C3P0_MAX_SIZE} "
+													+ "--build-arg C3P0_IDLE_TEST_PERIOD=${C3P0_IDLE_TEST_PERIOD} "
+													+ "--build-arg C3P0_MAX_STATEMENTS=${C3P0_MAX_STATEMENTS} "
+													+ "--build-arg C3P0_MIN_SIZE=${C3P0_MIN_SIZE} "
+													+ "--build-arg C3P0_TIMEOUT=${C3P0_TIMEOUT} "
+													+ " .")
+					
+					fullBranchName = "${env.BRANCH_NAME}"
+					branchName = fullBranchName.substring(fullBranchName.lastIndexOf("/") + 1)
+					
 		        	docker.withRegistry("${env.REGISTRY_ADDRESS}", 'DOCKER_REGISTRY') {
 		    			/* Push the container to the custom Registry */
-		    			datamodelImage.push("${env.BRANCH_NAME}_${GIT_COMMIT}")
-		    			datamodelImage.push("${env.BRANCH_NAME}_latest")
-			          	if ("${env.BRANCH_NAME}" == "master") {
+		    			datamodelImage.push(branchName + "_${GIT_COMMIT}")
+		    			datamodelImage.push(branchName + "_latest")
+			          	if (branchName == "master") {
 			            	datamodelImage.push("latest")
 			          	}            	    
 		            }
