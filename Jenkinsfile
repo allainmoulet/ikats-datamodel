@@ -66,6 +66,7 @@ pipeline {
 					
 					fullBranchName = "${env.BRANCH_NAME}"
 					branchName = fullBranchName.substring(fullBranchName.lastIndexOf("/") + 1)
+					shortCommit = "${GIT_COMMIT}".substring(0, 7)
 					
 		        	docker.withRegistry("${env.REGISTRY_ADDRESS}", 'DOCKER_REGISTRY') {
 		    			/* Push the container to the custom Registry */

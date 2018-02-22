@@ -1,6 +1,6 @@
 #! /bin/sh -
 
-set -xe
+set -e
 
 test_for_variable() {
   vname=$1
@@ -20,6 +20,7 @@ replace_variable_in() {
   eval "vvalue=\$$vname"
 
   shift
+  echo "Replace '{${vname}}' with '${vvalue}' in $@"
   sed -i "s/{${vname}}/${vvalue}/g" $@
 }
 
