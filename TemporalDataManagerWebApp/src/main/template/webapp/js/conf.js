@@ -6,4 +6,4 @@
 /**
  * Root path to TS database API
  */
-var TSDBroot="http://{TSDB_HOST}:{TSDB_PORT}/TemporalDataManagerWebApp/webapi";
+var TSDBroot="http://{OPENTSDB_HOST}:{OPENTSDB_PORT}/TemporalDataManagerWebApp/webapi";
