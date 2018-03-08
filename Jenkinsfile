@@ -7,8 +7,8 @@ pipeline {
     parameters {
         string(name: 'DB_HOST', defaultValue: 'pgsql.dev', description: 'Hôte PostgreSQL')
         string(name: 'DB_PORT', defaultValue: '5432', description: 'Port PostgreSQL')
-        string(name: 'TSDB_HOST', defaultValue: 'opentsdb_read', description: 'Hôte OpenTSDB')
-        string(name: 'TSDB_PORT', defaultValue: '4242', description: 'Port OpenTSDB')
+        string(name: 'OPENTSDB_HOST', defaultValue: 'opentsdb_read', description: 'Hôte OpenTSDB')
+        string(name: 'OPENTSDB_PORT', defaultValue: '4242', description: 'Port OpenTSDB')
     }
     stages {
         stage('Fetch SCM') {
@@ -39,8 +39,8 @@ pipeline {
             environment {
                 DB_HOST = "${params.DB_HOST}"
                 DB_PORT = "${params.DB_PORT}"
-                TSDB_HOST = "${params.TSDB_HOST}"
-                TSDB_PORT = "${params.TSDB_PORT}"
+                OPENTSDB_HOST = "${params.OPENTSDB_HOST}"
+                OPENTSDB_PORT = "${params.OPENTSDB_PORT}"
                 C3P0_ACQUIRE_INCREMENT = "2"
                 C3P0_MAX_SIZE = "20"
                 C3P0_IDLE_TEST_PERIOD = "50"
@@ -54,8 +54,8 @@ pipeline {
                     datamodelImage = docker.build("ikats-datamodel",
                                                     "--build-arg DB_HOST=${DB_HOST} "
                                                     + "--build-arg DB_PORT=${DB_PORT} "
-                                                    + "--build-arg TSDB_HOST=${TSDB_HOST} "
-                                                    + "--build-arg TSDB_PORT=${TSDB_PORT} "
+                                                    + "--build-arg OPENTSDB_HOST=${OPENTSDB_HOST} "
+                                                    + "--build-arg OPENTSDB_PORT=${OPENTSDB_PORT} "
                                                     + "--build-arg C3P0_ACQUIRE_INCREMENT=${C3P0_ACQUIRE_INCREMENT} "
                                                     + "--build-arg C3P0_MAX_SIZE=${C3P0_MAX_SIZE} "
                                                     + "--build-arg C3P0_IDLE_TEST_PERIOD=${C3P0_IDLE_TEST_PERIOD} "
