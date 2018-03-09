@@ -70,7 +70,7 @@ pipeline {
 
                     docker.withRegistry("${env.REGISTRY_ADDRESS}", 'DOCKER_REGISTRY') {
                         /* Push the container to the custom Registry */
-                        datamodelImage.push(branchName + "_${GIT_COMMIT}")
+                        datamodelImage.push(branchName + "_" + shortCommit)
                         datamodelImage.push(branchName + "_latest")
                           if (branchName == "master") {
                             datamodelImage.push("latest")
