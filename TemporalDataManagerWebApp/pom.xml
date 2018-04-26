@@ -3,7 +3,14 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <parent>
 		<groupId>fr.cs.ikats</groupId>
 		<artifactId>ikats-base</artifactId>
 		<version>0.0.1-SNAPSHOT</version>

@@ -8,6 +8,13 @@
 	<packaging>pom</packaging>
 	<description>Main POM for IKATS</description>
 
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
 	<modules>
 		<module>ikats-commons</module>
 		<module>ikats-datamodel</module>
@@ -21,7 +28,7 @@
 
 	<build>
 		<plugins>
-			<!-- add specification/implementation details to the manifests -->
+            <!-- add specification/implementation details to the manifests -->
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

@@ -6,6 +6,13 @@
 	<name>ikats-commons</name>
 	<description>Commons for IKATS</description>
 
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
 	<parent>
 		<groupId>fr.cs.ikats</groupId>
 		<artifactId>ikats-base</artifactId>
