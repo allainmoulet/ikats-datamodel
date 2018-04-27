@@ -29,6 +29,7 @@
 	<build>
 		<finalName>TemporalDataManagerWebApp</finalName>
 		<plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
@@ -86,11 +87,20 @@
 											<include>**/*</include>
 										</includes>
 									</resource>
+									<resource>
+									   <directory>${project.basedir}/..</directory>
+									   <targetPath>META-INF</targetPath>
+									   <includes>
+									       <include>LICENSE</include>
+									       <include>NOTICE</include>
+									   </includes>
+									</resource>
 								</webResources>
 							</configuration>
 						</execution>
 					</executions>
 			</plugin>
+			
 		</plugins>
 	</build>
 	<dependencyManagement>
