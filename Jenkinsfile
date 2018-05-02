@@ -34,7 +34,7 @@ pipeline {
 
             steps {
                 script {
-                    datamodelImage = docker.build("ikats-datamodel")
+                    datamodelImage = docker.build("ikats-datamodel", "--pull .")
 
                     fullBranchName = "${env.BRANCH_NAME}"
                     branchName = fullBranchName.substring(fullBranchName.lastIndexOf("/") + 1)
