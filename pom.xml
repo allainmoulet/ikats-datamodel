@@ -24,11 +24,11 @@
 
 	<properties>
         <jacoco-maven-plugin.version>0.8.0</jacoco-maven-plugin.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<build>
 		<plugins>
-            <!-- add specification/implementation details to the manifests -->
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
