@@ -5,7 +5,14 @@
 	<artifactId>db-web-client</artifactId>
 	<name>opentsdbclient</name>
 	<description>client opentsdb en java</description>
-	
+
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
 	<parent>
 		<groupId>fr.cs.ikats</groupId>
 		<artifactId>ikats-base</artifactId>
@@ -55,7 +62,7 @@
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
-			<version>1.2.12</version>
+			<version>1.2.17</version>
 		</dependency>
 		<dependency>
 			<groupId>com.googlecode.json-simple</groupId>
@@ -72,7 +79,7 @@
 		<dependency>
 			<groupId>fr.cs.ikats</groupId>
 			<artifactId>ikats-commons</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>${project.version}</version>
 		</dependency>
 
 		<!-- Tests -->
