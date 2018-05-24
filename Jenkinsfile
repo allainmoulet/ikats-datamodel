@@ -34,7 +34,7 @@ pipeline {
 
             steps {
                 script {
-                    // Replacing docker registry to private one
+                    // Replacing docker registry to private one. See [#172302]
                     sh "sed -i 's/FROM ikats/FROM hub.ops.ikats.org/' Dockerfile"
 
                     datamodelImage = docker.build("datamodel", "--pull .")
