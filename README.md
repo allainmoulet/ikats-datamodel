@@ -1,18 +1,52 @@
+![IKATS Logo](https://ikats.github.io/img/Logo-ikats-icon.png) IKATS Datamodel
+-------------------------
 
+![Docker Automated build](https://img.shields.io/docker/automated/ikats/datamodel.svg)
+![Docker Build Status](https://img.shields.io/docker/build/ikats/datamodel.svg)
+![MicroBadger Size](https://img.shields.io/microbadger/image-size/ikats/datamodel.svg)
 
-# Dockerfile build behind a proxy
+**An overview of IKATS global architecture is available <a href="https://github.com/IKATS/IKATS">here</a>.**
 
-```sh
+IKATS datamodel provides the TemporalDataManager web application to IKATS, deployed in a Tomcat server to access following IKATS resources :  
 
-# Values for the C&S proxy
-proxy_host=172.27.128.34
-proxy_port=3128
+On PostgreSQL database :
+ * Metadata
+ * Dataset
+ * Table
+ * MacroOperator
+ * ProcessData
+ * Workflow  
+ 
+On OpenTSDB database:
+  * TimeSeries (used by [ikats-ingestion](https://github.com/IKATS/ikats-ingestion) but not by [ikats-pyalgo](https://github.com/IKATS/ikats-pyalgo) which has its own connector)
 
-
-docker build \
-        --build-arg HTTP_PROXY_HOST=$proxy_host \
-        --build-arg HTTPS_PROXY_HOST=$proxy_host \
-        --build-arg HTTP_PROXY_PORT=$proxy_port \
-        --build-arg HTTPS_PROXY_PORT=$proxy_port \
-        -t ikatsbase .
-```
+ 
+ Resources can be accessed through an HTTP API, including IKATS operators dealing with non temporal data :
+ ## Dataset Preparation
+ 
+ > ### Import Export
+ - [Import TS](/doc/operators/importTs.html)
+ - [Import Metadata](/doc/operators/importMetadata.html)
+ 
+ > ### Dataset Management
+ - [Dataset Selection](/doc/operators/datasetSelection.html)
+ - [Manual Selection](/doc/operators/manualSelection.html)
+ - [TS Finder](/doc/operators/tsFinder.html)
+ - [Filter](/doc/operators/filter.html)
+ - [Merge TS lists](/doc/operators/mergeTsLists.html)
+ - [Save as a Dataset](/doc/operators/saveAsDataset.html)
+ 
+  
+ ## Pre-Processing on Ts 
+ 
+ > ### Transforming
+ - [Ts2Feature](/doc/operators/ts2Feature.html)
+ - [Discretize](/doc/operators/discretize.html)
+ 
+ ## Processing On Tables
+ - [Read Table](/doc/operators/readTable.html)
+ - [TrainTestSplit](/doc/operators/trainTestSplit.html)
+ - [Merge Tables](/doc/operators/mergeTables.html)
+ - [Population Selection](/doc/operators/populationSelection.html)
+  
+ 
