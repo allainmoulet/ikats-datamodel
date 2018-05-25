@@ -34,7 +34,10 @@ pipeline {
 
             steps {
                 script {
-                    datamodelImage = docker.build("ikats-datamodel", "--pull .")
+                    // Replacing docker registry to private one. See [#172302]
+                    sh "sed -i 's/FROM ikats/FROM hub.ops.ikats.org/' Dockerfile"
+
+                    datamodelImage = docker.build("datamodel", "--pull .")
 
                     fullBranchName = "${env.BRANCH_NAME}"
                     branchName = fullBranchName.substring(fullBranchName.lastIndexOf("/") + 1)
@@ -45,7 +48,7 @@ pipeline {
                         datamodelImage.push(branchName + "_" + shortCommit)
                         datamodelImage.push(branchName + "_latest")
                           if (branchName == "master") {
-                            datamodelImage.push("latest")
+                            datamodelImage.push("master")
                           }
                     }
                 }

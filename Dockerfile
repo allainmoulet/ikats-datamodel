@@ -19,14 +19,18 @@ COPY NOTICE .
 COPY ikats-datamodel ikats-datamodel 
 COPY ikats-commons ikats-commons
 COPY dbWebclient dbWebclient 
-COPY TemporalDataManagerWebApp TemporalDataManagerWebApp
+COPY TemporalDataManagerWebApp TemporalDataManagerWebApp 
 
 # Compile and package the WAR
 RUN mvn clean package -DskipTests=true
 
 # Multi-stage build to not retain the previous intermediate build work in our image 
 # Reference: https://docs.docker.com/develop/develop-images/multistage-build/
-FROM hub.ops.ikats.org/tomcat:latest
+FROM tomcat:8.5.8-alpine
+
+ADD assets/context.xml /usr/local/tomcat/conf/
+ADD assets/context.xml /usr/local/tomcat/webapps/manager/META-INF
+ADD assets/context.xml /usr/local/tomcat/webapps/host-manager/manager.xml
 
 # Reclaim the build WAR to put it into tomcat working directory for immediate deployement 
 WORKDIR /usr/local/tomcat/
