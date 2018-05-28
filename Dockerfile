@@ -28,6 +28,11 @@ RUN mvn clean package -DskipTests=true
 # Reference: https://docs.docker.com/develop/develop-images/multistage-build/
 FROM tomcat:8.5.8-alpine
 
+LABEL license="Apache License, Version 2.0"
+LABEL copyright="CS Systèmes d'Information"
+LABEL maintainer="contact@ikats.org"
+LABEL version="0.7.39"
+
 ADD assets/context.xml /usr/local/tomcat/conf/
 ADD assets/context.xml /usr/local/tomcat/webapps/manager/META-INF
 ADD assets/context.xml /usr/local/tomcat/webapps/host-manager/manager.xml

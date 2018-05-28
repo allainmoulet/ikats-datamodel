@@ -4,7 +4,7 @@
 
 	<groupId>fr.cs.ikats</groupId>
 	<artifactId>ikats-base</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.7.39</version>
 	<packaging>pom</packaging>
 	<description>Main POM for IKATS</description>
 
@@ -93,6 +93,12 @@
 					</archive>
 				</configuration>
 			</plugin>
+			
+            <plugin>
+	            <groupId>org.codehaus.mojo</groupId>
+	            <artifactId>versions-maven-plugin</artifactId>
+	            <version>2.5</version>
+            </plugin>
 
 			<!-- All projects should create and deploy source jars -->
 			<plugin>
