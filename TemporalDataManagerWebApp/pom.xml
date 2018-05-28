@@ -3,10 +3,17 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<parent>
+    <licenses>
+        <license>
+            <name>The Apache Software License, Version 2.0</name>
+            <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+        </license>
+    </licenses>
+
+    <parent>
 		<groupId>fr.cs.ikats</groupId>
 		<artifactId>ikats-base</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.7.39</version>
 		<relativePath>../</relativePath>
 	</parent>
 
@@ -22,6 +29,7 @@
 	<build>
 		<finalName>TemporalDataManagerWebApp</finalName>
 		<plugins>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
@@ -79,11 +87,20 @@
 											<include>**/*</include>
 										</includes>
 									</resource>
+									<resource>
+									   <directory>${project.basedir}/..</directory>
+									   <targetPath>META-INF</targetPath>
+									   <includes>
+									       <include>LICENSE</include>
+									       <include>NOTICE</include>
+									   </includes>
+									</resource>
 								</webResources>
 							</configuration>
 						</execution>
 					</executions>
 			</plugin>
+			
 		</plugins>
 	</build>
 	<dependencyManagement>
@@ -141,7 +158,7 @@
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
-			<version>1.2.12</version>
+			<version>1.2.17</version>
 		</dependency>
 
 		<dependency>

@@ -6,19 +6,21 @@
 	<name>ikats-commons</name>
 	<description>Commons for IKATS</description>
 
+	<licenses>
+		<license>
+			<name>The Apache Software License, Version 2.0</name>
+			<url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+		</license>
+	</licenses>
+
 	<parent>
 		<groupId>fr.cs.ikats</groupId>
 		<artifactId>ikats-base</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
+		<version>0.7.39</version>
 		<relativePath>../</relativePath>
 	</parent>
 
-	<properties>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-	</properties>
-
 	<build>
-		<finalName>${project.artifactId}</finalName>
 		<plugins>
 			<!--Compile the sources -->
 			<plugin>
@@ -67,7 +69,7 @@
 		<dependency>
 			<groupId>log4j</groupId>
 			<artifactId>log4j</artifactId>
-			<version>1.2.12</version>
+			<version>1.2.17</version>
 		</dependency>
 
 	</dependencies>
