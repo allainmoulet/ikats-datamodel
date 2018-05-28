@@ -21,7 +21,11 @@ On OpenTSDB database:
   * TimeSeries (used by [ikats-ingestion](https://github.com/IKATS/ikats-ingestion) but not by [ikats-pyalgo](https://github.com/IKATS/ikats-pyalgo) which has its own connector)
 
  
- Resources can be accessed through an HTTP API, including IKATS operators dealing with non temporal data :
+ Resources can be accessed through an HTTP API, including IKATS operators dealing with non temporal data.  
+ 
+ List of java operators at the moment :  
+ (see <a href="https://github.com/IKATS/ikats-pyalgo">python operators</a> for other operators provided in IKATS)
+ 
  ## Dataset Preparation
  
  > ### Import Export
