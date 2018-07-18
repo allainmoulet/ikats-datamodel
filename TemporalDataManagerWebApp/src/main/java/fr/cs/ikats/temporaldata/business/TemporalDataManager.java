@@ -78,7 +78,7 @@ public class TemporalDataManager {
 
     private Pattern tsuidPattern = Pattern.compile(".*tsuids\":\\[\"(\\w*)\"\\].*");
 
-    private Pattern funcIdPattern = Pattern.compile("[a-zA-Z0-9_]*");
+    private Pattern funcIdPattern = Pattern.compile("[a-zA-Z0-9_-]+");
 
     /**
      * default constructor for instanciation

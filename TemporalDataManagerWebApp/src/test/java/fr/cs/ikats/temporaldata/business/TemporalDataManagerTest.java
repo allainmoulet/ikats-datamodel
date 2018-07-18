@@ -61,7 +61,7 @@ public class TemporalDataManagerTest {
         } catch (InvalidValueException e) {
             // OK
             assertTrue(true);
-            String expected = "Value \"azery%%%\" for Parameter \"FuncId\" of type \"TimeSerie\" is not correctly formated. \"[a-zA-Z0-9_]*\" format is expected.";
+            String expected = "Value \"azery%%%\" for Parameter \"FuncId\" of type \"TimeSerie\" is not correctly formated. \"[a-zA-Z0-9_-]+\" format is expected.";
             assertEquals(expected, e.getMessage());
 
         }
