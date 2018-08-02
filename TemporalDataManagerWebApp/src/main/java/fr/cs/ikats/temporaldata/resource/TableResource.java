@@ -613,7 +613,7 @@ public class TableResource extends AbstractResource {
             tablesMergeOperator = new TablesMerge(request);
         } catch (IkatsOperatorException e) {
             // The request check has failed
-            return Response.status(Status.BAD_REQUEST).entity(e).build();
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
 
         try {
@@ -626,7 +626,7 @@ public class TableResource extends AbstractResource {
             }
         } catch (IkatsDaoException e) {
             // Hibernate Exception raised
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
 
         try {
@@ -634,9 +634,9 @@ public class TableResource extends AbstractResource {
             tablesMergeOperator.apply();
             return Response.status(Status.OK).entity(request.getOutputTableName()).build();
         } catch (IkatsOperatorException | IkatsException e) {
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         } catch (IkatsDaoConflictException e) {
-            return Response.status(Status.CONFLICT).entity(e).build();
+            return Response.status(Status.CONFLICT).entity(e.getMessage()).build();
         }
 
     }
@@ -656,7 +656,7 @@ public class TableResource extends AbstractResource {
         try {
             tables = tableManager.listTables();
         } catch (IkatsDaoException e) {
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
 
         if (tables == null) {
@@ -680,7 +680,7 @@ public class TableResource extends AbstractResource {
         try {
             tableManager.deleteFromDatabase(tableName);
         } catch (IkatsDaoException e) {
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
         return Response.status(Status.NO_CONTENT).build();
     }
