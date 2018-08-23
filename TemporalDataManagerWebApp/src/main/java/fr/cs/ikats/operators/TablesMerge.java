@@ -197,7 +197,7 @@ public class TablesMerge {
             }
 
             if (joinIndexOnFirstTable == -1) {
-                throw new IkatsOperatorException("Join column '" + joinKey + "' not found in table '" + firstTable.getName());
+                throw new IkatsOperatorException("Join column '" + joinKey + "' not found in table '" + firstTable.getName() + "'.");
             }
         }
 
