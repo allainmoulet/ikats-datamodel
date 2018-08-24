@@ -358,7 +358,7 @@ public class TablesMerge {
             return table;
 
         } catch (IndexOutOfBoundsException | IkatsException | ResourceNotFoundException e) {
-            throw new IkatsOperatorException("Could not set the column " + colIndex + " as a row header for the result table.", e);
+            throw new IkatsOperatorException("Error on the table format. Remind the merge table operator operates an inner join : it merges columns of table A and columns of table B, matching rows in joined column", e);
         }
 
     }
