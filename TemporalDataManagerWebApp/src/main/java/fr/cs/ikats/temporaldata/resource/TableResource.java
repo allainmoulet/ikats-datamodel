@@ -557,9 +557,10 @@ public class TableResource extends AbstractResource {
         // check output table name validity
         tableManager.validateTableName(outputTableName, "trainTestSplit");
 
-        // check that outputTableName does not already exist
-        if (tableManager.existsInDatabase(outputTableName)) {
-            String context = "Table name already exists : " + outputTableName;
+        // check that output tables names does not already exist
+        if (tableManager.existsInDatabase(outputTableName + "_Train") ||
+                tableManager.existsInDatabase(outputTableName + "_Test")) {
+            String context = "Table names already exist : " + outputTableName + "(_Train and/or _Test)";
             logger.error(context);
             return Response.status(Response.Status.CONFLICT).entity(context).build();
         }
