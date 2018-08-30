@@ -224,7 +224,7 @@ public class ProcessDataResource extends AbstractResource {
         try {
             processDataManager.removeProcessData(processId);
         } catch (IkatsDaoException e) {
-            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e).build();
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
         return Response.status(Response.Status.OK).build();
     }

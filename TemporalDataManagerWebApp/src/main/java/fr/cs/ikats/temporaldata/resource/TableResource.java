@@ -557,9 +557,10 @@ public class TableResource extends AbstractResource {
         // check output table name validity
         tableManager.validateTableName(outputTableName, "trainTestSplit");
 
-        // check that outputTableName does not already exist
-        if (tableManager.existsInDatabase(outputTableName)) {
-            String context = "Table name already exists : " + outputTableName;
+        // check that output tables names does not already exist
+        if (tableManager.existsInDatabase(outputTableName + "_Train") ||
+                tableManager.existsInDatabase(outputTableName + "_Test")) {
+            String context = "Table names already exist : " + outputTableName + "(_Train and/or _Test)";
             logger.error(context);
             return Response.status(Response.Status.CONFLICT).entity(context).build();
         }
@@ -613,7 +614,7 @@ public class TableResource extends AbstractResource {
             tablesMergeOperator = new TablesMerge(request);
         } catch (IkatsOperatorException e) {
             // The request check has failed
-            return Response.status(Status.BAD_REQUEST).entity(e).build();
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
         }
 
         try {
@@ -626,7 +627,7 @@ public class TableResource extends AbstractResource {
             }
         } catch (IkatsDaoException e) {
             // Hibernate Exception raised
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
 
         try {
@@ -634,9 +635,9 @@ public class TableResource extends AbstractResource {
             tablesMergeOperator.apply();
             return Response.status(Status.OK).entity(request.getOutputTableName()).build();
         } catch (IkatsOperatorException | IkatsException e) {
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         } catch (IkatsDaoConflictException e) {
-            return Response.status(Status.CONFLICT).entity(e).build();
+            return Response.status(Status.CONFLICT).entity(e.getMessage()).build();
         }
 
     }
@@ -656,7 +657,7 @@ public class TableResource extends AbstractResource {
         try {
             tables = tableManager.listTables();
         } catch (IkatsDaoException e) {
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
 
         if (tables == null) {
@@ -680,7 +681,7 @@ public class TableResource extends AbstractResource {
         try {
             tableManager.deleteFromDatabase(tableName);
         } catch (IkatsDaoException e) {
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e).build();
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
         return Response.status(Status.NO_CONTENT).build();
     }
