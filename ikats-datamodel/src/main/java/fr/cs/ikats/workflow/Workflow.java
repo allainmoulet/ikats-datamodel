@@ -27,7 +27,7 @@ import javax.persistence.Table;
 @Table(name = "Workflow")
 public class Workflow extends AbstractWorkflowEntity {
 
-    @Column(name = "raw")
+    @Column(name = "raw", columnDefinition = "TEXT")
     private String raw;
 
     /**
