@@ -180,7 +180,6 @@ public class ExportTableTest {
         ExportTableRequest.setTableName("table_1");
         ExportTableRequest.setOutputTableName("output_table_1");
 
-
         try {
             // Pass it to the constructor
             new ExportTable(ExportTableRequest);
@@ -208,7 +207,7 @@ public class ExportTableTest {
             fail("Error initializing Export Table operator : Need to have an output csv file name");
         }
         catch (java.io.IOException e){
-            fail("IO Exception");
+            fail("Failed to parse jSon Strin to Hashmap");
         }
     }
 
@@ -224,7 +223,7 @@ public class ExportTableTest {
             fail("Error initializing Export Table operator : Need to have an output csv file name");
         }
         catch (java.io.IOException e){
-            fail("IO Exception");
+            fail("Failed to parse jSon Strin to Hashmap");
         }
     }
 
@@ -241,7 +240,7 @@ public class ExportTableTest {
             fail("Error initializing Export Table operator : Need to have an output csv file name");
         }
         catch (java.io.IOException e){
-            fail("IO Exception");
+            fail("Failed to parse jSon Strin to Hashmap");
         }
     }
 
@@ -257,7 +256,7 @@ public class ExportTableTest {
             fail("Error initializing Export Table operator : Need to have an output csv file name");
         }
         catch (java.io.IOException e){
-            fail("IO Exception");
+            fail("Failed to parse jSon Strin to Hashmap");
         }
     }
 
@@ -292,7 +291,7 @@ public class ExportTableTest {
             fail("Error initializing Export Table operator : Need to have an output csv file name");
         }
         catch (java.io.IOException e){
-            fail("IO Exception");
+            fail("Failed to parse jSon String to Hashmap");
         }
     }
 
@@ -327,7 +326,7 @@ public class ExportTableTest {
             fail("Error initializing Export Table operator : Need to have an output csv file name");
         }
         catch (java.io.IOException e){
-            fail("IO Exception");
+            fail("Failed to parse jSon String to Hashmap");
         }
     }
 
@@ -357,7 +356,7 @@ public class ExportTableTest {
             fail("Error initializing Export Table operator : Need to have an output csv file name");
         }
         catch (java.io.IOException e){
-            fail("IO Exception");
+            fail("Failed to parse jSon String to Hashmap");
         }
     }
 
@@ -397,7 +396,7 @@ public class ExportTableTest {
             fail("Error initializing Export Table operator : Need to have an output csv file name");
         }
         catch (java.io.IOException e){
-            fail("IO Exception");
+            fail("Failed to parse jSon String to Hashmap");
         }
     }
 
@@ -442,7 +441,7 @@ public class ExportTableTest {
             fail("Error initializing Export Table operator : Need to have an output csv file name");
         }
         catch (java.io.IOException e){
-            fail("IO Exception");
+            fail("Failed to parse jSon Strin to Hashmap");
         }
     }
 
@@ -462,15 +461,73 @@ public class ExportTableTest {
         try{
             //Result
             StringBuffer res = new ExportTable().doExport(new TableManager(),table2WithRow);
-            assertEquals(res,buffer);
+            System.out.println(res.length());
+            System.out.println(buffer.length());
+            assertEquals(res.toString(),buffer.toString());
         }catch (IkatsException e){
 
         }catch (java.io.IOException e){
-
+            fail("Failed to parse jSon String to Hashmap");
         }
 
     }
 
+    /**
+     * Test Array to string
+     */
+    @Test
+    public void testDoExportWithoutHeaders(){
+        //Build buffer
+        String Table2_CSV_NewSeparator = TABLE4_CSV.replaceAll(";"," , ");
+        StringBuffer buffer = new StringBuffer(Table2_CSV_NewSeparator);
+
+        try{
+            //Result
+            StringBuffer res = new ExportTable().doExport(new TableManager(),table4);
+            assertEquals(res.toString(),buffer.toString());
+        }catch (IkatsException e){
+
+        }catch (java.io.IOException e){
+            fail("Failed to parse jSon String to Hashmap");
+        }
+
+    }
+
+    @Test
+    public void testDoExportWithoutRowHeaders(){
+        //Build buffer
+        String Table2_CSV_NewSeparator = TABLE5_CSV.replaceAll(";"," , ");
+        StringBuffer buffer = new StringBuffer(Table2_CSV_NewSeparator);
+
+        try{
+            //Result
+            StringBuffer res = new ExportTable().doExport(new TableManager(),table5);
+            assertEquals(res.toString(),buffer.toString());
+        }catch (IkatsException e){
+
+        }catch (java.io.IOException e){
+            fail("Failed to parse jSon String to Hashmap");
+        }
+
+    }
+
+    @Test
+    public void testDoExportWithoutColHeaders(){
+        //Build buffer
+        String Table2_CSV_NewSeparator = TABLE3_CSV.replaceAll(";"," , ");
+        StringBuffer buffer = new StringBuffer(Table2_CSV_NewSeparator);
+
+        try{
+            //Result
+            StringBuffer res = new ExportTable().doExport(new TableManager(),table3);
+            assertEquals(res.toString(),buffer.toString());
+        }catch (IkatsException e){
+
+        }catch (java.io.IOException e){
+            fail("Failed to parse jSon String to Hashmap");
+        }
+
+    }
     /////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**

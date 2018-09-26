@@ -1,22 +1,20 @@
 package fr.cs.ikats.operators;
 
-
-import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
+import java.util.stream.Collectors;
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
-import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
 import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
-import fr.cs.ikats.temporaldata.exception.InvalidValueException;
-import org.apache.commons.lang.StringUtils;
+import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import org.apache.log4j.Logger;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.text.MessageFormat;
-import java.text.Normalizer;
 import java.util.*;
 
 
+/**
+ * Class for operator ExportTable
+ * Get IKATS table content and stored it as a csv file
+ */
 public class ExportTable {
 
     /**
@@ -80,6 +78,12 @@ public class ExportTable {
     }
 
 
+    /**
+     * Method to call outside 
+     * @throws IkatsOperatorException
+     * @throws IkatsException
+     * @throws java.io.IOException
+     */
     public void apply() throws IkatsOperatorException, IkatsException ,java.io.IOException{
 
         // Retrieve the tables from database
@@ -99,29 +103,23 @@ public class ExportTable {
         // do the job : Adapt format of TableInfo
         StringBuffer CSVOutputBuffer = doExport(tableManager, tableToExtract);
 
-
         // then, download it
         /// Launch Navigator Download Function
         logger.info("Table '" + tableNameToExtract + "' is ready to be stored in '" + outputFileName + ".csv");
-
     }
 
 
-
-
-
     /**
-     * Get table info thanks to the table name
-     * @return
+     * Transform TableInfo to a StringBuffer containing data (CSV format)
+     * @return StringBuffer : Content stored in TableInfo
      * @throws IkatsDaoMissingResource
      * @throws IkatsException
      */
     public StringBuffer doExport(TableManager tableManager, TableInfo tableToExport) throws  IkatsException,java.io.IOException{
 
-        //Build Hashmap thanks to JSon contents
+        //Build HashMap thanks to JSon contents
         HashMap<String,Object> jSonMap = parseTableInfoToHashMap(tableManager,tableToExport);
 
-        System.out.println(jSonMap);
         //Check if there is header for row and col
         boolean isRowHeader = isRowHeader(jSonMap);
         boolean isColHeader = isColHeader(jSonMap);
@@ -140,40 +138,36 @@ public class ExportTable {
             adaptRowHeader(jSonMap, jSonMapContentsCells,isColHeader);
         }
 
-        //Now we have all the data in jSonMapContentsCells
-        //We just have to parse it into String and add a comma separator
+        //3) Now we have all the data in jSonMapContentsCells
+        //We just have to parse it into String and add a comma separator + \n at the end of lines
         StringBuffer FormatResult = ArrayListToString(jSonMapContentsCells );
 
         return FormatResult;
     }
 
-    //////////////////////////////
-    // Additional Methods ////////////////////////////////////////
+    //////////////////////////////// Additional Methods ////////////////////////////////////////
     /**
-     * Convert Array of Array to a stringBuffer like ["....Line1....",  ...  , "....Linen...."]
+     * Convert Array of Array to a stringBuffer like ["Line1\n  ...  \n....Linek...."]
      * @param jSonMapContentsCells
-     * @return
+     * @return StringBuffer containing data stored in ArrayList<ArrayList> as CSV
      */
     public StringBuffer ArrayListToString(ArrayList<ArrayList<Object>> jSonMapContentsCells ){
+
+        //Create a StringBuffer to store result
         StringBuffer FormatResult = new StringBuffer();
+
+        //For loop to get all rows and add it to result
         for(int i=0;i<jSonMapContentsCells.size();i++){
             //Get ith row
             List<Object> ithList = Arrays.asList(jSonMapContentsCells.get(i)).get(0);
-
-            //Convert all elements to String
-            String ithString = "";
-            for (int j=0;j<ithList.size();j++){
-                ithString += ithList.get(j).toString();
-                if(j<ithList.size()-1){
-                    //Add Comma + space, not for the last element
-                    ithString +=" , ";
-                }
-            }
-            if(i<jSonMapContentsCells.size()){
-                ithString += "\n";
-            }
-            FormatResult.append(ithString);
-            System.out.println(ithList);
+            //Transform all elements into string
+            List<String> strings = ithList.stream().map(object -> Objects.toString(object, null)).collect(Collectors.toList());
+            //Convert all elements to String, separated by comma
+            String ithListStringCommaSep = String.join(" , ",strings);
+            //Add a \n to begin a new line
+            ithListStringCommaSep += "\n";
+            //Add row to final result
+            FormatResult.append(ithListStringCommaSep);
         }
         return FormatResult;
     }
@@ -181,7 +175,7 @@ public class ExportTable {
 
 
     /**
-     * Add column header
+     * Add column header to the content
      * @param jSonMap
      * @param jSonMapContentsCells
      */
@@ -195,7 +189,7 @@ public class ExportTable {
 
 
     /**
-     * Add row header
+     * Add row header to the content
      * @param jSonMap
      * @param jSonMapContentsCells
      * @param isColHeader
@@ -221,7 +215,12 @@ public class ExportTable {
 
     }
 
-
+    /**
+     * Get the column header
+     * Precondition : There is a column header
+     * @param jSonMap
+     * @return ArrayList containing columns header
+     */
     public ArrayList getColHeader(HashMap<String,Object> jSonMap){
         HashMap jSonMapHeader = (HashMap<String,Object> ) jSonMap.get("headers");
         HashMap jSoncolumnsHeaders = (HashMap<String,Object> ) jSonMapHeader.get("col");
@@ -229,6 +228,12 @@ public class ExportTable {
         return  columnsHeadersData;
     }
 
+    /**
+     * Get the rows header
+     * Precondition : There is a row header
+     * @param jSonMap
+     * @return ArrayList containing rows header
+     */
     public ArrayList getRowHeader(HashMap<String,Object> jSonMap){
         //There is a column header -> Get it
         HashMap jSonMapHeader = (HashMap<String,Object>) jSonMap.get("headers");
@@ -241,26 +246,28 @@ public class ExportTable {
      * Take tableInfo, extract JSon contents and parse it with HashMap
      * @param tableManager
      * @param tableToExport
-     * @return
+     * @return HashMap containing jSon data
      * @throws IkatsException
      * @throws java.io.IOException
      */
-    public HashMap<String,Object> parseTableInfoToHashMap(TableManager tableManager,TableInfo tableToExport) throws  IkatsException,java.io.IOException{
+    public HashMap<String,Object> parseTableInfoToHashMap(TableManager tableManager,TableInfo tableToExport) throws IkatsJsonException,java.io.IOException{
         //Serialize table content to a json string
-        String jsonTable = tableManager.serializeToJson(tableToExport);
-
-
-        //Parse JSon string to hashmap (~dictionary)
-        HashMap<String,Object> jSonMap =
-                new ObjectMapper().readValue(jsonTable, HashMap.class);
-
-        return jSonMap;
+        try{
+            String jsonTable = tableManager.serializeToJson(tableToExport);
+            //Parse JSon string to hashmap (~dictionary)
+            HashMap<String,Object> jSonMap = new ObjectMapper().readValue(jsonTable, HashMap.class);
+            return jSonMap;
+        }catch (IkatsException e){
+            throw new IkatsJsonException("Failed to serialize Table business resource to the json content", e);
+        }catch (java.io.IOException e){
+            throw new java.io.IOException("Failed to parse jSon String to HashMap");
+        }
     }
 
     /**
      * Check if there is a row header
      * @param jsonMap
-     * @return
+     * @return boolean : True is there is a row header
      */
     public boolean isRowHeader (HashMap<String,Object> jsonMap){
 
@@ -276,7 +283,7 @@ public class ExportTable {
     /**
      * Check if there is a col header
      * @param jsonMap
-     * @return
+     * @return boolean : True is there is a row header
      */
     public boolean isColHeader (HashMap<String,Object> jsonMap){
 
