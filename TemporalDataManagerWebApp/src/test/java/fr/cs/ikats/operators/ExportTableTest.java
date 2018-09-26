@@ -239,10 +239,107 @@ public class ExportTableTest {
     }
 
 
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    /**
+     * Tests on apply method
+     */
+
+    @Test
+    public void testApplyWithHeaders() throws Exception{
+
+        //Create table in DB
+        tableManager.createInDatabase(table2WithRow);
+
+        // Build the nominal request
+        Request request = new Request();
+        request.setOutputTableName("FirstCSVOutputTestWithHeader");
+        request.setTableName("table2WithRow");
+
+        //Build Export constructor
+        ExportTable exportTable = new ExportTable(request);
+
+        //Call Apply method
+        StringBuffer csvFormatTable2WithRow = exportTable.apply();
+
+        //Prepare data to test equality
+        String table2WithRowComma = TABLE2_CSV.replaceAll(";"," , ");
+        System.out.println(table2WithRowComma);
+        System.out.println(csvFormatTable2WithRow.toString());
+        assertEquals(table2WithRowComma, csvFormatTable2WithRow.toString());
+    }
+
+    @Test
+    public void testApplyWithoutHeaders() throws Exception{
+
+        //Create table in DB
+        tableManager.createInDatabase(table4);
+
+        // Build the nominal request
+        Request request = new Request();
+        request.setOutputTableName("SecondCSVOutputTestWithoutHeaders");
+        request.setTableName("table4");
+
+        //Build Export constructor
+        ExportTable exportTable = new ExportTable(request);
+
+        //Call Apply method
+        StringBuffer csvFormatTable2WithRow = exportTable.apply();
+
+        //Prepare data to test equality
+        String table2WithRowComma = TABLE4_CSV.replaceAll(";"," , ");
+        System.out.println(table2WithRowComma);
+        System.out.println(csvFormatTable2WithRow.toString());
+        assertEquals(table2WithRowComma, csvFormatTable2WithRow.toString());
+    }
 
 
+    @Test
+    public void testApplyWithoutRowHeaders() throws Exception{
 
+        //Create table in DB
+        tableManager.createInDatabase(table5);
 
+        // Build the nominal request
+        Request request = new Request();
+        request.setOutputTableName("ThirdCSVOutputTestWithoutRowHeaders");
+        request.setTableName("table5");
+
+        //Build Export constructor
+        ExportTable exportTable = new ExportTable(request);
+
+        //Call Apply method
+        StringBuffer csvFormatTable2WithRow = exportTable.apply();
+
+        //Prepare data to test equality
+        String table2WithRowComma = TABLE5_CSV.replaceAll(";"," , ");
+        System.out.println(table2WithRowComma);
+        System.out.println(csvFormatTable2WithRow.toString());
+        assertEquals(table2WithRowComma, csvFormatTable2WithRow.toString());
+    }
+
+    @Test
+    public void testApplyWithoutColumnHeaders() throws Exception{
+
+        //Create table in DB
+        tableManager.createInDatabase(table3);
+
+        // Build the nominal request
+        Request request = new Request();
+        request.setOutputTableName("FourthCSVOutputTestWithoutColumnHeaders");
+        request.setTableName("table3");
+
+        //Build Export constructor
+        ExportTable exportTable = new ExportTable(request);
+
+        //Call Apply method
+        StringBuffer csvFormatTable3WithRow = exportTable.apply();
+
+        //Prepare data to test equality
+        String table2WithRowComma = TABLE3_CSV.replaceAll(";"," , ");
+        System.out.println(table2WithRowComma);
+        System.out.println(csvFormatTable3WithRow.toString());
+        assertEquals(table2WithRowComma, csvFormatTable3WithRow.toString());
+    }
 
     /////////////////////////////////////////////////////////////////////////////////////////////////
 

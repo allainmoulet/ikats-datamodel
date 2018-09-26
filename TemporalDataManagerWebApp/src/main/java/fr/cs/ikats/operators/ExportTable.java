@@ -94,6 +94,10 @@ public class ExportTable {
             //Read the table we want to store
             tableNameToExtract= this.request.tableName;
             tableToExtract = tableManager.readFromDatabase(tableNameToExtract);
+            System.out.println("Table Info : ");
+            System.out.println(tableToExtract.content.cells);
+            System.out.println(tableToExtract.headers.col.data);
+            System.out.println(" /////////////////////////// ");
             outputFileName = this.request.outputCSVFileName;
         } catch (IkatsDaoMissingResource e) {
             String msg = "Table " + tableNameToExtract+ " not found in database";
@@ -194,10 +198,10 @@ public class ExportTable {
     public void addRowHeader(TableInfo tableInfo, List<List<Object>> contentsCells, boolean isColumnHeader){
 
         List<Object> rowsHeadersData = tableInfo.headers.row.data;
+        System.out.println(rowsHeadersData);
 
         int begin = 0;
         if(isColumnHeader){
-            //There is a column header : first element in row header = null
             begin++;
         }
 
