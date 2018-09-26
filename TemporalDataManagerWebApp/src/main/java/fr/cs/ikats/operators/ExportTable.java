@@ -84,7 +84,7 @@ public class ExportTable {
      * @throws IkatsException
      * @throws java.io.IOException
      */
-    public void apply() throws IkatsOperatorException, IkatsException ,java.io.IOException{
+    public StringBuffer apply() throws IkatsOperatorException, IkatsException {
 
         // Retrieve the tables from database
         TableInfo tableToExtract;
@@ -101,46 +101,43 @@ public class ExportTable {
         }
 
         // do the job : Adapt format of TableInfo
-        StringBuffer CSVOutputBuffer = doExport(tableManager, tableToExtract);
+        StringBuffer CSVOutputBuffer = doExport(tableToExtract);
 
         // then, download it
         /// Launch Navigator Download Function
         logger.info("Table '" + tableNameToExtract + "' is ready to be stored in '" + outputFileName + ".csv");
+
+        return CSVOutputBuffer;
     }
 
 
     /**
      * Transform TableInfo to a StringBuffer containing data (CSV format)
      * @return StringBuffer : Content stored in TableInfo
-     * @throws IkatsDaoMissingResource
-     * @throws IkatsException
      */
-    public StringBuffer doExport(TableManager tableManager, TableInfo tableToExport) throws  IkatsException,java.io.IOException{
-
-        //Build HashMap thanks to JSon contents
-        HashMap<String,Object> jSonMap = parseTableInfoToHashMap(tableManager,tableToExport);
+    public StringBuffer doExport(TableInfo tableToExport){
 
         //Check if there is header for row and col
-        boolean isRowHeader = isRowHeader(jSonMap);
-        boolean isColHeader = isColHeader(jSonMap);
+        boolean isRowHeader = isRowHeader(tableToExport);
+        boolean isColumnHeader = isColHeader(tableToExport);
 
         //Build CSV Format
         //1) Get contents data
-        HashMap<String,Object> jSonMapContents = (HashMap<String,Object> ) jSonMap.get("content");
-        ArrayList<ArrayList<Object>> jSonMapContentsCells = (ArrayList<ArrayList<Object>>) jSonMapContents.get("cells");
-
-        //2) Add Row and Columns headers if necessary
-        if (isColHeader){
-            adaptColumnHeader(jSonMap, jSonMapContentsCells);
+        List<List<Object>> tableInfoContents = tableToExport.content.cells;
+        if(tableInfoContents.size()>0) { //There is a result
+            //2) Add Row and Columns headers if necessary
+            if (isColumnHeader) {
+                addColumnHeader(tableToExport, tableInfoContents);
+            }
+            //Add Row Header if there is one
+            if (isRowHeader) {
+                //There is a row header
+                addRowHeader(tableToExport, tableInfoContents, isColumnHeader);
+            }
         }
-        if (isRowHeader){
-            //There is a row header
-            adaptRowHeader(jSonMap, jSonMapContentsCells,isColHeader);
-        }
-
-        //3) Now we have all the data in jSonMapContentsCells
+        //3) Now we have all the data in tableInfoContents
         //We just have to parse it into String and add a comma separator + \n at the end of lines
-        StringBuffer FormatResult = ArrayListToString(jSonMapContentsCells );
+        StringBuffer FormatResult = ListToString(tableInfoContents);
 
         return FormatResult;
     }
@@ -148,19 +145,19 @@ public class ExportTable {
     //////////////////////////////// Additional Methods ////////////////////////////////////////
     /**
      * Convert Array of Array to a stringBuffer like ["Line1\n  ...  \n....Linek...."]
-     * @param jSonMapContentsCells
+     * @param contentsCells
      * @return StringBuffer containing data stored in ArrayList<ArrayList> as CSV
      */
-    public StringBuffer ArrayListToString(ArrayList<ArrayList<Object>> jSonMapContentsCells ){
+    public StringBuffer ListToString(List<List<Object>> contentsCells ){
 
         //Create a StringBuffer to store result
         StringBuffer FormatResult = new StringBuffer();
 
         //For loop to get all rows and add it to result
-        for(int i=0;i<jSonMapContentsCells.size();i++){
+        for(int i=0;i<contentsCells.size();i++){
             //Get ith row
-            List<Object> ithList = Arrays.asList(jSonMapContentsCells.get(i)).get(0);
-            //Transform all elements into string
+            List<Object> ithList = Arrays.asList(contentsCells.get(i)).get(0);
+            //Transform all elements into string (also for DataLink)
             List<String> strings = ithList.stream().map(object -> Objects.toString(object, null)).collect(Collectors.toList());
             //Convert all elements to String, separated by comma
             String ithListStringCommaSep = String.join(" , ",strings);
@@ -176,131 +173,68 @@ public class ExportTable {
 
     /**
      * Add column header to the content
-     * @param jSonMap
-     * @param jSonMapContentsCells
+     * @param tableInfo
+     * @param contentsCells
      */
-    public void adaptColumnHeader(HashMap<String,Object> jSonMap, ArrayList<ArrayList<Object>> jSonMapContentsCells){
+    public void addColumnHeader(TableInfo tableInfo, List<List<Object>> contentsCells){
         //There is a column header -> Get it
-        ArrayList<Object> columnsHeadersData = getColHeader(jSonMap);
+        List<Object> columnsHeadersData = tableInfo.headers.col.data;
 
         //Then Add it to content
-        jSonMapContentsCells.add(0,columnsHeadersData);
+        contentsCells.add(0,columnsHeadersData);
     }
 
 
     /**
      * Add row header to the content
-     * @param jSonMap
-     * @param jSonMapContentsCells
-     * @param isColHeader
+     * @param tableInfo
+     * @param contentsCells
+     * @param isColumnHeader
      */
-    public void adaptRowHeader(HashMap<String,Object> jSonMap, ArrayList<ArrayList<Object>> jSonMapContentsCells,boolean isColHeader){
+    public void addRowHeader(TableInfo tableInfo, List<List<Object>> contentsCells, boolean isColumnHeader){
 
-        ArrayList<Object> rowsHeadersData = getRowHeader(jSonMap);
+        List<Object> rowsHeadersData = tableInfo.headers.row.data;
 
         int begin = 0;
-        if(isColHeader){
+        if(isColumnHeader){
+            //There is a column header : first element in row header = null
             begin++;
         }
 
         //Then Add it to content
         for (int i=begin;i<(rowsHeadersData).size();i++){
             //Get ith row  to modify
-            ArrayList newRow = jSonMapContentsCells.get(i);
+            List newRow = contentsCells.get(i);
             //Add element at the beginning
             newRow.add(0,rowsHeadersData.get(i));
             //Set new row in contents
-            jSonMapContentsCells.set(i,newRow);
-        }
-
-    }
-
-    /**
-     * Get the column header
-     * Precondition : There is a column header
-     * @param jSonMap
-     * @return ArrayList containing columns header
-     */
-    public ArrayList getColHeader(HashMap<String,Object> jSonMap){
-        HashMap jSonMapHeader = (HashMap<String,Object> ) jSonMap.get("headers");
-        HashMap jSoncolumnsHeaders = (HashMap<String,Object> ) jSonMapHeader.get("col");
-        ArrayList columnsHeadersData = (ArrayList<Object> ) jSoncolumnsHeaders.get("data");
-        return  columnsHeadersData;
-    }
-
-    /**
-     * Get the rows header
-     * Precondition : There is a row header
-     * @param jSonMap
-     * @return ArrayList containing rows header
-     */
-    public ArrayList getRowHeader(HashMap<String,Object> jSonMap){
-        //There is a column header -> Get it
-        HashMap jSonMapHeader = (HashMap<String,Object>) jSonMap.get("headers");
-        HashMap rowsHeaders = (HashMap) jSonMapHeader.get("row");
-        ArrayList rowsHeadersData = (ArrayList<Object> ) rowsHeaders.get("data");
-        return  rowsHeadersData;
-    }
-
-    /**
-     * Take tableInfo, extract JSon contents and parse it with HashMap
-     * @param tableManager
-     * @param tableToExport
-     * @return HashMap containing jSon data
-     * @throws IkatsException
-     * @throws java.io.IOException
-     */
-    public HashMap<String,Object> parseTableInfoToHashMap(TableManager tableManager,TableInfo tableToExport) throws IkatsJsonException,java.io.IOException{
-        //Serialize table content to a json string
-        try{
-            String jsonTable = tableManager.serializeToJson(tableToExport);
-            //Parse JSon string to hashmap (~dictionary)
-            HashMap<String,Object> jSonMap = new ObjectMapper().readValue(jsonTable, HashMap.class);
-            return jSonMap;
-        }catch (IkatsException e){
-            throw new IkatsJsonException("Failed to serialize Table business resource to the json content", e);
-        }catch (java.io.IOException e){
-            throw new java.io.IOException("Failed to parse jSon String to HashMap");
+            contentsCells.set(i,newRow);
         }
     }
 
     /**
      * Check if there is a row header
-     * @param jsonMap
+     * @param tableInfo
      * @return boolean : True is there is a row header
      */
-    public boolean isRowHeader (HashMap<String,Object> jsonMap){
-
-        boolean isRowHeader = false;
-        //If there is col header, look at the key header
-        Object jSonMapHeaders = (HashMap<String,Object>)jsonMap.get("headers");
-        if (((HashMap) jSonMapHeaders).containsKey("row")){
-            isRowHeader = true;
-        }
-        return isRowHeader;
+    public boolean isRowHeader (TableInfo tableInfo){
+        return (tableInfo.headers.row != null);
     }
 
     /**
-     * Check if there is a col header
-     * @param jsonMap
+     * Check if there is a column header
+     * @param tableInfo
      * @return boolean : True is there is a row header
      */
-    public boolean isColHeader (HashMap<String,Object> jsonMap){
-
-        boolean isColHeader = false;
-        //If there is col header, look at the key header
-        Object jSonMapHeaders = (HashMap<String,Object>)jsonMap.get("headers");
-        if (((HashMap) jSonMapHeaders).containsKey("col")){
-            isColHeader = true;
-        }
-                return isColHeader;
+    public boolean isColHeader (TableInfo tableInfo){
+        return (tableInfo.headers.col != null);
     }
+
 
     /**
      * Set a request on object
      * @param request
      */
-
     public void setRequest(Request request) {
         this.request = request;
     }

@@ -5,24 +5,17 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
-import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import fr.cs.ikats.operators.ExportTable;
 import fr.cs.ikats.operators.ExportTable.Request;
-import fr.cs.ikats.table.TableEntity;
 import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
 import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
-import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
-import fr.cs.ikats.temporaldata.exception.ResourceNotFoundException;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -118,55 +111,46 @@ public class ExportTableTest {
 
     @BeforeClass
     public static void setUpBeforClass() throws Exception {
-        table1 = buildTableFromCSVString("table1", TABLE1_CSV, true, false);
-        table1WithRow = buildTableFromCSVString("table1WithRow", TABLE1_CSV, true, true);
-        table2 = buildTableFromCSVString("table2", TABLE2_CSV, true, false);
-        table2WithRow = buildTableFromCSVString("table2WithRow", TABLE2_CSV, true, true);
-        table1Smaller = buildTableFromCSVString("table1Smaller", TABLE1_SMALLER_CSV, true, false);
-        table2Smaller = buildTableFromCSVString("table2Smaller", TABLE2_SMALLER_CSV, true, false);
-        table3 = buildTableFromCSVString("table3", TABLE3_CSV, false, true);
-        table4 = buildTableFromCSVString("table4", TABLE4_CSV, false, false);
-        table5 = buildTableFromCSVString("table5", TABLE5_CSV, true, false);
+        table1 = buildTableInfoFromCSVString("table1", TABLE1_CSV, true, false);
+        table1WithRow = buildTableInfoFromCSVString("table1WithRow", TABLE1_CSV, true, true);
+        table2 = buildTableInfoFromCSVString("table2", TABLE2_CSV, true, false);
+        table2WithRow = buildTableInfoFromCSVString("table2WithRow", TABLE2_CSV, true, true);
+        table1Smaller = buildTableInfoFromCSVString("table1Smaller", TABLE1_SMALLER_CSV, true, false);
+        table2Smaller = buildTableInfoFromCSVString("table2Smaller", TABLE2_SMALLER_CSV, true, false);
+        table3 = buildTableInfoFromCSVString("table3", TABLE3_CSV, false, true);
+        table4 = buildTableInfoFromCSVString("table4", TABLE4_CSV, false, false);
+        table5 = buildTableInfoFromCSVString("table5", TABLE5_CSV, true, false);
     }
 
 
     /**
      * jUnit Test on constructor : Must have a table name
      */
-    @Test
-    public final void testExportTableConstructorNominal_1() {
+    @Test(expected=IkatsOperatorException.class)
+    public final void testExportTableConstructorNonNominal_1() throws IkatsOperatorException {
 
         // Build the nominal request
         Request ExportTableRequest = new Request();
-        ExportTableRequest.setTableName("");
+        ExportTableRequest.setTableName(""); // Empty string should not be allowed
         ExportTableRequest.setOutputTableName("coco");
 
-
-        try {
-            // Pass it to the constructor
-            new ExportTable(ExportTableRequest);
-        } catch (IkatsOperatorException e) {
-            fail("Error initializing Export Table operator : Need to have a table name");
-        }
+        // Pass it to the constructor
+        new ExportTable(ExportTableRequest);
     }
 
     /**
      * jUnit Test on constructor : Must have an output csv file name
      */
-    @Test
-    public final void testExportTableConstructorNominal_2() {
+    @Test(expected=IkatsOperatorException.class)
+    public final void testExportTableConstructorNonNominal_2() throws IkatsOperatorException{
 
         // Build the nominal request
         Request ExportTableRequest = new Request();
         ExportTableRequest.setTableName("table_1");
         ExportTableRequest.setOutputTableName("");
 
-        try {
-            // Pass it to the constructor
-            new ExportTable(ExportTableRequest);
-        } catch (IkatsOperatorException e) {
-            fail("Error initializing Export Table operator : Need to have an output csv file name");
-        }
+        //Build constructor
+        new ExportTable(ExportTableRequest);
     }
 
     /**
@@ -188,269 +172,10 @@ public class ExportTableTest {
         }
     }
 
-
-    /////////////////////////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Tests jUnit on methods isHeaders
-     */
-
-    @Test
-    public final void testIsRowHeaderFalse(){
-        TableManager tm = new TableManager();
-        try {
-            // Pass it to the constructor
-            HashMap<String,Object> jsonMap = new ExportTable().parseTableInfoToHashMap(tm,table4);
-            boolean isRowHeader = new ExportTable().isRowHeader(jsonMap);
-            assertEquals(isRowHeader,false);
-        } catch (IkatsException e) {
-            fail("Error initializing Export Table operator : Need to have an output csv file name");
-        }
-        catch (java.io.IOException e){
-            fail("Failed to parse jSon Strin to Hashmap");
-        }
-    }
-
-    @Test
-    public final void testIsRowHeaderTrue(){
-        TableManager tm = new TableManager();
-        try {
-            // Pass it to the constructor
-            HashMap<String,Object> jsonMap = new ExportTable().parseTableInfoToHashMap(tm,table2WithRow);
-            boolean isRowHeader = new ExportTable().isRowHeader(jsonMap);
-            assertEquals(isRowHeader,true);
-        } catch (IkatsException e) {
-            fail("Error initializing Export Table operator : Need to have an output csv file name");
-        }
-        catch (java.io.IOException e){
-            fail("Failed to parse jSon Strin to Hashmap");
-        }
-    }
-
-
-    @Test
-    public final void testIsColHeaderFalse(){
-        TableManager tm = new TableManager();
-        try {
-            // Pass it to the constructor
-            HashMap<String,Object> jsonMap = new ExportTable().parseTableInfoToHashMap(tm,table4);
-            boolean isColHeader = new ExportTable().isColHeader(jsonMap);
-            assertEquals(isColHeader,false);
-        } catch (IkatsException e) {
-            fail("Error initializing Export Table operator : Need to have an output csv file name");
-        }
-        catch (java.io.IOException e){
-            fail("Failed to parse jSon Strin to Hashmap");
-        }
-    }
-
-    @Test
-    public final void testIsColHeaderTrue(){
-        TableManager tm = new TableManager();
-        try {
-            // Pass it to the constructor
-            HashMap<String,Object> jsonMap = new ExportTable().parseTableInfoToHashMap(tm,table2WithRow);
-            boolean isColHeader = new ExportTable().isColHeader(jsonMap);
-            assertEquals(isColHeader,true);
-        } catch (IkatsException e) {
-            fail("Error initializing Export Table operator : Need to have an output csv file name");
-        }
-        catch (java.io.IOException e){
-            fail("Failed to parse jSon Strin to Hashmap");
-        }
-    }
-
-    @Test
-    public final void testGetContents(){
-        TableManager tm = new TableManager();
-        try {
-            // Pass it to the constructor
-            HashMap<String,Object> jSonMap = new ExportTable().parseTableInfoToHashMap(tm,table2WithRow);
-            HashMap<String,Object> jSonMapContents = (HashMap<String,Object> ) jSonMap.get("content");
-            ArrayList<ArrayList<Object>> jSonMapContentsCells = (ArrayList<ArrayList<Object>>) jSonMapContents.get("cells");
-
-            //Build arrayList of content manually
-            String  contentTrue ="3,14;6,28;F;six\n"
-                    + "9,42;6,28;A;one\n"
-                    + "15,71;12,57;D;four\n"
-                    + "0;0;H;eight\n"
-                    + "9,42;9,42;G;seven\n"
-                    + "12,57;6,28;B;two\n"
-                    + "0;12,57;C;three\n"
-                    + "6,28;15,71;I;nine\n"
-                    + "15,71;6,28;J;ten\n"
-                    + "3,14;0;E;five\n";
-            TableInfo tabletest = buildTableFromCSVString("tabletest", contentTrue, false, false);
-            HashMap<String,Object> jSonTrue = new ExportTable().parseTableInfoToHashMap(tm,tabletest);
-            HashMap<String,Object> jSonTrueContents = (HashMap<String,Object> ) jSonTrue.get("content");
-            ArrayList<ArrayList<Object>> jSonTrueContentsCells = (ArrayList<ArrayList<Object>>) jSonTrueContents.get("cells");
-            //Compare get content and reality
-            assertEquals(jSonMapContentsCells,jSonTrueContentsCells);
-
-        } catch (IkatsException e) {
-            fail("Error initializing Export Table operator : Need to have an output csv file name");
-        }
-        catch (java.io.IOException e){
-            fail("Failed to parse jSon String to Hashmap");
-        }
-    }
-
-    ///////////////////////////////////////////////////////////////////////////
-
-    /**
-     * Add header info
-     */
-
-    @Test
-    public final void testAdaptHeaderColWithoutRowHeader(){
-        TableManager tm = new TableManager();
-        try {
-            // Pass it to the constructor
-            HashMap<String,Object> jSonMap = new ExportTable().parseTableInfoToHashMap(tm,table5);
-            HashMap<String,Object> jSonMapContents = (HashMap<String,Object> ) jSonMap.get("content");
-            ArrayList<ArrayList<Object>> jSonMapContentsCells = (ArrayList<ArrayList<Object>>) jSonMapContents.get("cells");
-            new ExportTable().adaptColumnHeader(jSonMap, jSonMapContentsCells);
-
-            //Build arrayList of content manually
-            String  contentTrue = "H1-1;H5-2;H5-3;H5-4;H5-5";
-            String[] trueHeaderTab = contentTrue.split(";");
-            List<Object> trueHeader = new ArrayList<Object>();
-            trueHeader = Arrays.asList(trueHeaderTab);
-
-
-            //Compare get content and reality
-            assertEquals(jSonMapContentsCells.get(0),trueHeader);
-            System.out.println(jSonMapContentsCells);
-
-        } catch (IkatsException e) {
-            fail("Error initializing Export Table operator : Need to have an output csv file name");
-        }
-        catch (java.io.IOException e){
-            fail("Failed to parse jSon String to Hashmap");
-        }
-    }
-
-
-    @Test
-    public final void testAdaptHeaderColWithRowHeader(){
-        TableManager tm = new TableManager();
-        try {
-            // Pass it to the constructor
-            HashMap<String,Object> jSonMap = new ExportTable().parseTableInfoToHashMap(tm,table2WithRow);
-            HashMap<String,Object> jSonMapContents = (HashMap<String,Object> ) jSonMap.get("content");
-            ArrayList<ArrayList<Object>> jSonMapContentsCells = (ArrayList<ArrayList<Object>>) jSonMapContents.get("cells");
-            new ExportTable().adaptColumnHeader(jSonMap, jSonMapContentsCells);
-
-            //Build arrayList of content manually
-            String  contentTrue = "H2-1;H2-2;H2-3;H1-1;H1-2";
-            String[] trueHeaderTab = contentTrue.split(";");
-            List<Object> trueHeader = new ArrayList<Object>();
-            trueHeader = Arrays.asList(trueHeaderTab);
-
-
-            //Compare get content and reality
-            assertEquals(jSonMapContentsCells.get(0),trueHeader);
-            System.out.println(jSonMapContentsCells);
-
-        } catch (IkatsException e) {
-            fail("Error initializing Export Table operator : Need to have an output csv file name");
-        }
-        catch (java.io.IOException e){
-            fail("Failed to parse jSon String to Hashmap");
-        }
-    }
-
-
-    @Test
-    public final void testAdaptHeaderRowWithoutColHeader(){
-        TableManager tm = new TableManager();
-        try {
-            // Pass it to the constructor
-            HashMap<String,Object> jSonMap = new ExportTable().parseTableInfoToHashMap(tm,table3);
-            System.out.println(new ExportTable().getRowHeader(jSonMap));
-
-            //Get cell contents
-            HashMap<String,Object> jSonMapContents = (HashMap<String,Object> ) jSonMap.get("content");
-            ArrayList<ArrayList<Object>> jSonMapContentsCells = (ArrayList<ArrayList<Object>>) jSonMapContents.get("cells");
-
-            //Adapt rows header
-            new ExportTable().adaptRowHeader(jSonMap, jSonMapContentsCells,false);
-            ArrayList<Object> PutRowHeaders = new ArrayList<Object>();
-
-            //Store header in list
-            for (int i =0;i<jSonMapContentsCells.size();i++){
-                PutRowHeaders.add(jSonMapContentsCells.get(i).get(0));
-            }
-
-            //Row Header reality
-            String rowStg = "H;E;D;I;A;G;F;J;C;B";
-            String[] trueHeaderTab = rowStg.split(";");
-            List<Object> trueHeader = new ArrayList<Object>();
-            trueHeader = Arrays.asList(trueHeaderTab);
-
-            //Compare get content and reality
-            assertEquals(PutRowHeaders,trueHeader);
-            System.out.println(jSonMapContentsCells);
-
-        } catch (IkatsException e) {
-            fail("Error initializing Export Table operator : Need to have an output csv file name");
-        }
-        catch (java.io.IOException e){
-            fail("Failed to parse jSon String to Hashmap");
-        }
-    }
-
-    @Test
-    public final void testAdaptHeaderRowWithColHeader(){
-        TableManager tm = new TableManager();
-        try {
-            // Pass it to the constructor
-            HashMap<String,Object> jSonMap = new ExportTable().parseTableInfoToHashMap(tm,table2WithRow);
-
-            //Get cell contents
-            HashMap<String,Object> jSonMapContents = (HashMap<String,Object> ) jSonMap.get("content");
-            ArrayList<ArrayList<Object>> jSonMapContentsCells = (ArrayList<ArrayList<Object>>) jSonMapContents.get("cells");
-
-            //Add col header
-            new ExportTable().adaptColumnHeader(jSonMap, jSonMapContentsCells);
-
-
-            //Add rows header
-            new ExportTable().adaptRowHeader(jSonMap, jSonMapContentsCells,true);
-
-            //Store it in a list
-            ArrayList<Object> PutRowHeaders = new ArrayList<Object>();
-            for (int i =1;i<jSonMapContentsCells.size();i++){
-                PutRowHeaders.add(jSonMapContentsCells.get(i).get(0));
-            }
-
-            //Row Header reality
-            String rowStg = "0;3,14;3,14;3,14;6,28;9,42;9,42;9,42;15,71;15,71";
-            String[] trueHeaderTab = rowStg.split(";");
-            List<Object> trueHeader = new ArrayList<Object>();
-            trueHeader = Arrays.asList(trueHeaderTab);
-
-            //Compare get row header and reality
-            assertEquals(PutRowHeaders,trueHeader);
-            System.out.println(jSonMapContentsCells);
-
-            //Check element in (0,0) : First column header value
-            assertEquals((String) jSonMapContentsCells.get(0).get(0),"H2-1");
-
-        } catch (IkatsException e) {
-            fail("Error initializing Export Table operator : Need to have an output csv file name");
-        }
-        catch (java.io.IOException e){
-            fail("Failed to parse jSon Strin to Hashmap");
-        }
-    }
-
-
-
     ///////////////////////////////////////////////////////////////////////////////
 
     /**
-     * Test Array to string
+     * Test doExport method
      */
     @Test
     public void testDoExportWithHeaders(){
@@ -458,17 +183,11 @@ public class ExportTableTest {
         String Table2_CSV_NewSeparator = TABLE2_CSV.replaceAll(";"," , ");
         StringBuffer buffer = new StringBuffer(Table2_CSV_NewSeparator);
 
-        try{
-            //Result
-            StringBuffer res = new ExportTable().doExport(new TableManager(),table2WithRow);
-            System.out.println(res.length());
-            System.out.println(buffer.length());
-            assertEquals(res.toString(),buffer.toString());
-        }catch (IkatsException e){
-
-        }catch (java.io.IOException e){
-            fail("Failed to parse jSon String to Hashmap");
-        }
+        //Result
+        StringBuffer res = new ExportTable().doExport(table2WithRow);
+        System.out.println(res);
+        System.out.println(buffer);
+        assertEquals(res.toString(),buffer.toString());
 
     }
 
@@ -481,15 +200,11 @@ public class ExportTableTest {
         String Table2_CSV_NewSeparator = TABLE4_CSV.replaceAll(";"," , ");
         StringBuffer buffer = new StringBuffer(Table2_CSV_NewSeparator);
 
-        try{
-            //Result
-            StringBuffer res = new ExportTable().doExport(new TableManager(),table4);
-            assertEquals(res.toString(),buffer.toString());
-        }catch (IkatsException e){
-
-        }catch (java.io.IOException e){
-            fail("Failed to parse jSon String to Hashmap");
-        }
+        //Result
+        StringBuffer res = new ExportTable().doExport(table4);
+        System.out.println(res);
+        System.out.println(buffer);
+        assertEquals(res.toString(),buffer.toString());
 
     }
 
@@ -499,35 +214,36 @@ public class ExportTableTest {
         String Table2_CSV_NewSeparator = TABLE5_CSV.replaceAll(";"," , ");
         StringBuffer buffer = new StringBuffer(Table2_CSV_NewSeparator);
 
-        try{
-            //Result
-            StringBuffer res = new ExportTable().doExport(new TableManager(),table5);
-            assertEquals(res.toString(),buffer.toString());
-        }catch (IkatsException e){
-
-        }catch (java.io.IOException e){
-            fail("Failed to parse jSon String to Hashmap");
-        }
+        //Result
+        StringBuffer res = new ExportTable().doExport(table5);
+        System.out.println(res);
+        System.out.println(buffer);
+        assertEquals(res.toString(),buffer.toString());
 
     }
 
     @Test
     public void testDoExportWithoutColHeaders(){
-        //Build buffer
+        //Build buffer example
         String Table2_CSV_NewSeparator = TABLE3_CSV.replaceAll(";"," , ");
         StringBuffer buffer = new StringBuffer(Table2_CSV_NewSeparator);
 
-        try{
-            //Result
-            StringBuffer res = new ExportTable().doExport(new TableManager(),table3);
-            assertEquals(res.toString(),buffer.toString());
-        }catch (IkatsException e){
+        //Result with doExport method
+        StringBuffer res = new ExportTable().doExport(table3);
 
-        }catch (java.io.IOException e){
-            fail("Failed to parse jSon String to Hashmap");
-        }
+        //Compare result and reality
+        System.out.println(res);
+        System.out.println(buffer);
+        assertEquals(res.toString(),buffer.toString());
 
     }
+
+
+
+
+
+
+
     /////////////////////////////////////////////////////////////////////////////////////////////////
 
     /**
@@ -540,9 +256,9 @@ public class ExportTableTest {
      * @throws IOException
      * @throws IkatsException
      */
-    private static TableInfo buildTableFromCSVString(String name, String content,
-                                                 boolean withColumnsHeader,
-                                                 boolean withRowsHeader)
+    private static TableInfo buildTableInfoFromCSVString(String name, String content,
+                                                         boolean withColumnsHeader,
+                                                         boolean withRowsHeader)
             throws IOException, IkatsException {
 
         // Convert the CSV table to expected Table format
