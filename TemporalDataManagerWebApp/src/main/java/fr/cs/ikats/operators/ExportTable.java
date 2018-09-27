@@ -5,9 +5,7 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
 import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
-import fr.cs.ikats.temporaldata.exception.IkatsJsonException;
 import org.apache.log4j.Logger;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.*;
 
 
@@ -53,8 +51,8 @@ public class ExportTable {
 
     /**
      * Define the Operator Class : ExportTable
-     * @param request
-     * @throws IkatsOperatorException
+     * @param request : Contains table name and CSV file name
+     * @throws IkatsOperatorException : Names need to be not empty
      */
     public ExportTable(Request request) throws IkatsOperatorException {
 
@@ -82,7 +80,6 @@ public class ExportTable {
      * Method to call outside 
      * @throws IkatsOperatorException
      * @throws IkatsException
-     * @throws java.io.IOException
      */
     public StringBuffer apply() throws IkatsOperatorException, IkatsException {
 
@@ -94,10 +91,11 @@ public class ExportTable {
             //Read the table we want to store
             tableNameToExtract= this.request.tableName;
             tableToExtract = tableManager.readFromDatabase(tableNameToExtract);
-            System.out.println("Table Info : ");
+            System.out.println("*************************************");
+            System.out.println("AFTER STORING IN DB ; ");
+            System.out.println(tableToExtract.headers.row.data);
             System.out.println(tableToExtract.content.cells);
-            System.out.println(tableToExtract.headers.col.data);
-            System.out.println(" /////////////////////////// ");
+            System.out.println("*************************************");
             outputFileName = this.request.outputCSVFileName;
         } catch (IkatsDaoMissingResource e) {
             String msg = "Table " + tableNameToExtract+ " not found in database";
@@ -117,6 +115,7 @@ public class ExportTable {
 
     /**
      * Transform TableInfo to a StringBuffer containing data (CSV format)
+     * @param tableToExport : tableInfo we want to save as CSV file
      * @return StringBuffer : Content stored in TableInfo
      */
     public StringBuffer doExport(TableInfo tableToExport){
@@ -149,7 +148,7 @@ public class ExportTable {
     //////////////////////////////// Additional Methods ////////////////////////////////////////
     /**
      * Convert Array of Array to a stringBuffer like ["Line1\n  ...  \n....Linek...."]
-     * @param contentsCells
+     * @param contentsCells : All contents : Data (+ Row Header + Column Header if necessary)
      * @return StringBuffer containing data stored in ArrayList<ArrayList> as CSV
      */
     public StringBuffer ListToString(List<List<Object>> contentsCells ){
@@ -177,8 +176,8 @@ public class ExportTable {
 
     /**
      * Add column header to the content
-     * @param tableInfo
-     * @param contentsCells
+     * @param tableInfo : Used here to get the column Header and add it to the content
+     * @param contentsCells : Content data
      */
     public void addColumnHeader(TableInfo tableInfo, List<List<Object>> contentsCells){
         //There is a column header -> Get it
@@ -191,14 +190,13 @@ public class ExportTable {
 
     /**
      * Add row header to the content
-     * @param tableInfo
-     * @param contentsCells
-     * @param isColumnHeader
+     * @param tableInfo  Used here to get the row Header and add it to the content
+     * @param contentsCells Content data
      */
-    public void addRowHeader(TableInfo tableInfo, List<List<Object>> contentsCells, boolean isColumnHeader){
+    public void addRowHeader(TableInfo tableInfo, List<List<Object>> contentsCells,boolean isColumnHeader){
 
         List<Object> rowsHeadersData = tableInfo.headers.row.data;
-        System.out.println(rowsHeadersData);
+
 
         int begin = 0;
         if(isColumnHeader){
@@ -218,7 +216,7 @@ public class ExportTable {
 
     /**
      * Check if there is a row header
-     * @param tableInfo
+     * @param tableInfo : TableInfo which contains all data
      * @return boolean : True is there is a row header
      */
     public boolean isRowHeader (TableInfo tableInfo){
@@ -227,7 +225,7 @@ public class ExportTable {
 
     /**
      * Check if there is a column header
-     * @param tableInfo
+     * @param tableInfo : TableInfo which contains all data
      * @return boolean : True is there is a row header
      */
     public boolean isColHeader (TableInfo tableInfo){
@@ -244,7 +242,7 @@ public class ExportTable {
     }
 
     /**
-     * Set table Manager (New in general)
+     * Set table Manager (New TableManager() in general)
      * @param tableManager
      */
     public void setTableManager(TableManager tableManager) {

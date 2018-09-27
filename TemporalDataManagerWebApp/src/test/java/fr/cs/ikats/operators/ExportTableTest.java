@@ -24,7 +24,8 @@ public class ExportTableTest {
 
     private static final Logger logger = Logger.getLogger(TablesMergeTest.class);
 
-    private static final String TABLE1_CSV = "H1-1;H1-2;H1-3;H1-4;H1-5\n"
+    private static final String TABLE1_CSV =
+            "H1-1;H1-2;H1-3;H1-4;H1-5\n"
             + "H;eight;08;8;1000\n"
             + "E;five;05;5;0101\n"
             + "D;four;04;4;0100\n"
@@ -79,6 +80,7 @@ public class ExportTableTest {
             + "C;three;03;3;0011\n"
             + "B;two;02;2;0010\n";
 
+
     private static final String TABLE4_CSV = "F;six;0;3,14;6,28\n"
             + "H;eight;3,14;0;0\n"
             + "D;four;3,14;15,71;12,57\n"
@@ -98,6 +100,8 @@ public class ExportTableTest {
             + "V;one;01;1;0001\n"
             + "S;seven;07;7;0111\n";
 
+
+
     private static TableInfo table1 = null;
     private static TableInfo table1WithRow = null;
     private static TableInfo table2 = null;
@@ -112,10 +116,10 @@ public class ExportTableTest {
     @BeforeClass
     public static void setUpBeforClass() throws Exception {
         table1 = buildTableInfoFromCSVString("table1", TABLE1_CSV, true, false);
-        table1WithRow = buildTableInfoFromCSVString("table1WithRow", TABLE1_CSV, true, true);
+        table1WithRow = buildTableInfoFromCSVString("table1WithRow", TABLE1_CSV, false, true);
         table2 = buildTableInfoFromCSVString("table2", TABLE2_CSV, true, false);
         table2WithRow = buildTableInfoFromCSVString("table2WithRow", TABLE2_CSV, true, true);
-        table1Smaller = buildTableInfoFromCSVString("table1Smaller", TABLE1_SMALLER_CSV, true, false);
+        table1Smaller = buildTableInfoFromCSVString("table1Smaller", TABLE1_SMALLER_CSV, false, true);
         table2Smaller = buildTableInfoFromCSVString("table2Smaller", TABLE2_SMALLER_CSV, true, false);
         table3 = buildTableInfoFromCSVString("table3", TABLE3_CSV, false, true);
         table4 = buildTableInfoFromCSVString("table4", TABLE4_CSV, false, false);
@@ -180,7 +184,8 @@ public class ExportTableTest {
     @Test
     public void testDoExportWithHeaders(){
         //Build buffer
-        String Table2_CSV_NewSeparator = TABLE2_CSV.replaceAll(";"," , ");
+        String copyTable = new String(TABLE2_CSV);
+        String Table2_CSV_NewSeparator = copyTable.replaceAll(";"," , ");
         StringBuffer buffer = new StringBuffer(Table2_CSV_NewSeparator);
 
         //Result
@@ -197,8 +202,9 @@ public class ExportTableTest {
     @Test
     public void testDoExportWithoutHeaders(){
         //Build buffer
-        String Table2_CSV_NewSeparator = TABLE4_CSV.replaceAll(";"," , ");
-        StringBuffer buffer = new StringBuffer(Table2_CSV_NewSeparator);
+        String copyTable = new String(TABLE4_CSV);
+        String Table4_CSV_NewSeparator = copyTable.replaceAll(";"," , ");
+        StringBuffer buffer = new StringBuffer(Table4_CSV_NewSeparator);
 
         //Result
         StringBuffer res = new ExportTable().doExport(table4);
@@ -211,8 +217,9 @@ public class ExportTableTest {
     @Test
     public void testDoExportWithoutRowHeaders(){
         //Build buffer
-        String Table2_CSV_NewSeparator = TABLE5_CSV.replaceAll(";"," , ");
-        StringBuffer buffer = new StringBuffer(Table2_CSV_NewSeparator);
+        String copyTable = new String(TABLE5_CSV);
+        String Table5_CSV_NewSeparator = copyTable.replaceAll(";"," , ");
+        StringBuffer buffer = new StringBuffer(Table5_CSV_NewSeparator);
 
         //Result
         StringBuffer res = new ExportTable().doExport(table5);
@@ -225,8 +232,9 @@ public class ExportTableTest {
     @Test
     public void testDoExportWithoutColHeaders(){
         //Build buffer example
-        String Table2_CSV_NewSeparator = TABLE3_CSV.replaceAll(";"," , ");
-        StringBuffer buffer = new StringBuffer(Table2_CSV_NewSeparator);
+        String copyTable = new String(TABLE3_CSV);
+        String Table3_CSV_NewSeparator = copyTable.replaceAll(";"," , ");
+        StringBuffer buffer = new StringBuffer(Table3_CSV_NewSeparator);
 
         //Result with doExport method
         StringBuffer res = new ExportTable().doExport(table3);
@@ -262,10 +270,12 @@ public class ExportTableTest {
         StringBuffer csvFormatTable2WithRow = exportTable.apply();
 
         //Prepare data to test equality
-        String table2WithRowComma = TABLE2_CSV.replaceAll(";"," , ");
+        String copyTable = new String(TABLE2_CSV);
+        String table2WithRowComma = copyTable.replaceAll(";"," , ");
         System.out.println(table2WithRowComma);
         System.out.println(csvFormatTable2WithRow.toString());
         assertEquals(table2WithRowComma, csvFormatTable2WithRow.toString());
+        tableManager.deleteFromDatabase("table2WithRow");
     }
 
     @Test
@@ -286,10 +296,12 @@ public class ExportTableTest {
         StringBuffer csvFormatTable2WithRow = exportTable.apply();
 
         //Prepare data to test equality
-        String table2WithRowComma = TABLE4_CSV.replaceAll(";"," , ");
+        String copyTable = new String(TABLE4_CSV);
+        String table2WithRowComma = copyTable.replaceAll(";"," , ");
         System.out.println(table2WithRowComma);
         System.out.println(csvFormatTable2WithRow.toString());
         assertEquals(table2WithRowComma, csvFormatTable2WithRow.toString());
+        tableManager.deleteFromDatabase("table4");
     }
 
 
@@ -311,16 +323,24 @@ public class ExportTableTest {
         StringBuffer csvFormatTable2WithRow = exportTable.apply();
 
         //Prepare data to test equality
-        String table2WithRowComma = TABLE5_CSV.replaceAll(";"," , ");
+        String copyTable = new String(TABLE5_CSV);
+        String table2WithRowComma = copyTable.replaceAll(";"," , ");
         System.out.println(table2WithRowComma);
         System.out.println(csvFormatTable2WithRow.toString());
         assertEquals(table2WithRowComma, csvFormatTable2WithRow.toString());
+        tableManager.deleteFromDatabase("table5");
     }
 
     @Test
     public void testApplyWithoutColumnHeaders() throws Exception{
 
+
         //Create table in DB
+        System.out.println("*************************************");
+        System.out.println("BEFORE STORING IN DB ; ");
+        System.out.println(table3.headers.row.data);
+        System.out.println(table3.content.cells);
+        System.out.println("*************************************");
         tableManager.createInDatabase(table3);
 
         // Build the nominal request
@@ -335,13 +355,17 @@ public class ExportTableTest {
         StringBuffer csvFormatTable3WithRow = exportTable.apply();
 
         //Prepare data to test equality
-        String table2WithRowComma = TABLE3_CSV.replaceAll(";"," , ");
+        String copyTable = new String(TABLE3_CSV);
+        String table2WithRowComma = copyTable.replaceAll(";"," , ");
         System.out.println(table2WithRowComma);
         System.out.println(csvFormatTable3WithRow.toString());
-        assertEquals(table2WithRowComma, csvFormatTable3WithRow.toString());
+        assertEquals(table2WithRowComma.substring(1), csvFormatTable3WithRow.toString());
+
+        tableManager.deleteFromDatabase("table3");
     }
 
-    /////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 
     /**
      * Function to help building tests
@@ -358,8 +382,10 @@ public class ExportTableTest {
                                                          boolean withRowsHeader)
             throws IOException, IkatsException {
 
+        String copyContent = new String(content);
+
         // Convert the CSV table to expected Table format
-        BufferedReader bufReader = new BufferedReader(new StringReader(content));
+        BufferedReader bufReader = new BufferedReader(new StringReader(copyContent));
 
         String line = null;
         Table table = null;
@@ -378,6 +404,7 @@ public class ExportTableTest {
         // Other lines contain data
         while ((line = bufReader.readLine()) != null) {
             List<String> items = new ArrayList<>(Arrays.asList(line.split(";")));
+
             if (withRowsHeader) {
                 // First item considered as row Header
                 table.appendRow(items.remove(0), items);

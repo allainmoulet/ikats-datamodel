@@ -299,7 +299,11 @@ public class TableManager {
             if (table.hasRowHeader()) {
                 destTableHeaders.row = new Header();
                 destTableHeaders.row.data = new ArrayList<>();
-                destTableHeaders.row.data.add(null);
+                if (table.hasColHeader()){
+                    //There is a column header : First value is stored in it
+                    //Add a null to row header to shift
+                    destTableHeaders.row.data.add(null);
+                }
             }
             for (int i = 1; i < rawData.size(); i++) {
                 if (table.hasRowHeader()) {
@@ -387,22 +391,41 @@ public class TableManager {
             tableFullContent.get(0).set(0, topCornerLeft);
         } else {
             if (table.isHandlingColumnsHeader()) {
+                //There is only one header : For columns
                 tableFullContent.add(table.getColumnsHeader().data);
             }
+            //Row headers : no considering here
         }
         Integer max_loop;
+        boolean isOnlyRowHeader = false;
         if (table.isHandlingRowsHeader()) {
-            max_loop = table.getRowsHeader().data.size() - 1;
+            if(table.isHandlingColumnsHeader()){
+                //There are two headers : Top left corner in columns data
+                max_loop = table.getRowsHeader().data.size() - 1;
+            }else{
+                //There is only a row header : Row Header == First column
+                max_loop = table.getRowsHeader().data.size();
+                isOnlyRowHeader = true;
+            }
         } else {
             max_loop = table.getContentData().size();
         }
+
         for (int i = 0; i < max_loop; i++) {
             List<Object> tempRowData = new ArrayList<>();
             if (table.isHandlingRowsHeader()) {
-                tempRowData.add(table.getRowsHeader().data.get(i + 1));
+                if(isOnlyRowHeader){
+                    //Only row header -> We don't need to shift row header
+                    List rowsHeader = table.getRowsHeader().data;
+                    tempRowData.add(rowsHeader.get(i));
+                }else{
+                    //Need to shift row header
+                    tempRowData.add(table.getRowsHeader().data.get(i + 1));
+                }
             }
             if (table.getContentData().size() != 0) {
-                tempRowData.addAll(table.getContentData().get(i));
+                List getterContent = table.getContentData().get(i);
+                tempRowData.addAll(getterContent);
             }
             tableFullContent.add(tempRowData);
         }

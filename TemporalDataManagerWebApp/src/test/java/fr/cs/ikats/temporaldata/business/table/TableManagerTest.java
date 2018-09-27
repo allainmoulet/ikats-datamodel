@@ -962,4 +962,163 @@ public class TableManagerTest {
         mng.deleteFromDatabase("TestTable");
 
     }
+
+
+    @Test
+    public void testCreateTableOnlyRowHeader() throws Exception {
+
+        TableManager mng = new TableManager();
+
+        TableInfo table = new TableInfo();
+        Table tableH = mng.initTable(table, false);
+
+        String tableName = "TestTable";
+        String tableDesc = "TestDescription";
+        String tableTitle = "TestTitle";
+
+        tableH.setName(tableName);
+        tableH.setDescription(tableDesc);
+        tableH.setTitle(tableTitle);
+
+        // Deprecated for end-user
+        tableH.initRowsHeader(true, null, new ArrayList<>(), null)
+                .addItem("R_One", null)
+                .addItem("R_Two", null)
+                .addItem("R_Three", null); // Rows : Top Left Corner
+        tableH.initContent(false, null);
+
+
+
+        Object[] row1 = new Object[]{1, 2, 3};
+        Object[] row2 = new Object[]{4, 5, 5};
+        Object[] row3 = new Object[]{7, 8, 9};
+
+        tableH.appendRow(Arrays.asList(row1));
+        tableH.appendRow(Arrays.asList(row2));
+        tableH.appendRow(Arrays.asList(row3));
+
+
+        mng.createInDatabase(tableH.getTableInfo());
+
+        TableInfo result = mng.readFromDatabase("TestTable");
+
+        assertEquals(Arrays.asList("R_One", "R_Two", "R_Three"), result.headers.row.data);
+        assertEquals(Arrays.asList(row1), result.content.cells.get(0));
+        assertEquals(Arrays.asList(row2), result.content.cells.get(1));
+        assertEquals(Arrays.asList(row3), result.content.cells.get(2));
+        assertEquals(result.headers.row.data.size(),result.content.cells.size());
+        // clean
+        mng.deleteFromDatabase("TestTable");
+
+    }
+
+    @Test
+    public void testCreateTableOnlyColHeader() throws Exception {
+
+        TableManager mng = new TableManager();
+
+        TableInfo table = new TableInfo();
+        Table tableH = mng.initTable(table, false);
+
+        String tableName = "TestTable";
+        String tableDesc = "TestDescription";
+        String tableTitle = "TestTitle";
+
+        tableH.setName(tableName);
+        tableH.setDescription(tableDesc);
+        tableH.setTitle(tableTitle);
+
+        // Deprecated for end-user
+        tableH.initColumnsHeader(true, null, new ArrayList<>(), null)
+                .addItem("C_One", null)
+                .addItem("C_Two", null)
+                .addItem("C_Three", null);
+
+        tableH.initContent(false, null);
+
+
+
+        Object[] row1 = new Object[]{1, 2, 3};
+        Object[] row2 = new Object[]{4, 5, 5};
+        Object[] row3 = new Object[]{7, 8, 9};
+
+        tableH.appendRow(Arrays.asList(row1));
+        tableH.appendRow(Arrays.asList(row2));
+        tableH.appendRow(Arrays.asList(row3));
+
+
+        mng.createInDatabase(tableH.getTableInfo());
+
+        TableInfo result = mng.readFromDatabase("TestTable");
+
+        assertEquals(Arrays.asList("C_One", "C_Two", "C_Three"), result.headers.col.data);
+        assertEquals(Arrays.asList(row1), result.content.cells.get(0));
+        assertEquals(Arrays.asList(row2), result.content.cells.get(1));
+        assertEquals(Arrays.asList(row3), result.content.cells.get(2));
+        assertEquals(result.headers.col.data.size(),result.content.cells.size());
+        // clean
+        mng.deleteFromDatabase("TestTable");
+
+    }
+
+
+    @Test
+    public void testCreateTableWithHeaders() throws Exception {
+
+        TableManager mng = new TableManager();
+
+        TableInfo table = new TableInfo();
+        Table tableH = mng.initTable(table, false);
+
+        String tableName = "TestTable";
+        String tableDesc = "TestDescription";
+        String tableTitle = "TestTitle";
+
+        tableH.setName(tableName);
+        tableH.setDescription(tableDesc);
+        tableH.setTitle(tableTitle);
+
+        // Deprecated for end-user
+        tableH.initColumnsHeader(true, null, new ArrayList<>(), null)
+                .addItem("Index",null)
+                .addItem("C_One", null)
+                .addItem("C_Two", null)
+                .addItem("C_Three", null);
+
+        tableH.initRowsHeader(false, null, new ArrayList<>(), null)
+                .addItem("R_One", null)
+                .addItem("R_Two", null)
+                .addItem("R_Three", null); // Rows : Top Left Corner
+
+        tableH.initContent(false, null);
+
+
+
+        Object[] row1 = new Object[]{1, 2, 3};
+        Object[] row2 = new Object[]{4, 5, 5};
+        Object[] row3 = new Object[]{7, 8, 9};
+
+        tableH.appendRow(Arrays.asList(row1));
+        tableH.appendRow(Arrays.asList(row2));
+        tableH.appendRow(Arrays.asList(row3));
+
+
+        mng.createInDatabase(tableH.getTableInfo());
+
+        TableInfo result = mng.readFromDatabase("TestTable");
+
+        assertEquals(Arrays.asList("Index","C_One", "C_Two", "C_Three"), result.headers.col.data);
+        assertEquals(Arrays.asList("R_One", "R_Two", "R_Three"), result.headers.row.data);
+        assertEquals(Arrays.asList(row1), result.content.cells.get(0));
+        assertEquals(Arrays.asList(row2), result.content.cells.get(1));
+        assertEquals(Arrays.asList(row3), result.content.cells.get(2));
+        assertEquals(result.headers.col.data.size()-1,result.content.cells.size());
+        assertEquals(result.headers.row.data.size(),result.content.cells.size());
+        // clean
+        mng.deleteFromDatabase("TestTable");
+
+    }
+
+
+
 }
