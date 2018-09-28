@@ -1039,7 +1039,7 @@ public class TableManagerTest {
         TableInfo result = mng.readFromDatabase("tableAllHeaders");
 
         assertEquals(Arrays.asList("Index","C_one", "C_two", "C_three"), result.headers.col.data);
-        assertEquals(Arrays.asList("R_one", "R_two", "R_three"), result.headers.row.data.subList(1,4));
+        assertEquals(Arrays.asList(null, "R_one", "R_two", "R_three"), result.headers.row.data);
         assertTrue(result.headers.row.data.get(0)==null);
         assertEquals(Arrays.asList("1","2","3"), result.content.cells.get(0));
         assertEquals(Arrays.asList("4","5","5"), result.content.cells.get(1));

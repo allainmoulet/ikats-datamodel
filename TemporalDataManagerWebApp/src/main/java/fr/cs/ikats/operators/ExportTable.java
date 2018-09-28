@@ -36,6 +36,14 @@ public class ExportTable {
             this.outputCSVFileName = outputCSVFileName;
         }
 
+        public String getTableName(){
+            return this.tableName;
+        }
+
+        public String getOutputCSVFileName(){
+            return this.outputCSVFileName;
+        }
+
     }
 
     /**
@@ -90,9 +98,9 @@ public class ExportTable {
         try {
             //Read the table we want to store
             tableNameToExtract= this.request.tableName;
+            outputFileName = this.request.outputCSVFileName;
             tableToExtract = tableManager.readFromDatabase(tableNameToExtract);
 
-            outputFileName = this.request.outputCSVFileName;
         } catch (IkatsDaoMissingResource e) {
             String msg = "Table " + tableNameToExtract+ " not found in database";
             throw new IkatsOperatorException(msg, e);
@@ -116,7 +124,7 @@ public class ExportTable {
      */
     public StringBuffer doExport(TableInfo tableToExport){
 
-        //Check if there is header for row and col
+        //Check if there are headers for row and col
         boolean isRowHeader = isRowHeader(tableToExport);
         boolean isColumnHeader = isColHeader(tableToExport);
 
@@ -158,7 +166,7 @@ public class ExportTable {
             List<Object> ithList = Arrays.asList(contentsCells.get(i)).get(0);
             //Transform all elements into string (also for DataLink)
             List<String> strings = ithList.stream().map(object -> Objects.toString(object, null)).collect(Collectors.toList());
-            //Convert all elements to String, separated by comma
+            //Convert all elements to String, separated by comma with spaces before/after
             String ithListStringCommaSep = String.join(" , ",strings);
             //Add a \n to begin a new line
             ithListStringCommaSep += "\n";
@@ -188,20 +196,23 @@ public class ExportTable {
      * Add row header to the content
      * @param tableInfo  Used here to get the row Header and add it to the content
      * @param contentsCells Content data
+     * @param isColumnHeader : Is there a column header ?
      */
     public void addRowHeader(TableInfo tableInfo, List<List<Object>> contentsCells,boolean isColumnHeader){
 
+        //Get row header data
         List<Object> rowsHeadersData = new ArrayList(tableInfo.headers.row.data);
-
 
         int begin = 0;
         if(isColumnHeader){
+            //There is a column header : Top Left Corner is stored in Columns Header
+            //-> We skip the first element
             begin++;
         }
 
         //Then Add it to content
         for (int i=begin;i<(rowsHeadersData).size();i++){
-            //Get ith row  to modify
+            //Get ith row  to modify it
             List newRow = new ArrayList(contentsCells.get(i));
             //Add element at the beginning
             newRow.add(0,rowsHeadersData.get(i));

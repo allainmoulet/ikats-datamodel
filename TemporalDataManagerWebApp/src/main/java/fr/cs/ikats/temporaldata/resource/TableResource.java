@@ -43,6 +43,8 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import fr.cs.ikats.operators.*;
+import fr.cs.ikats.temporaldata.business.ProcessDataManager;
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -52,10 +54,6 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.MetaData;
-import fr.cs.ikats.operators.IkatsOperatorException;
-import fr.cs.ikats.operators.JoinTableWithTs;
-import fr.cs.ikats.operators.TablesMerge;
-import fr.cs.ikats.operators.TrainTestSplitTable;
 import fr.cs.ikats.table.TableEntitySummary;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.table.Table;
@@ -640,6 +638,58 @@ public class TableResource extends AbstractResource {
             return Response.status(Status.CONFLICT).entity(e.getMessage()).build();
         }
 
+    }
+
+
+    /**
+     * Operator call for the export of TableInfo as CSV file.<br>
+     * See {@link ExportTable.Request} for input specification
+     *
+     * @param request
+     * @return the HTTP response with the csv as content
+     */
+    @POST
+    @Path("/export")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response exportTable(ExportTable.Request request) throws InvalidValueException {
+
+        // check export table name validity
+        tableManager.validateTableName(request.getTableName(), "exportTable");
+
+        ExportTable exportTable;
+        try {
+            // Try to initialize the operator with the request
+            exportTable = new ExportTable(request);
+        } catch (IkatsOperatorException e) {
+            // The request check has failed
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        try {
+            // check tables existence
+            if (!tableManager.existsInDatabase(request.getTableName())) {
+                String msg = "Table " + request.getTableName() + " not found";
+                return Response.status(Status.BAD_REQUEST).entity(msg).build();
+            }
+
+        } catch (IkatsDaoException e) {
+            // Hibernate Exception raised
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+
+        try {
+            // Do the job and return the CSV table content
+            StringBuffer CSVExportStringBuffer = exportTable.apply();
+            //Store StringBuffer into DB with ProcessData
+            byte[] csvContentBytes = String.valueOf(CSVExportStringBuffer).getBytes();
+            //processID : Output csv file name stored in request
+            String IDExport = new ProcessDataManager().importProcessData(request.getOutputCSVFileName(),
+                    request.getTableName(),csvContentBytes, ProcessDataManager.ProcessResultTypeEnum.CSV);
+            //Send Export ID via
+            return Response.status(Status.OK).entity(IDExport).build();
+        } catch (IkatsOperatorException | IkatsException | IkatsDaoException e) {
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
     }
 
 
