@@ -111,7 +111,7 @@ public class ExportTableTest {
     private static TableInfo table3 = null;
     private static TableInfo table4 = null;
     private static TableInfo table5 = null;
-    private static TableManager tableManager = new TableManager();
+
 
     @BeforeClass
     public static void setUpBeforClass() throws Exception {
@@ -189,10 +189,8 @@ public class ExportTableTest {
         StringBuffer buffer = new StringBuffer(Table2_CSV_NewSeparator);
 
         //Result
-        StringBuffer res = new ExportTable().doExport(table2WithRow);
-        System.out.println(res);
-        System.out.println(buffer);
-        assertEquals(res.toString(),buffer.toString());
+        StringBuffer resultExport = new ExportTable().doExport(table2WithRow);
+        assertEquals(resultExport.toString(),buffer.toString());
 
     }
 
@@ -207,10 +205,8 @@ public class ExportTableTest {
         StringBuffer buffer = new StringBuffer(Table4_CSV_NewSeparator);
 
         //Result
-        StringBuffer res = new ExportTable().doExport(table4);
-        System.out.println(res);
-        System.out.println(buffer);
-        assertEquals(res.toString(),buffer.toString());
+        StringBuffer resultExport = new ExportTable().doExport(table4);
+        assertEquals(resultExport.toString(),buffer.toString());
 
     }
 
@@ -222,10 +218,8 @@ public class ExportTableTest {
         StringBuffer buffer = new StringBuffer(Table5_CSV_NewSeparator);
 
         //Result
-        StringBuffer res = new ExportTable().doExport(table5);
-        System.out.println(res);
-        System.out.println(buffer);
-        assertEquals(res.toString(),buffer.toString());
+        StringBuffer resultExport = new ExportTable().doExport(table5);
+        assertEquals(resultExport.toString(),buffer.toString());
 
     }
 
@@ -237,12 +231,10 @@ public class ExportTableTest {
         StringBuffer buffer = new StringBuffer(Table3_CSV_NewSeparator);
 
         //Result with doExport method
-        StringBuffer res = new ExportTable().doExport(table3);
+        StringBuffer resultExport = new ExportTable().doExport(table3);
 
         //Compare result and reality
-        System.out.println(res);
-        System.out.println(buffer);
-        assertEquals(res.toString(),buffer.toString());
+        assertEquals(resultExport.toString(),buffer.toString());
 
     }
 
@@ -256,6 +248,7 @@ public class ExportTableTest {
     public void testApplyWithHeaders() throws Exception{
 
         //Create table in DB
+        TableManager tableManager = new TableManager();
         tableManager.createInDatabase(table2WithRow);
 
         // Build the nominal request
@@ -272,8 +265,6 @@ public class ExportTableTest {
         //Prepare data to test equality
         String copyTable = new String(TABLE2_CSV);
         String table2WithRowComma = copyTable.replaceAll(";"," , ");
-        System.out.println(table2WithRowComma);
-        System.out.println(csvFormatTable2WithRow.toString());
         assertEquals(table2WithRowComma, csvFormatTable2WithRow.toString());
         tableManager.deleteFromDatabase("table2WithRow");
     }
@@ -282,6 +273,7 @@ public class ExportTableTest {
     public void testApplyWithoutHeaders() throws Exception{
 
         //Create table in DB
+        TableManager tableManager = new TableManager();
         tableManager.createInDatabase(table4);
 
         // Build the nominal request
@@ -293,14 +285,12 @@ public class ExportTableTest {
         ExportTable exportTable = new ExportTable(request);
 
         //Call Apply method
-        StringBuffer csvFormatTable2WithRow = exportTable.apply();
+        StringBuffer csvFormatTable4 = exportTable.apply();
 
         //Prepare data to test equality
         String copyTable = new String(TABLE4_CSV);
-        String table2WithRowComma = copyTable.replaceAll(";"," , ");
-        System.out.println(table2WithRowComma);
-        System.out.println(csvFormatTable2WithRow.toString());
-        assertEquals(table2WithRowComma, csvFormatTable2WithRow.toString());
+        String table4WithComma = copyTable.replaceAll(";"," , ");
+        assertEquals(table4WithComma, csvFormatTable4.toString());
         tableManager.deleteFromDatabase("table4");
     }
 
@@ -309,6 +299,7 @@ public class ExportTableTest {
     public void testApplyWithoutRowHeaders() throws Exception{
 
         //Create table in DB
+        TableManager tableManager = new TableManager();
         tableManager.createInDatabase(table5);
 
         // Build the nominal request
@@ -320,14 +311,12 @@ public class ExportTableTest {
         ExportTable exportTable = new ExportTable(request);
 
         //Call Apply method
-        StringBuffer csvFormatTable2WithRow = exportTable.apply();
+        StringBuffer csvFormatTable5WithoutRow = exportTable.apply();
 
         //Prepare data to test equality
         String copyTable = new String(TABLE5_CSV);
-        String table2WithRowComma = copyTable.replaceAll(";"," , ");
-        System.out.println(table2WithRowComma);
-        System.out.println(csvFormatTable2WithRow.toString());
-        assertEquals(table2WithRowComma, csvFormatTable2WithRow.toString());
+        String table5WithRowComma = copyTable.replaceAll(";"," , ");
+        assertEquals(table5WithRowComma, csvFormatTable5WithoutRow.toString());
         tableManager.deleteFromDatabase("table5");
     }
 
@@ -336,11 +325,7 @@ public class ExportTableTest {
 
 
         //Create table in DB
-        System.out.println("*************************************");
-        System.out.println("BEFORE STORING IN DB ; ");
-        System.out.println(table3.headers.row.data);
-        System.out.println(table3.content.cells);
-        System.out.println("*************************************");
+        TableManager tableManager = new TableManager();
         tableManager.createInDatabase(table3);
 
         // Build the nominal request
@@ -356,10 +341,8 @@ public class ExportTableTest {
 
         //Prepare data to test equality
         String copyTable = new String(TABLE3_CSV);
-        String table2WithRowComma = copyTable.replaceAll(";"," , ");
-        System.out.println(table2WithRowComma);
-        System.out.println(csvFormatTable3WithRow.toString());
-        assertEquals(table2WithRowComma.substring(1), csvFormatTable3WithRow.toString());
+        String table3WithRowComma = copyTable.replaceAll(";"," , ");
+        assertEquals(table3WithRowComma, csvFormatTable3WithRow.toString());
 
         tableManager.deleteFromDatabase("table3");
     }
@@ -382,6 +365,7 @@ public class ExportTableTest {
                                                          boolean withRowsHeader)
             throws IOException, IkatsException {
 
+        TableManager tableManager = new TableManager();
         String copyContent = new String(content);
 
         // Convert the CSV table to expected Table format

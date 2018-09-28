@@ -21,11 +21,17 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.cs.ikats.operators.TablesMergeTest;
+import org.apache.log4j.Logger;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.cs.ikats.table.TableEntitySummary;
@@ -42,6 +48,34 @@ public class TableManagerTest {
      * Do not change this sample: reused by several tests: for new purposes => create another one
      */
     private final static String JSON_CONTENT_SAMPLE_1 = "{\"table_desc\":{\"title\":\"Discretized matrix\",\"desc\":\"This is a ...\"},\"headers\":{\"col\":{\"data\":[\"funcId\",\"metric\",\"min_B1\",\"max_B1\",\"min_B2\",\"max_B2\"],\"links\":null,\"default_links\":null},\"row\":{\"data\":[null,\"Flid1_VIB2\",\"Flid1_VIB3\",\"Flid1_VIB4\",\"Flid1_VIB5\"],\"default_links\":{\"type\":\"ts_bucket\",\"context\":\"processdata\"},\"links\":[null,{\"val\":\"1\"},{\"val\":\"2\"},{\"val\":\"3\"},{\"val\":\"4\"}]}},\"content\":{\"cells\":[[\"VIB2\",-50.0,12.1,1.0,3.4],[\"VIB3\",-5.0,2.1,1.0,3.4],[\"VIB4\",0.0,2.1,12.0,3.4],[\"VIB5\",0.0,2.1,1.0,3.4]]}}";
+
+    private static final Logger logger = Logger.getLogger(TablesMergeTest.class);
+
+
+
+    private static final String TABLE_CSV = "Index;C_one;C_two;C_three\n"
+            + "R_one;1;2;3\n"
+            + "R_two;4;5;5\n"
+            + "R_three;6;7;8\n";
+
+
+
+
+
+    private static TableInfo tableOnlyRowHeader = null;
+    private static TableInfo tableOnlyColHeader = null;
+    private static TableInfo tableAllHeaders = null;
+    private static TableInfo tableNoHeader = null;
+
+    private static TableManager tableManager = new TableManager();
+
+    @BeforeClass
+    public static void setUpBeforeClass() throws Exception {
+        tableOnlyRowHeader = buildTableInfoFromCSVString("tableOnlyRowHeader", TABLE_CSV, false, true);
+        tableOnlyColHeader = buildTableInfoFromCSVString("tableOnlyColHeader", TABLE_CSV, true, false);
+        tableAllHeaders = buildTableInfoFromCSVString("tableAllHeaders", TABLE_CSV, true, true);
+        tableNoHeader = buildTableInfoFromCSVString("tableNoHeader", TABLE_CSV, false, false);
+    }
 
     /**
      * Tests getColumnFromTable: case when selected column is the row-header values (below top-left corner)
@@ -966,159 +1000,126 @@ public class TableManagerTest {
 
     @Test
     public void testCreateTableOnlyRowHeader() throws Exception {
-
         TableManager mng = new TableManager();
+        mng.createInDatabase(tableOnlyRowHeader);
 
-        TableInfo table = new TableInfo();
-        Table tableH = mng.initTable(table, false);
+        TableInfo result = mng.readFromDatabase("tableOnlyRowHeader");
 
-        String tableName = "TestTable";
-        String tableDesc = "TestDescription";
-        String tableTitle = "TestTitle";
-
-        tableH.setName(tableName);
-        tableH.setDescription(tableDesc);
-        tableH.setTitle(tableTitle);
-
-        // Deprecated for end-user
-        tableH.initRowsHeader(true, null, new ArrayList<>(), null)
-                .addItem("R_One", null)
-                .addItem("R_Two", null)
-                .addItem("R_Three", null); // Rows : Top Left Corner
-        tableH.initContent(false, null);
-
-
-
-        Object[] row1 = new Object[]{1, 2, 3};
-        Object[] row2 = new Object[]{4, 5, 5};
-        Object[] row3 = new Object[]{7, 8, 9};
-
-        tableH.appendRow(Arrays.asList(row1));
-        tableH.appendRow(Arrays.asList(row2));
-        tableH.appendRow(Arrays.asList(row3));
-
-
-        mng.createInDatabase(tableH.getTableInfo());
-
-        TableInfo result = mng.readFromDatabase("TestTable");
-
-        assertEquals(Arrays.asList("R_One", "R_Two", "R_Three"), result.headers.row.data);
-        assertEquals(Arrays.asList(row1), result.content.cells.get(0));
-        assertEquals(Arrays.asList(row2), result.content.cells.get(1));
-        assertEquals(Arrays.asList(row3), result.content.cells.get(2));
+        assertEquals(Arrays.asList("Index","R_one", "R_two", "R_three"), result.headers.row.data);
+        assertEquals(Arrays.asList("C_one","C_two","C_three"), result.content.cells.get(0));
+        assertEquals(Arrays.asList("1","2","3"), result.content.cells.get(1));
+        assertEquals(Arrays.asList("4","5","5"), result.content.cells.get(2));
+        assertEquals(Arrays.asList("6","7","8"), result.content.cells.get(3));
         assertEquals(result.headers.row.data.size(),result.content.cells.size());
         // clean
-        mng.deleteFromDatabase("TestTable");
-
+        mng.deleteFromDatabase("tableOnlyRowHeader");
     }
 
     @Test
     public void testCreateTableOnlyColHeader() throws Exception {
-
         TableManager mng = new TableManager();
+        mng.createInDatabase(tableOnlyColHeader);
 
-        TableInfo table = new TableInfo();
-        Table tableH = mng.initTable(table, false);
+        TableInfo result = mng.readFromDatabase("tableOnlyColHeader");
 
-        String tableName = "TestTable";
-        String tableDesc = "TestDescription";
-        String tableTitle = "TestTitle";
-
-        tableH.setName(tableName);
-        tableH.setDescription(tableDesc);
-        tableH.setTitle(tableTitle);
-
-        // Deprecated for end-user
-        tableH.initColumnsHeader(true, null, new ArrayList<>(), null)
-                .addItem("C_One", null)
-                .addItem("C_Two", null)
-                .addItem("C_Three", null);
-
-        tableH.initContent(false, null);
-
-
-
-        Object[] row1 = new Object[]{1, 2, 3};
-        Object[] row2 = new Object[]{4, 5, 5};
-        Object[] row3 = new Object[]{7, 8, 9};
-
-        tableH.appendRow(Arrays.asList(row1));
-        tableH.appendRow(Arrays.asList(row2));
-        tableH.appendRow(Arrays.asList(row3));
-
-
-        mng.createInDatabase(tableH.getTableInfo());
-
-        TableInfo result = mng.readFromDatabase("TestTable");
-
-        assertEquals(Arrays.asList("C_One", "C_Two", "C_Three"), result.headers.col.data);
-        assertEquals(Arrays.asList(row1), result.content.cells.get(0));
-        assertEquals(Arrays.asList(row2), result.content.cells.get(1));
-        assertEquals(Arrays.asList(row3), result.content.cells.get(2));
-        assertEquals(result.headers.col.data.size(),result.content.cells.size());
+        assertEquals(Arrays.asList("Index","C_one", "C_two", "C_three"), result.headers.col.data);
+        assertEquals(Arrays.asList("R_one","1","2","3"), result.content.cells.get(0));
+        assertEquals(Arrays.asList("R_two","4","5","5"), result.content.cells.get(1));
+        assertEquals(Arrays.asList("R_three","6","7","8"), result.content.cells.get(2));
         // clean
-        mng.deleteFromDatabase("TestTable");
-
+        mng.deleteFromDatabase("tableOnlyColHeader");
     }
 
 
     @Test
-    public void testCreateTableWithHeaders() throws Exception {
-
+    public void testCreateTableHeaders() throws Exception {
         TableManager mng = new TableManager();
+        mng.createInDatabase(tableAllHeaders);
 
-        TableInfo table = new TableInfo();
-        Table tableH = mng.initTable(table, false);
+        TableInfo result = mng.readFromDatabase("tableAllHeaders");
 
-        String tableName = "TestTable";
-        String tableDesc = "TestDescription";
-        String tableTitle = "TestTitle";
-
-        tableH.setName(tableName);
-        tableH.setDescription(tableDesc);
-        tableH.setTitle(tableTitle);
-
-        // Deprecated for end-user
-        tableH.initColumnsHeader(true, null, new ArrayList<>(), null)
-                .addItem("Index",null)
-                .addItem("C_One", null)
-                .addItem("C_Two", null)
-                .addItem("C_Three", null);
-
-        tableH.initRowsHeader(false, null, new ArrayList<>(), null)
-                .addItem("R_One", null)
-                .addItem("R_Two", null)
-                .addItem("R_Three", null); // Rows : Top Left Corner
-
-        tableH.initContent(false, null);
-
-
-
-        Object[] row1 = new Object[]{1, 2, 3};
-        Object[] row2 = new Object[]{4, 5, 5};
-        Object[] row3 = new Object[]{7, 8, 9};
-
-        tableH.appendRow(Arrays.asList(row1));
-        tableH.appendRow(Arrays.asList(row2));
-        tableH.appendRow(Arrays.asList(row3));
-
-
-        mng.createInDatabase(tableH.getTableInfo());
-
-        TableInfo result = mng.readFromDatabase("TestTable");
-
-        assertEquals(Arrays.asList("Index","C_One", "C_Two", "C_Three"), result.headers.col.data);
-        assertEquals(Arrays.asList("R_One", "R_Two", "R_Three"), result.headers.row.data);
-        assertEquals(Arrays.asList(row1), result.content.cells.get(0));
-        assertEquals(Arrays.asList(row2), result.content.cells.get(1));
-        assertEquals(Arrays.asList(row3), result.content.cells.get(2));
-        assertEquals(result.headers.col.data.size()-1,result.content.cells.size());
-        assertEquals(result.headers.row.data.size(),result.content.cells.size());
+        assertEquals(Arrays.asList("Index","C_one", "C_two", "C_three"), result.headers.col.data);
+        assertEquals(Arrays.asList("R_one", "R_two", "R_three"), result.headers.row.data.subList(1,4));
+        assertTrue(result.headers.row.data.get(0)==null);
+        assertEquals(Arrays.asList("1","2","3"), result.content.cells.get(0));
+        assertEquals(Arrays.asList("4","5","5"), result.content.cells.get(1));
+        assertEquals(Arrays.asList("6","7","8"), result.content.cells.get(2));
         // clean
-        mng.deleteFromDatabase("TestTable");
-
+        mng.deleteFromDatabase("tableAllHeaders");
     }
 
+    @Test
+    public void testCreateTableNoHeader() throws Exception {
+        TableManager mng = new TableManager();
+        mng.createInDatabase(tableNoHeader);
 
+        TableInfo result = mng.readFromDatabase("tableNoHeader");
+
+        assertEquals(Arrays.asList("Index","C_one", "C_two", "C_three"), result.content.cells.get(0));
+        assertEquals(Arrays.asList("R_one", "1","2","3"), result.content.cells.get(1));
+        assertEquals(Arrays.asList("R_two","4","5","5"), result.content.cells.get(2));
+        assertEquals(Arrays.asList("R_three","6","7","8"), result.content.cells.get(3));
+        // clean
+        mng.deleteFromDatabase("tableNoHeader");
+    }
+
+    /**
+     * Function to help building tests
+     * @param name
+     * @param content
+     * @param withColumnsHeader
+     * @param withRowsHeader
+     * @return
+     * @throws IOException
+     * @throws IkatsException
+     */
+    private static TableInfo buildTableInfoFromCSVString(String name, String content,
+                                                         boolean withColumnsHeader,
+                                                         boolean withRowsHeader)
+            throws IOException, IkatsException {
+
+        String copyContent = new String(content);
+
+        // Convert the CSV table to expected Table format
+        BufferedReader bufReader = new BufferedReader(new StringReader(copyContent));
+
+        String line = null;
+        Table table = null;
+
+        if (withColumnsHeader) {
+            // Assuming first line contains headers
+            line = bufReader.readLine();
+            List<String> headersTitle = Arrays.asList(line.split(";"));
+            // Replace empty strings with null (that's what do the operator when adding empty headers)
+            headersTitle.replaceAll(ht -> ht.isEmpty() ? null : ht);
+            table = tableManager.initTable(headersTitle, withRowsHeader);
+        } else {
+            table = TableManager.initEmptyTable(false, withRowsHeader);
+        }
+
+        // Other lines contain data
+        while ((line = bufReader.readLine()) != null) {
+            List<String> items = new ArrayList<>(Arrays.asList(line.split(";")));
+
+            if (withRowsHeader) {
+                // First item considered as row Header
+                table.appendRow(items.remove(0), items);
+            } else {
+                table.appendRow(items);
+            }
+        }
+
+        table.setName(name);
+        table.setDescription("Table '" + name + "' description created for tests");
+        table.setTitle("Table '" + name + "' title");
+
+        TableInfo tableInfo = table.getTableInfo();
+        logger.trace("Table " + name + " ready");
+
+        return tableInfo;
+    }
 
 }
+
+
+

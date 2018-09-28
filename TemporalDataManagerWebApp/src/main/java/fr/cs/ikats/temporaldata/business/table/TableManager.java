@@ -294,7 +294,14 @@ public class TableManager {
                 destTableHeaders.col = new Header();
                 destTableHeaders.col.data = rawData.get(0);
             } else {
-                destTableContent.cells.add(rawData.get(0));
+                //No column header
+                if(table.hasRowHeader()){
+                    //Row header : Add first row without first element
+                    destTableContent.cells.add(rawData.get(0).subList(1,rawData.get(0).size()));
+                }else{
+                    //No header : add whole row
+                    destTableContent.cells.add(rawData.get(0));
+                }
             }
             if (table.hasRowHeader()) {
                 destTableHeaders.row = new Header();
@@ -303,6 +310,9 @@ public class TableManager {
                     //There is a column header : First value is stored in it
                     //Add a null to row header to shift
                     destTableHeaders.row.data.add(null);
+                }else{
+                    //Only row header : Add first element to row header
+                    destTableHeaders.row.data.add(rawData.get(0).get(0));
                 }
             }
             for (int i = 1; i < rawData.size(); i++) {

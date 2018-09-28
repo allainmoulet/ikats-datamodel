@@ -91,11 +91,7 @@ public class ExportTable {
             //Read the table we want to store
             tableNameToExtract= this.request.tableName;
             tableToExtract = tableManager.readFromDatabase(tableNameToExtract);
-            System.out.println("*************************************");
-            System.out.println("AFTER STORING IN DB ; ");
-            System.out.println(tableToExtract.headers.row.data);
-            System.out.println(tableToExtract.content.cells);
-            System.out.println("*************************************");
+
             outputFileName = this.request.outputCSVFileName;
         } catch (IkatsDaoMissingResource e) {
             String msg = "Table " + tableNameToExtract+ " not found in database";
@@ -126,7 +122,7 @@ public class ExportTable {
 
         //Build CSV Format
         //1) Get contents data
-        List<List<Object>> tableInfoContents = tableToExport.content.cells;
+        List<List<Object>> tableInfoContents = new ArrayList(tableToExport.content.cells);
         if(tableInfoContents.size()>0) { //There is a result
             //2) Add Row and Columns headers if necessary
             if (isColumnHeader) {
@@ -181,7 +177,7 @@ public class ExportTable {
      */
     public void addColumnHeader(TableInfo tableInfo, List<List<Object>> contentsCells){
         //There is a column header -> Get it
-        List<Object> columnsHeadersData = tableInfo.headers.col.data;
+        List<Object> columnsHeadersData = new ArrayList(tableInfo.headers.col.data);
 
         //Then Add it to content
         contentsCells.add(0,columnsHeadersData);
@@ -195,7 +191,7 @@ public class ExportTable {
      */
     public void addRowHeader(TableInfo tableInfo, List<List<Object>> contentsCells,boolean isColumnHeader){
 
-        List<Object> rowsHeadersData = tableInfo.headers.row.data;
+        List<Object> rowsHeadersData = new ArrayList(tableInfo.headers.row.data);
 
 
         int begin = 0;
@@ -206,7 +202,7 @@ public class ExportTable {
         //Then Add it to content
         for (int i=begin;i<(rowsHeadersData).size();i++){
             //Get ith row  to modify
-            List newRow = contentsCells.get(i);
+            List newRow = new ArrayList(contentsCells.get(i));
             //Add element at the beginning
             newRow.add(0,rowsHeadersData.get(i));
             //Set new row in contents
