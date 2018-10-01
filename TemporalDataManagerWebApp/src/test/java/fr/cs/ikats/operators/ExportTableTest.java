@@ -136,7 +136,7 @@ public class ExportTableTest {
         // Build the nominal request
         Request ExportTableRequest = new Request();
         ExportTableRequest.setTableName(""); // Empty string should not be allowed
-        ExportTableRequest.setOutputTableName("coco");
+        ExportTableRequest.setOutputCSVFileName("coco");
 
         // Pass it to the constructor
         new ExportTable(ExportTableRequest);
@@ -151,7 +151,7 @@ public class ExportTableTest {
         // Build the nominal request
         Request ExportTableRequest = new Request();
         ExportTableRequest.setTableName("table_1");
-        ExportTableRequest.setOutputTableName("");
+        ExportTableRequest.setOutputCSVFileName("");
 
         //Build constructor
         new ExportTable(ExportTableRequest);
@@ -166,7 +166,7 @@ public class ExportTableTest {
         // Build the nominal request
         Request ExportTableRequest = new Request();
         ExportTableRequest.setTableName("table_1");
-        ExportTableRequest.setOutputTableName("output_table_1");
+        ExportTableRequest.setOutputCSVFileName("output_table_1");
 
         try {
             // Pass it to the constructor
@@ -253,7 +253,7 @@ public class ExportTableTest {
 
         // Build the nominal request
         Request request = new Request();
-        request.setOutputTableName("FirstCSVOutputTestWithHeader");
+        request.setOutputCSVFileName("FirstCSVOutputTestWithHeader");
         request.setTableName("table2WithRow");
 
         //Build Export constructor
@@ -278,7 +278,7 @@ public class ExportTableTest {
 
         // Build the nominal request
         Request request = new Request();
-        request.setOutputTableName("SecondCSVOutputTestWithoutHeaders");
+        request.setOutputCSVFileName("SecondCSVOutputTestWithoutHeaders");
         request.setTableName("table4");
 
         //Build Export constructor
@@ -304,7 +304,7 @@ public class ExportTableTest {
 
         // Build the nominal request
         Request request = new Request();
-        request.setOutputTableName("ThirdCSVOutputTestWithoutRowHeaders");
+        request.setOutputCSVFileName("ThirdCSVOutputTestWithoutRowHeaders");
         request.setTableName("table5");
 
         //Build Export constructor
@@ -330,7 +330,7 @@ public class ExportTableTest {
 
         // Build the nominal request
         Request request = new Request();
-        request.setOutputTableName("FourthCSVOutputTestWithoutColumnHeaders");
+        request.setOutputCSVFileName("FourthCSVOutputTestWithoutColumnHeaders");
         request.setTableName("table3");
 
         //Build Export constructor

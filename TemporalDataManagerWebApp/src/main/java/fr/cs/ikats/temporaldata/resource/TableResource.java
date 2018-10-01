@@ -17,6 +17,9 @@
 package fr.cs.ikats.temporaldata.resource;
 
 
+
+import java.net.URI;
+import java.util.Date;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -645,17 +648,22 @@ public class TableResource extends AbstractResource {
      * Operator call for the export of TableInfo as CSV file.<br>
      * See {@link ExportTable.Request} for input specification
      *
-     * @param request
      * @return the HTTP response with the csv as content
      */
     @POST
     @Path("/export")
-    @Consumes(MediaType.APPLICATION_JSON)
-    public Response exportTable(ExportTable.Request request) throws InvalidValueException {
+    @Consumes(MediaType.MULTIPART_FORM_DATA)
+    public Response exportTable(@FormDataParam("tableName") String tableName,
+                                @FormDataParam("outputCSVFileName") String OutputCSVFileName,
+                                FormDataMultiPart formData,
+                                @Context UriInfo uriInfo) throws InvalidValueException {
 
         // check export table name validity
-        tableManager.validateTableName(request.getTableName(), "exportTable");
+        tableManager.validateTableName(tableName, "exportTable");
 
+        ExportTable.Request request = new ExportTable.Request();
+        request.setTableName(tableName);
+        request.setOutputCSVFileName(OutputCSVFileName);
         ExportTable exportTable;
         try {
             // Try to initialize the operator with the request
@@ -680,13 +688,26 @@ public class TableResource extends AbstractResource {
         try {
             // Do the job and return the CSV table content
             StringBuffer CSVExportStringBuffer = exportTable.apply();
+
             //Store StringBuffer into DB with ProcessData
             byte[] csvContentBytes = String.valueOf(CSVExportStringBuffer).getBytes();
-            //processID : Output csv file name stored in request
-            String IDExport = new ProcessDataManager().importProcessData(request.getOutputCSVFileName(),
+
+            //processID : Algorithm Name + Actual timestamp
+            String procID = "ExportTable";
+            Date currentDate = new Date();
+            String timestamp = Long.toString(currentDate.getTime());
+            procID += timestamp;
+
+            //Import data into DB thanks to ProcessDataManager
+            String IDExport = new ProcessDataManager().importProcessData(procID,
                     request.getTableName(),csvContentBytes, ProcessDataManager.ProcessResultTypeEnum.CSV);
-            //Send Export ID via
-            return Response.status(Status.OK).entity(IDExport).build();
+
+            //Build Json String containing ID
+            String url = uriInfo.getAbsolutePath().getPath();
+            String JSonStringToSend = "{\"EndPoint\":\"ProcessData\" , \"id\" :\""+IDExport+"\" , \"URL\" :\""+url+"\"}";
+
+            //Send JSon String via HTTP request
+            return Response.status(Status.OK).entity(JSonStringToSend).build();
         } catch (IkatsOperatorException | IkatsException | IkatsDaoException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }

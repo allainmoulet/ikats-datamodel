@@ -32,7 +32,7 @@ public class ExportTable {
             this.tableName = tableName;
         }
 
-        public void setOutputTableName(String outputCSVFileName) {
+        public void setOutputCSVFileName(String outputCSVFileName) {
             this.outputCSVFileName = outputCSVFileName;
         }
 
