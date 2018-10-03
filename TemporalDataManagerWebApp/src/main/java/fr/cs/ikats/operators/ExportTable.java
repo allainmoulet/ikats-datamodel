@@ -65,11 +65,12 @@ public class ExportTable {
     public ExportTable(Request request) throws IkatsOperatorException {
 
         // Check the inputs : Must have an output file name
-        if (request.outputCSVFileName.length() == 0) {
-            throw new IkatsOperatorException("There should be a name for the new CSV file");
+        if (request.tableName == null || request.tableName.length() == 0) {
+            throw new IkatsOperatorException("There should be a name for the table you want to save : " + request.tableName);
         }
-        if (request.tableName.length() == 0) {
-            throw new IkatsOperatorException("There should be a name for the table you want to save");
+
+        if ( request.outputCSVFileName == null || request.outputCSVFileName.length() == 0 ) {
+            throw new IkatsOperatorException("There should be a name for the new CSV file : "+ request.outputCSVFileName);
         }
 
         this.request = request;

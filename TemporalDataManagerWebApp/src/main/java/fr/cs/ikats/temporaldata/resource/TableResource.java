@@ -654,7 +654,7 @@ public class TableResource extends AbstractResource {
     @Path("/export")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response exportTable(@FormDataParam("tableName") String tableName,
-                                @FormDataParam("outputCSVFileName") String OutputCSVFileName,
+                                @FormDataParam("outputCSVFileName") String outputCSVFileName,
                                 FormDataMultiPart formData,
                                 @Context UriInfo uriInfo) throws InvalidValueException {
 
@@ -663,7 +663,7 @@ public class TableResource extends AbstractResource {
 
         ExportTable.Request request = new ExportTable.Request();
         request.setTableName(tableName);
-        request.setOutputCSVFileName(OutputCSVFileName);
+        request.setOutputCSVFileName(outputCSVFileName);
         ExportTable exportTable;
         try {
             // Try to initialize the operator with the request
