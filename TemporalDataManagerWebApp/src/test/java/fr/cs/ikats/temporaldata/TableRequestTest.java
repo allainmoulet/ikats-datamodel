@@ -172,11 +172,7 @@ public class TableRequestTest extends AbstractRequestTest {
         tableManager.createInDatabase(tableInfo);
 
         String result = doExportTable(tableName,"CSVOutputFile",200);
-        List<String> ridList = Arrays.asList(result.split(","));
-        System.out.println(ridList);
 
-        // Checking only size of result as tables can not be accessed by rid
-        assertEquals(3, ridList.size());
 
     }
 
@@ -450,17 +446,12 @@ public class TableRequestTest extends AbstractRequestTest {
     private String doExportTable(String tableName, String outputCSVFileName, int statusExpected) throws IOException {
         Client client = ClientBuilder.newBuilder().register(MultiPartFeature.class).register(JacksonFeature.class)
                 .build();
-        String url = getAPIURL() + "/table/export";
+        String url = getAPIURL() + "/table/export/"+tableName;
         WebTarget target = client.target(url);
 
-        // Build form param
-        final FormDataMultiPart multipart = new FormDataMultiPart();
-
-        multipart.field("tableName", tableName);
-        multipart.field("outputCSVFileName", outputCSVFileName);
 
         getLogger().info("sending url : " + url);
-        Response response = target.request().post(Entity.entity(multipart, multipart.getMediaType()));
+        Response response = target.request().get();
         getLogger().info("parsing response of " + url);
         getLogger().info(response);
         int status = response.getStatus();

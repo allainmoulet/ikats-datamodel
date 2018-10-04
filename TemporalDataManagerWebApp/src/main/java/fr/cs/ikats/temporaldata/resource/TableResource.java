@@ -18,12 +18,10 @@ package fr.cs.ikats.temporaldata.resource;
 
 
 
+import java.io.*;
+import javax.ws.rs.core.Response.ResponseBuilder;
 import java.net.URI;
 import java.util.Date;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -32,19 +30,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
 
 import fr.cs.ikats.operators.*;
 import fr.cs.ikats.temporaldata.business.ProcessDataManager;
@@ -650,20 +638,15 @@ public class TableResource extends AbstractResource {
      *
      * @return the HTTP response with the csv as content
      */
-    @POST
-    @Path("/export")
-    @Consumes(MediaType.MULTIPART_FORM_DATA)
-    public Response exportTable(@FormDataParam("tableName") String tableName,
-                                @FormDataParam("outputCSVFileName") String outputCSVFileName,
-                                FormDataMultiPart formData,
-                                @Context UriInfo uriInfo) throws InvalidValueException {
+    @GET
+    @Path("/export/{tableName}")
+    public Response exportTable(@PathParam("tableName") String tableName) throws InvalidValueException {
 
         // check export table name validity
         tableManager.validateTableName(tableName, "exportTable");
 
         ExportTable.Request request = new ExportTable.Request();
         request.setTableName(tableName);
-        request.setOutputCSVFileName(outputCSVFileName);
         ExportTable exportTable;
         try {
             // Try to initialize the operator with the request
@@ -689,26 +672,19 @@ public class TableResource extends AbstractResource {
             // Do the job and return the CSV table content
             StringBuffer CSVExportStringBuffer = exportTable.apply();
 
-            //Store StringBuffer into DB with ProcessData
             byte[] csvContentBytes = String.valueOf(CSVExportStringBuffer).getBytes();
+            StreamingOutput streamCSV = new StreamingOutput() {
+                @Override
+                public void write(OutputStream out) throws IOException, WebApplicationException {
+                    out.write(csvContentBytes);
+                }
+            };
+            //Build HTTP request for download
+            ResponseBuilder responseBuilder = Response.ok(streamCSV).header("Content-Disposition", "attachment;filename=" + tableName+".csv");
 
-            //processID : Algorithm Name + Actual timestamp
-            String procID = "ExportTable";
-            Date currentDate = new Date();
-            String timestamp = Long.toString(currentDate.getTime());
-            procID += timestamp;
 
-            //Import data into DB thanks to ProcessDataManager
-            String IDExport = new ProcessDataManager().importProcessData(procID,
-                    request.getTableName(),csvContentBytes, ProcessDataManager.ProcessResultTypeEnum.CSV);
-
-            //Build Json String containing ID
-            String url = uriInfo.getAbsolutePath().getPath();
-            String JSonStringToSend = "{\"EndPoint\":\"ProcessData\" , \"id\" :\""+IDExport+"\" , \"URL\" :\""+url+"\"}";
-
-            //Send JSon String via HTTP request
-            return Response.status(Status.OK).entity(JSonStringToSend).build();
-        } catch (IkatsOperatorException | IkatsException | IkatsDaoException e) {
+            return responseBuilder.build();
+        } catch (IkatsOperatorException | IkatsException  e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }

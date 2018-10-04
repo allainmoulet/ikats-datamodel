@@ -22,7 +22,6 @@ public class ExportTable {
     public static class Request {
 
         private String tableName;
-        private String outputCSVFileName;
 
         public Request() {
             // default constructor
@@ -32,16 +31,9 @@ public class ExportTable {
             this.tableName = tableName;
         }
 
-        public void setOutputCSVFileName(String outputCSVFileName) {
-            this.outputCSVFileName = outputCSVFileName;
-        }
 
         public String getTableName(){
             return this.tableName;
-        }
-
-        public String getOutputCSVFileName(){
-            return this.outputCSVFileName;
         }
 
     }
@@ -67,10 +59,6 @@ public class ExportTable {
         // Check the inputs : Must have an output file name
         if (request.tableName == null || request.tableName.length() == 0) {
             throw new IkatsOperatorException("There should be a name for the table you want to save : " + request.tableName);
-        }
-
-        if ( request.outputCSVFileName == null || request.outputCSVFileName.length() == 0 ) {
-            throw new IkatsOperatorException("There should be a name for the new CSV file : "+ request.outputCSVFileName);
         }
 
         this.request = request;
@@ -99,7 +87,6 @@ public class ExportTable {
         try {
             //Read the table we want to store
             tableNameToExtract= this.request.tableName;
-            outputFileName = this.request.outputCSVFileName;
             tableToExtract = tableManager.readFromDatabase(tableNameToExtract);
 
         } catch (IkatsDaoMissingResource e) {
