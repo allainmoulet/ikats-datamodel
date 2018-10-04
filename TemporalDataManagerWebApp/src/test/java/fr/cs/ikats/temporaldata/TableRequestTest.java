@@ -172,6 +172,7 @@ public class TableRequestTest extends AbstractRequestTest {
         tableManager.createInDatabase(tableInfo);
 
         String result = doExportTable(tableName,"CSVOutputFile",200);
+        assertEquals("flight_id ",result.split(",")[0]);
 
 
     }
@@ -457,7 +458,8 @@ public class TableRequestTest extends AbstractRequestTest {
         int status = response.getStatus();
         String result = response.readEntity(String.class);
         getLogger().info(result);
-        // Check expected status
+        // Check expected status + File name
+        assertEquals(response.getHeaderString("Content-Disposition").split(("="))[1],"ExportTableNominal.csv");
         assertEquals(statusExpected, status);
         return result;
 
