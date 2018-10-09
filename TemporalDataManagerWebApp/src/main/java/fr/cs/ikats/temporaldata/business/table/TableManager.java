@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -295,10 +295,10 @@ public class TableManager {
                 destTableHeaders.col.data = rawData.get(0);
             } else {
                 //No column header
-                if(table.hasRowHeader()){
+                if (table.hasRowHeader()) {
                     //Row header : Add first row without first element
-                    destTableContent.cells.add(rawData.get(0).subList(1,rawData.get(0).size()));
-                }else{
+                    destTableContent.cells.add(rawData.get(0).subList(1, rawData.get(0).size()));
+                } else {
                     //No header : add whole row
                     destTableContent.cells.add(rawData.get(0));
                 }
@@ -306,11 +306,11 @@ public class TableManager {
             if (table.hasRowHeader()) {
                 destTableHeaders.row = new Header();
                 destTableHeaders.row.data = new ArrayList<>();
-                if (table.hasColHeader()){
+                if (table.hasColHeader()) {
                     //There is a column header : First value is stored in it
                     //Add a null to row header to shift
                     destTableHeaders.row.data.add(null);
-                }else{
+                } else {
                     //Only row header : Add first element to row header
                     destTableHeaders.row.data.add(rawData.get(0).get(0));
                 }
@@ -409,10 +409,10 @@ public class TableManager {
         Integer max_loop;
         boolean isOnlyRowHeader = false;
         if (table.isHandlingRowsHeader()) {
-            if(table.isHandlingColumnsHeader()){
+            if (table.isHandlingColumnsHeader()) {
                 //There are two headers : Top left corner in columns data
                 max_loop = table.getRowsHeader().data.size() - 1;
-            }else{
+            } else {
                 //There is only a row header : Row Header == First column
                 max_loop = table.getRowsHeader().data.size();
                 isOnlyRowHeader = true;
@@ -424,11 +424,11 @@ public class TableManager {
         for (int i = 0; i < max_loop; i++) {
             List<Object> tempRowData = new ArrayList<>();
             if (table.isHandlingRowsHeader()) {
-                if(isOnlyRowHeader){
+                if (isOnlyRowHeader) {
                     //Only row header -> We don't need to shift row header
                     List rowsHeader = table.getRowsHeader().data;
                     tempRowData.add(rowsHeader.get(i));
-                }else{
+                } else {
                     //Need to shift row header
                     tempRowData.add(table.getRowsHeader().data.get(i + 1));
                 }

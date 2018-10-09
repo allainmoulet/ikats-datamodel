@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -30,6 +30,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import fr.cs.ikats.operators.TablesMergeTest;
+
 import org.apache.log4j.Logger;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -52,14 +53,10 @@ public class TableManagerTest {
     private static final Logger logger = Logger.getLogger(TablesMergeTest.class);
 
 
-
     private static final String TABLE_CSV = "Index;C_one;C_two;C_three\n"
             + "R_one;1;2;3\n"
             + "R_two;4;5;5\n"
             + "R_three;6;7;8\n";
-
-
-
 
 
     private static TableInfo tableOnlyRowHeader = null;
@@ -1005,12 +1002,12 @@ public class TableManagerTest {
 
         TableInfo result = mng.readFromDatabase("tableOnlyRowHeader");
 
-        assertEquals(Arrays.asList("Index","R_one", "R_two", "R_three"), result.headers.row.data);
-        assertEquals(Arrays.asList("C_one","C_two","C_three"), result.content.cells.get(0));
-        assertEquals(Arrays.asList("1","2","3"), result.content.cells.get(1));
-        assertEquals(Arrays.asList("4","5","5"), result.content.cells.get(2));
-        assertEquals(Arrays.asList("6","7","8"), result.content.cells.get(3));
-        assertEquals(result.headers.row.data.size(),result.content.cells.size());
+        assertEquals(Arrays.asList("Index", "R_one", "R_two", "R_three"), result.headers.row.data);
+        assertEquals(Arrays.asList("C_one", "C_two", "C_three"), result.content.cells.get(0));
+        assertEquals(Arrays.asList("1", "2", "3"), result.content.cells.get(1));
+        assertEquals(Arrays.asList("4", "5", "5"), result.content.cells.get(2));
+        assertEquals(Arrays.asList("6", "7", "8"), result.content.cells.get(3));
+        assertEquals(result.headers.row.data.size(), result.content.cells.size());
         // clean
         mng.deleteFromDatabase("tableOnlyRowHeader");
     }
@@ -1022,10 +1019,10 @@ public class TableManagerTest {
 
         TableInfo result = mng.readFromDatabase("tableOnlyColHeader");
 
-        assertEquals(Arrays.asList("Index","C_one", "C_two", "C_three"), result.headers.col.data);
-        assertEquals(Arrays.asList("R_one","1","2","3"), result.content.cells.get(0));
-        assertEquals(Arrays.asList("R_two","4","5","5"), result.content.cells.get(1));
-        assertEquals(Arrays.asList("R_three","6","7","8"), result.content.cells.get(2));
+        assertEquals(Arrays.asList("Index", "C_one", "C_two", "C_three"), result.headers.col.data);
+        assertEquals(Arrays.asList("R_one", "1", "2", "3"), result.content.cells.get(0));
+        assertEquals(Arrays.asList("R_two", "4", "5", "5"), result.content.cells.get(1));
+        assertEquals(Arrays.asList("R_three", "6", "7", "8"), result.content.cells.get(2));
         // clean
         mng.deleteFromDatabase("tableOnlyColHeader");
     }
@@ -1038,12 +1035,12 @@ public class TableManagerTest {
 
         TableInfo result = mng.readFromDatabase("tableAllHeaders");
 
-        assertEquals(Arrays.asList("Index","C_one", "C_two", "C_three"), result.headers.col.data);
+        assertEquals(Arrays.asList("Index", "C_one", "C_two", "C_three"), result.headers.col.data);
         assertEquals(Arrays.asList(null, "R_one", "R_two", "R_three"), result.headers.row.data);
-        assertTrue(result.headers.row.data.get(0)==null);
-        assertEquals(Arrays.asList("1","2","3"), result.content.cells.get(0));
-        assertEquals(Arrays.asList("4","5","5"), result.content.cells.get(1));
-        assertEquals(Arrays.asList("6","7","8"), result.content.cells.get(2));
+        assertTrue(result.headers.row.data.get(0) == null);
+        assertEquals(Arrays.asList("1", "2", "3"), result.content.cells.get(0));
+        assertEquals(Arrays.asList("4", "5", "5"), result.content.cells.get(1));
+        assertEquals(Arrays.asList("6", "7", "8"), result.content.cells.get(2));
         // clean
         mng.deleteFromDatabase("tableAllHeaders");
     }
@@ -1055,10 +1052,10 @@ public class TableManagerTest {
 
         TableInfo result = mng.readFromDatabase("tableNoHeader");
 
-        assertEquals(Arrays.asList("Index","C_one", "C_two", "C_three"), result.content.cells.get(0));
-        assertEquals(Arrays.asList("R_one", "1","2","3"), result.content.cells.get(1));
-        assertEquals(Arrays.asList("R_two","4","5","5"), result.content.cells.get(2));
-        assertEquals(Arrays.asList("R_three","6","7","8"), result.content.cells.get(3));
+        assertEquals(Arrays.asList("Index", "C_one", "C_two", "C_three"), result.content.cells.get(0));
+        assertEquals(Arrays.asList("R_one", "1", "2", "3"), result.content.cells.get(1));
+        assertEquals(Arrays.asList("R_two", "4", "5", "5"), result.content.cells.get(2));
+        assertEquals(Arrays.asList("R_three", "6", "7", "8"), result.content.cells.get(3));
         // clean
         mng.deleteFromDatabase("tableNoHeader");
     }
@@ -1073,6 +1070,9 @@ public class TableManagerTest {
      * @throws IOException
      * @throws IkatsException
      */
+    //review#826je pense que cette fonction est inutile car tu as tous les outils pour construire une table
+    //review#826 disponibles dans le type Table
+    //review#826 et ensuite tu récupére l'attribut TableInfo de Table pour la créer en base
     private static TableInfo buildTableInfoFromCSVString(String name, String content,
                                                          boolean withColumnsHeader,
                                                          boolean withRowsHeader)

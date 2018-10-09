@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,9 +17,10 @@
 package fr.cs.ikats.temporaldata.resource;
 
 
-
 import java.io.*;
+
 import javax.ws.rs.core.Response.ResponseBuilder;
+
 import java.net.URI;
 import java.util.Date;
 import java.util.ArrayList;
@@ -36,6 +37,7 @@ import javax.ws.rs.core.Response.Status;
 
 import fr.cs.ikats.operators.*;
 import fr.cs.ikats.temporaldata.business.ProcessDataManager;
+
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
@@ -643,6 +645,7 @@ public class TableResource extends AbstractResource {
     public Response exportTable(@PathParam("tableName") String tableName) throws InvalidValueException {
 
         // check export table name validity
+        //review#826 pas besoin de check ici car la table existe déjà ou non en base : on checke que à la création
         tableManager.validateTableName(tableName, "exportTable");
 
         ExportTable.Request request = new ExportTable.Request();
@@ -680,11 +683,12 @@ public class TableResource extends AbstractResource {
                 }
             };
             //Build HTTP request for download
-            ResponseBuilder responseBuilder = Response.ok(streamCSV).header("Content-Disposition", "attachment;filename=" + tableName+".csv");
+            ResponseBuilder responseBuilder = Response.ok(streamCSV).header("Content-Disposition", "attachment;filename=" + tableName + ".csv");
 
 
             return responseBuilder.build();
-        } catch (IkatsOperatorException | IkatsException  e) {
+            //review#826 je ne pense pas que ces exceptions puissent être levées dans ce bloc try..catch
+        } catch (IkatsOperatorException | IkatsException e) {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
     }
