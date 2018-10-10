@@ -49,6 +49,19 @@ public class TableManagerTest {
      * Do not change this sample: reused by several tests: for new purposes => create another one
      */
     private final static String JSON_CONTENT_SAMPLE_1 = "{\"table_desc\":{\"title\":\"Discretized matrix\",\"desc\":\"This is a ...\"},\"headers\":{\"col\":{\"data\":[\"funcId\",\"metric\",\"min_B1\",\"max_B1\",\"min_B2\",\"max_B2\"],\"links\":null,\"default_links\":null},\"row\":{\"data\":[null,\"Flid1_VIB2\",\"Flid1_VIB3\",\"Flid1_VIB4\",\"Flid1_VIB5\"],\"default_links\":{\"type\":\"ts_bucket\",\"context\":\"processdata\"},\"links\":[null,{\"val\":\"1\"},{\"val\":\"2\"},{\"val\":\"3\"},{\"val\":\"4\"}]}},\"content\":{\"cells\":[[\"VIB2\",-50.0,12.1,1.0,3.4],[\"VIB3\",-5.0,2.1,1.0,3.4],[\"VIB4\",0.0,2.1,12.0,3.4],[\"VIB5\",0.0,2.1,1.0,3.4]]}}";
+    private final static String JSON_CONTENT_SAMPLE_headers = "{\"table_desc\":{\"title\":\"tableAllHeaders\",\"desc\":\"test\"},"
+        +"\"headers\":{\"col\":{\"data\":[\"Index\",\"C_one\",\"C_two\",\"C_three\"]},"
+        +"\"row\":{\"data\":[null,\"R_one\",\"R_two\",\"R_three\"]}},"
+        +"\"content\":{\"cells\":[[\"1\",\"2\",\"3\"],[\"4\",\"5\",\"5\"],[\"6\",\"7\",\"8\"]]}}";
+    private final static String JSON_CONTENT_SAMPLE_no_Headers = "{\"table_desc\":{\"title\":\"tableNoHeader\",\"desc\":\"test\"},"
+            +"\"content\":{\"cells\":[[\"Index\",\"C_one\",\"C_two\",\"C_three\"],[\"R_one\",\"1\",\"2\",\"3\"],[\"R_two\",\"4\",\"5\",\"5\"],[\"R_three\",\"6\",\"7\",\"8\"]]}}";
+    private final static String JSON_CONTENT_SAMPLE_colHeaders = "{\"table_desc\":{\"title\":\"tableOnlyColHeader\",\"desc\":\"test\"},"
+            +"\"headers\":{\"col\":{\"data\":[\"Index\",\"C_one\",\"C_two\",\"C_three\"]}},"
+            +"\"content\":{\"cells\":[[\"R_one\",\"1\",\"2\",\"3\"],[\"R_two\",\"4\",\"5\",\"5\"],[\"R_three\",\"6\",\"7\",\"8\"]]}}";
+    private final static String JSON_CONTENT_SAMPLE_rowHeaders = "{\"table_desc\":{\"title\":\"tableOnlyRowHeader\",\"desc\":\"test\"},"
+            +"\"headers\":{\"row\":{\"data\":[\"Index\",\"R_one\",\"R_two\",\"R_three\"]}},"
+            +"\"content\":{\"cells\":[[\"C_one\",\"C_two\",\"C_three\"],[\"1\",\"2\",\"3\"],[\"4\",\"5\",\"5\"],[\"6\",\"7\",\"8\"]]}}";
+
 
     private static final Logger logger = Logger.getLogger(TablesMergeTest.class);
 
@@ -57,22 +70,6 @@ public class TableManagerTest {
             + "R_one;1;2;3\n"
             + "R_two;4;5;5\n"
             + "R_three;6;7;8\n";
-
-
-    private static TableInfo tableOnlyRowHeader = null;
-    private static TableInfo tableOnlyColHeader = null;
-    private static TableInfo tableAllHeaders = null;
-    private static TableInfo tableNoHeader = null;
-
-    private static TableManager tableManager = new TableManager();
-
-    @BeforeClass
-    public static void setUpBeforeClass() throws Exception {
-        tableOnlyRowHeader = buildTableInfoFromCSVString("tableOnlyRowHeader", TABLE_CSV, false, true);
-        tableOnlyColHeader = buildTableInfoFromCSVString("tableOnlyColHeader", TABLE_CSV, true, false);
-        tableAllHeaders = buildTableInfoFromCSVString("tableAllHeaders", TABLE_CSV, true, true);
-        tableNoHeader = buildTableInfoFromCSVString("tableNoHeader", TABLE_CSV, false, false);
-    }
 
     /**
      * Tests getColumnFromTable: case when selected column is the row-header values (below top-left corner)
@@ -998,8 +995,9 @@ public class TableManagerTest {
     @Test
     public void testCreateTableOnlyRowHeader() throws Exception {
         TableManager mng = new TableManager();
-        mng.createInDatabase(tableOnlyRowHeader);
-
+        TableInfo tableRow = mng.loadFromJson(JSON_CONTENT_SAMPLE_rowHeaders);
+        tableRow.table_desc.name = "tableOnlyRowHeader";
+        mng.createInDatabase(tableRow);
         TableInfo result = mng.readFromDatabase("tableOnlyRowHeader");
 
         assertEquals(Arrays.asList("Index", "R_one", "R_two", "R_three"), result.headers.row.data);
@@ -1015,7 +1013,9 @@ public class TableManagerTest {
     @Test
     public void testCreateTableOnlyColHeader() throws Exception {
         TableManager mng = new TableManager();
-        mng.createInDatabase(tableOnlyColHeader);
+        TableInfo tableCol = mng.loadFromJson(JSON_CONTENT_SAMPLE_colHeaders);
+        tableCol.table_desc.name = "tableOnlyColHeader";
+        mng.createInDatabase(tableCol);
 
         TableInfo result = mng.readFromDatabase("tableOnlyColHeader");
 
@@ -1031,7 +1031,9 @@ public class TableManagerTest {
     @Test
     public void testCreateTableHeaders() throws Exception {
         TableManager mng = new TableManager();
-        mng.createInDatabase(tableAllHeaders);
+        TableInfo tableHead = mng.loadFromJson(JSON_CONTENT_SAMPLE_headers);
+        tableHead.table_desc.name = "tableAllHeaders";
+        mng.createInDatabase(tableHead);
 
         TableInfo result = mng.readFromDatabase("tableAllHeaders");
 
@@ -1048,6 +1050,8 @@ public class TableManagerTest {
     @Test
     public void testCreateTableNoHeader() throws Exception {
         TableManager mng = new TableManager();
+        TableInfo tableNoHeader = mng.loadFromJson(JSON_CONTENT_SAMPLE_no_Headers);
+        tableNoHeader.table_desc.name = "tableNoHeader";
         mng.createInDatabase(tableNoHeader);
 
         TableInfo result = mng.readFromDatabase("tableNoHeader");
@@ -1060,64 +1064,6 @@ public class TableManagerTest {
         mng.deleteFromDatabase("tableNoHeader");
     }
 
-    /**
-     * Function to help building tests
-     * @param name
-     * @param content
-     * @param withColumnsHeader
-     * @param withRowsHeader
-     * @return
-     * @throws IOException
-     * @throws IkatsException
-     */
-    //review#826je pense que cette fonction est inutile car tu as tous les outils pour construire une table
-    //review#826 disponibles dans le type Table
-    //review#826 et ensuite tu récupére l'attribut TableInfo de Table pour la créer en base
-    private static TableInfo buildTableInfoFromCSVString(String name, String content,
-                                                         boolean withColumnsHeader,
-                                                         boolean withRowsHeader)
-            throws IOException, IkatsException {
-
-        String copyContent = new String(content);
-
-        // Convert the CSV table to expected Table format
-        BufferedReader bufReader = new BufferedReader(new StringReader(copyContent));
-
-        String line = null;
-        Table table = null;
-
-        if (withColumnsHeader) {
-            // Assuming first line contains headers
-            line = bufReader.readLine();
-            List<String> headersTitle = Arrays.asList(line.split(";"));
-            // Replace empty strings with null (that's what do the operator when adding empty headers)
-            headersTitle.replaceAll(ht -> ht.isEmpty() ? null : ht);
-            table = tableManager.initTable(headersTitle, withRowsHeader);
-        } else {
-            table = TableManager.initEmptyTable(false, withRowsHeader);
-        }
-
-        // Other lines contain data
-        while ((line = bufReader.readLine()) != null) {
-            List<String> items = new ArrayList<>(Arrays.asList(line.split(";")));
-
-            if (withRowsHeader) {
-                // First item considered as row Header
-                table.appendRow(items.remove(0), items);
-            } else {
-                table.appendRow(items);
-            }
-        }
-
-        table.setName(name);
-        table.setDescription("Table '" + name + "' description created for tests");
-        table.setTitle("Table '" + name + "' title");
-
-        TableInfo tableInfo = table.getTableInfo();
-        logger.trace("Table " + name + " ready");
-
-        return tableInfo;
-    }
 
 }
 

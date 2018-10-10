@@ -102,15 +102,15 @@ public class ExportTableTest {
 
 
 
-    private static TableInfo table1 = null;
-    private static TableInfo table1WithRow = null;
-    private static TableInfo table2 = null;
-    private static TableInfo table2WithRow = null;
-    private static TableInfo table1Smaller = null;
-    private static TableInfo table2Smaller = null;
-    private static TableInfo table3 = null;
-    private static TableInfo table4 = null;
-    private static TableInfo table5 = null;
+    private static Table table1 = null;
+    private static Table table1WithRow = null;
+    private static Table table2 = null;
+    private static Table table2WithRow = null;
+    private static Table table1Smaller = null;
+    private static Table table2Smaller = null;
+    private static Table table3 = null;
+    private static Table table4 = null;
+    private static Table table5 = null;
 
 
     @BeforeClass
@@ -167,14 +167,14 @@ public class ExportTableTest {
      * Test doExport method
      */
     @Test
-    public void testDoExportWithHeaders(){
+    public void testDoExportWithHeaders() throws IkatsException{
         //Build buffer
         String copyTable = new String(TABLE2_CSV);
-        String Table2_CSV_NewSeparator = copyTable.replaceAll(";"," , ");
+        String Table2_CSV_NewSeparator = copyTable.replaceAll(";",",");
         StringBuffer buffer = new StringBuffer(Table2_CSV_NewSeparator);
 
         //Result
-        StringBuffer resultExport = new ExportTable().doExport(table2WithRow);
+        StringBuffer resultExport = new ExportTable().doExport(table2WithRow.clone());
         assertEquals(resultExport.toString(),buffer.toString());
 
     }
@@ -183,40 +183,40 @@ public class ExportTableTest {
      * Test Array to string
      */
     @Test
-    public void testDoExportWithoutHeaders(){
+    public void testDoExportWithoutHeaders() throws IkatsException{
         //Build buffer
         String copyTable = new String(TABLE4_CSV);
-        String Table4_CSV_NewSeparator = copyTable.replaceAll(";"," , ");
+        String Table4_CSV_NewSeparator = copyTable.replaceAll(";",",");
         StringBuffer buffer = new StringBuffer(Table4_CSV_NewSeparator);
 
         //Result
-        StringBuffer resultExport = new ExportTable().doExport(table4);
+        StringBuffer resultExport = new ExportTable().doExport(table4.clone());
         assertEquals(resultExport.toString(),buffer.toString());
 
     }
 
     @Test
-    public void testDoExportWithoutRowHeaders(){
+    public void testDoExportWithoutRowHeaders() throws IkatsException{
         //Build buffer
         String copyTable = new String(TABLE5_CSV);
-        String Table5_CSV_NewSeparator = copyTable.replaceAll(";"," , ");
+        String Table5_CSV_NewSeparator = copyTable.replaceAll(";",",");
         StringBuffer buffer = new StringBuffer(Table5_CSV_NewSeparator);
 
         //Result
-        StringBuffer resultExport = new ExportTable().doExport(table5);
+        StringBuffer resultExport = new ExportTable().doExport(table5.clone());
         assertEquals(resultExport.toString(),buffer.toString());
 
     }
 
     @Test
-    public void testDoExportWithoutColHeaders(){
+    public void testDoExportWithoutColHeaders() throws IkatsException{
         //Build buffer example
         String copyTable = new String(TABLE3_CSV);
-        String Table3_CSV_NewSeparator = copyTable.replaceAll(";"," , ");
+        String Table3_CSV_NewSeparator = copyTable.replaceAll(";",",");
         StringBuffer buffer = new StringBuffer(Table3_CSV_NewSeparator);
 
         //Result with doExport method
-        StringBuffer resultExport = new ExportTable().doExport(table3);
+        StringBuffer resultExport = new ExportTable().doExport(table3.clone());
 
         //Compare result and reality
         assertEquals(resultExport.toString(),buffer.toString());
@@ -234,21 +234,21 @@ public class ExportTableTest {
 
         //Create table in DB
         TableManager tableManager = new TableManager();
-        tableManager.createInDatabase(table2WithRow);
+        tableManager.createInDatabase(table2WithRow.getTableInfo());
 
         // Build the nominal request
-        Request request = new Request();
-        request.setTableName("table2WithRow");
+        Request request1 = new Request();
+        request1.setTableName("table2WithRow");
 
         //Build Export constructor
-        ExportTable exportTable = new ExportTable(request);
+        ExportTable exportTableHeader = new ExportTable(request1);
 
         //Call Apply method
-        StringBuffer csvFormatTable2WithRow = exportTable.apply();
+        StringBuffer csvFormatTable2WithRow = exportTableHeader.apply();
 
         //Prepare data to test equality
         String copyTable = new String(TABLE2_CSV);
-        String table2WithRowComma = copyTable.replaceAll(";"," , ");
+        String table2WithRowComma = copyTable.replaceAll(";",",");
         assertEquals(table2WithRowComma, csvFormatTable2WithRow.toString());
         tableManager.deleteFromDatabase("table2WithRow");
     }
@@ -258,21 +258,21 @@ public class ExportTableTest {
 
         //Create table in DB
         TableManager tableManager = new TableManager();
-        tableManager.createInDatabase(table4);
+        tableManager.createInDatabase(table4.getTableInfo());
 
         // Build the nominal request
-        Request request = new Request();
-        request.setTableName("table4");
+        Request request2 = new Request();
+        request2.setTableName("table4");
 
         //Build Export constructor
-        ExportTable exportTable = new ExportTable(request);
+        ExportTable exportTableWithoutHeader = new ExportTable(request2);
 
         //Call Apply method
-        StringBuffer csvFormatTable4 = exportTable.apply();
+        StringBuffer csvFormatTable4 = exportTableWithoutHeader.apply();
 
         //Prepare data to test equality
-        String copyTable = new String(TABLE4_CSV);
-        String table4WithComma = copyTable.replaceAll(";"," , ");
+        String table4NoHeader= new String(TABLE4_CSV);
+        String table4WithComma = table4NoHeader.replaceAll(";",",");
         assertEquals(table4WithComma, csvFormatTable4.toString());
         tableManager.deleteFromDatabase("table4");
     }
@@ -283,21 +283,21 @@ public class ExportTableTest {
 
         //Create table in DB
         TableManager tableManager = new TableManager();
-        tableManager.createInDatabase(table5);
+        tableManager.createInDatabase(table5.getTableInfo());
 
         // Build the nominal request
-        Request request = new Request();
-        request.setTableName("table5");
+        Request request3 = new Request();
+        request3.setTableName("table5");
 
         //Build Export constructor
-        ExportTable exportTable = new ExportTable(request);
+        ExportTable exportTableColHeader = new ExportTable(request3);
 
         //Call Apply method
-        StringBuffer csvFormatTable5WithoutRow = exportTable.apply();
+        StringBuffer csvFormatTable5WithoutRow = exportTableColHeader.apply();
 
         //Prepare data to test equality
-        String copyTable = new String(TABLE5_CSV);
-        String table5WithRowComma = copyTable.replaceAll(";"," , ");
+        String table5ColHeader = new String(TABLE5_CSV);
+        String table5WithRowComma = table5ColHeader.replaceAll(";",",");
         assertEquals(table5WithRowComma, csvFormatTable5WithoutRow.toString());
         tableManager.deleteFromDatabase("table5");
     }
@@ -308,21 +308,21 @@ public class ExportTableTest {
 
         //Create table in DB
         TableManager tableManager = new TableManager();
-        tableManager.createInDatabase(table3);
+        tableManager.createInDatabase(table3.getTableInfo());
 
         // Build the nominal request
-        Request request = new Request();
-        request.setTableName("table3");
+        Request request4 = new Request();
+        request4.setTableName("table3");
 
         //Build Export constructor
-        ExportTable exportTable = new ExportTable(request);
+        ExportTable exportTableRowHeader = new ExportTable(request4);
 
         //Call Apply method
-        StringBuffer csvFormatTable3WithRow = exportTable.apply();
+        StringBuffer csvFormatTable3WithRow = exportTableRowHeader.apply();
 
         //Prepare data to test equality
-        String copyTable = new String(TABLE3_CSV);
-        String table3WithRowComma = copyTable.replaceAll(";"," , ");
+        String table3RowHeader = new String(TABLE3_CSV);
+        String table3WithRowComma = table3RowHeader.replaceAll(";",",");
         assertEquals(table3WithRowComma, csvFormatTable3WithRow.toString());
 
         tableManager.deleteFromDatabase("table3");
@@ -341,7 +341,7 @@ public class ExportTableTest {
      * @throws IOException
      * @throws IkatsException
      */
-    private static TableInfo buildTableInfoFromCSVString(String name, String content,
+    private static Table buildTableInfoFromCSVString(String name, String content,
                                                          boolean withColumnsHeader,
                                                          boolean withRowsHeader)
             throws IOException, IkatsException {
@@ -382,10 +382,9 @@ public class ExportTableTest {
         table.setDescription("Table '" + name + "' description created for tests");
         table.setTitle("Table '" + name + "' title");
 
-        TableInfo tableInfo = table.getTableInfo();
         logger.trace("Table " + name + " ready");
 
-        return tableInfo;
+        return table;
     }
 
 }

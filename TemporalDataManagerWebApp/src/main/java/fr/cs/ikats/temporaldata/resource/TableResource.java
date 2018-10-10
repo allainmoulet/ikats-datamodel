@@ -642,11 +642,7 @@ public class TableResource extends AbstractResource {
      */
     @GET
     @Path("/export/{tableName}")
-    public Response exportTable(@PathParam("tableName") String tableName) throws InvalidValueException {
-
-        // check export table name validity
-        //review#826 pas besoin de check ici car la table existe déjà ou non en base : on checke que à la création
-        tableManager.validateTableName(tableName, "exportTable");
+    public Response exportTable(@PathParam("tableName") String tableName) throws IkatsException,IkatsOperatorException {
 
         ExportTable.Request request = new ExportTable.Request();
         request.setTableName(tableName);
@@ -671,26 +667,22 @@ public class TableResource extends AbstractResource {
             return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
         }
 
-        try {
-            // Do the job and return the CSV table content
-            StringBuffer CSVExportStringBuffer = exportTable.apply();
+        // Do the job and return the CSV table content
+        StringBuffer CSVExportStringBuffer = exportTable.apply();
 
-            byte[] csvContentBytes = String.valueOf(CSVExportStringBuffer).getBytes();
-            StreamingOutput streamCSV = new StreamingOutput() {
-                @Override
-                public void write(OutputStream out) throws IOException, WebApplicationException {
-                    out.write(csvContentBytes);
-                }
-            };
-            //Build HTTP request for download
-            ResponseBuilder responseBuilder = Response.ok(streamCSV).header("Content-Disposition", "attachment;filename=" + tableName + ".csv");
+        byte[] csvContentBytes = String.valueOf(CSVExportStringBuffer).getBytes();
+        StreamingOutput streamCSV = new StreamingOutput() {
+            @Override
+            public void write(OutputStream out) throws IOException, WebApplicationException {
+                out.write(csvContentBytes);
+            }
+        };
+        //Build HTTP request for download
+        ResponseBuilder responseBuilder = Response.ok(streamCSV).header("Content-Disposition", "attachment;filename=" + tableName + ".csv");
+
+        return responseBuilder.build();
 
 
-            return responseBuilder.build();
-            //review#826 je ne pense pas que ces exceptions puissent être levées dans ce bloc try..catch
-        } catch (IkatsOperatorException | IkatsException e) {
-            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
-        }
     }
 
 

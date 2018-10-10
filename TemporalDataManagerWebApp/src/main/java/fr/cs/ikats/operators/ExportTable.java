@@ -4,6 +4,7 @@ import java.util.stream.Collectors;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 import fr.cs.ikats.temporaldata.business.table.TableInfo;
+import fr.cs.ikats.temporaldata.business.table.Table;
 import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 
@@ -86,15 +87,12 @@ public class ExportTable {
     public StringBuffer apply() throws IkatsOperatorException, IkatsException {
 
         // Retrieve the tables from database
-        TableInfo tableToExtract;
-        String outputFileName = null;
+        Table tableToExtract;
         String tableNameToExtract = null;
-        try {
-            //review#826 il faut travailler avec des types Table et non TableInfo afin d'utiliser les accesseurs appropriés
-            //review#826 Table tableToExtract = tableManager.initTable(tableManager.readFromDatabase(tableNameToExtract), false);
+        try { ;
             //Read the table we want to store
             tableNameToExtract = this.request.tableName;
-            tableToExtract = tableManager.readFromDatabase(tableNameToExtract);
+            tableToExtract = tableManager.initTable(tableManager.readFromDatabase(tableNameToExtract), false);
 
         } catch (IkatsDaoMissingResource e) {
             String msg = "Table " + tableNameToExtract + " not found in database";
@@ -105,7 +103,7 @@ public class ExportTable {
         StringBuffer CSVOutputBuffer = doExport(tableToExtract);
 
         // then, return it
-        logger.info("Table '" + tableNameToExtract + "' is ready to be exported to '" + outputFileName + ".csv");
+        logger.info("Table '" + tableNameToExtract + "' is ready to be exported");
 
         return CSVOutputBuffer;
     }
@@ -117,29 +115,33 @@ public class ExportTable {
      * @param tableToExport : tableInfo we want to save as CSV file
      * @return StringBuffer : Content stored in TableInfo
      */
-    public StringBuffer doExport(TableInfo tableToExport) {
+    public StringBuffer doExport(Table tableToExport) throws IkatsException {
 
         //Check if there are headers for row and col
-        boolean isRowHeader = isRowHeader(tableToExport);
-        boolean isColumnHeader = isColHeader(tableToExport);
+        boolean isRowHeader = tableToExport.isHandlingRowsHeader();
+        boolean isColumnHeader = tableToExport.isHandlingColumnsHeader();
 
         //Build CSV Format
-        //1) Get contents data
-        //review#826 Ici tu dupliques les données en mémoire
-        //review#826 il faudrait utiliser les accesseurs dédiés pour accéder au contenu de la table
-        List<List<Object>> tableInfoContents = new ArrayList(tableToExport.content.cells);
-        if (tableInfoContents.size() > 0) { //There is a result
-            //2) Add Row and Columns headers if necessary
-            if (isColumnHeader) {
-                addColumnHeader(tableToExport, tableInfoContents);
-            }
-            //Add Row Header if there is one
-            if (isRowHeader) {
-                //There is a row header
-                addRowHeader(tableToExport, tableInfoContents, isColumnHeader);
-            }
+
+
+        // Add Row and Columns headers into contents if necessary
+        if (isColumnHeader) {
+            tableToExport.insertRow(0,tableToExport.getColumnsHeader().getData());
         }
+        //Add Row Header if there is one
+        if (isRowHeader) {
+            //There is a row header
+            tableToExport.insertColumn(0,tableToExport.getRowsHeader().getData());
+        }
+
         //3) Now we have all the data in tableInfoContents
+        List<List<Object>> tableInfoContents = tableToExport.getContentData();
+
+        //If there are columns and rows headers : There is a null element in position (0,0) -> remove it
+        if(isColumnHeader && isRowHeader){
+            tableInfoContents.get(0).remove(0);
+        }
+
         //We just have to parse it into String and add a comma separator + \n at the end of lines
         StringBuffer FormatResult = ListToString(tableInfoContents);
 
@@ -164,12 +166,9 @@ public class ExportTable {
             //Get ith row
             List<Object> ithList = Arrays.asList(contentsCells.get(i)).get(0);
             //Transform all elements into string (also for DataLink)
-            //review#826 que fais tu des datalinks ? ils devraient être ignorés
-            //review#826si c'est le cas c'est bon (pas le temps d'analyser le code)
             List<String> strings = ithList.stream().map(object -> Objects.toString(object, null)).collect(Collectors.toList());
             //Convert all elements to String, separated by comma with spaces before/after
-            //review#826 supprimer les espaces autour du séparateur csv
-            String ithListStringCommaSep = String.join(" , ", strings);
+            String ithListStringCommaSep = String.join(",", strings);
             //Add a \n to begin a new line
             ithListStringCommaSep += "\n";
             //Add row to final result
@@ -178,94 +177,4 @@ public class ExportTable {
         return FormatResult;
     }
 
-
-    /**
-     * Add column header to the content
-     *
-     * @param tableInfo     : Used here to get the column Header and add it to the content
-     * @param contentsCells : Content data
-     */
-    //review#826 cet accesseur existe déjà sur le type Table => à supprimer et il faut travailler sur le type Table
-    public void addColumnHeader(TableInfo tableInfo, List<List<Object>> contentsCells) {
-        //There is a column header -> Get it
-        List<Object> columnsHeadersData = new ArrayList(tableInfo.headers.col.data);
-
-        //Then Add it to content
-        contentsCells.add(0, columnsHeadersData);
-    }
-
-
-    /**
-     * Add row header to the content
-     *
-     * @param tableInfo      Used here to get the row Header and add it to the content
-     * @param contentsCells  Content data
-     * @param isColumnHeader : Is there a column header ?
-     */
-    //review#826 cet accesseur existe déjà sur le type Table => à supprimer et il faut travailler sur le type Table
-    public void addRowHeader(TableInfo tableInfo, List<List<Object>> contentsCells, boolean isColumnHeader) {
-
-        //Get row header data
-        List<Object> rowsHeadersData = new ArrayList(tableInfo.headers.row.data);
-
-        int begin = 0;
-        if (isColumnHeader) {
-            //There is a column header : Top Left Corner is stored in Columns Header
-            //-> We skip the first element
-            begin++;
-        }
-
-        //Then Add it to content
-        for (int i = begin; i < (rowsHeadersData).size(); i++) {
-            //Get ith row  to modify it
-            List newRow = new ArrayList(contentsCells.get(i));
-            //Add element at the beginning
-            newRow.add(0, rowsHeadersData.get(i));
-            //Set new row in contents
-            contentsCells.set(i, newRow);
-        }
-    }
-
-    /**
-     * Check if there is a row header
-     *
-     * @param tableInfo : TableInfo which contains all data
-     * @return boolean : True is there is a row header
-     */
-    //review#826 cet accesseur existe déjà sur le type Table => à supprimer et il faut travailler sur le type Table
-    public boolean isRowHeader(TableInfo tableInfo) {
-        return (tableInfo.headers.row != null);
-    }
-
-    /**
-     * Check if there is a column header
-     *
-     * @param tableInfo : TableInfo which contains all data
-     * @return boolean : True is there is a row header
-     */
-    //review#826 cet accesseur existe déjà sur le type Table => à supprimer et il faut travailler sur le type Table
-    public boolean isColHeader(TableInfo tableInfo) {
-        return (tableInfo.headers.col != null);
-    }
-
-
-    /**
-     * Set a request on object
-     *
-     * @param request
-     */
-    //review#826 non utilisé => à supprimer
-    public void setRequest(Request request) {
-        this.request = request;
-    }
-
-    /**
-     * Set table Manager (New TableManager() in general)
-     *
-     * @param tableManager
-     */
-    //review#826 non utilisé => à supprimer
-    public void setTableManager(TableManager tableManager) {
-        this.tableManager = tableManager;
-    }
 }
