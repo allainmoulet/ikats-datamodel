@@ -1,10 +1,12 @@
 package fr.cs.ikats.operators;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.stream.Collectors;
 
 import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
-import fr.cs.ikats.temporaldata.business.table.TableInfo;
-import fr.cs.ikats.temporaldata.business.table.Table;
+import fr.cs.ikats.table.TableEntity;
 import fr.cs.ikats.temporaldata.business.table.TableManager;
 import fr.cs.ikats.temporaldata.exception.IkatsException;
 
@@ -87,12 +89,12 @@ public class ExportTable {
     public StringBuffer apply() throws IkatsOperatorException, IkatsException {
 
         // Retrieve the tables from database
-        Table tableToExtract;
         String tableNameToExtract = null;
-        try { ;
+        TableEntity tableDataToExport;
+        try {
             //Read the table we want to store
             tableNameToExtract = this.request.tableName;
-            tableToExtract = tableManager.initTable(tableManager.readFromDatabase(tableNameToExtract), false);
+            tableDataToExport = tableManager.readRawFromDatabase(tableNameToExtract);
 
         } catch (IkatsDaoMissingResource e) {
             String msg = "Table " + tableNameToExtract + " not found in database";
@@ -100,12 +102,12 @@ public class ExportTable {
         }
 
         // do the job : Adapt format of TableInfo
-        StringBuffer CSVOutputBuffer = doExport(tableToExtract);
+        StringBuffer FormatResult = doExport(tableDataToExport);
 
         // then, return it
         logger.info("Table '" + tableNameToExtract + "' is ready to be exported");
 
-        return CSVOutputBuffer;
+        return FormatResult;
     }
 
 
@@ -115,40 +117,23 @@ public class ExportTable {
      * @param tableToExport : tableInfo we want to save as CSV file
      * @return StringBuffer : Content stored in TableInfo
      */
-    public StringBuffer doExport(Table tableToExport) throws IkatsException {
+    public StringBuffer doExport(TableEntity tableToExport) throws IkatsException {
 
-        //Check if there are headers for row and col
-        boolean isRowHeader = tableToExport.isHandlingRowsHeader();
-        boolean isColumnHeader = tableToExport.isHandlingColumnsHeader();
-
-        //Build CSV Format
-
-
-        // Add Row and Columns headers into contents if necessary
-        if (isColumnHeader) {
-            tableToExport.insertRow(0,tableToExport.getColumnsHeader().getData());
-        }
-        //Add Row Header if there is one
-        if (isRowHeader) {
-            //There is a row header
-            tableToExport.insertColumn(0,tableToExport.getRowsHeader().getData());
-        }
-
-        //3) Now we have all the data in tableInfoContents
-        List<List<Object>> tableInfoContents = tableToExport.getContentData();
-
-        //If there are columns and rows headers : There is a null element in position (0,0) -> remove it
-        if(isColumnHeader && isRowHeader){
-            tableInfoContents.get(0).remove(0);
+        List<List<Object>> rawData;
+        ObjectInputStream ois;
+        try {
+            ois = new ObjectInputStream(new ByteArrayInputStream(tableToExport.getRawValues()));
+            rawData = (List<List<Object>>) ois.readObject();
+        } catch (ClassNotFoundException | IOException e) {
+            throw new IkatsException("Error raised during table deserialization of raw values. Message: " + e.getMessage(), e);
         }
 
         //We just have to parse it into String and add a comma separator + \n at the end of lines
-        StringBuffer FormatResult = ListToString(tableInfoContents);
+        StringBuffer FormatResult = ListToString(rawData);
 
         return FormatResult;
     }
 
-    //////////////////////////////// Additional Methods ////////////////////////////////////////
 
     /**
      * Convert Array of Array to a stringBuffer like ["Line1\n  ...  \n....Linek...."]
@@ -156,7 +141,7 @@ public class ExportTable {
      * @param contentsCells : All contents : Data (+ Row Header + Column Header if necessary)
      * @return StringBuffer containing data stored in ArrayList<ArrayList> as CSV
      */
-    public StringBuffer ListToString(List<List<Object>> contentsCells) {
+    private StringBuffer ListToString(List<List<Object>> contentsCells) {
 
         //Create a StringBuffer to store result
         StringBuffer FormatResult = new StringBuffer();

@@ -21,8 +21,6 @@ import java.io.*;
 
 import javax.ws.rs.core.Response.ResponseBuilder;
 
-import java.net.URI;
-import java.util.Date;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -36,7 +34,6 @@ import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
 
 import fr.cs.ikats.operators.*;
-import fr.cs.ikats.temporaldata.business.ProcessDataManager;
 
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;

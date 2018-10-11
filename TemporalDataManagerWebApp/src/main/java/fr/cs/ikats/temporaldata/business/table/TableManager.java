@@ -269,7 +269,7 @@ public class TableManager {
      * @return the table entity converted to table info
      */
     @SuppressWarnings("unchecked")
-    private TableInfo tableEntityToTableInfo(TableEntity table) throws IkatsException {
+    public TableInfo tableEntityToTableInfo(TableEntity table) throws IkatsException {
 
         TableInfo destTable = new TableInfo();
         TableDesc destTableDesc = new TableDesc();
@@ -371,7 +371,7 @@ public class TableManager {
      * @param tableIn the table info to convert
      * @return the table info converted to table entity
      */
-    private TableEntity tableInfoToTableEntity(TableInfo tableIn) throws IkatsException {
+    public TableEntity tableInfoToTableEntity(TableInfo tableIn) throws IkatsException {
 
         TableEntity destTable = new TableEntity();
         Table table = new Table(tableIn);
@@ -498,6 +498,24 @@ public class TableManager {
 
         LOGGER.trace("Table retrieved from db OK : name=" + tableName);
         return table;
+
+    }
+
+    /**
+     * Gets the JSON resource TableInfo from process data database.
+     *
+     * @param tableName the name of the table is its unique identifier
+     * @return read resource TableEntity.
+     * @throws IkatsDaoMissingResource the table name tableName is not matched in the database.
+     */
+    public TableEntity readRawFromDatabase(String tableName)
+            throws IkatsDaoMissingResource {
+
+        TableEntity dataTable = dao.getByName(tableName);
+
+        LOGGER.trace("Table retrieved from db OK : name=" + tableName);
+
+        return dataTable;
 
     }
 
