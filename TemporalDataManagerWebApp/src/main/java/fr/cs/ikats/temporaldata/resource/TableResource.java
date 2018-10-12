@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,10 +17,10 @@
 package fr.cs.ikats.temporaldata.resource;
 
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.*;
+
+import javax.ws.rs.core.Response.ResponseBuilder;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,19 +29,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.DefaultValue;
-import javax.ws.rs.GET;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
-import javax.ws.rs.core.UriInfo;
+
+import fr.cs.ikats.operators.*;
 
 import org.apache.log4j.Logger;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
@@ -52,10 +44,6 @@ import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.metadata.MetaDataFacade;
 import fr.cs.ikats.metadata.model.MetaData;
-import fr.cs.ikats.operators.IkatsOperatorException;
-import fr.cs.ikats.operators.JoinTableWithTs;
-import fr.cs.ikats.operators.TablesMerge;
-import fr.cs.ikats.operators.TrainTestSplitTable;
 import fr.cs.ikats.table.TableEntitySummary;
 import fr.cs.ikats.temporaldata.business.MetaDataManager;
 import fr.cs.ikats.temporaldata.business.table.Table;
@@ -639,6 +627,58 @@ public class TableResource extends AbstractResource {
         } catch (IkatsDaoConflictException e) {
             return Response.status(Status.CONFLICT).entity(e.getMessage()).build();
         }
+
+    }
+
+
+    /**
+     * Operator call for the export of TableInfo as CSV file.<br>
+     * See {@link ExportTable.Request} for input specification
+     *
+     * @return the HTTP response with the csv as content
+     */
+    @GET
+    @Path("/export/{tableName}")
+    public Response exportTable(@PathParam("tableName") String tableName) throws IkatsException,IkatsOperatorException {
+
+        ExportTable.Request request = new ExportTable.Request();
+        request.setTableName(tableName);
+        ExportTable exportTable;
+        try {
+            // Try to initialize the operator with the request
+            exportTable = new ExportTable(request);
+        } catch (IkatsOperatorException e) {
+            // The request check has failed
+            return Response.status(Status.BAD_REQUEST).entity(e.getMessage()).build();
+        }
+
+        try {
+            // check tables existence
+            if (!tableManager.existsInDatabase(request.getTableName())) {
+                String msg = "Table " + request.getTableName() + " not found";
+                return Response.status(Status.BAD_REQUEST).entity(msg).build();
+            }
+
+        } catch (IkatsDaoException e) {
+            // Hibernate Exception raised
+            return Response.status(Status.INTERNAL_SERVER_ERROR).entity(e.getMessage()).build();
+        }
+
+        // Do the job and return the CSV table content
+        StringBuffer CSVExportStringBuffer = exportTable.apply();
+
+        byte[] csvContentBytes = String.valueOf(CSVExportStringBuffer).getBytes();
+        StreamingOutput streamCSV = new StreamingOutput() {
+            @Override
+            public void write(OutputStream out) throws IOException, WebApplicationException {
+                out.write(csvContentBytes);
+            }
+        };
+        //Build HTTP request for download
+        ResponseBuilder responseBuilder = Response.ok(streamCSV).header("Content-Disposition", "attachment;filename=" + tableName + ".csv");
+
+        return responseBuilder.build();
+
 
     }
 

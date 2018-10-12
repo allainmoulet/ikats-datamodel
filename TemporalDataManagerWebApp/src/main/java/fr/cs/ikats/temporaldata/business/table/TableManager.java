@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -269,7 +269,7 @@ public class TableManager {
      * @return the table entity converted to table info
      */
     @SuppressWarnings("unchecked")
-    private TableInfo tableEntityToTableInfo(TableEntity table) throws IkatsException {
+    public TableInfo tableEntityToTableInfo(TableEntity table) throws IkatsException {
 
         TableInfo destTable = new TableInfo();
         TableDesc destTableDesc = new TableDesc();
@@ -294,12 +294,26 @@ public class TableManager {
                 destTableHeaders.col = new Header();
                 destTableHeaders.col.data = rawData.get(0);
             } else {
-                destTableContent.cells.add(rawData.get(0));
+                //No column header
+                if (table.hasRowHeader()) {
+                    //Row header : Add first row without first element
+                    destTableContent.cells.add(rawData.get(0).subList(1, rawData.get(0).size()));
+                } else {
+                    //No header : add whole row
+                    destTableContent.cells.add(rawData.get(0));
+                }
             }
             if (table.hasRowHeader()) {
                 destTableHeaders.row = new Header();
                 destTableHeaders.row.data = new ArrayList<>();
-                destTableHeaders.row.data.add(null);
+                if (table.hasColHeader()) {
+                    //There is a column header : First value is stored in it
+                    //Add a null to row header to shift
+                    destTableHeaders.row.data.add(null);
+                } else {
+                    //Only row header : Add first element to row header
+                    destTableHeaders.row.data.add(rawData.get(0).get(0));
+                }
             }
             for (int i = 1; i < rawData.size(); i++) {
                 if (table.hasRowHeader()) {
@@ -357,7 +371,7 @@ public class TableManager {
      * @param tableIn the table info to convert
      * @return the table info converted to table entity
      */
-    private TableEntity tableInfoToTableEntity(TableInfo tableIn) throws IkatsException {
+    public TableEntity tableInfoToTableEntity(TableInfo tableIn) throws IkatsException {
 
         TableEntity destTable = new TableEntity();
         Table table = new Table(tableIn);
@@ -387,22 +401,41 @@ public class TableManager {
             tableFullContent.get(0).set(0, topCornerLeft);
         } else {
             if (table.isHandlingColumnsHeader()) {
+                //There is only one header : For columns
                 tableFullContent.add(table.getColumnsHeader().data);
             }
+            //Row headers : no considering here
         }
         Integer max_loop;
+        boolean isOnlyRowHeader = false;
         if (table.isHandlingRowsHeader()) {
-            max_loop = table.getRowsHeader().data.size() - 1;
+            if (table.isHandlingColumnsHeader()) {
+                //There are two headers : Top left corner in columns data
+                max_loop = table.getRowsHeader().data.size() - 1;
+            } else {
+                //There is only a row header : Row Header == First column
+                max_loop = table.getRowsHeader().data.size();
+                isOnlyRowHeader = true;
+            }
         } else {
             max_loop = table.getContentData().size();
         }
+
         for (int i = 0; i < max_loop; i++) {
             List<Object> tempRowData = new ArrayList<>();
             if (table.isHandlingRowsHeader()) {
-                tempRowData.add(table.getRowsHeader().data.get(i + 1));
+                if (isOnlyRowHeader) {
+                    //Only row header -> We don't need to shift row header
+                    List rowsHeader = table.getRowsHeader().data;
+                    tempRowData.add(rowsHeader.get(i));
+                } else {
+                    //Need to shift row header
+                    tempRowData.add(table.getRowsHeader().data.get(i + 1));
+                }
             }
             if (table.getContentData().size() != 0) {
-                tempRowData.addAll(table.getContentData().get(i));
+                List getterContent = table.getContentData().get(i);
+                tempRowData.addAll(getterContent);
             }
             tableFullContent.add(tempRowData);
         }
@@ -465,6 +498,24 @@ public class TableManager {
 
         LOGGER.trace("Table retrieved from db OK : name=" + tableName);
         return table;
+
+    }
+
+    /**
+     * Gets the JSON resource TableInfo from process data database.
+     *
+     * @param tableName the name of the table is its unique identifier
+     * @return read resource TableEntity.
+     * @throws IkatsDaoMissingResource the table name tableName is not matched in the database.
+     */
+    public TableEntity readRawFromDatabase(String tableName)
+            throws IkatsDaoMissingResource {
+
+        TableEntity dataTable = dao.getByName(tableName);
+
+        LOGGER.trace("Table retrieved from db OK : name=" + tableName);
+
+        return dataTable;
 
     }
 
