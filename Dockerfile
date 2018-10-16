@@ -31,7 +31,7 @@ FROM tomcat:8.5.8-alpine
 LABEL license="Apache License, Version 2.0"
 LABEL copyright="CS Systèmes d'Information"
 LABEL maintainer="contact@ikats.org"
-LABEL version="0.7.41"
+LABEL version="0.8.0"
 
 ADD assets/context.xml /usr/local/tomcat/conf/
 ADD assets/context.xml /usr/local/tomcat/webapps/manager/META-INF
