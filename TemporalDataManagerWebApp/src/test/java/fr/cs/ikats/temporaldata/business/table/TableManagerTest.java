@@ -21,11 +21,18 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import fr.cs.ikats.operators.TablesMergeTest;
+
+import org.apache.log4j.Logger;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import fr.cs.ikats.table.TableEntitySummary;
@@ -42,6 +49,27 @@ public class TableManagerTest {
      * Do not change this sample: reused by several tests: for new purposes => create another one
      */
     private final static String JSON_CONTENT_SAMPLE_1 = "{\"table_desc\":{\"title\":\"Discretized matrix\",\"desc\":\"This is a ...\"},\"headers\":{\"col\":{\"data\":[\"funcId\",\"metric\",\"min_B1\",\"max_B1\",\"min_B2\",\"max_B2\"],\"links\":null,\"default_links\":null},\"row\":{\"data\":[null,\"Flid1_VIB2\",\"Flid1_VIB3\",\"Flid1_VIB4\",\"Flid1_VIB5\"],\"default_links\":{\"type\":\"ts_bucket\",\"context\":\"processdata\"},\"links\":[null,{\"val\":\"1\"},{\"val\":\"2\"},{\"val\":\"3\"},{\"val\":\"4\"}]}},\"content\":{\"cells\":[[\"VIB2\",-50.0,12.1,1.0,3.4],[\"VIB3\",-5.0,2.1,1.0,3.4],[\"VIB4\",0.0,2.1,12.0,3.4],[\"VIB5\",0.0,2.1,1.0,3.4]]}}";
+    private final static String JSON_CONTENT_SAMPLE_headers = "{\"table_desc\":{\"title\":\"tableAllHeaders\",\"desc\":\"test\"},"
+        +"\"headers\":{\"col\":{\"data\":[\"Index\",\"C_one\",\"C_two\",\"C_three\"]},"
+        +"\"row\":{\"data\":[null,\"R_one\",\"R_two\",\"R_three\"]}},"
+        +"\"content\":{\"cells\":[[\"1\",\"2\",\"3\"],[\"4\",\"5\",\"5\"],[\"6\",\"7\",\"8\"]]}}";
+    private final static String JSON_CONTENT_SAMPLE_no_Headers = "{\"table_desc\":{\"title\":\"tableNoHeader\",\"desc\":\"test\"},"
+            +"\"content\":{\"cells\":[[\"Index\",\"C_one\",\"C_two\",\"C_three\"],[\"R_one\",\"1\",\"2\",\"3\"],[\"R_two\",\"4\",\"5\",\"5\"],[\"R_three\",\"6\",\"7\",\"8\"]]}}";
+    private final static String JSON_CONTENT_SAMPLE_colHeaders = "{\"table_desc\":{\"title\":\"tableOnlyColHeader\",\"desc\":\"test\"},"
+            +"\"headers\":{\"col\":{\"data\":[\"Index\",\"C_one\",\"C_two\",\"C_three\"]}},"
+            +"\"content\":{\"cells\":[[\"R_one\",\"1\",\"2\",\"3\"],[\"R_two\",\"4\",\"5\",\"5\"],[\"R_three\",\"6\",\"7\",\"8\"]]}}";
+    private final static String JSON_CONTENT_SAMPLE_rowHeaders = "{\"table_desc\":{\"title\":\"tableOnlyRowHeader\",\"desc\":\"test\"},"
+            +"\"headers\":{\"row\":{\"data\":[\"Index\",\"R_one\",\"R_two\",\"R_three\"]}},"
+            +"\"content\":{\"cells\":[[\"C_one\",\"C_two\",\"C_three\"],[\"1\",\"2\",\"3\"],[\"4\",\"5\",\"5\"],[\"6\",\"7\",\"8\"]]}}";
+
+
+    private static final Logger logger = Logger.getLogger(TablesMergeTest.class);
+
+
+    private static final String TABLE_CSV = "Index;C_one;C_two;C_three\n"
+            + "R_one;1;2;3\n"
+            + "R_two;4;5;5\n"
+            + "R_three;6;7;8\n";
 
     /**
      * Tests getColumnFromTable: case when selected column is the row-header values (below top-left corner)
@@ -962,4 +990,79 @@ public class TableManagerTest {
         mng.deleteFromDatabase("TestTable");
 
     }
+
+
+    @Test
+    public void testCreateTableOnlyRowHeader() throws Exception {
+        TableManager mng = new TableManager();
+        TableInfo tableRow = mng.loadFromJson(JSON_CONTENT_SAMPLE_rowHeaders);
+        tableRow.table_desc.name = "tableOnlyRowHeader";
+        mng.createInDatabase(tableRow);
+        TableInfo result = mng.readFromDatabase("tableOnlyRowHeader");
+
+        assertEquals(Arrays.asList("Index", "R_one", "R_two", "R_three"), result.headers.row.data);
+        assertEquals(Arrays.asList("C_one", "C_two", "C_three"), result.content.cells.get(0));
+        assertEquals(Arrays.asList("1", "2", "3"), result.content.cells.get(1));
+        assertEquals(Arrays.asList("4", "5", "5"), result.content.cells.get(2));
+        assertEquals(Arrays.asList("6", "7", "8"), result.content.cells.get(3));
+        assertEquals(result.headers.row.data.size(), result.content.cells.size());
+        // clean
+        mng.deleteFromDatabase("tableOnlyRowHeader");
+    }
+
+    @Test
+    public void testCreateTableOnlyColHeader() throws Exception {
+        TableManager mng = new TableManager();
+        TableInfo tableCol = mng.loadFromJson(JSON_CONTENT_SAMPLE_colHeaders);
+        tableCol.table_desc.name = "tableOnlyColHeader";
+        mng.createInDatabase(tableCol);
+
+        TableInfo result = mng.readFromDatabase("tableOnlyColHeader");
+
+        assertEquals(Arrays.asList("Index", "C_one", "C_two", "C_three"), result.headers.col.data);
+        assertEquals(Arrays.asList("R_one", "1", "2", "3"), result.content.cells.get(0));
+        assertEquals(Arrays.asList("R_two", "4", "5", "5"), result.content.cells.get(1));
+        assertEquals(Arrays.asList("R_three", "6", "7", "8"), result.content.cells.get(2));
+        // clean
+        mng.deleteFromDatabase("tableOnlyColHeader");
+    }
+
+
+    @Test
+    public void testCreateTableHeaders() throws Exception {
+        TableManager mng = new TableManager();
+        TableInfo tableHead = mng.loadFromJson(JSON_CONTENT_SAMPLE_headers);
+        tableHead.table_desc.name = "tableAllHeaders";
+        mng.createInDatabase(tableHead);
+
+        TableInfo result = mng.readFromDatabase("tableAllHeaders");
+
+        assertEquals(Arrays.asList("Index", "C_one", "C_two", "C_three"), result.headers.col.data);
+        assertEquals(Arrays.asList(null, "R_one", "R_two", "R_three"), result.headers.row.data);
+        assertTrue(result.headers.row.data.get(0) == null);
+        assertEquals(Arrays.asList("1", "2", "3"), result.content.cells.get(0));
+        assertEquals(Arrays.asList("4", "5", "5"), result.content.cells.get(1));
+        assertEquals(Arrays.asList("6", "7", "8"), result.content.cells.get(2));
+        // clean
+        mng.deleteFromDatabase("tableAllHeaders");
+    }
+
+    @Test
+    public void testCreateTableNoHeader() throws Exception {
+        TableManager mng = new TableManager();
+        TableInfo tableNoHeader = mng.loadFromJson(JSON_CONTENT_SAMPLE_no_Headers);
+        tableNoHeader.table_desc.name = "tableNoHeader";
+        mng.createInDatabase(tableNoHeader);
+
+        TableInfo result = mng.readFromDatabase("tableNoHeader");
+
+        assertEquals(Arrays.asList("Index", "C_one", "C_two", "C_three"), result.content.cells.get(0));
+        assertEquals(Arrays.asList("R_one", "1", "2", "3"), result.content.cells.get(1));
+        assertEquals(Arrays.asList("R_two", "4", "5", "5"), result.content.cells.get(2));
+        assertEquals(Arrays.asList("R_three", "6", "7", "8"), result.content.cells.get(3));
+        // clean
+        mng.deleteFromDatabase("tableNoHeader");
+    }
+
+
 }
