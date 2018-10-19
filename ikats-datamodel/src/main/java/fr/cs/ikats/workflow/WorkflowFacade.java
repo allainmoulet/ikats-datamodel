@@ -108,7 +108,7 @@ public class WorkflowFacade {
      * @throws IkatsDaoConflictException if the new name is already used (not unique)
      * @throws IkatsDaoException         if any other exception occurs
      */
-    public boolean update(Workflow wf) throws IkatsDaoException {
+    public boolean update(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException,IkatsDaoMissingResource {
         return dao.update(wf);
     }
 

@@ -439,7 +439,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE TEST
         Workflow wf = new Workflow();
-        wf.setName("New My_Workflow");
+        wf.setName("New My_Workflow_1");
         wf.setDescription("New Description of my new workflow");
         wf.setRaw("New Workflow new content");
 
@@ -472,7 +472,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // PREPARE THE TEST
         String badId = "bad_id";
         Workflow wf = new Workflow();
-        wf.setName("New My_Workflow");
+        wf.setName("New My_Workflow_2");
         wf.setDescription("New Description of my new workflow");
         wf.setRaw("New Workflow new content");
 
@@ -506,7 +506,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         Integer unknownId = id + 1;
 
         Workflow wf = new Workflow();
-        wf.setName("New My_Workflow");
+        wf.setName("New My_Workflow_3");
         wf.setDescription("New Description of my workflow");
         wf.setRaw("New Workflow content");
 
