@@ -177,6 +177,12 @@ public class WorkflowDAO extends DataBaseDAO {
 
             wfId = (Integer) session.save(wf);
             tx.commit();
+        } catch (ConstraintViolationException e) {
+
+            String msg = "Workflow " + wf.getName() + " already exists";
+            LOGGER.warn(msg);
+
+            rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
         } catch (RuntimeException e) {
             // try to rollback
             if (tx != null) tx.rollback();
@@ -195,9 +201,9 @@ public class WorkflowDAO extends DataBaseDAO {
      *
      * @param wf the detailed information about the update
      * @return true if the workflow/Macro Operator update is successful
-     * @throws IkatsDaoConflictException if the workflow/Macro Operator to update does not exist
+     * @throws IkatsDaoConflictException if the workflow/Macro Operator is updated with an already existing name
+     * @throws IkatsDaoMissingResource   if the workflow/Macro Operator to update does not exist
      * @throws IkatsDaoException         if any other exception occurs
-	 // Review#500 New exception not documented
      */
     public boolean update(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException, IkatsDaoMissingResource {
         boolean updated = false;
@@ -213,7 +219,7 @@ public class WorkflowDAO extends DataBaseDAO {
             updated = true;
         } catch (ConstraintViolationException e) {
 
-            String msg = "Workflow " + wf.getName() + " already exist";
+            String msg = "Workflow " + wf.getName() + " already exists";
             LOGGER.warn(msg);
 
             rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
