@@ -34,6 +34,7 @@ import javax.ws.rs.core.UriInfo;
 
 import org.apache.log4j.Logger;
 
+import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
 import fr.cs.ikats.common.dao.exception.IkatsDaoException;
 import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
 import fr.cs.ikats.workflow.Workflow;
@@ -150,6 +151,7 @@ public class WorkflowResource extends AbstractResource {
      * @param uriInfo the uri info
      * @param id      id of the workflow to update
      * @return HTTP response
+     * @throws IkatsDaoConflictException if worflow new name already exists
      * @throws IkatsDaoException if any DAO exception occurs
      */
     @PUT
@@ -160,7 +162,7 @@ public class WorkflowResource extends AbstractResource {
             Workflow wf,
             @Context UriInfo uriInfo,
             @PathParam("id") int id
-    ) throws IkatsDaoException, IkatsWebClientException {
+    ) throws IkatsDaoException, IkatsWebClientException, IkatsDaoConflictException {
 
         if (wf.getId() != null && id != wf.getId()) {
             throw new IkatsWebClientException("Mismatch in request with Id between URI and body part");

@@ -25,6 +25,7 @@ import org.hibernate.Session;
 import org.hibernate.StaleStateException;
 import org.hibernate.Transaction;
 import org.hibernate.criterion.Restrictions;
+import org.hibernate.exception.ConstraintViolationException;
 
 import fr.cs.ikats.common.dao.DataBaseDAO;
 import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
@@ -176,6 +177,12 @@ public class WorkflowDAO extends DataBaseDAO {
 
             wfId = (Integer) session.save(wf);
             tx.commit();
+        } catch (ConstraintViolationException e) {
+
+            String msg = "Workflow " + wf.getName() + " already exists";
+            LOGGER.warn(msg);
+
+            rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
         } catch (RuntimeException e) {
             // try to rollback
             if (tx != null) tx.rollback();
@@ -194,10 +201,11 @@ public class WorkflowDAO extends DataBaseDAO {
      *
      * @param wf the detailed information about the update
      * @return true if the workflow/Macro Operator update is successful
-     * @throws IkatsDaoConflictException if the workflow/Macro Operator to update does not exist
+     * @throws IkatsDaoConflictException if the workflow/Macro Operator is updated with an already existing name
+     * @throws IkatsDaoMissingResource   if the workflow/Macro Operator to update does not exist
      * @throws IkatsDaoException         if any other exception occurs
      */
-    public boolean update(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException {
+    public boolean update(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException, IkatsDaoMissingResource {
         boolean updated = false;
 
         Session session = getSession();
@@ -209,6 +217,12 @@ public class WorkflowDAO extends DataBaseDAO {
             session.update(wf);
             tx.commit();
             updated = true;
+        } catch (ConstraintViolationException e) {
+
+            String msg = "Workflow " + wf.getName() + " already exists";
+            LOGGER.warn(msg);
+
+            rollbackAndThrowException(tx, new IkatsDaoConflictException(msg, e));
         } catch (StaleStateException e) {
 
             String msg = "No match for Workflow with id:" + wf.getId();

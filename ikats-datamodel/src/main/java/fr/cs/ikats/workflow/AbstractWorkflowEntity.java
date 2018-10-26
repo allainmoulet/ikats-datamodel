@@ -35,7 +35,10 @@ public abstract class AbstractWorkflowEntity {
     @Column(name = "id", updatable = false)
     private Integer id;
 
-    @Column(name = "name")
+    /**
+     * Unique name used to identify the AbstractWorkflowEntity by user
+     */
+    @Column(name = "name", unique = true)
     private String name;
 
     @Column(name = "description")

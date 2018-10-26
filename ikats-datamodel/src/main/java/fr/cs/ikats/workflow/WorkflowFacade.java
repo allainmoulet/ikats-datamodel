@@ -42,10 +42,10 @@ public class WorkflowFacade {
      *
      * @param wf workflow object
      * @return the ID of the inserted data
-     * @throws IkatsDaoConflictException create error raised on conflict with another resource
+     * @throws IkatsDaoConflictException if the workflow/Macro Operator name already exists in database (shall be unique)
      * @throws IkatsDaoException         another error from DAO
      */
-    public Integer persist(Workflow wf) throws IkatsDaoException {
+    public Integer persist(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException {
         return dao.persist(wf);
     }
 
@@ -89,7 +89,8 @@ public class WorkflowFacade {
      * @param description new description of the workflow
      * @param raw         new content of the workflow
      * @return true if the workflow update is successful
-     * @throws IkatsDaoConflictException if the new name is already used (not unique)
+     * @throws IkatsDaoConflictException if the workflow/Macro Operator is updated with an already existing name
+     * @throws IkatsDaoMissingResource   if the workflow/Macro Operator to update does not exist
      * @throws IkatsDaoException         if any other exception occurs
      */
     public boolean update(Integer id, String name, String description, String raw) throws IkatsDaoException {
@@ -105,10 +106,11 @@ public class WorkflowFacade {
      *
      * @param wf Updated Workflow object
      * @return true if the workflow update is successful
-     * @throws IkatsDaoConflictException if the new name is already used (not unique)
+     * @throws IkatsDaoConflictException if the workflow/Macro Operator is updated with an already existing name
+     * @throws IkatsDaoMissingResource   if the workflow/Macro Operator to update does not exist
      * @throws IkatsDaoException         if any other exception occurs
      */
-    public boolean update(Workflow wf) throws IkatsDaoException {
+    public boolean update(Workflow wf) throws IkatsDaoConflictException, IkatsDaoException,IkatsDaoMissingResource {
         return dao.update(wf);
     }
 
