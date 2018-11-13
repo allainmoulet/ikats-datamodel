@@ -273,6 +273,40 @@ public class WorkflowResourceTest extends AbstractRequestTest {
     }
 
     /**
+     * Workflow creation - Robustness case - Conflict
+     * Workflow with same name already exists in database
+     *
+     * @throws Exception if test fails
+     */
+    @Test
+    public void create_409() throws Exception {
+
+        // PREPARE THE DATABASE
+        // Fill in the workflow db
+        addWfToDb(1);
+        Workflow wf = addWfToDb(2);
+        addWfToDb(3);
+
+        // PREPARE THE TEST
+        // Change the name
+        Workflow new_wf = new Workflow();
+        new_wf.setName(wf.getName()); // already exists
+        new_wf.setDescription("Different description");
+        new_wf.setRaw("Different raw");
+
+
+        // DO THE TEST
+        Response response = callAPI(VERB.POST, "/wf", new_wf);
+
+        // CHECK RESULTS
+        int status = response.getStatus();
+        assertEquals(409, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("Workflow " + new_wf.getName() + " already exists", body);
+    }
+
+    /**
      * Workflow list All - Nominal case
      *
      * @throws Exception if test fails
@@ -439,7 +473,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         // PREPARE THE TEST
         Workflow wf = new Workflow();
-        wf.setName("New My_Workflow");
+        wf.setName("New My_Workflow_1");
         wf.setDescription("New Description of my new workflow");
         wf.setRaw("New Workflow new content");
 
@@ -472,7 +506,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         // PREPARE THE TEST
         String badId = "bad_id";
         Workflow wf = new Workflow();
-        wf.setName("New My_Workflow");
+        wf.setName("New My_Workflow_2");
         wf.setDescription("New Description of my new workflow");
         wf.setRaw("New Workflow new content");
 
@@ -485,6 +519,36 @@ public class WorkflowResourceTest extends AbstractRequestTest {
 
         String body = response.readEntity(String.class);
         assertEquals("", body);
+    }
+
+    /**
+     * Workflow update - Robustness case - Conflict
+     * The workflow name already exists
+     *
+     * @throws Exception if test fails
+     */
+    @Test
+    public void updateWorkflow_409() throws Exception {
+
+        // PREPARE THE DATABASE
+        // Fill in the workflow db
+        Workflow wf1 = addWfToDb(1);
+        Workflow wf2 = addWfToDb(2);
+
+        // PREPARE THE TEST
+        wf2.setName(wf1.getName()); // this name already exists in database
+        wf2.setDescription("New Description of my workflow");
+        wf2.setRaw("New content of my workflow");
+
+        // DO THE TEST
+        Response response = callAPI(VERB.PUT, "/wf/" + wf2.getId(), wf2);
+
+        // CHECK RESULTS
+        int status = response.getStatus();
+        assertEquals(409, status);
+
+        String body = response.readEntity(String.class);
+        assertEquals("Workflow " + wf2.getName() + " already exists", body);
     }
 
     /**
@@ -506,7 +570,7 @@ public class WorkflowResourceTest extends AbstractRequestTest {
         Integer unknownId = id + 1;
 
         Workflow wf = new Workflow();
-        wf.setName("New My_Workflow");
+        wf.setName("New My_Workflow_3");
         wf.setDescription("New Description of my workflow");
         wf.setRaw("New Workflow content");
 

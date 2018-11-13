@@ -15,7 +15,7 @@
 	<parent>
 		<groupId>fr.cs.ikats</groupId>
 		<artifactId>ikats-base</artifactId>
-		<version>0.7.39</version>
+		<version>0.9.0</version>
 		<relativePath>../</relativePath>
 	</parent>
 
