@@ -63,7 +63,7 @@ WORKDIR /usr/local/tomee
 
 RUN set -x \
 	&& curl -fsSL 'https://www.apache.org/dist/tomee/KEYS' -o KEYS \
-	&& gpg --import KEYS
+	&& gpg --no-tty --import KEYS
 
 RUN set -x \
 	&& curl -fSL http://repo.maven.apache.org/maven2/org/apache/tomee/apache-tomee/7.0.4/apache-tomee-7.0.4-plume.tar.gz.asc -o tomee.tar.gz.asc \
