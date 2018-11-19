@@ -41,9 +41,9 @@ pipeline {
                 script {
                   
                     // Replacing docker registry to private one. See [#172302]
-                    sh "sed -i 's/FROM ikats/FROM hub.ops.ikats.org/' Dockerfile"
+                    sh "sed -i 's/FROM ikats/FROM hub.ops.ikats.org/' ikats-ingestion/Dockerfile"
 
-                    ingestModuleImage = docker.build("ingestion", "--pull .")
+                    ingestModuleImage = docker.build("ingestion", "-f ikats-ingestion/Dockerfile --pull .")
 
                     fullBranchName = "${env.BRANCH_NAME}"
                     branchName = fullBranchName.substring(fullBranchName.lastIndexOf("/") + 1)

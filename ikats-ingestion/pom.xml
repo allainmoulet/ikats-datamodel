@@ -4,7 +4,7 @@
 
     <groupId>fr.cs.ikats</groupId>
     <artifactId>ikats-ingestion</artifactId>
-    <version>0.7.41</version>
+    <version>0.9.0</version>
     <name>ikats-ingestion</name>
     <description>Data import management into IKATS</description>
     <packaging>war</packaging>
@@ -236,19 +236,19 @@
         <dependency>
             <groupId>fr.cs.ikats</groupId>
             <artifactId>ikats-commons</artifactId>
-            <version>0.7.39</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>fr.cs.ikats</groupId>
             <artifactId>db-web-client</artifactId>
-            <version>0.7.39</version>
+            <version>${project.version}</version>
         </dependency>
 
         <dependency>
             <groupId>fr.cs.ikats</groupId>
             <artifactId>ikats-datamodel</artifactId>
-            <version>0.7.39</version>
+            <version>${project.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>org.slf4j</groupId>

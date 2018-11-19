@@ -3,7 +3,7 @@ FROM maven:3.5.2-jdk-8 as war-build
 LABEL license="Apache License, Version 2.0"
 LABEL copyright="CS Systèmes d'Information"
 LABEL maintainer="contact@ikats.org"
-LABEL version="0.7.40"
+LABEL version="0.9.0"
 
 WORKDIR /usr/src/app
 # /root/.m2 is a volume :(
@@ -14,31 +14,30 @@ ENV MAVEN_OPTS=-Dmaven.repo.local=../m2repo/
 
 # Add only the maven pom.xml
 # this will help us to cache the maven repository into docker cache
-COPY ikats-datamodel/ikats-datamodel/pom.xml ikats-datamodel/ikats-datamodel/pom.xml 
-COPY ikats-datamodel/ikats-commons/pom.xml ikats-datamodel/ikats-commons/pom.xml
-COPY ikats-datamodel/dbWebclient/pom.xml ikats-datamodel/dbWebclient/pom.xml 
-COPY ikats-datamodel/TemporalDataManagerWebApp/pom.xml ikats-datamodel/TemporalDataManagerWebApp/pom.xml 
 COPY ikats-datamodel/pom.xml ikats-datamodel/pom.xml
+COPY ikats-commons/pom.xml ikats-commons/pom.xml
+COPY dbWebclient/pom.xml dbWebclient/pom.xml
+COPY TemporalDataManagerWebApp/pom.xml TemporalDataManagerWebApp/pom.xml
+COPY pom.xml pom.xml
 
 # get all the downloads out of the way
-RUN mvn -B -e -C -T 1C org.apache.maven.plugins:maven-dependency-plugin:3.0.2:go-offline --fail-never -f ikats-datamodel/pom.xml
-#RUN mvn -B -e -o -T 1C verify -f ikats-datamodel/pom.xml
+RUN mvn -B -e -C -T 1C org.apache.maven.plugins:maven-dependency-plugin:3.0.2:go-offline --fail-never -f pom.xml
 
 # Now add the other sources and package the whole into the WAR
-COPY ikats-datamodel/ikats-datamodel ikats-datamodel/ikats-datamodel 
-COPY ikats-datamodel/ikats-commons ikats-datamodel/ikats-commons
-COPY ikats-datamodel/dbWebclient ikats-datamodel/dbWebclient 
-COPY ikats-datamodel/TemporalDataManagerWebApp ikats-datamodel/TemporalDataManagerWebApp 
-RUN mvn clean install -DskipTests=true -f ikats-datamodel/pom.xml
+COPY ikats-datamodel ikats-datamodel
+COPY ikats-commons ikats-commons
+COPY dbWebclient dbWebclient
+COPY TemporalDataManagerWebApp TemporalDataManagerWebApp
+RUN mvn clean install -DskipTests=true -f pom.xml
 
 ## Step 2 -- Build the IKATS Ingestion app
-COPY pom.xml .
-RUN mvn -B -e -C -T 1C org.apache.maven.plugins:maven-dependency-plugin:3.0.2:go-offline --fail-never
+COPY ikats-ingestion/pom.xml ikats-ingestion/pom.xml
+RUN mvn -B -e -C -T 1C org.apache.maven.plugins:maven-dependency-plugin:3.0.2:go-offline --fail-never -f ikats-ingestion/pom.xml
 
-COPY LICENSE .
-COPY NOTICE .
-COPY src src
-RUN mvn -B -e -o -T 1C clean package -DskipTests=true
+COPY LICENSE ikats-ingestion/LICENSE
+COPY NOTICE ikats-ingestion/NOTICE
+COPY ikats-ingestion/src ikats-ingestion/src
+RUN mvn -B -e -o -T 1C clean package -DskipTests=true -f ikats-ingestion/pom.xml
 
 #
 # Creates the Docker image for installing the IKATS Ingestion Service
@@ -51,7 +50,7 @@ FROM openjdk:8
 LABEL license="Apache License, Version 2.0"
 LABEL copyright="CS Systèmes d'Information"
 LABEL maintainer="contact@ikats.org"
-LABEL version="0.7.40"
+LABEL version="0.9.0"
 
 # install zip in order to repack war after configuration injection
 RUN apt-get update && apt-get install -y --no-install-recommends zip \
@@ -77,14 +76,14 @@ RUN set -x \
 	&& rm tomee.tar.gz*
 
 # Copy the modified configuration for IKATS
-COPY assets/tomee-conf/. .
+COPY ikats-ingestion/assets/tomee-conf/. .
 
 # Reclaim the war package at the previous multi-stage
-COPY --from=war-build /usr/src/app/target/ikats-ingestion.war webapps/.
+COPY --from=war-build /usr/src/app/ikats-ingestion/target/ikats-ingestion.war webapps/.
 
 WORKDIR /tmp/container_init
-COPY assets/container_init.sh .
-COPY assets/inject_configuration.sh .
+COPY ikats-ingestion/assets/container_init.sh .
+COPY ikats-ingestion/assets/inject_configuration.sh .
 
 # Declare a shared volume
 VOLUME ["/mnt/IKATSDATA"]
