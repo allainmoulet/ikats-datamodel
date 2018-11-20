@@ -21,23 +21,24 @@ COPY TemporalDataManagerWebApp/pom.xml TemporalDataManagerWebApp/pom.xml
 COPY pom.xml pom.xml
 
 # get all the downloads out of the way
-RUN mvn -B -e -C -T 1C org.apache.maven.plugins:maven-dependency-plugin:3.0.2:go-offline --fail-never -f pom.xml
+RUN mvn -B -e -C -T 1C org.apache.maven.plugins:maven-dependency-plugin:3.0.2:go-offline --fail-never
 
 # Now add the other sources and package the whole into the WAR
 COPY ikats-datamodel ikats-datamodel
 COPY ikats-commons ikats-commons
 COPY dbWebclient dbWebclient
 COPY TemporalDataManagerWebApp TemporalDataManagerWebApp
-RUN mvn clean install -DskipTests=true -f pom.xml
+RUN mvn clean install -DskipTests=true
 
 ## Step 2 -- Build the IKATS Ingestion app
 COPY ikats-ingestion/pom.xml ikats-ingestion/pom.xml
-RUN mvn -B -e -C -T 1C org.apache.maven.plugins:maven-dependency-plugin:3.0.2:go-offline --fail-never -f ikats-ingestion/pom.xml
+WORKDIR /usr/src/app/ikats-ingestion
+RUN mvn -B -e -C -T 1C org.apache.maven.plugins:maven-dependency-plugin:3.0.2:go-offline --fail-never
 
-COPY LICENSE ikats-ingestion/LICENSE
-COPY NOTICE ikats-ingestion/NOTICE
-COPY ikats-ingestion/src ikats-ingestion/src
-RUN mvn -B -e -o -T 1C clean package -DskipTests=true -f ikats-ingestion/pom.xml
+COPY LICENSE .
+COPY NOTICE .
+COPY ikats-ingestion/src src
+RUN mvn -B -e -o -T 1C clean package -DskipTests=true
 
 #
 # Creates the Docker image for installing the IKATS Ingestion Service
