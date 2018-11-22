@@ -8,7 +8,7 @@ LABEL version="0.9.0"
 WORKDIR /usr/src/app
 # /root/.m2 is a volume :(
 # Build cache fix provided by https://github.com/carlossg/docker-maven/issues/36#issuecomment-334562850
-ENV MAVEN_OPTS=-Dmaven.repo.local=../m2repo/
+ENV MAVEN_OPTS="-Dmaven.repo.local=/usr/src/app/m2repo/"
 
 ## Step 1 -- Build the TDM project artifacts and install them into the maven local repository
 
