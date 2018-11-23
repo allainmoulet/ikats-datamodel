@@ -4,7 +4,7 @@
 ![Docker Build Status](https://img.shields.io/docker/build/ikats/ingestion.svg)
 ![MicroBadger Size](https://img.shields.io/microbadger/image-size/ikats/ingestion.svg)
 
-This module provides features in order to ingest data in IKATS.  
+This web application provides features in order to ingest data in IKATS.  
 The application is deployed on a Tommee server and runs independantly of IKATS datamodel.
 It can be reached by two means:
 1. an IKATS operator: [import TS](https://ikats.github.io/doc/operators/importTs.html)

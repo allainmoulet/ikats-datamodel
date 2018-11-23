@@ -6,12 +6,16 @@
 
 **An overview of IKATS global architecture is available [here](https://github.com/IKATS/IKATS)**
 
-IKATS datamodel provides the TemporalDataManager web application to IKATS, deployed in a Tomcat server to access following IKATS resources:
+IKATS datamodel provides two IKATS web applications :
+* the **Ingestion** webapp, deployed in a Tommee server to ingest data in IKATS : cf.[ingestion documentation](https://github.com/IKATS/ikats-datamodel/tree/master/ikats-ingestion)
+* the **TemporalDataManager** webapp, deployed in a Tomcat server, which is describer here.
+
+The **TemporalDataManager** webapp provides access to following IKATS resources:
 
 On PostgreSQL database:
 
 * Metadata
-* Dataset
+* Dataset (set of time series)
 * Table
 * MacroOperator
 * ProcessData
@@ -19,7 +23,7 @@ On PostgreSQL database:
 
 On OpenTSDB database:
 
-* TimeSeries (used by [ikats-ingestion](https://github.com/IKATS/ikats-ingestion) but not by [python operators](https://github.com/IKATS?q=op-) which has its own connector)
+* Time Series
 
 Resources can be accessed through an HTTP API, including IKATS operators dealing with non temporal data.
 
