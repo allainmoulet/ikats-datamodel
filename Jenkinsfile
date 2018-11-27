@@ -29,28 +29,11 @@ pipeline {
                 }
             }
         }
-        stage('Build the image') {
+        stage('Build and push image') {
             agent { node { label 'docker' } }
-
             steps {
                 script {
-                    // Replacing docker registry to private one. See [#172302]
-                    sh "sed -i 's/FROM ikats/FROM hub.ops.ikats.org/' Dockerfile"
-
-                    datamodelImage = docker.build("datamodel", "--pull .")
-
-                    fullBranchName = "${env.BRANCH_NAME}"
-                    branchName = fullBranchName.substring(fullBranchName.lastIndexOf("/") + 1)
-                    shortCommit = "${GIT_COMMIT}".substring(0, 7)
-
-                    docker.withRegistry("${env.REGISTRY_ADDRESS}", 'DOCKER_REGISTRY') {
-                        /* Push the container to the custom Registry */
-                        datamodelImage.push(branchName + "_" + shortCommit)
-                        datamodelImage.push(branchName + "_latest")
-                          if (branchName == "master") {
-                            datamodelImage.push("master")
-                          }
-                    }
+                    dockerBuild 'hub.ops.ikats.org/datamodel'
                 }
             }
         }
