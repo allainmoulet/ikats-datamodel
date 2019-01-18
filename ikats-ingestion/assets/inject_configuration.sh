@@ -33,7 +33,7 @@ fill_variables_in_war() {
   unzip -qo $WAR_PATH
 
   echo "Setting environment variables: $@"
-  for v in "$@" 
+  for v in "$@"
   do
     test_for_variable $v
     replace_variable_in $v WEB-INF/classes/*.*
@@ -56,8 +56,8 @@ WAR_PATH=$1
 
 eval set -- "DB_HOST \
 	DB_PORT \
-    OPENTSDB_WRITE_HOST \
-    OPENTSDB_WRITE_PORT \
+  OPENTSDB_HOST \
+  OPENTSDB_PORT \
 	C3P0_ACQUIRE_INCREMENT \
 	C3P0_MAX_SIZE \
 	C3P0_IDLE_TEST_PERIOD \
@@ -67,4 +67,3 @@ eval set -- "DB_HOST \
 
 # Apply configuration
 fill_variables_in_war $@
-
