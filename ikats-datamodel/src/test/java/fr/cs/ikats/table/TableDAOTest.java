@@ -30,18 +30,16 @@ import static org.junit.Assert.*;
 
 import java.util.List;
 
-import org.hibernate.exception.ConstraintViolationException;
 import org.junit.After;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.common.dao.exception.IkatsDaoMissingRessource;
-
+import fr.cs.ikats.common.dao.exception.IkatsDaoConflictException;
+import fr.cs.ikats.common.dao.exception.IkatsDaoMissingResource;
 
 public class TableDAOTest extends TableDAO {
-    
+
     static TableDAO dao;
 
     @BeforeClass
@@ -51,24 +49,26 @@ public class TableDAOTest extends TableDAO {
 
     @After
     public void tearDown() throws Exception {
-        List<TableEntity> listAll = dao.listAll();
-        for (TableEntity tableEntity : listAll) {
+        List<TableEntitySummary> listAll = dao.listAll();
+        for (TableEntitySummary tableEntity : listAll) {
             dao.removeById(tableEntity.getId());
         }
     }
 
     @Test
+    @Ignore // Not yet implemented
     public final void testListAll() {
         fail("Not yet implemented"); // TODO
     }
 
     @Test
+    @Ignore // Not yet implemented
     public final void testFindByName() {
         fail("Not yet implemented"); // TODO
     }
 
     @Test
-    public final void testGetByName() throws IkatsDaoMissingRessource, IkatsDaoException {
+    public final void testGetByName() throws IkatsDaoConflictException, IkatsDaoMissingResource {
         
         // Create a table
         TableEntity tableEntity = new TableEntity();
@@ -95,8 +95,8 @@ public class TableDAOTest extends TableDAO {
         assertArrayEquals(rawDataLinksStr.getBytes(), actualRawDataLinks);
     }
 
-    @Test(expected = ConstraintViolationException.class)
-    public final void testPersist() {
+    @Test(expected = IkatsDaoConflictException.class)
+    public final void testPersist() throws IkatsDaoConflictException {
 
         // Create a table
         TableEntity tableEntity = new TableEntity();
@@ -122,6 +122,7 @@ public class TableDAOTest extends TableDAO {
     }
 
     @Test
+    @Ignore // Not yet implemented
     public final void testUpdate() {
         fail("Not yet implemented"); // TODO
     }
@@ -129,7 +130,7 @@ public class TableDAOTest extends TableDAO {
     @Test
     @Ignore // Done with the tearDown method
     public final void testRemoveById() {
-        fail("Test not needed due to usage by the teardown method");
+        assertTrue("Let the teardown method cover that method", true);
     }
 
 }
