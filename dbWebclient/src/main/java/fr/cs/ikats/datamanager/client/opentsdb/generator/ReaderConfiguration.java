@@ -1,28 +1,17 @@
 /**
- * LICENSE:
- * --------
- * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
- * Licensed to CS SYSTEMES D'INFORMATION under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. CS licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
- * 
- * @author Fabien TORAL <fabien.toral@c-s.fr>
- * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * 
+ * Copyright 2018 CS Systèmes d'Information
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package fr.cs.ikats.datamanager.client.opentsdb.generator;
@@ -33,7 +22,7 @@ import java.util.List;
 
 /**
  * this class is used to store and read csv columns configuration
- * 
+ *
  *
  */
 public class ReaderConfiguration {
@@ -49,7 +38,7 @@ public class ReaderConfiguration {
 
     /**
      * to add a column configuration
-     * 
+     *
      * @param tagName
      *            name of the tag
      * @param valueFormat
@@ -62,7 +51,7 @@ public class ReaderConfiguration {
      *            if column contents timestamp
      */
     public void addColumnConfiguration(String tagName, String valueFormat, DateFormat timestampFormat, boolean isValueColumn,
-            boolean isTimeStampColumn) {
+                                       boolean isTimeStampColumn) {
         colConfigs.add(new ColumnConfiguration(tagName, valueFormat, timestampFormat, isValueColumn, isTimeStampColumn));
     }
 
@@ -75,7 +64,7 @@ public class ReaderConfiguration {
 
     /**
      * retrieve columns configuration
-     * 
+     *
      * @return the configurations
      */
     public List<ColumnConfiguration> getColumnConfigurations() {
@@ -84,7 +73,7 @@ public class ReaderConfiguration {
 
     /**
      * retrieve the number of columns in configuration
-     * 
+     *
      * @return number of columns.
      */
     public int getNumberOfColumns() {
@@ -93,7 +82,7 @@ public class ReaderConfiguration {
 
     /**
      * class describing csv columns configuration
-     * 
+     *
      *
      */
     public class ColumnConfiguration {
@@ -104,7 +93,7 @@ public class ReaderConfiguration {
         boolean isTimeStampColumn;
 
         /**
-         * 
+         *
          * @param tagName
          *            name of the tag
          * @param valueFormat
@@ -127,4 +116,3 @@ public class ReaderConfiguration {
     }
 
 }
-

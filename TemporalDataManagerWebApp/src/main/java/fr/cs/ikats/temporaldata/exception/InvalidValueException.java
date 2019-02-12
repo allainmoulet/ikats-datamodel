@@ -1,29 +1,17 @@
 /**
- * LICENSE:
- * --------
- * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
- * Licensed to CS SYSTEMES D'INFORMATION under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. CS licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
- * 
- * @author Fabien TORAL <fabien.toral@c-s.fr>
- * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
- * 
+ * Copyright 2018 CS Systèmes d'Information
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package fr.cs.ikats.temporaldata.exception;
@@ -61,12 +49,12 @@ public class InvalidValueException extends Exception {
      */
     @Override
     public String getMessage() {
-        if(instanceId!=null) {
+        if (instanceId != null) {
             return ApplicationLabels.getInstance().getLabel("error.invalid.value.with.id", found, property, modelClass, instanceId, excepted);
         } else {
             return ApplicationLabels.getInstance().getLabel("error.invalid.value", found, property, modelClass, excepted);
         }
-        
+
     }
 
     /**
@@ -78,7 +66,7 @@ public class InvalidValueException extends Exception {
     }
 
     /**
-     * 
+     *
      */
     private static final long serialVersionUID = 2274897881691729460L;
 
@@ -133,7 +121,7 @@ public class InvalidValueException extends Exception {
     public InvalidValueException(String message) {
         super(message);
     }
-    
+
     /**
      * Constructor from one message and one cause exception 
      * @param message the invalid value message
@@ -144,4 +132,3 @@ public class InvalidValueException extends Exception {
     }
 
 }
-

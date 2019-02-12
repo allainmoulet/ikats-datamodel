@@ -1,28 +1,17 @@
 /**
- * LICENSE:
- * --------
- * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
- * Licensed to CS SYSTEMES D'INFORMATION under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. CS licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
- * 
- * @author Fabien TORAL <fabien.toral@c-s.fr>
- * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * 
+ * Copyright 2018 CS Systèmes d'Information
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package fr.cs.ikats.datamanager.client.opentsdb.importer;
@@ -41,7 +30,7 @@ import fr.cs.ikats.datamanager.client.opentsdb.generator.SplittedLineReader;
 
 /**
  * Serializer in json format. Abstract class
- * 
+ *
  *
  */
 public abstract class AbstractDataJsonIzer implements IImportSerializer {
@@ -70,20 +59,21 @@ public abstract class AbstractDataJsonIzer implements IImportSerializer {
 
     /**
      * the generateur for this file
-     * 
+     *
      */
     private AdvancedJsonGenerator generateur;
 
     /** Total number of points read */
-	private long totalPointsRead = 0;
+    private long totalPointsRead = 0;
 
     @Override
     public long[] getDates() {
-        return new long[]{startDate,endDate};
+        return new long[]{startDate, endDate};
     }
+
     /**
      * init the serializer. Consume the first line of the input.
-     * 
+     *
      * {@inheritDoc}
      */
     @Override
@@ -92,9 +82,8 @@ public abstract class AbstractDataJsonIzer implements IImportSerializer {
         this.generateur = new AdvancedJsonGenerator(getReader(), metric, tags);
         try {
             String line = reader.readLine();
-            LOGGER.debug("first line read "+line);
-        }
-        catch (IOException e) {
+            LOGGER.debug("first line read " + line);
+        } catch (IOException e) {
             LOGGER.error("unable to read input ", e);
         }
     }
@@ -103,94 +92,87 @@ public abstract class AbstractDataJsonIzer implements IImportSerializer {
     public boolean test(String inputline) {
         try {
             // get the json representation for the line
-            AdvancedJsonGenerator testGenerateur = new AdvancedJsonGenerator(getReader(),null,null);
+            AdvancedJsonGenerator testGenerateur = new AdvancedJsonGenerator(getReader(), null, null);
             String line = testGenerateur.generate(inputline);
-            if(line!=null) {
+            if (line != null) {
                 return true;
             } else {
                 return false;
             }
-        }
-        catch (Exception e) {
-            LOGGER.info(e.getMessage());
-            //LOGGER.error("",e);
+        } catch (Exception e) {
+            LOGGER.error("",e);
             return false;
         }
     }
-    
+
     /**
      * consume the next data to create
-     * @throws IOException 
-     * @throws DataManagerException 
-     * 
+     * @throws IOException
+     * @throws DataManagerException
+     *
      * @see fr.cs.ikats.datamanager.client.importer.IImportSerializer#next(int)
      */
     public synchronized String next(int numberOfPointsByImport) throws IOException, DataManagerException {
         String json = null;
         StringBuilder builder = new StringBuilder();
-        
+
         String readLine = reader.readLine();
         int pointRead = 0;
         for (; pointRead < numberOfPointsByImport && readLine != null && !readLine.isEmpty(); pointRead++) {
             builder.append(readLine).append(";");
             readLine = reader.readLine();
-		}
+        }
         // store the number of point read (minus one for the last increment)
-        totalPointsRead += (long) pointRead; 
-        
-        if(readLine!=null) {
+        totalPointsRead += (long) pointRead;
+
+        if (readLine != null) {
             builder.append(readLine);
         }
-        
+
         String line = builder.toString();
-		if (line != null && !line.isEmpty()) {
-		    // get the json representation for the line
-			try {
-				json = generateur.generate(line);
-			} catch (ParseException pe) {
-				hasNext = false;
-				throw new DataManagerException(pe.getMessage(), pe);
-			}
-		    // set startDate and endDate from the generator.
-		    if (this.startDate == 0L){
-		        this.startDate = generateur.getLowestTimeStampValue();
-		    }
-		    else if (generateur.getLowestTimeStampValue() < this.startDate) {
-		        this.startDate = generateur.getLowestTimeStampValue();
-		    }
-		    
-		    if (generateur.getHighestTimeStampValue() > this.endDate) {
-		        this.endDate = generateur.getHighestTimeStampValue();
-		    }
-		}
-		else {
-		    hasNext = false;
-		}
-		
-		if (pointRead < numberOfPointsByImport) {
-			// the last read, reads less points than expected = no more points 
-			hasNext = false;
-		}
-		
-		if (json == null || json.isEmpty()) {
-			hasNext = false;
-		}
-    
+        if (line != null && !line.isEmpty()) {
+            // get the json representation for the line
+            try {
+                json = generateur.generate(line);
+            } catch (ParseException pe) {
+                hasNext = false;
+                throw new DataManagerException(pe.getMessage(), pe);
+            }
+            // set startDate and endDate from the generator.
+            if (this.startDate == 0L || generateur.getLowestTimeStampValue() < this.startDate) {
+                this.startDate = generateur.getLowestTimeStampValue();
+            }
+
+            if (generateur.getHighestTimeStampValue() > this.endDate) {
+                this.endDate = generateur.getHighestTimeStampValue();
+            }
+        } else {
+            hasNext = false;
+        }
+
+        if (pointRead < numberOfPointsByImport) {
+            // the last read, reads less points than expected = no more points
+            hasNext = false;
+        }
+
+        if (json == null || json.isEmpty()) {
+            hasNext = false;
+        }
+
         return json;
     }
 
     /**
      * close the input stream.
-     * 
+     *
      * @see fr.cs.ikats.datamanager.client.importer.IImportSerializer#close()
      */
     public void close() {
         if (reader != null) {
             try {
                 reader.close();
-            }
-            catch (IOException e) {
-                // NOTING CAN BE DONE
+            } catch (IOException e) {
+                LOGGER.error("",e);
             }
         }
     }
@@ -210,19 +192,18 @@ public abstract class AbstractDataJsonIzer implements IImportSerializer {
 
     /**
      * get the LineReader
-     * 
+     *
      * @return the reader
      */
     public abstract SplittedLineReader getReader();
-    
+
     /**
      * Get the total number of points
-     * 
+     *
      * @return the number of points
      */
-	public long getTotalPointsRead() {
-		return totalPointsRead;
-	}
+    public long getTotalPointsRead() {
+        return totalPointsRead;
+    }
 
 }
-

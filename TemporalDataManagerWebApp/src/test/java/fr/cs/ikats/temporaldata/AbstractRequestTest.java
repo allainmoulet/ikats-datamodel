@@ -1,35 +1,20 @@
 /**
- * LICENSE:
- * --------
- * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
- * Licensed to CS SYSTEMES D'INFORMATION under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. CS licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
- * 
- * @author Fabien TORAL <fabien.toral@c-s.fr>
- * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * @author Maxime PERELMUTER <maxime.perelmuter@c-s.fr>
- * 
+ * Copyright 2018 CS Systèmes d'Information
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package fr.cs.ikats.temporaldata;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -55,13 +40,16 @@ import fr.cs.ikats.datamanager.client.opentsdb.ImportResult;
 import fr.cs.ikats.metadata.model.MetaData;
 import fr.cs.ikats.temporaldata.application.ApplicationConfiguration;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 /**
  * This superclass is designed for the junit tests of IKATS web services: it
  * provides static services initializing the Grizzly server, when activated in
  * the test configuration. Each JUnit test on Web service will inherit from this
  * class. This class is also a subclass of CommonTest which provides the
  * standard logger for IKATS Junbit tests.
- * 
+ *
  *
  */
 public abstract class AbstractRequestTest extends CommonTest {
@@ -74,11 +62,13 @@ public abstract class AbstractRequestTest extends CommonTest {
 
     /**
      * Enum to chec kthe state of the web server used by the test
-     * 
+     *
      */
     public enum ServerStatus {
         STOPPED, LAUNCHED, ERROR
-    };
+    }
+
+    ;
 
     /**
      * Using the serverState, we want to avoid to launch grizzly twice ... or
@@ -92,7 +82,7 @@ public abstract class AbstractRequestTest extends CommonTest {
     protected static CompositeConfiguration testConfig;
 
     /**
-     * 
+     *
      * @return
      */
     protected static String getAPIURL() {
@@ -102,7 +92,7 @@ public abstract class AbstractRequestTest extends CommonTest {
     /**
      * Static initialization of the JUnit class: calls implSetupBeforClass() and
      * logs
-     * 
+     *
      * @param junitClassInfo
      */
     public static void setUpBeforClass(String junitClassInfo) {
@@ -112,8 +102,7 @@ public abstract class AbstractRequestTest extends CommonTest {
             STATIC_LOGGER.info(DECO_JUNIT_CLASS_LINE + " setUpBeforeClass: " + junitClassInfo + " " + DECO_JUNIT_CLASS_LINE);
             implSetupBeforClass();
 
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             STATIC_LOGGER.error(DECO_JUNIT_CLASS_LINE + "Failure on setUpBeforeClass: " + junitClassInfo + " " + DECO_JUNIT_CLASS_LINE, e);
         }
 
@@ -122,8 +111,8 @@ public abstract class AbstractRequestTest extends CommonTest {
     /**
      * The implementation manages the test.properties, and the start of grizzly
      * server
-     * @throws ConfigurationException 
-     * @throws IkatsWebClientException 
+     * @throws ConfigurationException
+     * @throws IkatsWebClientException
      */
     protected static void implSetupBeforClass() throws ConfigurationException, IkatsWebClientException {
         // init test configuration
@@ -146,14 +135,12 @@ public abstract class AbstractRequestTest extends CommonTest {
                         testConfig.getString("grizlyServerURL")));
 
                 serverState = ServerStatus.LAUNCHED;
-            }
-            catch (Throwable e) {
+            } catch (Throwable e) {
 
                 serverState = ServerStatus.ERROR;
                 throw new IkatsWebClientException("Failed to lauch Grizzly server => set serverState to ERROR");
             }
-        }
-        else {
+        } else {
             String prevState = serverState.toString();
             serverState = ServerStatus.ERROR;
             throw new IkatsWebClientException(
@@ -169,9 +156,9 @@ public abstract class AbstractRequestTest extends CommonTest {
 
     /**
      * Static ending of the JUnit class: calls implTearDownAfterClass() and logs
-     * 
+     *
      * @param junitClassInfo
-     * @throws IkatsWebClientException 
+     * @throws IkatsWebClientException
      */
     public static void tearDownAfterClass(String junitClassInfo) throws IkatsWebClientException {
 
@@ -182,8 +169,8 @@ public abstract class AbstractRequestTest extends CommonTest {
 
     /**
      * Stops the grizzly server if needed
-     * @throws IkatsWebClientException 
-     * 
+     * @throws IkatsWebClientException
+     *
      */
     protected static void implTearDownAfterClass() throws IkatsWebClientException {
 
@@ -191,14 +178,12 @@ public abstract class AbstractRequestTest extends CommonTest {
             try {
                 ServerMain.stopServer(server);
                 serverState = ServerStatus.STOPPED;
-            }
-            catch (Throwable e) {
+            } catch (Throwable e) {
 
                 serverState = ServerStatus.ERROR;
                 throw new IkatsWebClientException("JUnit failure: Failed to stop the Grizzly server => set serverState to ERROR");
             }
-        }
-        else {
+        } else {
             String prevState = serverState.toString();
             serverState = ServerStatus.ERROR;
             throw new IkatsWebClientException("JUnit failure: Unexpected server state " + prevState
@@ -208,7 +193,7 @@ public abstract class AbstractRequestTest extends CommonTest {
 
     /**
      * launch a request for meta data import.
-     * 
+     *
      * @param tsuid
      * @param name
      * @param value
@@ -225,8 +210,7 @@ public abstract class AbstractRequestTest extends CommonTest {
                 httpStatus = status.intValue();
             }
 
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             STATIC_LOGGER.error(this.getClass().getSimpleName() + " Error occured: launchMetaDataImport(" + tsuid + "," + name + "," + value + ")",
                     e);
         }
@@ -236,7 +220,7 @@ public abstract class AbstractRequestTest extends CommonTest {
     /**
      * Create if possible every metadata specified for the defined tsuid, and
      * then return a report
-     * 
+     *
      * @param tsuid
      * @param aircraftid
      *            value of created meta named AircraftIdentifier, and dtyped
@@ -273,7 +257,7 @@ public abstract class AbstractRequestTest extends CommonTest {
      */
 
     protected Map<String, Integer> createMetadataSet(String tsuid, String aircraftid, String flightid, String metric, String ata, String complex,
-            long startdate, long enddate, long nbpoints, double mean, double var, boolean verbose) {
+                                                     long startdate, long enddate, long nbpoints, double mean, double var, boolean verbose) {
 
         Map<String, Integer> reportMap = new HashMap<String, Integer>();
 
@@ -327,8 +311,7 @@ public abstract class AbstractRequestTest extends CommonTest {
                 httpStatus = status.intValue();
             }
 
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             if (verbose) {
                 STATIC_LOGGER
                         .error(this.getClass().getSimpleName() + " Error occured: launchMetaDataImport(" + tsuid + "," + name + "," + value + ")", e);
@@ -340,7 +323,7 @@ public abstract class AbstractRequestTest extends CommonTest {
 
     /**
      * launch a request for meta data update.
-     * 
+     *
      * @param tsuid
      * @param name
      * @param value
@@ -359,8 +342,7 @@ public abstract class AbstractRequestTest extends CommonTest {
                 }
             }
 
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
             STATIC_LOGGER.error(this.getClass().getSimpleName() + " Error occured: launchMetaDataImport(" + tsuid + "," + name + "," + value + ")",
                     e);
         }
@@ -369,7 +351,7 @@ public abstract class AbstractRequestTest extends CommonTest {
 
     /**
      * Do an import of functional Identifier
-     * 
+     *
      * @param tsuid
      *            the TSUID
      * @param funcId
@@ -391,8 +373,7 @@ public abstract class AbstractRequestTest extends CommonTest {
 
                 STATIC_LOGGER.info(this.getClass().getSimpleName() + " " + response.getStatus());
             }
-        }
-        catch (Throwable e) {
+        } catch (Throwable e) {
 
             if (!fails) {
                 STATIC_LOGGER.error(this.getClass().getSimpleName() + " Error: " + url);
@@ -405,7 +386,7 @@ public abstract class AbstractRequestTest extends CommonTest {
 
     /**
      * Retrieve File matching the resource, or die ...
-     * 
+     *
      * @param testCaseName
      * @param resourceRelativePath
      *            the relative path of the resource
@@ -415,7 +396,7 @@ public abstract class AbstractRequestTest extends CommonTest {
      */
     protected File getFileMatchingResource(String testCaseName, String resourceRelativePath) throws IOException {
 
-        // TODO remonter getFileMatchingResource dans superclasse CommonTest
+        // remonter getFileMatchingResource dans superclasse CommonTest
         // en se passant des classes spring ... source de complications
         // potentielles alors
         // qu'en standard java on sait bien gerer (ResourceBundle ...)
@@ -425,13 +406,11 @@ public abstract class AbstractRequestTest extends CommonTest {
         try {
             file = resource.getFile();
 
-        }
-        catch (IOException e1) {
+        } catch (IOException e1) {
             getLogger().error("Error in: " + testCaseName + ": getting File for resource" + resourceRelativePath, e1);
             throw e1;
         }
         return file;
     }
-   
-}
 
+}

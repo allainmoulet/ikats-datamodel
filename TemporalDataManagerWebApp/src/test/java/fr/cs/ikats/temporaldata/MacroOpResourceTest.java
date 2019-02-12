@@ -1,52 +1,43 @@
 /**
- * LICENSE:
- * --------
- * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
- * Licensed to CS SYSTEMES D'INFORMATION under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. CS licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
- * 
- * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
- * @author Pierre BONHOURE <pierre.bonhoure@c-s.fr>
- * 
+ * Copyright 2018 CS Systèmes d'Information
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package fr.cs.ikats.temporaldata;
 
-import fr.cs.ikats.common.dao.exception.IkatsDaoException;
-import fr.cs.ikats.datamanager.client.RequestSender;
-import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
-import fr.cs.ikats.workflow.Workflow;
-import fr.cs.ikats.workflow.WorkflowFacade;
-import org.junit.AfterClass;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
-
-import javax.ws.rs.client.Entity;
-import javax.ws.rs.core.GenericType;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.core.GenericType;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
+
+import org.junit.AfterClass;
+import org.junit.Before;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import fr.cs.ikats.common.dao.exception.IkatsDaoException;
+import fr.cs.ikats.datamanager.client.RequestSender;
+import fr.cs.ikats.datamanager.client.opentsdb.IkatsWebClientException;
+import fr.cs.ikats.workflow.Workflow;
+import fr.cs.ikats.workflow.WorkflowEntitySummary;
+import fr.cs.ikats.workflow.WorkflowFacade;
 
 import static org.junit.Assert.assertEquals;
 
@@ -81,7 +72,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
                 result = RequestSender.sendPOSTRequest(getAPIURL() + url, wfEntity);
                 break;
             case GET:
-                result = RequestSender.sendGETRequest(getAPIURL() + url, null);
+                result = RequestSender.sendGETRequest(getAPIURL() + url);
                 break;
             case PUT:
                 result = RequestSender.sendPUTRequest(getAPIURL() + url, wfEntity);
@@ -103,11 +94,11 @@ public class MacroOpResourceTest extends AbstractRequestTest {
      * @return the added workflow 
      * @throws IkatsDaoException if something fails
      */
-    private Workflow addWfToDb(Integer number) throws IkatsDaoException { 
+    private Workflow addWfToDb(Integer number) throws IkatsDaoException {
 
         Workflow wf = new Workflow();
 
-        wf.setName("Workflow_" + number.toString());  
+        wf.setName("Workflow_" + number.toString());
         wf.setDescription("Description about Workflow_" + number.toString());
         wf.setMacroOp(false);
         wf.setRaw("Raw content " + number.toString());
@@ -190,7 +181,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         String expectedId = matcher.group(1);
         assertEquals(getAPIURL() + "/mo/" + expectedId, headerLocation.toString());
 
-        List<Workflow> macroOpList = Facade.listAllMacroOp();
+        List<WorkflowEntitySummary> macroOpList = Facade.listAllMacroOp();
         assertEquals(1, macroOpList.size());
 
         Response response2 = callAPI(VERB.GET, "/mo/" + expectedId, mo);
@@ -233,7 +224,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         String expectedId = matcher.group(1);
         assertEquals(getAPIURL() + "/mo/" + expectedId, headerLocation.toString());
 
-        List<Workflow> macroOpList = Facade.listAllMacroOp();
+        List<WorkflowEntitySummary> macroOpList = Facade.listAllMacroOp();
         assertEquals(2, macroOpList.size());
 
         Response response2 = callAPI(VERB.GET, "/mo/" + expectedId, mo);
@@ -334,46 +325,8 @@ public class MacroOpResourceTest extends AbstractRequestTest {
             assertEquals(wfList.get(i).getId(), readWorkflowList.get(i).getId());
             assertEquals(wfList.get(i).getName(), readWorkflowList.get(i).getName());
             assertEquals(wfList.get(i).getDescription(), readWorkflowList.get(i).getDescription());
-            assertEquals(null, readWorkflowList.get(i).getRaw());
         }
 
-
-    }
-
-    /**
-     * Macro operator list All - Nominal case - with full content
-     *
-     * @throws Exception if test fails
-     */
-    @Test
-    public void listAll_full_200() throws Exception {
-
-        // PREPARE THE DATABASE
-        // Fill in the workflow db
-        List<Workflow> wfList = new ArrayList<>();
-        wfList.add(addMOToDb(1));
-        wfList.add(addMOToDb(2));
-        wfList.add(addMOToDb(3));
-
-        // PREPARE THE TEST
-        // Fill in the workflow db
-
-        // DO THE TEST
-        Response response = callAPI(VERB.GET, "/mo/?full=true", null);
-
-        // CHECK RESULTS
-        int status = response.getStatus();
-        assertEquals(200, status);
-
-        List<Workflow> readWorkflowList = response.readEntity(new GenericType<List<Workflow>>() {
-        });
-        assertEquals(wfList.size(), readWorkflowList.size());
-        for (int i = 0; i < wfList.size(); i++) {
-            assertEquals(wfList.get(i).getId(), readWorkflowList.get(i).getId());
-            assertEquals(wfList.get(i).getName(), readWorkflowList.get(i).getName());
-            assertEquals(wfList.get(i).getDescription(), readWorkflowList.get(i).getDescription());
-            assertEquals(wfList.get(i).getRaw(), readWorkflowList.get(i).getRaw());
-        }
 
     }
 
@@ -650,7 +603,8 @@ public class MacroOpResourceTest extends AbstractRequestTest {
         response = callAPI(VERB.GET, "/mo/", null);
         List<Workflow> readMacroOpList = response.readEntity(new GenericType<List<Workflow>>() {
         });
-        assertEquals(2,readMacroOpList.size());    }
+        assertEquals(2, readMacroOpList.size());
+    }
 
     /**
      * Macro operator deletion - Robustness case - Bad Request
@@ -772,7 +726,7 @@ public class MacroOpResourceTest extends AbstractRequestTest {
 
         List<Workflow> readWorkflowList = response.readEntity(new GenericType<List<Workflow>>() {
         });
-        assertEquals(1,readWorkflowList.size());
+        assertEquals(1, readWorkflowList.size());
     }
 
     /**
@@ -802,4 +756,3 @@ public class MacroOpResourceTest extends AbstractRequestTest {
     }
 
 }
-

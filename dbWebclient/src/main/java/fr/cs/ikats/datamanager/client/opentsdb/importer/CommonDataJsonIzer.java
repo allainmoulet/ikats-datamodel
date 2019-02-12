@@ -1,29 +1,17 @@
 /**
- * LICENSE:
- * --------
- * Copyright 2017 CS SYSTEMES D'INFORMATION
- * 
- * Licensed to CS SYSTEMES D'INFORMATION under one
- * or more contributor license agreements. See the NOTICE file
- * distributed with this work for additional information
- * regarding copyright ownership. CS licenses this file
- * to you under the Apache License, Version 2.0 (the
- * "License"); you may not use this file except in compliance
- * with the License. You may obtain a copy of the License at
- * 
- *   http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing,
- * software distributed under the License is distributed on an
- * "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
- * KIND, either express or implied. See the License for the
- * specific language governing permissions and limitations
- * under the License.
- * 
- * @author Fabien TORAL <fabien.toral@c-s.fr>
- * @author Fabien TORTORA <fabien.tortora@c-s.fr>
- * @author Mathieu BERAUD <mathieu.beraud@c-s.fr>
- * 
+ * Copyright 2018 CS Systèmes d'Information
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package fr.cs.ikats.datamanager.client.opentsdb.importer;
@@ -48,7 +36,6 @@ import fr.cs.ikats.datamanager.client.opentsdb.generator.SplittedLineReader;
  * 
  *
  */
-// Review#147170 expliquer l'usage du @Qualifier "Common"
 @Component
 @Qualifier("Common")
 public class CommonDataJsonIzer extends AbstractDataJsonIzer {
@@ -68,8 +55,6 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
     public IImportSerializer clone() {
         return new CommonDataJsonIzer();
     }
-    // Review#147170 javadoc incomplete ci dessous: merite d'etre completee
-    // Review#147170  - format attendu <timestamp> <sep> <valeur> ...
     /**
      * defines csv input columns content timestamp format :
      * 2013-05-03T05:30:34,8 yyyy-MM-ddThh:mm:ss.S
@@ -93,7 +78,6 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
             @Override
             public Date parse(String source, ParsePosition pos) {
                 Date date = null;
-                try {
                     DateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssX");
                     format.setTimeZone(TimeZone.getTimeZone("GMT"));
                     date = format.parse(source, pos);
@@ -117,10 +101,6 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
                         format.setTimeZone(TimeZone.getTimeZone("GMT"));
                         date = format.parse(source, pos);
                     }
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
                 return date;
             }
 
@@ -133,4 +113,3 @@ public class CommonDataJsonIzer extends AbstractDataJsonIzer {
     }
 
 }
-
