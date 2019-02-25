@@ -31,7 +31,7 @@ pipeline {
             agent { node { label 'docker' } }
             steps {
                 script {
-                    dockerBuild 'hub.ops.ikats.org/ingestion', 'ikats-ingestion/Dockerfile'
+                    dockerBuild 'hub.ops.ikats.org/ingest', 'ikats-ingestion/Dockerfile'
                 }
             }
         }
