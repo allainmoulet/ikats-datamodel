@@ -1,7 +1,7 @@
 .settings
 .project
 .classpath
-bin
+./bin
 *.class
 *.log
 *.war
@@ -10,3 +10,4 @@ target
 .idea/
 *.iml
 *.versionsBackup
+.vscode/
