@@ -33,28 +33,28 @@ List of java operators at the moment: (see [python operators](https://github.com
 
 ### Import Export
 
-* [Import TS](/doc/operators/importTs.html)
-* [Import Metadata](/doc/operators/importMetadata.html)
+* [Import TS](https://ikats.org/doc/operators/importTs.html)
+* [Import Metadata]((https://ikats.org//doc/operators/importMetadata.html)
 
 ### Dataset Management
 
-* [Dataset Selection](/doc/operators/datasetSelection.html)
-* [Manual Selection](/doc/operators/manualSelection.html)
-* [TS Finder](/doc/operators/tsFinder.html)
-* [Filter](/doc/operators/filter.html)
-* [Merge TS lists](/doc/operators/mergeTsLists.html)
-* [Save as a Dataset](/doc/operators/saveAsDataset.html)
+* [Dataset Selection]((https://ikats.org//doc/operators/datasetSelection.html)
+* [Manual Selection]((https://ikats.org//doc/operators/manualSelection.html)
+* [TS Finder]((https://ikats.org//doc/operators/tsFinder.html)
+* [Filter]((https://ikats.org//doc/operators/filter.html)
+* [Merge TS lists]((https://ikats.org//doc/operators/mergeTsLists.html)
+* [Save as a Dataset]((https://ikats.org//doc/operators/saveAsDataset.html)
 
 ## Pre-Processing on Ts
 
 ### Transforming
 
-* [Ts2Feature](/doc/operators/ts2Feature.html)
-* [Discretize](/doc/operators/discretize.html)
+* [Ts2Feature]((https://ikats.org//doc/operators/ts2Feature.html)
+* [Discretize]((https://ikats.org//doc/operators/discretize.html)
 
 ## Processing On Tables
 
-* [Read Table](/doc/operators/readTable.html)
-* [TrainTestSplit](/doc/operators/trainTestSplit.html)
-* [Merge Tables](/doc/operators/mergeTables.html)
-* [Population Selection](/doc/operators/populationSelection.html)
+* [Read Table]((https://ikats.org//doc/operators/readTable.html)
+* [TrainTestSplit]((https://ikats.org//doc/operators/trainTestSplit.html)
+* [Merge Tables]((https://ikats.org//doc/operators/mergeTables.html)
+* [Population Selection]((https://ikats.org//doc/operators/populationSelection.html)
